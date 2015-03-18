@@ -1,0 +1,15 @@
+{
+	"name": "numberserp/framework",
+	"type": "library",
+	"description": "Lightweight MVC PHP Framework",
+	"authors": [
+		{
+			"name": "Volodymyr Volynets",
+			"email": "volodymyr.volynets@gmail.com"
+		}
+	],
+	"require": {
+		"php": ">=5.0.0"
+	},
+	"license": "Apache License 2.0"
+}
