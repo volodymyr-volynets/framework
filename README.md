@@ -1,2 +1,2 @@
-# framework
-PHP Framework
+# Framework
+Lightweight MVC PHP Framework

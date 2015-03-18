@@ -1,0 +1,396 @@
+<?php
+
+/**
+ * Application Class
+ */
+class application {
+
+	/**
+	 * Application settings
+	 *
+	 * @var array
+	 */
+	protected static $settings = array();
+
+	/**
+	 * Process ini file
+	 *
+	 * @param string $ini_file
+	 * @param string $environment
+	*/
+	public static function ini($ini_file, $environment) {
+		$result = array();
+		$data = parse_ini_file($ini_file, true);
+		foreach ($data as $section=>$values) {
+			$sections = explode(',', $section);
+			if (empty($values) || (!in_array($environment, $sections) && !in_array('*', $sections))) continue;
+			foreach ($values as $k=>$v) {
+				array_key_set($result, explode('.', $k), $v);
+			}
+		}
+		return $result;
+	}
+
+	/**
+	 * Access to settings, we can get a set of keys
+	 * @param mixed $key
+	 * @param array $decrypt_keys
+	 * @return mixed
+	 */
+	public static function get($keys = null, $decrypt_keys = array()) {
+		$options = array_key_get(self::$settings, $keys);
+		// decrypting certain columns
+		if (!empty($decrypt_keys)) {
+			array_walk_recursive($options, create_function('&$v, $k, $fn', 'if (in_array($k, $fn)) $v = cryptography::decrypt($v);'), $decrypt_keys);
+		}
+		return $options;
+	}
+	
+	/**
+	 * Set value in settings
+	 * 
+	 * @param unknown_type $keys
+	 * @param unknown_type $value
+	 */
+	public static function set($keys, $value, $options = array()) {
+		array_key_set(self::$settings, $keys, $value, $options);
+	}
+
+	/**
+	 * Run application
+	 *
+	 * @param string $location - where to load application from
+	 * @param string $environment - production, staging, testing, development
+	 */
+	public static function run($application_name, $application_path, $environment = 'production', $options = array()) {
+		// support functions
+		require("functions.php");
+
+		// fixing location paths
+		$application_path = rtrim($application_path, '/') . '/';
+
+		// loading ini files
+		$ini_folder = isset($options['ini_folder']) ? (rtrim($options['ini_folder'], '/') . '/') : $application_path;
+		$ini_files = array($ini_folder . 'application.ini', $ini_folder . 'localhost.ini');
+		foreach ($ini_files as $ini_file) {
+			if (file_exists($ini_file)) {
+				$ini_data = self::ini($ini_file, $environment);
+				self::$settings = array_merge2(self::$settings, $ini_data);
+			}
+		}
+
+		// making variables accesible though settings function
+		self::$settings['environment'] = $environment;
+		self::$settings['application']['name'] = $application_name;
+		self::$settings['application']['path'] = $application_path;
+		//self::$settings['media']['path'] = '/' . $application_name . '/public_html/';
+		//self::$settings['media']['url'] = '/' . $application_name . '/';
+		
+		// settings system variables
+		self::$settings['layout'] = array();
+
+		// processing php settings
+		if (isset(self::$settings['php'])) {
+			foreach (self::$settings['php'] as $k=>$v) {
+				if (is_array($v)) {
+					foreach ($v as $k2=>$v2) {
+						ini_set($k . '.' . $k2, $v2);
+					}
+				} else {
+					ini_set($k, $v);
+				}
+			}
+		}
+
+		// Main Try Catch block
+		try {
+			
+			// third party autoloader
+			if (!empty(self::$settings['application']['autoloader'])) {
+				require_once(self::$settings['application']['autoloader']);
+			}
+			
+			// automatic class loading
+			spl_autoload_register(array('application', 'autoloader'));
+	
+			// working directory is location of the application
+			chdir($application_path);
+			$application_path = getcwd();
+	
+			// setting include_path
+			$paths = array();
+			$paths[] = __DIR__;
+			$paths[] = __DIR__.'/..';
+			$paths[] = $application_path;
+			set_include_path(implode(PATH_SEPARATOR, $paths));
+
+			// Destructor
+			register_shutdown_function(array('bootstrap', 'destroy'));
+			
+			// Bootstrap Class
+			$bootstrap = new bootstrap();
+			$bootstrap_methods = get_class_methods($bootstrap);
+			foreach ($bootstrap_methods as $method) {
+				if (strpos($method, 'init')===0) call_user_func(array($bootstrap, $method));
+         	}
+			 
+			// processing mvc settings
+			self::set_mvc();
+			
+			// if we have a dot in the url we need to handle it differently
+			if (strpos(self::$settings['mvc']['controller_class'], 'captcha.jpg')!==false) {
+				$type = str_replace(array('controller_', '_captcha.jpg'), '',self::$settings['mvc']['controller_class']);
+				require('./controller/captcha.jpg');
+				exit;
+			}
+			
+			// check if controller exists
+			$file = './' . str_replace('_', '/', self::$settings['mvc']['controller_class'] . '.php');
+			if (!file_exists($file)) {
+				Throw new Exception('File not found!');
+			}
+			
+			// initialize the controller
+			$controller_class = self::$settings['mvc']['controller_class'];
+			$controller = new $controller_class;
+			self::$settings['controller'] = get_object_vars($controller);
+			
+			// dispatch before, we need some settings from the controller
+			if (!empty(self::$settings['application']['dispatch']['before_controller'])) {
+				call_user_func(self::$settings['application']['dispatch']['before_controller']);
+			}
+			
+			// todo: add singleton processing here
+			if (!empty(self::$settings['controller']['singleton'])) {
+				Throw new Exception('This script is being run by another user!');
+			}
+			
+			self::process();
+			
+			// dispatch after controller
+			if (!empty(self::$settings['application']['dispatch']['after_controller'])) {
+				call_user_func(self::$settings['application']['dispatch']['after_controller']);
+			}
+			
+		} catch (Exception $e) {
+			$previous_output = @ob_get_clean();
+			self::set_mvc('/error/~error/500');
+			self::process(array('exception'=>$e));
+		}
+
+		// Headers
+		if (!empty(self::$settings['header']) && !headers_sent()) {
+			foreach (self::$settings['header'] as $k=>$v) header($v);
+		}
+	}
+
+	/**
+	 * Load classes
+	 *
+	 * @param string $class
+	 */
+	public static function autoloader($class) {
+		if (class_exists($class, false) || interface_exists($class, false)) {
+			return;
+		}
+		$file = str_replace('_', DIRECTORY_SEPARATOR, $class) . '.php';
+		require_once($file);
+	}
+
+	/**
+	 * Parse request string into readable array
+	 *
+	 * @param string $url
+	 * @return array
+	 */
+	public static function mvc($url = '') {
+
+		// this function would return these variables
+		$result = array(
+			'controller' => '',
+			'action' => '',
+			'id' => 0,
+			'controllers' => array(),
+		);
+		 
+		// remove an extra backslashes from left side
+		$request_uri = explode('?', trim($url, '/'));
+		$request_uri = @$request_uri[0];
+		 
+		// determine action and controller
+		$parts = explode('/', $request_uri);
+		$flag_action_found = false;
+		$flag_id_found = false;
+		foreach ($parts as $part) {
+			if (empty($part)) continue;
+			if (strpos($part, '~')!==false) {
+				$flag_action_found = true;
+				$result['action'] = str_replace('~', '', $part);
+				continue;
+			}
+			if (!$flag_action_found) {
+				$result['controllers'][] = $part;
+			}
+			if ($flag_action_found) {
+				$result['id'] = $part;
+			}
+		}
+		 
+		// set default values for action and controller
+		if (empty($result['controllers'])) {
+			$result['controllers'][] = 'index';
+		}
+		$result['controller'] = '/' . implode('/', $result['controllers']);
+		$result['controller'] = str_replace('_', '/', $result['controller']);
+		if (empty($result['action'])) {
+			$result['action'] = 'index';
+		}
+		// full string
+		$result['full'] = $result['controller'] . '/~' . $result['action'];
+		return $result;
+	}
+
+	/**
+	 * Setting Mvc
+	 *
+	 * @param string $request_uri
+	 */
+	private static function set_mvc($request_uri = null) {
+		// storing previous mvc settings
+		if (!empty(self::$settings['mvc']['module'])) {
+			if (!isset(self::$settings['mvc_prev'])) {
+				self::$settings['mvc_prev'] = array();
+			}
+			self::$settings['mvc_prev'][] = self::$settings['mvc'];
+		}
+		// processing
+		$request_uri = !empty($request_uri) ? $request_uri : $_SERVER['REQUEST_URI'];
+
+		// routing based on rules
+		$request_uri = self::route($request_uri);
+
+		// parsing request
+		$data = self::mvc($request_uri);
+
+		// forming class name and method
+		$controller_class = 'controller_' . str_replace(' ', '_', implode(' ', $data['controllers']));
+		$controller_action = 'action_' . $data['action'];
+		self::$settings['mvc'] = $data;
+		self::$settings['mvc']['controller_class'] = $controller_class;
+		self::$settings['mvc']['controller_action'] = $controller_action;
+		self::$settings['mvc']['controller_view'] = $data['action'];
+		self::$settings['mvc']['controller_layout'] = 'index';
+	}
+
+	/*
+	 * Processing and generating layout
+	 * 
+	 * @return string
+	 */
+	private static function process($options = array()) {
+
+		// get buffer content in case it is auto mode
+		$buffer = @ob_end_clean();
+
+		// start buffering
+		ob_start();
+		
+		$controller_class = self::$settings['mvc']['controller_class'];
+		$controller = new $controller_class;
+		
+		// processing options
+ 		if (!empty($options)) {
+ 			foreach ($options as $k=>$v) $controller->{$k} = $v;
+ 		}
+		
+ 		// auto populating input property in controller
+ 		if (!empty(self::$settings['application']['controller']['input'])) {
+ 			$controller->input = request::input(null, true, true);
+ 		}
+ 		
+		// init method
+		if (method_exists($controller, 'init')) {
+			call_user_func(array($controller, 'init'));
+		}
+		
+		// check if action exists
+		$action = self::$settings['mvc']['controller_action'];
+		if (!method_exists($controller, $action)) {
+			Throw new Exception('Action does not exists!');
+		}
+		
+		// calling action
+		call_user_func(array($controller, $action));
+		
+		// auto rendering view only if view exists, processing extension order as specified in .ini file
+		$view = self::$settings['mvc']['controller_view'];
+		if (!empty($view)) {
+			$extensions = explode(',', @self::$settings['application']['view']['extension'] ? self::$settings['application']['view']['extension'] : 'html');
+			$flag_view_found = false;
+			foreach ($extensions as $extension) {
+				$file = './controller/' . implode('/', self::$settings['mvc']['controllers']) . '.' . $view . '.' . $extension;
+				if (file_exists($file)) {
+					$controller = new view($controller, $file, $extension);
+					$flag_view_found = true;
+					break;
+				}
+			}
+			// if views are mandatory
+			if (@self::$settings['application']['view']['mandatory'] && !$flag_view_found) {
+				Throw new Exception('View ' . $view . ' does not exists!');
+			}
+		}
+		
+		// appending view after controllers output
+		$controller->view = @$controller->view . @ob_get_clean();
+		
+		// rendering layout
+		if (!empty(self::$settings['mvc']['controller_layout'])) {
+			ob_start();
+			$file = './layout/' . self::$settings['mvc']['controller_layout'] . '.' . @self::$settings['application']['layout']['extension'];
+			if (file_exists($file)) {
+				$controller = new layout($controller, $file);
+			}
+			// buffer output and handling javascript files
+			echo str_replace('<!-- JavaScript Files -->', layout::render_js(), @ob_get_clean());
+		} else {
+			echo $controller->layout;
+		}
+		flush();
+	}
+
+	/**
+	 * Changing view or layout
+	 * @param string $what [layout,view]
+	 * @param string $how
+	 */
+	public static function change($what, $how) {
+		switch ($what) {
+			case 'layout':
+				self::$settings['mvc']['controller_layout'] = $how;
+				break;
+			case 'view':
+				self::$settings['mvc']['controller_view'] = $how;
+				break;
+		}
+	}
+
+	/**
+	 * Routing, allow re-routing
+	 *
+	 * @param string $uri
+	 * @return string
+	 */
+	private static function route($uri) {
+		$result = $uri;
+		if (!empty(self::$settings['routes'])) {
+			foreach (self::$settings['routes'] as $v) {
+				$regex = '#^' . $v['regex'] . '#i';
+				if (preg_match($regex, $result, $values)) {
+					$result = $v['new'];
+				}
+			}
+		}
+		return $result;
+	}
+}
