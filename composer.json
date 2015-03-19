@@ -14,7 +14,8 @@
 		"phpoffice/phpexcel": "~1.8",
         "phpmailer/phpmailer": "~5.2",
         "tecnick.com/tcpdf": "~6.2",
-        "gregwar/captcha": "~1.0"
+        "gregwar/captcha": "~1.0",
+        "crodas/text-rank": "dev-master"
 	},
 	"license": "Apache License 2.0"
 }
