@@ -551,6 +551,7 @@ class db {
 		    'orderby' => ''
 		);
 		$str_escaped = self::escape(trim($str), $link);
+		$flag_do_not_escape = false;
 		if (!empty($fields)) {
 		    $sql = '';
 		    $sql2 = '';
@@ -562,6 +563,7 @@ class db {
 				}
 				$sql2 = " OR (" . implode(" OR ", $temp) . ")";
 		    } else {
+		    	if (strpos($fields, '::tsvector')!==false) $flag_do_not_escape = true;
 				$sql = $fields;
 				$sql2 = " OR $fields::text ILIKE '%" . $str_escaped . "'";
 			}
@@ -576,8 +578,15 @@ class db {
 		    }
 		    $escaped = self::escapets($str, $operator, $link);
 		    if ($escaped) {
-				$result['where'] = " AND (to_tsvector('simple', $sql) @@ to_tsquery('simple', '" . $escaped . "') $sql2)";
-				$result['orderby'] = " (ts_rank_cd(to_tsvector($sql), to_tsquery('simple', '" . $escaped . "')))" . ($desc ? " DESC" : "ASC");
+				if ($flag_do_not_escape) {
+					$result['where'] = " AND ($sql @@ to_tsquery('simple', '" . $escaped . "') $sql2)";
+					$result['orderby'] = " (ts_rank_cd($sql, to_tsquery('simple', '" . $escaped . "')))" . ($desc ? " DESC" : "ASC");
+					$result['rank'] = "(ts_rank_cd($sql, to_tsquery('simple', '" . $escaped . "')))";
+				} else {
+					$result['where'] = " AND (to_tsvector('simple', $sql) @@ to_tsquery('simple', '" . $escaped . "') $sql2)";
+					$result['orderby'] = " (ts_rank_cd(to_tsvector($sql), to_tsquery('simple', '" . $escaped . "')))" . ($desc ? " DESC" : "ASC");
+					$result['rank'] = "(ts_rank_cd(to_tsvector($sql), to_tsquery('simple', '" . $escaped . "')))";
+				}
 		    }
 		}
 		return $result;
