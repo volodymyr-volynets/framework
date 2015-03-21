@@ -43,8 +43,26 @@ class keywords {
 		//$text = preg_replace("/[^A-Za-z0-9 ]/", '', $text);
 		// remove line breaks / tabs
 		$text = str_replace(array("\r\n", "\r", "\n", "\t"), " ", $text);
+		$text = trim($text);
 		// remove extra white characters
 		$text = preg_replace("/\s+/", " ", $text);
 		return $text;
+	}
+	
+	/**
+	 * Highlight keywords
+	 *
+	 * @param string $text
+	 * @param string $words
+	 * @return string
+	 */
+	public static function highlight($text, $words, $tag = array('<b>', '</b>')) {
+		$text = self::strip($text);
+		preg_match_all('~\w+~', $words, $m);
+		if(!$m) {
+			return $text;
+		}
+		$re = '~\\b(' . implode('|', $m[0]) . ')\\b~i';
+		return preg_replace($re, $tag[0] . '$0' . $tag[1], $text);
 	}
 }
