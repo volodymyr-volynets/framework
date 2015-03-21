@@ -689,4 +689,58 @@ class h {
 		layout::onload($js);
 		return $result;
     }
+    
+    /**
+     * Catcomplete
+     * 
+     * @param array $options
+     * @return string
+     */
+    public static function catcomplete($options) {
+    	$result = h::input($options);
+    	
+    	// including files
+    	layout::add_js('/jquery/js/jquery.catcomplete.js');
+    	layout::add_css('/jquery/css/jquery.catcomplete.css');
+    	
+    	$keyword = '';
+    	if (!empty($options['keyword'])) {
+    		$keyword = <<<TTT
+    			, select: function(event, ui) {
+					$.ajax({
+						url: "{$options['keyword']}",
+						dataType: "json",
+						data: {
+							q: ui.item.value
+						},
+						success: function(data) {
+							response(data);
+						}
+					});
+				}
+TTT;
+    	}
+    	
+    	// building widget
+    	$js = <<<TTT
+    		$('#{$options['id']}').catcomplete({
+    			source: function(request, response) {
+					$.ajax({
+						url: "{$options['ajax']}",
+						dataType: "json",
+						data: {
+							q: request.term
+						},
+						success: function(data) {
+							response(data);
+						}
+					});
+				},
+				minLength: 1
+				{$keyword}
+			});
+TTT;
+    	layout::onload($js);
+    	return $result;
+    }
 }
