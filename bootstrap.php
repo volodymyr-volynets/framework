@@ -71,9 +71,8 @@ class bootstrap {
 		session_write_close();
 
 		// kill db connections
-		$db = Application::get('db');
-		if (!empty($db)) {
-			foreach ($db as $db_link=>$db_settings) {
+		if (!empty(db::$links)) {
+			foreach (db::$links as $db_link=>$db_settings) {
 				db::close($db_link);
 			}
 		}
