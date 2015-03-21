@@ -15,17 +15,11 @@ class bootstrap {
 		$input = request::input(null, true, true);
 		$mvc = application::mvc($_SERVER['REQUEST_URI']);
 		
-		// internatilization
+		// internationalization
 		$i18n = application::get(array('i18n'));
 		if (!empty($i18n)) {
 			$current_lang = !empty($input[$i18n['current_variable']]) ? $input[$i18n['current_variable']] : $i18n['default'];
 			$class_i18n = new i18n($i18n['default'], $current_lang, $i18n['path']);
-		}
-		
-		// system self check
-		$check = application::get(array('syscheck'));
-		if (!empty($check['enabled']) && !empty($input[@$check['request']])) {
-			system::check($check);
 		}
 		
 		// create database connections
