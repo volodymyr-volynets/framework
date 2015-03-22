@@ -117,13 +117,15 @@ class search {
 						$ms.= ' ' . h::a(array('href'=>$url_type, 'value'=>$types[$v['type']]['name'], 'style'=>'color:black;'));
 						$ms.= '<br/>';
 						$ms.= h::a(array('href'=>$url_post, 'value'=>$url_post, 'style'=>'color: green;'));
-						$ms.= '<br/>';
 						if (!empty($input['full_text_search'])) {
+							$ms.= '<br/>';
 							$temp = keywords::highlight($v['body'], $input['full_text_search'], array('<b style="color:red;">', '</b>'));
 						} else {
+							$ms.= '<br/>';
 							$temp = $v['body'];
 						}
 						$ms.= $temp;
+						$ms.= '<br/>';
 						$ms.= '<br/>';
 					$ms.= '</td>';
 				$ms.= '</tr>';
