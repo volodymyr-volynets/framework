@@ -75,7 +75,7 @@ class request {
      */
     public static function host($params = array()) {
 		$protocol = @$params['protocol'] ? $params['protocol'] : '';
-		if (!$protocol) $protocol = (!getenv('HTTPS') || getenv('HTTPS')=='off') ? 'http' : 'https';
+		if (!$protocol) $protocol = self::is_ssl() ? 'https' : 'http';
 		$host = @$params['ip'] ? (getenv('SERVER_ADDR') . ':' . getenv('SERVER_PORT')) : getenv('HTTP_HOST');
 		if (@$params['level3']) {
 			$host = str_replace('www.', '', $host);

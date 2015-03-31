@@ -25,7 +25,12 @@ class db {
 		    'success' => false
 		);
 		if (empty(self::$links[$link]['index'])) {
-		    $str = 'host=' . $parameters['host'] . ' port=' . $parameters['port'] . ' dbname=' . $parameters['dbname'] . ' user=' . $parameters['username'] . ' password=' . $parameters['password'];
+			// we could pass an array or connection string right a way
+			if (is_array($parameters)) {
+				$str = 'host=' . $parameters['host'] . ' port=' . $parameters['port'] . ' dbname=' . $parameters['dbname'] . ' user=' . $parameters['username'] . ' password=' . $parameters['password'];
+			} else {
+				$str = $parameters;
+			}
 		    $connection = pg_connect($str);
 		    if ($connection !== false) {
 				self::$links[$link]['index'] = $connection;
@@ -37,7 +42,7 @@ class db {
 				$result['status'] = pg_connection_status(self::$links[$link]['index']) === PGSQL_CONNECTION_OK ? 1 : 0;
 				$result['success'] = true;
 		    } else {
-				$result['error'][] = 'Db::connect() : Could not connect to ' . $str;
+				$result['error'][] = 'db::connect() : Could not connect to ' . $str;
 				$result['errno'] = 1;
 		    }
 		} else {

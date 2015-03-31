@@ -81,12 +81,12 @@ class session {
 	
         // overriding session handlers using new functions
         session_set_save_handler(
-            array('Session', '_open'),
-            array('Session', '_close'),
-            array('Session', '_read'),
-            array('Session', '_write'),
-            array('Session', '_destroy'),
-            array('Session', '_gc')
+            array('session', '_open'),
+            array('session', '_close'),
+            array('session', '_read'),
+            array('session', '_write'),
+            array('session', '_destroy'),
+            array('session', '_gc')
         );
         
         // starting session
