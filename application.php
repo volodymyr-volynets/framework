@@ -73,7 +73,8 @@ class application {
 		do {
 			// see if we have cached version
 			if (!empty($options['cache'])) {
-				$data = cache::get('application.ini', $options['cache']);
+				$cache_id = cache::id('application.ini.php');
+				$data = cache::get($cache_id, $options['cache']);
 				if ($data!==false) {
 					self::$settings = $data;
 					self::$settings['cache']['php'] = cache::$adapters['php'];
@@ -93,7 +94,7 @@ class application {
 			
 			// at this point we need to store data in cache
 			if (!empty($options['cache'])) {
-				cache::set('application.ini', self::$settings, 0, null, $options['cache']);
+				cache::set($cache_id, self::$settings, 0, null, $options['cache']);
 			}
 		} while(0);
 		
@@ -208,7 +209,7 @@ class application {
 			$company_id = session::get('company_id');
 			if (!empty($company_id)) {
 				$custom_file = self::$settings['application']['path'] . 'custom/'  . $company_id . '/' . str_replace('_', DIRECTORY_SEPARATOR, $class) . '.php';
-				$cached_file = self::$settings['application']['path'] . 'cache/custom/'  . str_replace('_', DIRECTORY_SEPARATOR, $class) . '.php';
+				$cached_file = self::$settings['application']['path'] . 'cache/custom/' . $company_id . '/'  . str_replace('_', DIRECTORY_SEPARATOR, $class) . '.php';
 				$cached_dir = pathinfo($cached_file, PATHINFO_DIRNAME);
 				
 				// if we have custom file
@@ -216,7 +217,7 @@ class application {
 					// generate cached version of the file
 					if (!file_exists($cached_file)) {
 						$content = file_get_contents($file);
-						$content = str_replace('class ' . $class . ' {', 'class cache_custom_' . $class . ' {', $content);
+						$content = str_replace('class ' . $class . ' {', 'class cache_custom_' . $company_id . '_' . $class . ' {', $content);
 						if (!file_exists($cached_dir)) file::mkdir($cached_dir);
 						file::write($cached_file, $content, 0777);
 					}
@@ -224,6 +225,9 @@ class application {
 				}
 			}
 		}
+		// we need to store class path so we can load js and css files
+		global $__class_paths;
+		$__class_paths[$class] = $file;
 		require_once($file);
 	}
 
@@ -234,8 +238,6 @@ class application {
 	 * @return array
 	 */
 	public static function mvc($url = '') {
-
-		// this function would return these variables
 		$result = array(
 			'controller' => '',
 			'action' => '',
@@ -353,12 +355,15 @@ class application {
 		call_user_func(array($controller, $action));
 		
 		// auto rendering view only if view exists, processing extension order as specified in .ini file
+		global $__class_paths;
+		$controller_dir = pathinfo($__class_paths[$controller_class], PATHINFO_DIRNAME) . '/';
+		$controller_file = end(self::$settings['mvc']['controllers']);
 		$view = self::$settings['mvc']['controller_view'];
 		if (!empty($view)) {
 			$extensions = explode(',', @self::$settings['application']['view']['extension'] ? self::$settings['application']['view']['extension'] : 'html');
 			$flag_view_found = false;
 			foreach ($extensions as $extension) {
-				$file = './controller/' . implode('/', self::$settings['mvc']['controllers']) . '.' . $view . '.' . $extension;
+				$file = $controller_dir  . $controller_file . '.' . $view . '.' . $extension;
 				if (file_exists($file)) {
 					$controller = new view($controller, $file, $extension);
 					$flag_view_found = true;
@@ -368,6 +373,23 @@ class application {
 			// if views are mandatory
 			if (@self::$settings['application']['view']['mandatory'] && !$flag_view_found) {
 				Throw new Exception('View ' . $view . ' does not exists!');
+			}
+		}
+		
+		// autoloading media files
+		if (!empty(self::$settings['application']['controller']['media'])) {
+			$company_id = session::get('company_id');
+			$extensions = explode(',', self::$settings['application']['controller']['media']);
+			foreach ($extensions as $extension) {
+				$file = $controller_dir . $controller_file . '.' . $extension;
+				$cache_id = cache::id($file, $company_id);
+				$http_file = '/cache/' . $cache_id;
+				if (file_exists($file)) {
+					cache::set($cache_id, file_get_contents($file), null, null, 'media');
+					// including media into layout
+					if ($extension=='css') layout::add_css($http_file);
+					if ($extension=='js') layout::add_js($http_file);
+				}
 			}
 		}
 		

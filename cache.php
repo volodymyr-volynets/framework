@@ -11,6 +11,7 @@ class cache {
 	 * @var array
 	 */
 	private static $adapter_types = array(
+		'media' => array('class'=>'cache_media'),
 		'file' => array('class'=>'cache_file'),
 		'php' => array('class'=>'cache_php'),
 	);
@@ -36,6 +37,19 @@ class cache {
 	 */
 	public static function adapter($id) {
 		return @self::$adapters[$id];
+	}
+	
+	/**
+	 * Generate unique id based on filename and company name
+	 * 
+	 * @param string $filename
+	 * @param int $company
+	 * @return string
+	 */
+	public static function id($filename, $company = null) {
+		$path_parts = pathinfo($filename);
+		if (empty($company)) $company = '';
+		return crypt::hash('/' . $company . '/' . $filename) . '.' . $path_parts['extension'];
 	}
 	
 	/**

@@ -54,6 +54,7 @@ class layout extends view {
 	 * @param int $sort
 	 */
 	public static function add_js($js, $sort = 0) {
+		$js = str_replace('\\', '/', $js);
 		application::set(array('layout', 'js', $js), $sort);
 	}
 	

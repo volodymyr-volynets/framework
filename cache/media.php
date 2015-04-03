@@ -1,6 +1,6 @@
 <?php
 
-class cache_php implements cache_interface {
+class cache_media implements cache_interface {
 	
 	/**
 	 * Get data from cache
@@ -25,8 +25,7 @@ class cache_php implements cache_interface {
 			}
 			
 			// returning required content
-			require($data_name);
-			return $__cache_php_data_name;
+			return file_get_contents($data_name);
 		} while(0);
 		return false;
 	}
@@ -46,7 +45,7 @@ class cache_php implements cache_interface {
 		if ($adapter) {
 			// writing data first
 			$data_name = $adapter['dir'] . $cache_id;
-			file::write($data_name, '<?php $__cache_php_data_name = ' . var_export($data, true) . '; ?>');
+			file::write($data_name, $data);
 			return true;
 		}
 		return false;
