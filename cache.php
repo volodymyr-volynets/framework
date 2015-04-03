@@ -11,7 +11,8 @@ class cache {
 	 * @var array
 	 */
 	private static $adapter_types = array(
-		'file' => array('class'=>'cache_file'),		
+		'file' => array('class'=>'cache_file'),
+		'php' => array('class'=>'cache_php'),
 	);
 	
 	/**
@@ -49,7 +50,7 @@ class cache {
 			// handling cache type
 			$options['type'] = strtolower($options['type']);
 			if (empty($options['type'])) {
-				$options['type'] = 'php';
+				$options['type'] = 'file';
 			}
 			
 			// lifetime
@@ -58,13 +59,13 @@ class cache {
 			}
 			
 			// handling directory
-			if ($options['type'] == 'file') {
+			if ($options['type']=='file' || $options['type']=='php') {
 				if (empty($options['dir'])) {
 					$result['error'][] = 'You must specify directory!';
 					break;
 				}
 				$options['dir'] = rtrim($options['dir'], '/') . '/';
-				if ($options['key']) $options['dir'].= $options['key'] . '/';
+				if (@$options['key']) $options['dir'].= $options['key'] . '/';
 				// create a cache directory
 				if (!file_exists($options['dir'])) mkdir($options['dir'], 0777, true);
 			}

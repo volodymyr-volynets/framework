@@ -114,6 +114,16 @@ class file {
 	}
 	
 	/**
+	 * 
+	 * @param string $dir
+	 * @param octal $permission
+	 * @return boolean
+	 */
+	public static function mkdir($dir, $permission = 0777) {
+		return mkdir($dir, $permission, true);
+	}
+	
+	/**
 	 * Remove directory with its content
 	 * 
 	 * @param unknown_type $dir

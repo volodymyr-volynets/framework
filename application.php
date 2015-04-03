@@ -70,21 +70,37 @@ class application {
 		$application_path = rtrim($application_path, '/') . '/';
 
 		// loading ini files
-		$ini_folder = isset($options['ini_folder']) ? (rtrim($options['ini_folder'], '/') . '/') : $application_path;
-		$ini_files = array($ini_folder . 'application.ini', $ini_folder . 'localhost.ini');
-		foreach ($ini_files as $ini_file) {
-			if (file_exists($ini_file)) {
-				$ini_data = self::ini($ini_file, $environment);
-				self::$settings = array_merge2(self::$settings, $ini_data);
+		do {
+			// see if we have cached version
+			if (!empty($options['cache'])) {
+				$data = cache::get('application.ini', $options['cache']);
+				if ($data!==false) {
+					self::$settings = $data;
+					self::$settings['cache']['php'] = cache::$adapters['php'];
+					break;
+				}
 			}
-		}
-
+			
+			// loading and processing ini files
+			$ini_folder = isset($options['ini_folder']) ? (rtrim($options['ini_folder'], '/') . '/') : $application_path;
+			$ini_files = array($ini_folder . 'application.ini', $ini_folder . 'localhost.ini');
+			foreach ($ini_files as $ini_file) {
+				if (file_exists($ini_file)) {
+					$ini_data = self::ini($ini_file, $environment);
+					self::$settings = array_merge2(self::$settings, $ini_data);
+				}
+			}
+			
+			// at this point we need to store data in cache
+			if (!empty($options['cache'])) {
+				cache::set('application.ini', self::$settings, 0, null, $options['cache']);
+			}
+		} while(0);
+		
 		// making variables accesible though settings function
 		self::$settings['environment'] = $environment;
 		self::$settings['application']['name'] = $application_name;
 		self::$settings['application']['path'] = $application_path;
-		//self::$settings['media']['path'] = '/' . $application_name . '/public_html/';
-		//self::$settings['media']['url'] = '/' . $application_name . '/';
 		
 		// settings system variables
 		self::$settings['layout'] = array();
@@ -105,14 +121,6 @@ class application {
 		// Main Try Catch block
 		try {
 			
-			// third party autoloader
-			if (!empty(self::$settings['application']['autoloader'])) {
-				require_once(self::$settings['application']['autoloader']);
-			}
-			
-			// automatic class loading
-			spl_autoload_register(array('application', 'autoloader'));
-	
 			// working directory is location of the application
 			chdir($application_path);
 			$application_path = getcwd();
@@ -193,7 +201,29 @@ class application {
 		if (class_exists($class, false) || interface_exists($class, false)) {
 			return;
 		}
+		// we need to check if we have customization for classes, we only allow 
+		// customizaton for models and controllers
 		$file = str_replace('_', DIRECTORY_SEPARATOR, $class) . '.php';
+		if (strpos($class, 'model_')!==false || strpos($class, 'controller_')!==false) {
+			$company_id = session::get('company_id');
+			if (!empty($company_id)) {
+				$custom_file = self::$settings['application']['path'] . 'custom/'  . $company_id . '/' . str_replace('_', DIRECTORY_SEPARATOR, $class) . '.php';
+				$cached_file = self::$settings['application']['path'] . 'cache/custom/'  . str_replace('_', DIRECTORY_SEPARATOR, $class) . '.php';
+				$cached_dir = pathinfo($cached_file, PATHINFO_DIRNAME);
+				
+				// if we have custom file
+				if (file_exists($custom_file)) {
+					// generate cached version of the file
+					if (!file_exists($cached_file)) {
+						$content = file_get_contents($file);
+						$content = str_replace('class ' . $class . ' {', 'class cache_custom_' . $class . ' {', $content);
+						if (!file_exists($cached_dir)) file::mkdir($cached_dir);
+						file::write($cached_file, $content, 0777);
+					}
+					$file = $custom_file;
+				}
+			}
+		}
 		require_once($file);
 	}
 
