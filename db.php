@@ -26,7 +26,7 @@ class db {
 		);
 		if (empty(self::$links[$link]['index'])) {
 			// we could pass an array or connection string right a way
-			if (is_array($parameters)) {
+			if (!is_string($parameters)) {
 				$str = 'host=' . $parameters['host'] . ' port=' . $parameters['port'] . ' dbname=' . $parameters['dbname'] . ' user=' . $parameters['username'] . ' password=' . $parameters['password'];
 			} else {
 				$str = $parameters;
@@ -186,10 +186,10 @@ class db {
 		$resource = @pg_query(self::$links[$link]['index'], $sql);
 		$result['status'] = pg_result_status($resource);
 		if (!$resource || $result['status'] > 4) {
-		    $result['error'][] = self::error($link);
+		    $result['error'][] = 'Link ' . $link . ': ' . self::error($link);
 		    $result['errno'] = self::errno($link);
 		    if (empty($result['error'])) {
-				$result['error'][] = 'Unspecified error!';
+				$result['error'][] = 'Link ' . $link . ': ' . 'Unspecified error!';
 		    }
 		    // we log this error message
 			error_log('Query error: ' . implode(' ', $result['error']) . ' [' . $sql . ']');

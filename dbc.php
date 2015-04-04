@@ -330,7 +330,7 @@ TTT;
      * @param array $options
      * @return array
      */
-    public static function compare_schema($master_link, $slave_link, $options = array()) {
+    public static function compare_schema($master_link, $slave_link, $template, $options = array()) {
         $result = array(
             'success' => true,
             'error' => array(),
@@ -343,6 +343,7 @@ TTT;
             foreach (array('schemas', 'columns', 'constraints', 'views', 'domains', 'sequences', 'functions', 'triggers') as $v) {
                 // master database first
                 $temp = self::get($v, $master_link);
+				foreach ($temp['data'] as $k2=>$v2) if (!isset($template[$k2])) unset($temp['data'][$k2]);
                 if (!$temp['success']) {
                     $result['error'] = array_merge($result['error'], $temp['error']);
                 } else {
@@ -350,6 +351,7 @@ TTT;
                 }
                 // slave database second
                 $temp = self::get($v, $slave_link);
+				foreach ($temp['data'] as $k2=>$v2) if (!isset($template[$k2])) unset($temp['data'][$k2]);
                 if (!$temp['success']) {
                     $result['error'] = array_merge($result['error'], $temp['error']);
                 } else {
@@ -686,6 +688,15 @@ TTT;
             }
             
         } while(0);
+		
+		// we need to clean up the data
+		if (!empty($options['clean'])) {
+			foreach ($result['data'] as $k=>$v) {
+				if (empty($v)) unset($result['data'][$k]);
+			}
+		}
+		
+		// success if no errors
         if (empty($result['error'])) $result['success'] = true;
         return $result;
     }
@@ -906,6 +917,10 @@ TTT;
             // getting information
             $data = array();
             unset($tables['*']);
+			
+			// get a list of primary keys
+			$pks = self::get('constraints', $master_link, array('where'=>array('constraint_type'=>'PRIMARY KEY')));
+			
             foreach ($tables as $k=>$v) {
                 $data['master'] = array();
                 $data['slave'] = array();
@@ -918,27 +933,34 @@ TTT;
                     }
                 }
                 // load primary key
-                if (empty($v['pk'])) continue;
+				$temp = explode('.', $k);
+				$current = current($pks['data']['PRIMARY KEY'][$temp[0]][$temp[1]]);
+				$pk = $current['column_names'];
+				
+				// we skip tables without primary keys
+                if (empty($pk)) continue;
+				
                 // select
                 $sql = "SELECT * FROM $k";
                 // master database first
-                $temp = db::query($sql, $v['pk'], array(), $master_link);
+                $temp = db::query($sql, $pk, array(), $master_link);
                 if (!empty($temp['error'])) {
                     $result['error'] = array_merge($result['error'], $temp['error']);
                 } else {
                     $data['master'] = $temp['rows'];
                 }
                 // slave database second
-                $temp = db::query($sql, $v['pk'], array(), $slave_link);
-                if (!empty($temp['error'])) {
-                    $result['error'] = array_merge($result['error'], $temp['error']);
+                $temp = db::query($sql, $pk, array(), $slave_link);
+				// we have situations when tables does not exists but we need to insert the data
+                if (!empty($temp['error']) && strpos($temp['error'][0], 'ERROR:  42P01:')===false) {
+					$result['error'] = array_merge($result['error'], $temp['error']);
                 } else {
                     $data['slave'] = $temp['rows'];
                 }
                 
                 $full = array_merge5($data['slave'], $data['master']);
                 $diff = array();
-                $pk = array_fix($v['pk']);
+                $pk = array_fix($pk);
                 self::array_diff_assoc_recursive($full, $pk, $pk, $full, $data['master'], $data['slave'], $diff);
                 if (!$delete) unset($diff['delete']);
                 
@@ -947,23 +969,22 @@ TTT;
                     // update first
                     if (!empty($diff['update'])) {
                         foreach ($diff['update'] as $k2=>$v2) {
-                            $result['data'][$k][] = 'UPDATE ' . $k . ' SET ' . db::prepare_condition($v2['value'], ', ', $slave_link) . ' WHERE ' . db::prepare_condition($v2['pk'], 'AND', $slave_link) . ';';
+							$key = implode('::', $v2['pk']);
+                            $result['data']['update'][$k][$key]['sql'] = 'UPDATE ' . $k . ' SET ' . db::prepare_condition($v2['value'], ', ', $slave_link) . ' WHERE ' . db::prepare_condition($v2['pk'], 'AND', $slave_link) . ';';
                         }
                     }
                     // we insert
                     if (!empty($diff['insert'])) {
                         foreach ($diff['insert'] as $k2=>$v2) {
-                            if (empty($v2['value'])) {
-                                print_arr($k);
-                                exit;
-                            }
-                            $result['data'][$k][] = 'INSERT INTO ' . $k . ' (' . db::prepare_expression(array_keys($v2['value'])) . ') VALUES (' . db::prepare_values($v2['value'], $slave_link) . ");";
+							$key = implode('::', $v2['pk']);
+                            $result['data']['insert'][$k][$key]['sql'] = 'INSERT INTO ' . $k . ' (' . db::prepare_expression(array_keys($v2['value'])) . ') VALUES (' . db::prepare_values($v2['value'], $slave_link) . ");";
                         }
                     }
                     // we delete
                     if (!empty($diff['delete'])) {
                         foreach ($diff['delete'] as $k2=>$v2) {
-                            $result['data'][$k][] = 'DELETE FROM ' . $k . ' WHERE ' . db::prepare_condition($v2['pk'], ' AND ', $slave_link) . ';';
+							$key = implode('::', $v2['pk']);
+                            $result['data']['delete'][$k][$key]['sql'] = 'DELETE FROM ' . $k . ' WHERE ' . db::prepare_condition($v2['pk'], ' AND ', $slave_link) . ';';
                         }
                     }
                 }

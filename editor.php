@@ -1,13 +1,15 @@
 <?php
 
-class editor
-{
+class editor {
+	
+	private $model2 = null;
 	
 	public function initialize() {
 		// if we have a model
 		if (!empty($this->model)) {
 			$model_class = $this->model;
 			$model = new $model_class();
+			$this->model2 = $model;
 			
 			if (!empty($model->save_columns)) {
 				if (empty($this->list_columns)) $this->list_columns = $model->save_columns;
@@ -140,7 +142,7 @@ class editor
 		// getting number of records
 		if (@$this->list_count_rows) {
 			$sql = 'SELECT COUNT(*) as rows_count ' . $from;
-			$result = db::query($sql);
+			$result = db::query($sql, null, null, $this->model2->link);
 			if (@$result['error']) {
 				layout::add_message($result['error'], 'error');
 			}
@@ -163,7 +165,7 @@ class editor
 		$sql.= $settings['limit'] ? (' LIMIT ' . $settings['limit']) : '';
 		$sql.= $settings['offset'] ? (' OFFSET ' . $settings['offset']) : '';
 		
-		$result = db::query($sql);
+		$result = db::query($sql, null, null, $this->model2->link);
 		
 		// exporting data
 		if (@$input['flag_editor_export_submit']) {

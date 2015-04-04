@@ -169,12 +169,21 @@ class application {
 				call_user_func(self::$settings['application']['dispatch']['before_controller']);
 			}
 			
-			// todo: add singleton processing here
-			if (!empty(self::$settings['controller']['singleton'])) {
-				Throw new Exception('This script is being run by another user!');
+			// singleton start
+			if (!empty(self::$settings['controller']['singleton_flag'])) {
+				$message = !empty(self::$settings['controller']['singleton_message']) ? self::$settings['controller']['singleton_message'] : 'This script is being run by another user!';
+				$lock_id = "singleton_" . $controller_class;
+				if (lock::process($lock_id)===false) {
+					Throw new Exception($message);
+				}
 			}
 			
 			self::process();
+			
+			// release singleton lock
+			if (!empty(self::$settings['controller']['singleton_flag'])) {
+				lock::release($lock_id);
+			}
 			
 			// dispatch after controller
 			if (!empty(self::$settings['application']['dispatch']['after_controller'])) {
