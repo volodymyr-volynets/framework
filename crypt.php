@@ -48,8 +48,7 @@ class crypt {
 	 */
 	public static function hash($data) {
 		$method = application::get(array('crypt', 'hash'));
-		$method = $method ? $method : 'md5';
-		return $method($data);
+		return hash(($method ? $method : 'md5'), $data);
 	}
 	
 	/**
