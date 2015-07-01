@@ -19,6 +19,13 @@ class layout extends view {
 	private static $onload = '';
 	
 	/**
+	 * Html to be prepended can be stored here
+	 * 
+	 * @var string 
+	 */
+	public static $last_html = '';
+	
+	/**
 	 * Add css file to layout
 	 * 
 	 * @param string $css
