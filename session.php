@@ -1,35 +1,17 @@
 <?php
 
 class session {
-	
-    /**
-     * Max life time
-     * 
-     * @var int
-     */
-    private static $gc_maxlifetime = 0;
-    
-    /**
-     * Table name
-     * 
-     * @var string
-     */
-    private static $table;
 
-    /**
-     * Db link
-     * 
-     * @var string
-     */
-    private static $db_link;
-    
-    /**
-     * Get current user id function
-     * 
-     * @var string
-     */
-    private static $get_user_id_function;
-    
+	/**
+	 * Available adapters
+	 * 
+	 * @var array
+	 */
+	private static $adapter_types = array(
+		'file' => array('class'=>'session_file'),
+		'db' => array('class'=>'session_db')
+	);
+
     /**
      * Array of default options
      * 
@@ -61,15 +43,14 @@ class session {
         'hash_function'             => null,
         'hash_bits_per_character'   => null
     );
-    
+
+	/**
+	 * Starting session
+	 * 
+	 * @param array $options
+	 */
     public static function start($options) {
-        // table, db link and lifetime
-        self::$table = @$options['table'] ? $options['table'] : 'sessions';
-        self::$db_link = @$options['db_link'] ? $options['db_link'] : 'default';
-        self::$gc_maxlifetime = @$options['gc_maxlifetime'] ? $options['gc_maxlifetime'] : self::$_default_options['gc_maxlifetime'];
-        self::$get_user_id_function = @$options['get_user_id_function'];
-        unset($options['table'], $options['db_link'], $options['get_user_id_function']);
-        
+
         // setting default options
         foreach (self::$_default_options as $k=>$v) {
             if (isset($options[$k])) {
@@ -78,17 +59,12 @@ class session {
                 ini_set("session.$k", $v);
             }
         }
-	
-        // overriding session handlers using new functions
-        session_set_save_handler(
-            array('session', '_open'),
-            array('session', '_close'),
-            array('session', '_read'),
-            array('session', '_write'),
-            array('session', '_destroy'),
-            array('session', '_gc')
-        );
-        
+
+		// starting session from adapter
+		if (!isset($options['gc_maxlifetime'])) $options['gc_maxlifetime'] = self::$_default_options['gc_maxlifetime'];
+		$type = isset($options['type']) && isset(self::$adapter_types[$options['type']]) ? $options['type'] : 'file';
+		call_user_func_array(array(self::$adapter_types[$type]['class'], 'start'), array($options));
+
         // starting session
         session_start();
     }
@@ -102,89 +78,6 @@ class session {
     	// destroy the session.
     	session_destroy();
     	session_write_close();
-    }
-    
-    /**
-     * Open a session
-     * 
-     * @param string $path
-     * @param string $name
-     * @return boolean
-     */
-    public static function _open($path, $name) {
-    	return true;
-    }
-    
-    /**
-     * Close session
-     * 
-     * @return boolean
-     */
-    public static function _close() {
-    	return true;
-    }
-    
-    /**
-     * Read session data
-     * 
-     * @param string $id
-     */
-    public static function _read($id) {
-    	$result = db::query("SELECT * FROM " . self::$table . " WHERE ss_session_id = '" . db::escape($id, self::$db_link) . "' AND ss_session_expires >= now()", null, array(), self::$db_link);
-    	if ($result['num_rows'] == 1) {
-    		return $result['rows'][0]['ss_session_values'];
-    	}
-    }
-    
-    /**
-     * Write session data
-     * 
-     * @param string $id
-     * @param array $data
-     * @return boolean
-     */
-    public static function _write($id, $data) {
-    	$ip = request::ip();
-    	$user_id = self::$get_user_id_function ? call_user_func(self::$get_user_id_function) : 0;
-    	$result = db::query("UPDATE " . self::$table . " SET ss_session_expires = now() + interval '" . session::$gc_maxlifetime . " seconds', ss_session_values = '" . db::escape($data, self::$db_link) . "', ss_session_last_requested = now(), ss_session_user_ip = '" . db::escape($ip, self::$db_link) . "', ss_session_user_id = $user_id, ss_session_pages_count = ss_session_pages_count + 1 WHERE ss_session_id = '" . db::escape($id, self::$db_link) . "'", null, array(), self::$db_link);
-    	if (empty($result['affected_rows'])) {
-			$result = db::query("INSERT INTO " . self::$table . " (ss_session_id, ss_session_expires, ss_session_values, ss_session_user_ip, ss_session_user_id, ss_session_pages_count) VALUES ('" .  db::escape($id, self::$db_link) . "', now() + interval '" . session::$gc_maxlifetime . " seconds', '" .  db::escape($data, self::$db_link) . "', '" . db::escape($ip, self::$db_link) . "', $user_id, 1)", null, array(), self::$db_link);
-    	}
-    	return true;
-    }
-    
-    /**
-     * Destroy the session
-     * 
-     * @param string $id
-     * @return boolean
-     */
-    public static function _destroy($id) {
-    	// we set session expired 10 seconds ago, gc will do the rest
-    	$result = db::query("UPDATE " . self::$table . " SET ss_session_expires = now() - interval '10 seconds', ss_session_last_requested = now() WHERE ss_session_id = '" .  db::escape($id, self::$db_link) . "'", null, array(), self::$db_link);
-    	return true;
-    }
-
-    /**
-     * Garbage collector
-     * 
-     * @param int $life
-     * @return boolean
-     */
-    public static function _gc($life) {
-    	$result1 = db::query("DELETE FROM " . self::$table . " WHERE ss_session_expires < now()", null, array(), self::$db_link);
-    	$result2 = db::query("VACUUM " . self::$table, null, array(), self::$db_link);
-    	return true;
-    }
-    
-    /**
-     * Find active session by entity id
-     * 
-     * @param string $ss_session_user_id
-     */
-    public static function get_active_session_by_entity_id($ss_session_user_id) {
-    	$result = Db::query("SELECT ss_session_id FROM " . self::$table . " WHERE ss_session_user_id = " . intval($ss_session_user_id) . " AND sys_sess_expires >= now()");
-    	return @$result['rows'][0]['ss_session_id'];
     }
     
     /**

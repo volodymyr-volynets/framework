@@ -3,20 +3,23 @@
 class sendmail {
 	
 	/**
-	 * Send an email, usage example:
+	 * Send an email
 	 * 
-	 * 	$m = model_mail::send(array(
+	 * Usage example:
+	 * 
+	 * 	$m = sendmail::send(array(
 	 * 		'to' => 'test@localhost',
+	 *		'subject' => 'test subject',
 	 * 		'message' => 'test message',
 	 * 		'attachments' => array(
-	 *	 		array('filepath'=>'../public_html/img/icons/calendar16.png', 'filename'=>'calendar16.png'),
-	 * 			array('filedata'=>'!!!data!!!', 'filename'=>'calendar16.png')
+	 *	 		array('filepath'=>'path to file', 'filename'=>'test.txt'),
+	 * 			array('filedata'=>'!!!data!!!', 'filename'=>'test.txt')
 	 * 		)
 	 * 	));
 	 * 
-	 * @param unknown_type $options
+	 * @param array $options
 	 * @throws Exception
-	 * @return Ambigous <string, multitype:boolean multitype: >
+	 * @return array
 	 */
 	public static function send($options) {
 		$result = array(
@@ -29,7 +32,7 @@ class sendmail {
 		
 		$mail = new PHPMailer();
 		
-		// Set mailer to use SMTP
+		// todo: set mailer to use SMTP
 		/*
 		$smtp = application::get(array('mail', 'smtp'));
  		if (!empty($smtp)) {
@@ -39,21 +42,25 @@ class sendmail {
  		}
  		*/
 		
-		// company mail from & reply to fields
-		$company_email = session::get('company_email');
-		if (!empty($company_email)) {
-			$company_name = session::get('company_name');
-			$mail->SetFrom($company_email, $company_name);
-		} else {
+		// sender fields from session
+		$sender = session::get(array('mail', 'sender'));
+		
+		// if not set in sessions we grab it from ini file
+		if (empty($sender)) {
 			$sender = application::get(array('mail', 'sender'));
-			if (!empty($sender)) {
-				$mail->SetFrom($sender['email'], $sender['name']);
-			}
 		}
 		
 		// override from field
 		if (!empty($options['from'])) {
-			$mail->SetFrom($options['from'], @$options['from_name']);
+			$sender = array(
+				'email' => $options['from'],
+				'name' => @$options['from_name']
+			);
+		}
+		
+		// if we have sender we set it
+		if (!empty($sender)) {
+			$mail->SetFrom($sender['email'], $sender['name']);
 		}
 		
 		// to fields
@@ -75,7 +82,7 @@ class sendmail {
 			foreach ($options['bcc'] as $v) $mail->AddBCC($v);
 		}
 		
-		// Set word wrap to 50 characters
+		// set word wrap to 50 characters
 		$mail->WordWrap = 50;
 		
 		// process attachements
@@ -91,18 +98,20 @@ class sendmail {
 			}
 		}
 		
-		// Set email format to HTML
-		$mail->IsHTML(true);
+		// set email format to HTML
+		$mail->IsHTML(empty($options['plain']));
 		
+		// set attributes
 		$mail->Subject = @$options['subject'];
 		$mail->Body = @$options['message'];
 		$mail->AltBody = @$options['text_message'] ? $options['text_message'] : strip_tags($options['message']);
 		
+		// send mail
 		$flag = $mail->Send();
 		$buffer = ob_get_clean();
 		
 		if(!$flag) {
-			$result['error'][] = 'Message could not be sent. ' . $mail->ErrorInfo;
+			$result['error'][] = 'Message could not be send. ' . $mail->ErrorInfo;
 		} else {
 			$result['success'] = true;
 		}

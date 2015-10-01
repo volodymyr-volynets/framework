@@ -1,6 +1,6 @@
 CREATE TABLE ss.sessions
 (
-  ss_session_id character(26) NOT NULL,
+  ss_session_id character varying(40) NOT NULL,
   ss_session_started timestamp(0) without time zone DEFAULT now(),
   ss_session_expires timestamp(0) without time zone NOT NULL,
   ss_session_last_requested timestamp(0) without time zone DEFAULT now(),
@@ -11,9 +11,12 @@ CREATE TABLE ss.sessions
   CONSTRAINT sessions_pk PRIMARY KEY (ss_session_id)
 );
 
-ALTER TABLE ss.sessions OWNER TO app;
-
 CREATE INDEX ss_session_expires_idx
   ON ss.sessions
   USING btree
   (ss_session_expires);
+
+CREATE INDEX ss_session_user_id_idx
+  ON ss.sessions
+  USING btree
+  (ss_session_user_id COLLATE pg_catalog."default");

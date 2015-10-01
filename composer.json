@@ -9,14 +9,7 @@
 		}
 	],
 	"require": {
-		"php": ">=5.0.0",
-		"twig/twig": "~1.0",
-		"phpoffice/phpexcel": "~1.8",
-		"phpoffice/phpword": "~0.12",
-		"phpmailer/phpmailer": "~5.2",
-		"tecnick.com/tcpdf": "~6.2",
-		"gregwar/captcha": "~1.0",
-		"aws/aws-sdk-php": "~2.6"
+		"php": ">=5.3.0"
 	},
 	"license": "Apache License 2.0"
 }

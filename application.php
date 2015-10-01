@@ -69,17 +69,18 @@ class application {
 		// fixing location paths
 		$application_path = rtrim($application_path, '/') . '/';
 
+		// we need to solve chicken and egg problem so we load cache first and then run application
+		cache::create('php', array('type'=>'php', 'dir'=>'../app/cache'));
+
 		// loading ini files
 		do {
 			// see if we have cached version
-			if (!empty($options['cache'])) {
-				$cache_id = cache::id('application.ini.php');
-				$data = cache::get($cache_id, $options['cache']);
-				if ($data!==false) {
-					self::$settings = $data;
-					self::$settings['cache']['php'] = cache::$adapters['php'];
-					break;
-				}
+			$cache_id = cache::id('application.ini.php');
+			$data = cache::get($cache_id, $options['cache']);
+			if ($data !== false) {
+				self::$settings = $data;
+				self::$settings['cache']['php'] = cache::$adapters['php'];
+				break;
 			}
 			
 			// loading and processing ini files
@@ -93,9 +94,7 @@ class application {
 			}
 			
 			// at this point we need to store data in cache
-			if (!empty($options['cache'])) {
-				cache::set($cache_id, self::$settings, 0, null, $options['cache']);
-			}
+			cache::set($cache_id, self::$settings, 0, null, 'php');
 		} while(0);
 		
 		// making variables accesible though settings function
@@ -146,7 +145,7 @@ class application {
 			// processing mvc settings
 			self::set_mvc();
 			
-			// if we have a dot in the url we need to handle it differently
+			// special handling for captcha
 			if (strpos(self::$settings['mvc']['controller_class'], 'captcha.jpg')!==false) {
 				$type = str_replace(array('controller_', '_captcha.jpg'), '',self::$settings['mvc']['controller_class']);
 				require('./controller/captcha.jpg');
@@ -215,6 +214,7 @@ class application {
 		// customizaton for models and controllers
 		$file = str_replace('_', DIRECTORY_SEPARATOR, $class) . '.php';
 		if (strpos($class, 'model_')!==false || strpos($class, 'controller_')!==false) {
+			// todo: refactor code here
 			$company_id = session::get('company_id');
 			if (!empty($company_id)) {
 				$custom_file = self::$settings['application']['path'] . 'custom/'  . $company_id . '/' . str_replace('_', DIRECTORY_SEPARATOR, $class) . '.php';
