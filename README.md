@@ -1,6 +1,12 @@
 # Framework
 Lightweight MVC PHP Framework
 
+Include into your composer like this:
+
+    "require": {
+        "numbers/framework": "~1.0"
+    }
+
 To minimize size of the project required libraries were excluded from composer.json file, include as you need them:
 
 	"require": {
