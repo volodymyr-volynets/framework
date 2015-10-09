@@ -2,21 +2,21 @@
 
 class db {
 
-    /**
-     * Links to databases
-     * 
-     * @var array
-     */
-    public static $links = array();
-    
-    /**
-     * Connect to database
-     * 
-     * @param array $parameters
-     * @param string $link
-     * @return array
-     */
-    public static function connect($parameters, $link = 'default') {
+	/**
+	 * Links to databases
+	 * 
+	 * @var array
+	 */
+	public static $links = array();
+
+	/**
+	 * Connect to database
+	 * 
+	 * @param array $parameters
+	 * @param string $link
+	 * @return array
+	 */
+	public static function connect($parameters, $link = 'default') {
 		$result = array(
 		    'version' => null,
 		    'status' => 0,
@@ -50,39 +50,39 @@ class db {
 			$result['success'] = true;
 		}
 		return $result;
-    }
-    
-    /**
-     * Get status of db connection
-     * 
-     * @param unknown_type $link
-     * @return multitype:
-     */
-    public static function status($link = 'default') {
-    	return @self::$links[$link];
-    }
+	}
 
-    /** 
-     * Closes a connection
-     * 
-     * @param string $link
-     * @return boolean
-     */
-    public static function close($link = 'default') {
-    	if (!empty(self::$links[$link]['index'])) {
-    		pg_close(self::$links[$link]['index']);
-    		unset(self::$links[$link]);
-    	}
-    	return true;
-    }
+	/**
+	 * Get status of db connection
+	 * 
+	 * @param unknown_type $link
+	 * @return multitype:
+	 */
+	public static function status($link = 'default') {
+		return @self::$links[$link];
+	}
 
-    /**
-     * Structure of our fields (type, length and null)
-     * 
-     * @param resource $resource
-     * @return array
-     */
-    public static function field_structures($resource) {
+	/** 
+	 * Closes a connection
+	 * 
+	 * @param string $link
+	 * @return boolean
+	 */
+	public static function close($link = 'default') {
+		if (!empty(self::$links[$link]['index'])) {
+			pg_close(self::$links[$link]['index']);
+			unset(self::$links[$link]);
+		}
+		return true;
+	}
+
+	/**
+	 * Structure of our fields (type, length and null)
+	 * 
+	 * @param resource $resource
+	 * @return array
+	 */
+	public static function field_structures($resource) {
 		$result = array();
 		if ($resource) {
 		    for ($i = 0; $i < pg_num_fields($resource); $i++) {
@@ -93,54 +93,54 @@ class db {
 		    }
 		}
 		return $result;
-    }
-    
-    /**
-     * Structure of the table
-     * 
-     * @param string $table
-     * @return array
-     */
-    public static function table_structures($table, $link = 'default') {
-    	if (strpos($table, '.') === false) {
-    		$table = 'public.' . $table;
-    	}
-    	$table = explode('.', $table);
-    	$columns_result = self::query("SELECT * FROM information_schema.columns WHERE table_schema = '{$table[0]}' AND table_name = '{$table[1]}' ORDER BY ordinal_position", array('column_name'), array('cache'=>true), $link);
-    	// remapping data
-    	$map = array(
-    		'udt_name' => 'type',
-    		'data_type' => 'ftype',
-    		'character_maximum_length' => 'length',
-    		'column_default' => 'default',
-    		'numeric_precision' => 'precision',
-    		'numeric_scale' => 'scale',
-    		'is_nullable' => 'null'
-    	);
-    	$result = remap($columns_result['rows'], $map);
-    	foreach ($result as $k=>$v) {
-    		$result[$k]['null'] = $result[$k]['null'] == 'YES' ? true : false;
-    	}
-    	return $result;
-    }
+	}
 
-    /** 
-     * Error message
-     * 
-     * @param unknown_type $link
-     * @return string
-     */
-    public static function error($link = 'default') {
+	/**
+	 * Structure of the table
+	 * 
+	 * @param string $table
+	 * @return array
+	 */
+	public static function table_structures($table, $link = 'default') {
+		if (strpos($table, '.') === false) {
+			$table = 'public.' . $table;
+		}
+		$table = explode('.', $table);
+		$columns_result = self::query("SELECT * FROM information_schema.columns WHERE table_schema = '{$table[0]}' AND table_name = '{$table[1]}' ORDER BY ordinal_position", array('column_name'), array('cache'=>true), $link);
+		// remapping data
+		$map = array(
+			'udt_name' => 'type',
+			'data_type' => 'ftype',
+			'character_maximum_length' => 'length',
+			'column_default' => 'default',
+			'numeric_precision' => 'precision',
+			'numeric_scale' => 'scale',
+			'is_nullable' => 'null'
+		);
+		$result = remap($columns_result['rows'], $map);
+		foreach ($result as $k=>$v) {
+			$result[$k]['null'] = $result[$k]['null'] == 'YES' ? true : false;
+		}
+		return $result;
+	}
+
+	/** 
+	 * Error message
+	 * 
+	 * @param unknown_type $link
+	 * @return string
+	 */
+	public static function error($link = 'default') {
 		return pg_last_error(self::$links[$link]['index']);
-    }
+	}
 
-    /**
-     * Error code
-     *  
-     * @param string $link
-     * @return mixed
-     */
-    public static function errno($link = 'default') {
+	/**
+	 * Error code
+	 *  
+	 * @param string $link
+	 * @return mixed
+	 */
+	public static function errno($link = 'default') {
 		$error = pg_last_error(self::$links[$link]['index']);
 		if (!empty($error)) {
 		    preg_match("|ERROR:\s(.*?):|i", $error, $matches);
@@ -148,18 +148,18 @@ class db {
 		} else {
 		    return 0;
 		}
-    }
+	}
 
-    /**
-     * This will return structured data
-     * 
-     * @param string $sql
-     * @param mixed $key
-     * @param array $options
-     * @param string $link
-     * @return array
-     */
-    public static function query($sql, $key = null, $options = array(), $link = 'default') {
+	/**
+	 * This will return structured data
+	 * 
+	 * @param string $sql
+	 * @param mixed $key
+	 * @param array $options
+	 * @param string $link
+	 * @return array
+	 */
+	public static function query($sql, $key = null, $options = array(), $link = 'default') {
 		$result = array(
 			'sql' => & $sql,
 			'error' => array(),
@@ -170,10 +170,10 @@ class db {
 		    'key' => & $key,
 		    'structure' => array(),
 		);
-		
+
 		// cache id
 		$cache_id = !empty($options['cache_id']) ? $options['cache_id'] : 'db_query_' . md5($sql);
-		
+
 		// if we cache this query
 		if (!empty($options['cache'])) {
 		    $cached_result = cache::get($cache_id, @$options['cache_link']);
@@ -181,7 +181,7 @@ class db {
 				return $cached_result;
 		    }
 		}
-		
+
 		// quering
 		$resource = @pg_query(self::$links[$link]['index'], $sql);
 		$result['status'] = pg_result_status($resource);
@@ -209,7 +209,7 @@ class db {
 						    $rows[$k] = (float) $v;
 						}
 				    }
-				    
+
 				    // assigning keys
 				    if (!empty($key)) {
 						array_key_set_by_key_name($result['rows'], $key, $rows);
@@ -220,90 +220,90 @@ class db {
 		    }
 		    pg_free_result($resource);
 		}
-		
+
 		// caching if no error
 		if (!empty($options['cache']) && empty($result['error'])) {
 		    cache::set($cache_id, $result, null, array('tags' => @$options['cache_tags']), @$options['cache_link']);
 		}
 		return $result;
-    }
+	}
 
-    /**
-     * Begin transaction
-     * 
-     * @param string $link
-     * @return array
-     */
-    public static function begin($link = 'default') {
-    	if (!isset(self::$links[$link]['commit_status'])) self::$links[$link]['commit_status'] = 0;
-    	if (self::$links[$link]['commit_status']==0) {
-    		//echo " BEGIN X ";
-    		//debug_print_backtrace();
-    		self::$links[$link]['commit_status']++;
+	/**
+	 * Begin transaction
+	 * 
+	 * @param string $link
+	 * @return array
+	 */
+	public static function begin($link = 'default') {
+		if (!isset(self::$links[$link]['commit_status'])) self::$links[$link]['commit_status'] = 0;
+		if (self::$links[$link]['commit_status']==0) {
+			//echo " BEGIN X ";
+			//debug_print_backtrace();
+			self::$links[$link]['commit_status']++;
 			return self::query('BEGIN', null, array(), $link);
-    	}
-    	self::$links[$link]['commit_status']++;
-    }
+		}
+		self::$links[$link]['commit_status']++;
+	}
 
-    /**
-     * Commit transaction
-     * 
-     * @param string $link
-     * @return array
-     */
-    public static function commit($link = 'default') {
-    	if (self::$links[$link]['commit_status']==1) {
-    		//echo " COMMIT X ";
-    		//debug_print_backtrace();
-    		self::$links[$link]['commit_status'] = 0;
-    		return self::query('COMMIT', null, array(), $link);
-    	}
-    	self::$links[$link]['commit_status']--;
-    }
+	/**
+	 * Commit transaction
+	 * 
+	 * @param string $link
+	 * @return array
+	 */
+	public static function commit($link = 'default') {
+		if (self::$links[$link]['commit_status']==1) {
+			//echo " COMMIT X ";
+			//debug_print_backtrace();
+			self::$links[$link]['commit_status'] = 0;
+			return self::query('COMMIT', null, array(), $link);
+		}
+		self::$links[$link]['commit_status']--;
+	}
 
-    /**
-     * Roll back to savepoint or entire transaction
-     * 
-     * @param string $savepoint_name
-     * @param string $link
-     * @return array 
-     */
-    public static function rollback($savepoint_name = '', $link = 'default') {
-    	self::$links[$link]['commit_status'] = 0;
-    	//echo " ROLLBACK ";
-    	//debug_print_backtrace();
-    	return self::query('ROLLBACK' . ($savepoint_name ? (' TO SAVEPOINT ' . $savepoint_name) : ''), null, array(), $link);
-    }
+	/**
+	 * Roll back to savepoint or entire transaction
+	 * 
+	 * @param string $savepoint_name
+	 * @param string $link
+	 * @return array 
+	 */
+	public static function rollback($savepoint_name = '', $link = 'default') {
+		self::$links[$link]['commit_status'] = 0;
+		//echo " ROLLBACK ";
+		//debug_print_backtrace();
+		return self::query('ROLLBACK' . ($savepoint_name ? (' TO SAVEPOINT ' . $savepoint_name) : ''), null, array(), $link);
+	}
 
-    /**
-     * Save point within transaction
-     * 
-     * @param string $savepoint_name
-     * @param string $link
-     * @return array
-     */
-    public static function savepoint($savepoint_name, $link = 'default') {
-    	return self::query('SAVEPOINT ' . $savepoint_name, null, array(), $link);
-    }
+	/**
+	 * Save point within transaction
+	 * 
+	 * @param string $savepoint_name
+	 * @param string $link
+	 * @return array
+	 */
+	public static function savepoint($savepoint_name, $link = 'default') {
+		return self::query('SAVEPOINT ' . $savepoint_name, null, array(), $link);
+	}
 
-    /**
-     * Release saved point within transaction
-     * 
-     * @param string $savepoint_name
-     * @param string $link
-     * @return array
-     */
-    public static function release_savepoint($savepoint_name, $link = 'default') {
-    	return self::query('RELEASE SAVEPOINT ' . $savepoint_name, null, array(), $link);
-    }
+	/**
+	 * Release saved point within transaction
+	 * 
+	 * @param string $savepoint_name
+	 * @param string $link
+	 * @return array
+	 */
+	public static function release_savepoint($savepoint_name, $link = 'default') {
+		return self::query('RELEASE SAVEPOINT ' . $savepoint_name, null, array(), $link);
+	}
 
-    /**
-     * Prepare values for insert query
-     * 
-     * @param mixed $parameters
-     * @return string
-     */
-    static public function prepare_values($parameters, $link = 'default') {
+	/**
+	 * Prepare values for insert query
+	 * 
+	 * @param mixed $parameters
+	 * @return string
+	 */
+	static public function prepare_values($parameters, $link = 'default') {
 		$result = array();
 		foreach ($parameters as $k => $v) {
 		    $temp = explode(',', $k);
@@ -323,16 +323,16 @@ class db {
 		    }
 		}
 		return implode(', ', $result);
-    }
+	}
 
-    /**
-     * Prepare expression for insert query
-     * 
-     * @param mixed $parameters
-     * @param mixed $delimiter
-     * @return string
-     */
-    public static function prepare_expression($parameters, $delimiter = ', ') {
+	/**
+	 * Prepare expression for insert query
+	 * 
+	 * @param mixed $parameters
+	 * @param mixed $delimiter
+	 * @return string
+	 */
+	public static function prepare_expression($parameters, $delimiter = ', ') {
 		if (is_array($parameters)) {
 		    $temp = array();
 		    foreach ($parameters as $v) {
@@ -342,16 +342,16 @@ class db {
 		    $parameters = implode($delimiter, $temp);
 		}
 		return $parameters;
-    }
+	}
 
-    /**
-     * Accepts an array of values and then returns delimited and comma separated list of
-     * value for use in an sql statement. 
-     * 
-     * @param array $parameters
-     * @return string 
-     */
-    public static function prepare_array($arr, $link = 'default') {
+	/**
+	 * Accepts an array of values and then returns delimited and comma separated list of
+	 * value for use in an sql statement. 
+	 * 
+	 * @param array $parameters
+	 * @return string 
+	 */
+	public static function prepare_array($arr, $link = 'default') {
 		$result = array();
 		if (empty($arr)) $arr = array();
 		foreach ($arr as $v) {
@@ -368,39 +368,39 @@ class db {
 		    }
 		}
 		return '{' . implode(',', $result) . '}';
-    }
+	}
 
-    /**
-     * Escape takes a value and escapes the value for the database in a generic way
-     * 
-     * @param type $value
-     * @return string 
-     */
-    public static function escape($value, $link = 'default') {
+	/**
+	 * Escape takes a value and escapes the value for the database in a generic way
+	 * 
+	 * @param type $value
+	 * @return string 
+	 */
+	public static function escape($value, $link = 'default') {
 		return pg_escape_string(self::$links[$link]['index'], $value);
-    }
-    
-    /**
-     * Escape array
-     * 
-     * @param array $value
-     * @param string $link
-     * @return array
-     */
-    public static function escape_array($value, $link = 'default') {
-    	$result = array();
-    	foreach ($value as $k=>$v) $result[$k] = db::escape($v, $link);
-    	return $result;
-    }
+	}
 
-    /**
-     * Convert an array into sql string  
-     *  
-     * @param  array $parameters
-     * @param  string $delimiter
-     * @return string 
-     */
-    public static function prepare_condition($parameters, $delimiter = 'AND', $link = 'default') {
+	/**
+	 * Escape array
+	 * 
+	 * @param array $value
+	 * @param string $link
+	 * @return array
+	 */
+	public static function escape_array($value, $link = 'default') {
+		$result = array();
+		foreach ($value as $k=>$v) $result[$k] = db::escape($v, $link);
+		return $result;
+	}
+
+	/**
+	 * Convert an array into sql string  
+	 *  
+	 * @param  array $parameters
+	 * @param  string $delimiter
+	 * @return string 
+	 */
+	public static function prepare_condition($parameters, $delimiter = 'AND', $link = 'default') {
 		$result = '';
 		if (is_array($parameters)) {
 		    $temp = array();
@@ -422,7 +422,7 @@ class db {
 				    default:
 						$string.= ' ' . $operator . ' ';
 				}
-				
+
 				// value
 				if ($as_is) {
 					// no changes
@@ -451,16 +451,16 @@ class db {
 		    $result = $parameters;
 		}
 		return $result;
-    }
+	}
 
-    /**
-     * Parsing pg array string into array
-     * 
-     * @param string $arraystring
-     * @param boolean $reset
-     * @return array
-     */
-    public static function pg_parse_array($arraystring, $reset = true) {
+	/**
+	 * Parsing pg array string into array
+	 * 
+	 * @param string $arraystring
+	 * @param boolean $reset
+	 * @return array
+	 */
+	public static function pg_parse_array($arraystring, $reset = true) {
 		static $i = 0;
 		if ($reset) $i = 0;
 		$matches = array();
@@ -524,33 +524,33 @@ class db {
 				    $i++;
 		    }
 		}
-    }
+	}
 
-    /**
-     * Escape in tsquery
-     * @param string $str
-     * @param string $operator
-     * @return string
-     */
-    static public function escapets($str, $operator = '&', $link = 'default') {
+	/**
+	 * Escape in tsquery
+	 * @param string $str
+	 * @param string $operator
+	 * @return string
+	 */
+	static public function escapets($str, $operator = '&', $link = 'default') {
 		$str = preg_replace('/\s\s+/', ' ', trim($str));
 		if (empty($str)) {
 		    return "";
 		} else {
 		    return str_replace(' ', ":*$operator", self::escape($str, $link)) . ":*";
 		}
-    }
+	}
 
-    /**
-     * Preparing sql for full text search
-     * 
-     * @param mixed $fields
-     * @param string $str
-     * @param string $operator [&,|]
-     * @param boolean $desc how to sort results
-     * @return array
-     */
-    static public function tsquery($fields, $str, $operator = '&', $desc = true, $subquery = array(), $link = 'default') {
+	/**
+	 * Preparing sql for full text search
+	 * 
+	 * @param mixed $fields
+	 * @param string $str
+	 * @param string $operator [&,|]
+	 * @param boolean $desc how to sort results
+	 * @return array
+	 */
+	static public function tsquery($fields, $str, $operator = '&', $desc = true, $subquery = array(), $link = 'default') {
 		$result = array(
 		    'where' => '',
 		    'orderby' => ''
@@ -595,18 +595,18 @@ class db {
 		    }
 		}
 		return $result;
-    }
+	}
 
-    /**
-     * Copy data directly into db, rows are key=>value pairs
-     * 
-     * @param string $table
-     * @param array $rows
-     * @param array $headers
-     * @param string $link
-     * @return array
-     */
-    public static function copy($table, $rows, $headers, $link = 'default') {
+	/**
+	 * Copy data directly into db, rows are key=>value pairs
+	 * 
+	 * @param string $table
+	 * @param array $rows
+	 * @param array $headers
+	 * @param string $link
+	 * @return array
+	 */
+	public static function copy($table, $rows, $headers, $link = 'default') {
 		$result = array(
 		    'error' => array(),
 		    'success' => false
@@ -644,63 +644,63 @@ class db {
 		    }
 		} while (0);
 		return $result;
-    }
-    
-    /**
-     * Insert multiple rows to database
-     * 
-     * @param string $table
-     * @param array $rows
-     * @param array $headers
-     * @param string $link
-     * @return array
-     */
-    public static function insert($table, $rows, $headers, $link = 'default') {
-    	$result = array(
+	}
+
+	/**
+	 * Insert multiple rows to database
+	 * 
+	 * @param string $table
+	 * @param array $rows
+	 * @param array $headers
+	 * @param string $link
+	 * @return array
+	 */
+	public static function insert($table, $rows, $headers, $link = 'default') {
+		$result = array(
 			'error' => array(),
 			'success' => false
-    	);
-    	do {
+		);
+		do {
 			$sql = "INSERT INTO $table (" . db::prepare_expression($headers) . ") VALUES ";
 			$sql_values = array();
-    		foreach ($rows as $k=>$v) {
+			foreach ($rows as $k=>$v) {
 				$sql_values[]= "(" . db::prepare_values($v, $link) . ")";
-    		}
-    		$sql.= implode(', ', $sql_values);
-    		$query_result = self::query($sql, null, array(), $link);
-    		if ($query_result['error']) {
-    			array_merge3($result['error'], $query_result['error']);
-    		} else {
-    			$result['success'] = true;
-    		}
-    	} while (0);
-    	return $result;
-    }
+			}
+			$sql.= implode(', ', $sql_values);
+			$query_result = self::query($sql, null, array(), $link);
+			if ($query_result['error']) {
+				array_merge3($result['error'], $query_result['error']);
+			} else {
+				$result['success'] = true;
+			}
+		} while (0);
+		return $result;
+	}
 
-    /**
-     * Save row to database
-     * 
-     * @param string $table
-     * @param array $data
-     * @param mixed $keys
-     * @param string $link
-     * @return boolean
-     */
-    public static function save($table, $data, $keys, $link = 'default') {
-    	$result = array(
+	/**
+	 * Save row to database
+	 * 
+	 * @param string $table
+	 * @param array $data
+	 * @param mixed $keys
+	 * @param string $link
+	 * @return boolean
+	 */
+	public static function save($table, $data, $keys, $link = 'default') {
+		$result = array(
    			'success' => false,
-    		'error' => array(),
-    		'data' => array(),
-    		'inserted' => false
-    	);
-    	 
-    	do {
-    	
+			'error' => array(),
+			'data' => array(),
+			'inserted' => false
+		);
+
+		do {
+
 	    	// converting string to an array
 			if (!is_array($keys)) {
 			    $keys = array($keys);
 			}
-			
+
 			// where clause
 			$where = array();
 			$empty = true;
@@ -710,7 +710,7 @@ class db {
 				}
 				$where[$key] = @$data[$key];
 			}
-			
+
 			// if keys are empty we must insert
 			$row_found = false;
 			if (!$empty) {
@@ -722,7 +722,7 @@ class db {
 					$row_found = true;
 				}
 			}
-			
+
 			// if row found we update
 			if ($row_found) {
 			    $flag_inserted = false;
@@ -742,18 +742,18 @@ class db {
 			$result['data'] = $result_sql['rows'][0];
 			$result['inserted'] = $flag_inserted;
 			$result['success'] = true;
-    	} while(0);
+		} while(0);
 		return $result;
-    }
+	}
 
-    /**
-     * Sequences next values, $num_rows = 0 will return a single sequence value
-     * 
-     * @param string $sequnce_name
-     * @param int $num_rows
-     * @return mixed
-     */
-    public static function sequence($sequence_name, $num_rows = 0, $link = 'default') {
+	/**
+	 * Sequences next values, $num_rows = 0 will return a single sequence value
+	 * 
+	 * @param string $sequnce_name
+	 * @param int $num_rows
+	 * @return mixed
+	 */
+	public static function sequence($sequence_name, $num_rows = 0, $link = 'default') {
 		$num_new = $num_rows;
 		if ($num_new <= 1) $num_new = 1;
 		$result = db::query("SELECT nextval('$sequence_name') AS seq_id FROM generate_series(1, $num_new)", "seq_id", array(), $link);
@@ -768,7 +768,5 @@ class db {
 				return array_combine($keys, $keys);
 		    }
 		}
-    }
+	}
 }
-
-?>

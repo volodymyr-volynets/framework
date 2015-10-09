@@ -1,7 +1,7 @@
 <?php
 
 class lock {
-	
+
 	/**
 	 * Create lock
 	 * 
@@ -17,7 +17,7 @@ class lock {
 		}
 		return false;
 	}
-	
+
 	/**
 	 * Check if lock exists
 	 * 
@@ -31,7 +31,7 @@ class lock {
 		}
 		return false;
 	}
-	
+
 	/**
 	 * Release the lock
 	 * 
@@ -45,7 +45,7 @@ class lock {
 		}
 		return true;
 	}
-	
+
 	/**
 	 * Process the lock
 	 * @param string $id
@@ -60,7 +60,7 @@ class lock {
 				$lock_data = false;
 			}
 		}
-			
+
 		// we are ok to proceed
 		if ($lock_data===false) {
 			lock::create($id);

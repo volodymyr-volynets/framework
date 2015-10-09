@@ -1,7 +1,7 @@
 <?php
 
 class sendmail {
-	
+
 	/**
 	 * Send an email
 	 * 
@@ -26,9 +26,6 @@ class sendmail {
 			'success' => false,
 			'error' => array()
 		);
-		
-		// create a new output buffer, this function echoes on the screen
-		ob_start();
 
 		$mail = new PHPMailer();
 
@@ -137,10 +134,11 @@ class sendmail {
 		$mail->AltBody = @$options['text_message'] ? $options['text_message'] : strip_tags($options['message']);
 
 		// send mail
+		ob_start();
 		$flag = $mail->Send();
 		$buffer = ob_get_clean();
 
-		if(!$flag) {
+		if (!$flag) {
 			$result['error'][] = 'Message could not be send. ' . $mail->ErrorInfo;
 		} else {
 			$result['success'] = true;

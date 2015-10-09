@@ -1,10 +1,10 @@
 <?php
 
 class icon {
-	
+
 	public static $path_html = null;
 	public static $path_server = null;
-	
+
 	/**
 	 * Render icon
 	 * 

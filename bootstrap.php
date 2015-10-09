@@ -14,14 +14,14 @@ class bootstrap {
 	public static function init() {
 		$input = request::input(null, true, true);
 		$mvc = application::mvc($_SERVER['REQUEST_URI']);
-		
+
 		// internationalization
 		$i18n = application::get(array('i18n'));
 		if (!empty($i18n)) {
 			$current_lang = !empty($input[$i18n['current_variable']]) ? $input[$i18n['current_variable']] : $i18n['default'];
 			$class_i18n = new i18n($i18n['default'], $current_lang, $i18n['path']);
 		}
-		
+
 		// create database connections
 		$db = application::get('db');
 		if (!empty($db)) {
@@ -34,14 +34,14 @@ class bootstrap {
 						break;
 					}
 				}
-				
+
 				// checking if not connected
 				if (!$connected) {
 					Throw new Exception('Unable to open database connection.');
 				}
 			}
 		}
-		
+
 		// initialize cache
 		$cache = application::get('cache');
 		if (!empty($cache)) {
@@ -49,20 +49,20 @@ class bootstrap {
 				$cache_result = cache::create($cache_id, $cache_options);
 			}
 		}
-		
+
 		// initialize session
 		$session = application::get('session');
 		if (!empty($session)) {
 			session::start($session);
 		}
-		
+
 		// format: locale and timezone after database and cache
 		$format = application::get(array('format'));
 		if (!empty($format)) {
 			format::init($format);
 		}
 	}
-	
+
 	/**
 	 * Destroy everything
 	 */

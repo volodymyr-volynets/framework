@@ -1,7 +1,7 @@
 <?php
 
 class io {
-	
+
 	/**
 	 * File formats
 	 *
@@ -13,7 +13,7 @@ class io {
 		'csv' => array('name' => 'CSV (Comma Delimited)', 'type'=>3, 'delimiter' => ',', 'enclosure' => '"', 'file_extension' => 'csv','content_type'=>'application/octet-stream'),
 		'txt' => array('name' => 'Text (Tab Delimited)', 'type'=>3, 'delimiter' => "\t", 'enclosure' => '"', 'file_extension' => 'txt','content_type'=>'application/octet-stream'),
 	);
-	
+
 	/**
 	 * Export formats
 	 * 
@@ -24,7 +24,7 @@ class io {
 		foreach (self::$formats as $k=>$v) if ($v['type']==2 || $v['type']==3) $result[$k] = $v;
 		return $result;
 	}
-	
+
 	/**
 	 * Import formats
 	 * 
@@ -35,7 +35,7 @@ class io {
 		foreach (self::$formats as $k=>$v) if ($v['type']==1 || $v['type']==3) $result[$k] = $v;
 		return $result;
 	}
-	
+
 	public static function export($sql, $model_class, $options = array()) {
 		$records_per_request = !empty($options['records_per_request']) ? $options['records_per_request'] : 10;
 		$flag_load_details = @$options['do_not_load_details'] ? false : true;
@@ -58,9 +58,9 @@ class io {
 			$flag_more = false;
 			$sql2 = $sql . ' LIMIT ' . ($records_per_request + 1) . ' OFFSET ' . $offset;
 			$rows = db::query($sql2, null, array(), $model->link);
-			
+
 			//print_r($rows);
-			
+
 			// get columns first run
 			if (!isset($columns)) {
 				if (!empty($options['columns'])) {
@@ -89,7 +89,7 @@ class io {
 				}
 				$data[$model->table][] = array_values($rows['rows'][$k]);
 			}
-			
+
 			// processing details
 			if ($flag_load_details && !empty($model->details)) {
 				foreach ($model->details as $k=>$v) {
@@ -108,7 +108,7 @@ class io {
 					// building sql
 					$sql3 = "SELECT * FROM " . $model2->table . " WHERE " . $keys . " IN ('" . implode("','", $values) . "')";
 					$rows_details = db::query($sql3, null, array(), $model2->link);
-					
+
 					$columns2 = $rows_details['structure'];
 					// first time columns
 					if (!isset($data[$model2->table])) {
@@ -126,7 +126,7 @@ class io {
 						}
 						$data[$model2->table][] = array_values($rows_details['rows'][$k0]);
 					}
-					
+
 					// details of details
 					if ($flag_load_details && !empty($model2->details)) {
 						foreach ($model2->details as $k10=>$v10) {
@@ -145,7 +145,7 @@ class io {
 							// building sql
 							$sql3 = "SELECT * FROM " . $model3->table . " WHERE " . $keys . " IN ('" . implode("','", $values) . "')";
 							$rows_details2 = db::query($sql3, null, array(), $model3->link);
-								
+
 							$columns2 = $rows_details2['structure'];
 							// first time columns
 							if (!isset($data[$model3->table])) {
@@ -168,7 +168,7 @@ class io {
 				}
 			}
 		} while ($flag_more);
-		
+
 		// step 2: render
 		$screen_string = @ob_get_clean();
 		unset($screen_string);
@@ -188,7 +188,7 @@ class io {
 		}
 		exit;
 	}
-	
+
 	// This function will convert array into excel or pdf file
 	public static function array_to_excel($data, $excel_code, $filename = null) {
 		$result = false;
@@ -237,7 +237,7 @@ class io {
 		}
 		return $result;
 	}
-	
+
 	// This function will convert array into csv file
 	public static function array_to_csv($data, $delimiter = ',', $enclosure = '"', $as_array = false) {
 		$result = array();
@@ -264,7 +264,7 @@ class io {
 			return $result;
 		}
 	}
-	
+
 	/**
 	 * Read content from csv file into array
 	 *
@@ -295,7 +295,7 @@ class io {
 		}
 		return $data;
 	}
-	
+
 	/**
 	 * Read content from Excel file
 	 *
@@ -316,7 +316,7 @@ class io {
 		}
 		return $data;
 	}
-	
+
 	// Importing file into database + logging
 	public static function import_from_file_id($file_id, $model_class, $options = array()) {
 		$result = array(
@@ -331,7 +331,7 @@ class io {
 				$result['error'] = array_merge($result['error'], $file_result['error']);
 				break;
 			}
-			
+
 			$import_result = self::import($file_result['file_name_full'], $model_class, $options);
 			if ($import_result['error']) {
 				array_merge3($result['error'], $import_result['error']);
@@ -341,7 +341,7 @@ class io {
 		} while (0);
 		return $result;
 	}
-	
+
 	public static function import($file_name, $model_class, $options = array()) {
 		$result = array(
 			'success' => false,
@@ -373,7 +373,7 @@ class io {
 				$result['error'][] = 'Error reading or empty file!';
 				break;
 			}
-			
+
 			// transforming data
 			$objects = array();
 			$temp = array_shift($file_data);
@@ -413,7 +413,7 @@ class io {
 								}
 							}
 						}
-						
+
 						// details itself
 						$details = array();
 						$temp = $file_data[$model2->table];
@@ -425,10 +425,10 @@ class io {
 								$v9 = $v9 . '';
 								if (@$v9[0]=='{' && $v9[strlen($v9)-1]=='}') $v2[$k9] = db::pg_parse_array($v9);
 							}
-							
+
 							// combining keys and values to make an assocoative array
 							$value = array_combine($keys, $v2);
-							
+
 							// if we have details of details
 							if (!empty($details_of_details)) {
 								foreach ($details_of_details as $k10=>$v10) {
@@ -447,11 +447,11 @@ class io {
 									}
 								}
 							}
-							
+
 							// putting back into loop
 							$details[] = $value;
 						}
-						
+
 						// if we have rows
 						if (!empty($details)) {
 							foreach ($objects as $k2=>$v2) {
@@ -472,7 +472,7 @@ class io {
 					}
 				}
 			}
-			
+
 			// saving
 			if (!empty($objects)) {
 				if (empty($options['all_objects_as_array'])) {

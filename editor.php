@@ -1,61 +1,61 @@
 <?php
 
 class editor {
-	
+
 	private $model2 = null;
-	
+
 	public function initialize() {
 		// if we have a model
 		if (!empty($this->model)) {
 			$model_class = $this->model;
 			$model = new $model_class();
 			$this->model2 = $model;
-			
+
 			if (!empty($model->save_columns)) {
 				if (empty($this->list_columns)) $this->list_columns = $model->save_columns;
 				if (empty($this->filter_columns)) $this->filter_columns = $model->save_columns;
 				if (empty($this->edit_columns)) $this->edit_columns = $model->save_columns;
 			}
-			
+
 			if (empty($this->list_table)) $this->list_table = $model->table;
 			if (empty($this->link)) $this->link = $model->link;
 			if (empty($this->list_pk)) $this->list_pk = $model->pk;
 			if (!empty($model->left_join) && empty($this->left_join)) $this->left_join = $model->left_join;
 		}
-		
+
 		// checking for missing peices of data
 		if (empty($this->model)) Throw new Exception('model?');
 		if (empty($this->list_orderby)) Throw new Exception('list_orderby?');
 		if (empty($this->list_table)) Throw new Exception('list_table?');
 		if (empty($this->list_columns)) Throw new Exception('list_columns?');
 		if (empty($this->list_pk)) Throw new Exception('list_pk?');
-		
+
 		// populating other values
 		if (empty($this->filter_columns)) $this->filter_columns = $this->list_columns;
-		
+
 		// converting to array
 		if (!is_array($this->list_pk)) $this->list_pk = array($this->list_pk);
-		
+
 		// action items
 		if (@$this->edit_can_create) {
 			$url = application::get(array('mvc', 'controller')) . '/~edit';
 			$new = array('value'=>'New', 'href'=>$url, 'icon'=>icon::render('new16.png'));
 			layout::add_action('new', $new);
 		}
-		
+
 		// css & js
 		layout::add_css('/css/editor.css');
 		layout::add_js('/js/editor.js');
 	}
-	
+
 	/**
 	 * Index action
 	 */
 	public function action_index() {
 		$this->initialize();
-		
+
 		$input = request::input();
-		
+
 		// import file
 		if (!empty($input['flag_editor_import_submit'])) {
 			set_time_limit(0);
@@ -68,16 +68,16 @@ class editor {
 			}
 		}
 		unset($input['flag_editor_import_submit']);
-		
+
 		$settings = array();
 		$settings['limit'] = (@$input['limit'] ? @intval($input['limit']) : 30);
 		$settings['offset'] = @intval(@$input['offset']); // show starting from this row
 		$settings['orderby'] = (isset($input['orderby']) ? $input['orderby'] : $this->list_orderby); // order by column
 		$settings['orderdesc'] = (isset($input['orderdesc']) ? $input['orderdesc'] : @$this->list_orderdesc); // order direction
-		
+
 		// building sql for select
 		$from = ' FROM ' . $this->list_table . @$this->left_join . ' WHERE 1=1';
-		
+
 		// filtering
 		$filter_columns = array();
 		$filter_found = false;
@@ -138,7 +138,7 @@ class editor {
 			$full_text_search = db::tsquery($gist_columns, $input['full_text_search'], '|');
 			$from.= $full_text_search['where'];
 		}
-		
+
 		// getting number of records
 		if (@$this->list_count_rows) {
 			$sql = 'SELECT COUNT(*) as rows_count ' . $from;
@@ -152,26 +152,26 @@ class editor {
 			// EXPERIMENTAL: increase number of rows fetched by 1 to check whether next row exists
 			$settings['limit']++;
 		}
-		
+
 		// exporting all rows
 		if (@$input['flag_editor_export_submit']) {
 			$settings['limit'] = 0;
 			$settings['offset'] = 0;
 		}
-		
+
 		// quering
 		$sql = 'SELECT * ' . $from;
 		$sql.= ' ORDER BY ' . (@$full_text_search['orderby'] ? (@$full_text_search['orderby'] . ", ") : "") . $settings['orderby'] . ($settings['orderdesc'] ? ' DESC' : '');
 		$sql.= $settings['limit'] ? (' LIMIT ' . $settings['limit']) : '';
 		$sql.= $settings['offset'] ? (' OFFSET ' . $settings['offset']) : '';
-		
+
 		$result = db::query($sql, null, null, $this->model2->link);
-		
+
 		// exporting data
 		if (@$input['flag_editor_export_submit']) {
 			io::export($sql, $this->model, array('format'=>@$input['flag_editor_export_format'], 'name'=>@$input['flag_editor_export_name'], 'header'=>@$input['flag_editor_export_header']));
 		}
-		
+
 		// processing count
 		if (!@$this->list_count_rows) {
 			if (isset($result['rows'][$settings['limit']-1])) $settings['flag_next_row_exists'] = true;
@@ -180,48 +180,48 @@ class editor {
 		}
 		$settings['num_rows'] = count($result['rows']);
 		$ms = '';
-		
+
 		// we need to unset imvisible columns
 		$list_columns = array();
 		foreach ($this->list_columns as $k=>$v) if (empty($v['invisible'])) $list_columns[$k] = $v;
-		
+
 		// number of columns in this section
 		$number_of_columns = sizeof($this->list_columns) + (@$this->list_numerate_rows ? 1 : 0) + (@$this->edit_enabled ? 1 : 0);
-		
+
 		// Hidden elements
 		$ms.= h::hidden(array('name'=>'orderby', 'id'=>'orderby', 'value'=>$settings['orderby']));
 		$ms.= h::hidden(array('name'=>'orderdesc', 'id'=>'orderdesc', 'value'=>$settings['orderdesc']));
 		$ms.= h::hidden(array('name'=>'offset', 'id'=>'offset', 'value'=>$settings['offset']));
 		$ms.= h::hidden(array('name'=>'limit', 'id'=>'limit', 'value'=>$settings['limit']));
-		
+
 		// export
 		if (@$this->export_enabled) {
 			$ms.= h::dialog('editor_export', 'hidden', 'Export', $this->export(), array('clickable'=>true, 'style'=>'display: none;', 'position'=>'center', 'form'=>'editor'));
 			$export = array('value'=>'Export', 'href'=>'javascript:void(0);', 'onclick'=>'$(\'#h_hoverbox_id_editor_export_hover\').click();', 'icon'=>icon::render('export16.png'));
 			layout::add_action('export', $export);
 		}
-			
+
 		// import
 		if (@$this->import_enabled) {
 			$ms.= h::dialog('editor_import', 'hidden', 'Import', $this->import(), array('clickable'=>true, 'style'=>'display: none;', 'position'=>'center', 'form'=>'editor'));
 			$import = array('value'=>'Import', 'href'=>'javascript:void(0);', 'onclick'=>'$(\'#h_hoverbox_id_editor_import_hover\').click();', 'icon'=>icon::render('import16.png'));
 			layout::add_action('import', $import);
 		}
-		
+
 		// filter
 		if (@$this->filter_enabled) {
 			$ms.= h::dialog('editor_filter', 'hidden', 'Filter', $this->filter(), array('clickable'=>true, 'width'=>'auto', 'style'=>'display: none;', 'position'=>'center', 'form'=>'editor'));
 			$filter = array('value'=>'Filter', 'href'=>'javascript:void(0);', 'sort'=>32000, 'onclick'=>'$(\'#h_hoverbox_id_editor_filter_hover\').click();', 'icon'=>icon::render('find16.png'));
 			layout::add_action('filter', $filter);
 		}
-		
+
 		// if we have no rows
 		if (empty($result['rows'])) {
 			$ms.= 'No records found!';
 		} else {
 			// main container
 			$ms.= '<table cellpadding="0" cellspacing="0" class="editor table">';
-			
+
 	 			//filter
 	 			$ms.= '<tr>';
 		 			$ms.= '<td colspan="' . $number_of_columns . '">';
@@ -231,7 +231,7 @@ class editor {
 		 			}
 		 			$ms.= '</td>';
 	 			$ms.= '</tr>';
-			
+
 				// header if we have rows
 				if (!empty($result['rows'])) {
 					$ms.= '<tr class="editor columns">';
@@ -246,7 +246,7 @@ class editor {
 					}
 					$ms .= '</tr>';
 				}
-				
+
 				// preloading models
 				foreach ($this->list_columns as $k2=>$v2) {
 					if (!empty($v2['options_model'])) {
@@ -256,19 +256,19 @@ class editor {
 						$list_columns[$k2]['options'] = $this->list_columns[$k2]['options'];
 					}
 				}
-				
+
 				// rows
 				$row_counter = 1;
 				foreach ($result['rows'] as $k=>$v) {
 					$ms.= '<tr class="editor row ' . ($row_counter%2 ? 'odd' : 'even') . '" id="editor_row_id_' . $row_counter . '">';
-				
+
 					// generating keys structure
 					//extract_keys($this->list_pk, $v);
-				
+
 					if (@$this->list_numerate_rows) {
 						$ms .= '<td class="editor cell numeration">' . $row_counter . '</td>';
 					}
-				
+
 	 				if (@$this->edit_enabled) {
 	 					$save = extract_keys($this->list_pk, $v);
 	 					$filter = $input;
@@ -276,7 +276,7 @@ class editor {
 	 					$url = application::get(array('mvc', 'controller')) . '/~edit?' . http_build_query2(array('save'=>$save)) . '&' . http_build_query2($filter);
 	 					$ms.= '<td class="editor cell edit" valign="middle" align="center">' . h::a(array('href'=>$url, 'title'=>'Edit', 'value'=>'<span class="ui-icon ui-icon-document"></span>')) . '</td>';
 	 				}
-	 				
+
 	 				// columns
 					foreach ($list_columns as $k2=>$v2) {
 						$pk_column = in_array($k2, $this->list_pk) ? ' pk' : '';
@@ -308,7 +308,7 @@ class editor {
 					$ms.= '</tr>';
 					$row_counter++;
 				}
-				
+
 				//footer
 				if (!empty($result['rows'])) {
 					$ms.= '<tr>';
@@ -320,7 +320,7 @@ class editor {
 			$ms.= '</table>';
 			$ms.= '<br class="clearfloat">';
 		}
-		
+
 		// adding other actions
 		if (@$this->other_actions) {
 			foreach ($this->other_actions as $k0=>$v0) {
@@ -328,39 +328,39 @@ class editor {
 				layout::add_action($k0, $this->other_actions[$k0]);
 			}
 		}
-		
+
 		echo h::frame(h::form(array('name'=>'editor', 'id'=>'editor', 'value'=>$ms, 'action'=>application::get(array('mvc', 'full')))), 'simple');
 	}
-	
+
 	/**
 	 * Edit action
 	 */
 	public function action_edit() {
 		$this->initialize();
-		
+
 		// adding action
 		$url = application::get(array('mvc', 'controller'));
 		$back = array('value'=>'Back', 'href'=>$url, 'icon'=>icon::render('back16.png'));
 		layout::add_action('back', $back);
-		
+
 		if (!@$this->edit_enabled) {
 			Throw new Exception('Editing not allowed!');
 		}
-		
+
 		// populating other columns
 		if (empty($this->edit_columns)) $this->edit_columns = $this->list_columns;
-		
+
 		$input = request::input();
-		
+
 		$flag_save = !empty($input['save']['submit_save']) || !empty($input['save']['submit_save_and_close']);
 		$flag_error = false;
 		$flag_close = !empty($input['save']['submit_save_and_close']);
 		$flag_delete = !empty($input['save']['submit_delete']);
-		
+
 		// initializing model
 		$model_class = $this->model;
 		$model = new $model_class();
-		
+
 		// saving record
 		if ($flag_save) {
 			$save_result = $model->save($input['save']);
@@ -378,7 +378,7 @@ class editor {
 				$input['save'] = $save_result['data'];
 			}
 		}
-		
+
 		// deleting record
 		$flag_deleted = false;
 		if ($flag_delete) {
@@ -390,19 +390,19 @@ class editor {
 				$flag_deleted = true;
 			}
 		}
-		
+
 		// analizing primary key
 		$pk = extract_keys($this->list_pk, $model->process_fields(@$input['save']));
 		$flag_not_empty = false;
 		foreach ($pk as $k=>$v) if (!empty($v)) $flag_not_empty = true;
-		
+
 		// loading row
 		if ($flag_not_empty && !$flag_error && !$flag_delete) {
 			$input['save'] = $model->row($pk);
 		}
-		
+
 		$ms = '';
-		
+
 		// we need to save input data in hidden fields
 		$filter = $input;
 		unset($filter['save']);
@@ -411,10 +411,10 @@ class editor {
 				$ms.= h::hidden(array('name'=>$k, 'value'=>$v));
 			}
 		}
-		
+
 		// screen header
 		$ms.= '<b><span class="ui-icon ui-icon-document"></span>Edit</b><br /><br />';
-		
+
 		// main container
 		$ms.= '<table cellpadding="0" cellspacing="0" class="editor edit columns">';
 			foreach ($this->edit_columns as $k2=>$v2) {
@@ -461,10 +461,10 @@ class editor {
 				}
 			$ms.= '</tr>';
 		$ms.= '</table>';
-		
+
 		echo h::frame(h::form(array('name'=>'editor', 'value'=>$ms, 'action'=>application::get(array('mvc', 'full')))), 'simple');
 	}
-	
+
 	/**
 	 * This function will generate header/footer for editors
 	 * 
@@ -481,11 +481,11 @@ class editor {
 				$result.= '</td>';
 				// separator
 				$result.= '<td class="editor separator">|</td>';
-				
+
 				$result.= '<td>';
 					$result.= ' <span>Fetched: ' . $options['num_rows'] . (@$options['count_rows'] ? (' of ' . $options['count_rows']) : '') . '</span>';
 				$result.= '</td>';
-				
+
 				// sorting if enabled
 				if (true) { //!@$options['flag_disable_sort']
 					$sort_array = array();
@@ -493,7 +493,7 @@ class editor {
 					if (!empty($sort_array)) {
 						// separator
 						$result.= '<td class="editor separator">|</td>';
-						
+
 						// sorting
 						$result.= '<td nowrap>';
 							$result.= '<table>';
@@ -513,10 +513,10 @@ class editor {
 						$result.= '</td>';
 					}
 				}
-			
+
 				// separator
 				$result.= '<td class="editor separator">|</td>';
-				
+
 				$result.= '<td align="right" style="text-align:right;">';
 				// building pages
 				$result_pages = array();
@@ -554,7 +554,7 @@ class editor {
 		$result.= '</table>';
 		return $result;
 	}
-	
+
 	/**
 	 * Export bar
 	 * 
@@ -577,7 +577,7 @@ class editor {
 		$ms.= '</div>';
 		return $ms;
 	}
-	
+
 	/**
 	 * Import bar
 	 * 
@@ -601,7 +601,7 @@ class editor {
 		$ms.= '</div>';
 		return $ms;
 	}
-	
+
 	/**
 	 * Filter
 	 * 
@@ -638,7 +638,7 @@ class editor {
 						$ms.= '</td>';
 					$ms.= '<tr>';
 				}
-				
+
 				// gist search
 				$gist_columns = array();
 				foreach ($this->filter_columns as $k=>$v) if (@$v['filter_gist']) $gist_columns[] = $v['name'];

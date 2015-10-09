@@ -8,13 +8,13 @@ class i18n {
 	public static $default;
 	public static $current;
 	public static $path;
-	
+
 	public function __construct($default, $current, $path) {
 		self::$default = $default;
 		self::$current = $current;
 		self::$path = $path;
 	}
-	
+
 	public static function get($id, $lang = null) {
 		if (empty(self::$default) || empty(self::$current)) {
 			Throw new Exception('i18n: default or current?');
@@ -34,7 +34,7 @@ class i18n {
 			Throw new Exception('i18n: id?');
 		}
 	}
-	
+
 	public static function download() {
 		global $internalization;
 		if (empty($internalization)) require_once(self::$path);

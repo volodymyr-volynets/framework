@@ -1,7 +1,7 @@
 <?php
 
 class executioner {
-	
+
 	public static $steps = array();
 
 	public function action_index() {

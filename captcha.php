@@ -1,12 +1,12 @@
 <?php
 
 class captcha {
-	
+
 	// presets
 	public static $numbers = '1234567890';
 	public static $alpha = 'abcdefghijklmnopqrstuvwxyz';
 	public static $full = 'abcdefghijklmnopqrstuvwxyz1234567890';
-	
+
 	/**
 	 * Get new pass phrase
 	 * 
@@ -27,7 +27,7 @@ class captcha {
 		// important to return pass phrase so we can generate an image
 		return $result;
 	}
-	
+
 	/**
 	 * Check phrase
 	 * @param string $id

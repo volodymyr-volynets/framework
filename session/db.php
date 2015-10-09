@@ -17,11 +17,11 @@ class session_db implements session_interface {
 	public static function start($options) {
 		// putting data into static variable
 		self::$options = $options;
-		
+
 		// table and db link
 		if (!isset(self::$options['table'])) self::$options['table'] = 'sessions';
 		if (!isset(self::$options['db_link'])) self::$options['db_link'] = 'default';
-		
+
 		// overriding session handlers using new functions
 		session_set_save_handler(
 			array('session_db', '_open'),

@@ -8,7 +8,7 @@ class alive {
 	public static $alive = false;
 	public static $buffer = '';
 	public static $ob_start = false;
-	
+
 	/**
 	 * Start
 	 */
@@ -22,7 +22,7 @@ class alive {
 		declare(ticks = 200000);
 		self::$alive = true;
 	}
-	
+
 	/**
 	 * Stop
 	 */
@@ -42,5 +42,3 @@ function alive_tick() {
 	echo ' ';
 	flush();
 }
-
-?>

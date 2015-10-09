@@ -13,35 +13,35 @@ class report {
 		'csv' => array('name'=>'CSV (Comma Delimited)'),
 		'txt' => array('name'=>'Text (Tab Delimited)'),
 	);
-	
+
 	/**
 	 * Data container
 	 * 
 	 * @var unknown_type
 	 */
 	private $data = array();
-	
+
 	/**
 	 * Header container
 	 * 
 	 * @var unknown_type
 	 */
 	private $header = array();
-	
+
 	/**
 	 * Flag indicating that we added columns
 	 * 
 	 * @var unknown_type
 	 */
 	private $flag_columns_added = false;
-	
+
 	/**
 	 * Whether or not we need to show borders
 	 * 
 	 * @var unknown_type
 	 */
 	private $flag_pdf_show_borders = 0;
-	
+
 	/**
 	 * Init report and set header
 	 * Possible keys:
@@ -66,7 +66,7 @@ class report {
 		// if we need to show borders
 		$this->flag_pdf_show_borders = @$header['flag_pdf_show_borders'] ? 1 : 0;
 	}
-	
+
 	/**
 	 * Add data to the report
 	 * Possible types:
@@ -103,7 +103,7 @@ class report {
 		}
 		$this->data[] = array('t'=>$type, 'd'=>$temp);
 	}
-	
+
 	/**
 	 * Render
 	 * 
@@ -122,27 +122,27 @@ class report {
 				$this->header['pdf']['format'] = isset($this->header['pdf']['format']) ? $this->header['pdf']['format'] : 'LETTER';
 				$this->header['pdf']['encoding'] = isset($this->header['pdf']['encoding']) ? $this->header['pdf']['encoding'] : 'UTF-8';
 				$this->header['pdf']['font'] = isset($this->header['pdf']['font']) ? $this->header['pdf']['font'] : array('family' => 'helvetica', 'style' => '', 'size' => 8);
-				
+
 				//include 'tcpdf/tcpdf.php';
 				// create new PDF document
 				$pdf = new TCPDF($this->header['pdf']['orientation'], $this->header['pdf']['unit'], $this->header['pdf']['format'], true, $this->header['pdf']['encoding'], false);
-				
+
 				// set margins
 				$pdf->SetMargins(0, 0, 0);
 				$pdf->setPrintHeader(false);
-				
+
 				// disable auto break
 				$pdf->SetAutoPageBreak(false, 0);
-				
+
 				// set default font subsetting mode
 				$pdf->setFontSubsetting(true);
-				
+
 				// set color for background
 				$pdf->SetFillColor(255, 255, 255);
-				
+
 				// set font
 				$pdf->SetFont($this->header['pdf']['font']['family'], $this->header['pdf']['font']['style'], $this->header['pdf']['font']['size']);
-				
+
 				// stats
 				$page_counter = 1;
 				$page_y = 0;
@@ -151,20 +151,20 @@ class report {
 				$flag_first_row = true;
 				$columns = array();
 				$all_columns = array();
-				
+
 				// gethering all columns
 				foreach ($this->data as $k=>$v) {
 					if ($v['t']=='columns') $all_columns[] = $v;
 				}
-				
+
 				// looping through the data
 				foreach ($this->data as $k=>$v) {
 					if ($v['t']=='columns') continue;
-				
+
 					if ($flag_new_page) {
 						// add new page
 						$pdf->AddPage($this->header['pdf']['orientation'], '', true);
-						
+
 						// drawing header
 						$pdf->MultiCell(40, 5, format::datetime(format::now()), 0, 'L', 1, 0, 5, 5, true, 0, false, true, 10, 'T');
 						// company + book name
@@ -178,7 +178,7 @@ class report {
 						$pdf->SetFont($this->header['pdf']['font']['family'], 'B', $this->header['pdf']['font']['size']);
 						$report_name = $this->header['name'] . ' (' . implode('-', application::get(array('mvc', 'controllers'))) . ')';
 						$pdf->MultiCell($pw - 10, 5, $report_name, 0, 'L', 1, 0, 5, 10, true, 0, false, true, 10, 'T');
-						
+
 						if (isset($this->header['description'])) {
 							$pdf->SetFont($this->header['pdf']['font']['family'], 'B', $this->header['pdf']['font']['size']);
 							$pdf->MultiCell(205, 5, $this->header['description'], 0, 'L', 1, 0, 5, 15, true, 0, false, true, 10, 'T');
@@ -186,7 +186,7 @@ class report {
 						} else {
 							$page_y = 20;
 						}
-						
+
 						// if we need to add a filter
 						if ($flag_filter) {
 							if (isset($this->header['filter'])) {
@@ -202,16 +202,16 @@ class report {
 								}
 							}
 							$flag_filter = false;
-							
+
 							// adding one line space
 							$page_y+= 5;
 						}
-						
+
 						// page counter
 						$page_counter++;
 						$flag_new_page = false;
 					}
-					
+
 					// rendering rows
 					if ($flag_first_row) {
 						if (empty($columns)) {
@@ -232,7 +232,7 @@ class report {
 							}
 						}
 						$flag_first_row = false;
-						
+
 						// columns
 						foreach ($all_columns as $k20=>$v20) {
 							$x = 5;
@@ -265,7 +265,7 @@ class report {
 							$page_y+= 5;
 						}
 					}
-					
+
 					$pdf->SetFont($this->header['pdf']['font']['family'], '', $this->header['pdf']['font']['size']);
 					$x = 5;
 					foreach ($columns['d'] as $k10=>$v10) {
@@ -311,7 +311,7 @@ class report {
 						}
 						$x+= @$v10['w'];
 					}
-					
+
 					// incrementing 
 					$page_y+= 5;
 					if ($page_y > $pdf->getPageHeight() - 10) {
@@ -319,10 +319,10 @@ class report {
 						$flag_first_row = true;
 					}
 				}
-				
+
 				$pdf->Output($this->header['name'] . '.pdf', 'I');
 				exit;
-				
+
 				break;
 			case 'csv':
 			case 'txt':
@@ -343,7 +343,7 @@ class report {
 				if (isset($this->header['description'])) $header[$sheet][] = array($this->header['description']);
 				$header[$sheet][] = array('');
 				$temp = $header;
-				
+
 				// displaying filter
 				if (isset($this->header['filter'])) {
 					$temp2 = array();
@@ -365,7 +365,7 @@ class report {
 					}
 					$temp[$sheet][] = $temp2;
 				}
-				
+
 				// get output buffering
 				$screen_string = @ob_get_clean();
 				unset($screen_string);
@@ -433,19 +433,19 @@ class report {
 		}
 		return $result;
 	}
-	
+
 	public function render_legend($data, $number_of_columns, $max_columns, $name = '') {
 		// separator
 		$data2 = array(
 			array('value'=>''),
 		);
 		$this->add(array(), 'separator');
-		
+
 		// adding name
 		if ($name) {
 			$this->add(array(array('value'=>$name, 'bold'=>true)));
 		}
-		
+
 		// merging rows
 		$row_index = 0;
 		$data_index = 0;
@@ -456,7 +456,7 @@ class report {
 			$temp[$row_index][$t] = array('key'=>$k, 'value'=>$v['name']);
 			$data_index++;
 		}
-		
+
 		// rendering
 		foreach ($temp as $k=>$v) {
 			$line = array();

@@ -251,10 +251,10 @@ function function2($function, $value) {
  * @return string 
  */
 function http_build_query2($arr) {
-    foreach ($arr as $k=>$v) {
+	foreach ($arr as $k=>$v) {
 		if (empty($v)) unset($arr[$k]);
-    }
-    return http_build_query($arr);
+	}
+	return http_build_query($arr);
 }
 
 /**
@@ -303,9 +303,9 @@ function array_key_sort(& $arr, $key, $dir = SORT_ASC, $function = '') {
  * @return mixed
  */
 function array_key_get(& $arr, $keys = null) {
-    if ($keys === null) {
+	if ($keys === null) {
 		return $arr;
-    } else {
+	} else {
 		if (!is_array($keys)) $keys = explode(',', $keys . '');
 		$key = $keys;
 		$last = array_pop($key);
@@ -315,7 +315,7 @@ function array_key_get(& $arr, $keys = null) {
 			$pointer = & $pointer[$k2];
 		}
 		return isset($pointer[$last]) ? $pointer[$last] : null;
-    }
+	}
 }
 
 /**
@@ -327,10 +327,10 @@ function array_key_get(& $arr, $keys = null) {
  * @param array $options 
  */
 function array_key_set(& $arr, $keys = null, $value, $options = array()) {
-    if (!isset($arr)) $arr = array();
-    if ($keys === null) {
+	if (!isset($arr)) $arr = array();
+	if ($keys === null) {
 		$arr = $value;
-    } else {
+	} else {
 		if (!is_array($keys)) $keys = explode(',', $keys . '');
 		$key = $keys;
 		$pointer = & $arr;
@@ -344,7 +344,7 @@ function array_key_set(& $arr, $keys = null, $value, $options = array()) {
 		} else {
 			$pointer = $value;
 		}
-    }
+	}
 }
 
 /**
@@ -356,13 +356,13 @@ function array_key_set(& $arr, $keys = null, $value, $options = array()) {
  * @param array $options 
  */
 function array_key_set_by_key_name(& $arr, $keys = null, $value, $options = array()) {
-    if (!is_array($keys)) $keys = explode(',', $keys . '');
+	if (!is_array($keys)) $keys = explode(',', $keys . '');
 	// transform keys
 	$temp = array();
-    foreach ($keys as $k) $temp[] = $value[$k];
-    // unsetting keys
-    if (!empty($options['unset_keys'])) foreach ($temp as $k2) unset($value[$k2]);
-    array_key_set($arr, $temp, $value, $options);
+	foreach ($keys as $k) $temp[] = $value[$k];
+	// unsetting keys
+	if (!empty($options['unset_keys'])) foreach ($temp as $k2) unset($value[$k2]);
+	array_key_set($arr, $temp, $value, $options);
 }
 
 /**
@@ -374,8 +374,8 @@ function array_key_set_by_key_name(& $arr, $keys = null, $value, $options = arra
  * @return mixed
  */
 function array_diff_assoc_recursive_by_keys($arr1, $arr2, $options = array()) {
-    // if we are dealing with arrays
-    if (is_array($arr1) || empty($arr1)) {
+	// if we are dealing with arrays
+	if (is_array($arr1) || empty($arr1)) {
 		if (is_array($arr2) || empty($arr2)) {
 			if (empty($arr1)) $arr1 = array();
 			if (empty($arr2)) $arr2 = array();
@@ -392,7 +392,7 @@ function array_diff_assoc_recursive_by_keys($arr1, $arr2, $options = array()) {
 				$difference = $arr2;
 			}
 		}
-    } else {
+	} else {
 		if ($arr1 !== $arr2) {
 			// if we are in subtract mode
 			if ((is_numeric($arr1) || empty($arr1)) && (is_numeric($arr2) || empty($arr2)) && @$options['subtract']) {
@@ -405,7 +405,7 @@ function array_diff_assoc_recursive_by_keys($arr1, $arr2, $options = array()) {
 				$difference = $arr2;
 			}
 		}
-    }
-    if (isset($difference) && !is_array($difference) && floatval($difference) == 0) unset($difference);
-    return !isset($difference) ? false : $difference;
+	}
+	if (isset($difference) && !is_array($difference) && floatval($difference) == 0) unset($difference);
+	return !isset($difference) ? false : $difference;
 }

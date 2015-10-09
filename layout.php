@@ -7,24 +7,24 @@
  *
  */
 class layout extends view {
-	
+
 	public static $title_override = null;
 	public static $icon_override = null;
-	
+
 	/**
 	 * Onload javascript
 	 * 
 	 * @var string
 	 */
 	private static $onload = '';
-	
+
 	/**
 	 * Html to be prepended can be stored here
 	 * 
 	 * @var string 
 	 */
 	public static $last_html = '';
-	
+
 	/**
 	 * Add css file to layout
 	 * 
@@ -34,7 +34,7 @@ class layout extends view {
 	public static function add_css($css, $sort = 0) {
 		application::set(array('layout', 'css', $css), $sort);
 	}
-	
+
 	/**
 	 * Render css files
 	 *  
@@ -53,7 +53,7 @@ class layout extends view {
 		}
 		return $result;
 	}
-	
+
 	/**
 	 * Add javascript file to the layout
 	 * 
@@ -64,7 +64,7 @@ class layout extends view {
 		$js = str_replace('\\', '/', $js);
 		application::set(array('layout', 'js', $js), $sort);
 	}
-	
+
 	/**
 	 * Render javascript files 
 	 * 
@@ -83,7 +83,7 @@ class layout extends view {
 		}
 		return $result;
 	}
-	
+
 	/**
 	 * Onload js
 	 * 
@@ -92,7 +92,7 @@ class layout extends view {
 	public static function onload($js) {
 		self::$onload.= $js;
 	}
-	
+
 	/**
 	 * Render onload js
 	 * 
@@ -103,7 +103,7 @@ class layout extends view {
 			return h::script(array('value'=>'$(document).ready(function(){ ' . self::$onload . ' });'));
 		}
 	}
-	
+
 	/**
 	 * Render title
 	 *
@@ -121,7 +121,7 @@ class layout extends view {
 		}
 		return $result;
 	}
-	
+
 	/**
 	 * Render document title
 	 * 
@@ -131,7 +131,7 @@ class layout extends view {
 		$title = strip_tags(self::render_title());
 		return '<title>' . $title . '</title>';
 	}
-	
+
 	/**
 	 * Messages
 	 * 
@@ -147,8 +147,7 @@ class layout extends view {
 			application::set(array('messages', $type), $msg, array('append'=>true));
 		}
 	}
-	
-	
+
 	/**
 	 * Render application messages
 	 * 
@@ -164,7 +163,7 @@ class layout extends view {
 		}
 		return $result;
 	}
-	
+
 	/**
 	 * Add action
 	 * 
@@ -174,7 +173,7 @@ class layout extends view {
 	public static function add_action($code, $action) {
 		application::set(array('layout', 'bar_action', $code), $action);
 	}
-	
+
 	/**
 	 * Render actions
 	 * 

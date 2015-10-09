@@ -1,7 +1,7 @@
 <?php
 
 class keywords {
-	
+
 	/**
 	 * Process string to get keywords
 	 * 
@@ -13,10 +13,10 @@ class keywords {
 			'text' => '',
 			'keywords' => array(),
 		);
-		
+
 		// text is everything together stripped
 		$result['text'] = trim(self::strip($type . ' ' . $text . ' ' . $name . ' ' . $title));
-		
+
 		// keywords we get from text
 		$temp = explode(' ', $result['text']);
 		foreach ($temp as $v) {
@@ -27,7 +27,7 @@ class keywords {
 		}
 		return $result;
 	}
-	
+
 	/**
 	 * Strip tags
 	 * 
@@ -48,7 +48,7 @@ class keywords {
 		$text = preg_replace("/\s+/", " ", $text);
 		return $text;
 	}
-	
+
 	/**
 	 * Highlight keywords
 	 *

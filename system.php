@@ -1,7 +1,7 @@
 <?php
 
 class system {
-	
+
 	// self check
 	public static function check($check = array()) {
 		$result = array(

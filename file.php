@@ -6,21 +6,21 @@
  *
  */
 class file {
-	
+
 	/**
 	 * Extensions we allow to upload
 	 * 
 	 * @var array
 	 */
 	public static $extensions = array('gif','jpg','jpeg','tiff','png','doc','docx','xls','xlsx','pdf');
-	
+
 	/**
 	 * Extension for thumbnail
 	 * 
 	 * @var unknown_type
 	 */
 	public static $extensions_for_thumbnails = array('jpg','jpeg','png', 'gif');
-	
+
 	/**
 	 * Write content to file and sets permissions
 	 * 
@@ -36,7 +36,7 @@ class file {
 		}
 		return false;
 	}
-	
+
 	/**
 	 * Read file
 	 * 
@@ -46,7 +46,7 @@ class file {
 	public static function read($filename) {
 		return file_get_contents($filename);
 	}
-	
+
 	/**
 	 * Upload file to the server
 	 * 
@@ -112,7 +112,7 @@ class file {
 		} while(0);
 		return $result;
 	}
-	
+
 	/**
 	 * 
 	 * @param string $dir
@@ -122,7 +122,7 @@ class file {
 	public static function mkdir($dir, $permission = 0777) {
 		return mkdir($dir, $permission, true);
 	}
-	
+
 	/**
 	 * Remove directory with its content
 	 * 

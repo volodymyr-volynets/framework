@@ -1,7 +1,7 @@
 <?php
 
 class crypt {
-	
+
 	/**
 	 * Encrypting data (URL safe)
 	 * 
@@ -12,7 +12,7 @@ class crypt {
 	public static function encrypt($data, $key = '') {
 		// using default key if no key is passed
 		$key = $key ? $key : application::get(array('crypt', 'key'));
-		
+
 		// encrypting
 		$iv_size = mcrypt_get_iv_size(MCRYPT_RIJNDAEL_256, MCRYPT_MODE_CBC);
 		$iv = mcrypt_create_iv($iv_size, MCRYPT_RAND);
@@ -39,7 +39,7 @@ class crypt {
 		$decrypted = @mcrypt_decrypt(MCRYPT_RIJNDAEL_256, $key, $cipher, MCRYPT_MODE_CBC, $iv);
 		return trim($decrypted);
 	}
-	
+
 	/**
 	 * Generate a hash
 	 * 
@@ -50,7 +50,7 @@ class crypt {
 		$method = application::get(array('crypt', 'hash'));
 		return hash(($method ? $method : 'md5'), $data);
 	}
-	
+
 	/**
 	 * this would create encrypted token
 	 * 
@@ -68,7 +68,7 @@ class crypt {
 		$md5 = md5($serilialized . application::get(array('crypt', 'salt')));
 		return self::encrypt($md5 . $serilialized);
 	}
-	
+
 	/**
 	 * Validate encrypted token
 	 * 
@@ -95,7 +95,7 @@ class crypt {
 		} while(0);
 		return false;
 	}
-	
+
 	/**
 	 * Check password complexity
 	 * 
@@ -128,7 +128,7 @@ class crypt {
 		} while (0);
 		return false;
 	}
-	
+
 	/**
 	 * Hash password for storing in database
 	 * 
@@ -142,7 +142,7 @@ class crypt {
 			return $password . "";
 		}
 	}
-	
+
 	/**
 	 * Password policy for user friendly websites
 	 * 
@@ -160,7 +160,7 @@ class crypt {
 		$result.= '</ul>';
 		return $result;
 	}
-	
+
 	/**
 	 * Generate password complying with password policy
 	 * 
@@ -180,7 +180,7 @@ class crypt {
 		if ($include_symbols) $symbols = intval($length/4);
 		return self::password_generate_complex($length, $caps, $numbers, $symbols);
 	}
-	
+
 	/**
 	 * Complex funtion for password generation
 	 * 

@@ -45,7 +45,7 @@ class application {
 		}
 		return $options;
 	}
-	
+
 	/**
 	 * Set value in settings
 	 * 
@@ -82,7 +82,7 @@ class application {
 				self::$settings['cache']['php'] = cache::$adapters['php'];
 				break;
 			}
-			
+
 			// loading and processing ini files
 			$ini_folder = isset($options['ini_folder']) ? (rtrim($options['ini_folder'], '/') . '/') : $application_path;
 			$ini_files = array($ini_folder . 'application.ini', $ini_folder . 'localhost.ini');
@@ -92,16 +92,16 @@ class application {
 					self::$settings = array_merge2(self::$settings, $ini_data);
 				}
 			}
-			
+
 			// at this point we need to store data in cache
 			cache::set($cache_id, self::$settings, 0, null, 'php');
 		} while(0);
-		
+
 		// making variables accesible though settings function
 		self::$settings['environment'] = $environment;
 		self::$settings['application']['name'] = $application_name;
 		self::$settings['application']['path'] = $application_path;
-		
+
 		// settings system variables
 		self::$settings['layout'] = array();
 
@@ -120,11 +120,11 @@ class application {
 
 		// Main Try Catch block
 		try {
-			
+
 			// working directory is location of the application
 			chdir($application_path);
 			$application_path = getcwd();
-	
+
 			// setting include_path
 			$paths = array();
 			$paths[] = __DIR__;
@@ -134,40 +134,40 @@ class application {
 
 			// Destructor
 			register_shutdown_function(array('bootstrap', 'destroy'));
-			
+
 			// Bootstrap Class
 			$bootstrap = new bootstrap();
 			$bootstrap_methods = get_class_methods($bootstrap);
 			foreach ($bootstrap_methods as $method) {
 				if (strpos($method, 'init')===0) call_user_func(array($bootstrap, $method));
-         	}
-			 
+			}
+
 			// processing mvc settings
 			self::set_mvc();
-			
+
 			// special handling for captcha
 			if (strpos(self::$settings['mvc']['controller_class'], 'captcha.jpg')!==false) {
 				$type = str_replace(array('controller_', '_captcha.jpg'), '',self::$settings['mvc']['controller_class']);
 				require('./controller/captcha.jpg');
 				exit;
 			}
-			
+
 			// check if controller exists
 			$file = './' . str_replace('_', '/', self::$settings['mvc']['controller_class'] . '.php');
 			if (!file_exists($file)) {
 				Throw new Exception('File not found!');
 			}
-			
+
 			// initialize the controller
 			$controller_class = self::$settings['mvc']['controller_class'];
 			$controller = new $controller_class;
 			self::$settings['controller'] = get_object_vars($controller);
-			
+
 			// dispatch before, we need some settings from the controller
 			if (!empty(self::$settings['application']['dispatch']['before_controller'])) {
 				call_user_func(self::$settings['application']['dispatch']['before_controller']);
 			}
-			
+
 			// singleton start
 			if (!empty(self::$settings['controller']['singleton_flag'])) {
 				$message = !empty(self::$settings['controller']['singleton_message']) ? self::$settings['controller']['singleton_message'] : 'This script is being run by another user!';
@@ -176,19 +176,19 @@ class application {
 					Throw new Exception($message);
 				}
 			}
-			
+
 			self::process();
-			
+
 			// release singleton lock
 			if (!empty(self::$settings['controller']['singleton_flag'])) {
 				lock::release($lock_id);
 			}
-			
+
 			// dispatch after controller
 			if (!empty(self::$settings['application']['dispatch']['after_controller'])) {
 				call_user_func(self::$settings['application']['dispatch']['after_controller']);
 			}
-			
+
 		} catch (Exception $e) {
 			$previous_output = @ob_get_clean();
 			self::set_mvc('/error/~error/500');
@@ -220,7 +220,7 @@ class application {
 				$custom_file = self::$settings['application']['path'] . 'custom/'  . $company_id . '/' . str_replace('_', DIRECTORY_SEPARATOR, $class) . '.php';
 				$cached_file = self::$settings['application']['path'] . 'cache/custom/' . $company_id . '/'  . str_replace('_', DIRECTORY_SEPARATOR, $class) . '.php';
 				$cached_dir = pathinfo($cached_file, PATHINFO_DIRNAME);
-				
+
 				// if we have custom file
 				if (file_exists($custom_file)) {
 					// generate cached version of the file
@@ -253,11 +253,11 @@ class application {
 			'id' => 0,
 			'controllers' => array(),
 		);
-		 
+
 		// remove an extra backslashes from left side
 		$request_uri = explode('?', trim($url, '/'));
 		$request_uri = @$request_uri[0];
-		 
+
 		// determine action and controller
 		$parts = explode('/', $request_uri);
 		$flag_action_found = false;
@@ -276,7 +276,7 @@ class application {
 				$result['id'] = $part;
 			}
 		}
-		 
+
 		// set default values for action and controller
 		if (empty($result['controllers'])) {
 			$result['controllers'][] = 'index';
@@ -335,34 +335,34 @@ class application {
 
 		// start buffering
 		ob_start();
-		
+
 		$controller_class = self::$settings['mvc']['controller_class'];
 		$controller = new $controller_class;
-		
+
 		// processing options
  		if (!empty($options)) {
  			foreach ($options as $k=>$v) $controller->{$k} = $v;
  		}
-		
+
  		// auto populating input property in controller
  		if (!empty(self::$settings['application']['controller']['input'])) {
  			$controller->input = request::input(null, true, true);
  		}
- 		
+
 		// init method
 		if (method_exists($controller, 'init')) {
 			call_user_func(array($controller, 'init'));
 		}
-		
+
 		// check if action exists
 		$action = self::$settings['mvc']['controller_action'];
 		if (!method_exists($controller, $action)) {
 			Throw new Exception('Action does not exists!');
 		}
-		
+
 		// calling action
 		call_user_func(array($controller, $action));
-		
+
 		// auto rendering view only if view exists, processing extension order as specified in .ini file
 		global $__class_paths;
 		$controller_dir = pathinfo($__class_paths[$controller_class], PATHINFO_DIRNAME) . '/';
@@ -384,7 +384,7 @@ class application {
 				Throw new Exception('View ' . $view . ' does not exists!');
 			}
 		}
-		
+
 		// autoloading media files
 		if (!empty(self::$settings['application']['controller']['media'])) {
 			$company_id = session::get('company_id');
@@ -401,10 +401,10 @@ class application {
 				}
 			}
 		}
-		
+
 		// appending view after controllers output
 		$controller->view = @$controller->view . @ob_get_clean();
-		
+
 		// rendering layout
 		if (!empty(self::$settings['mvc']['controller_layout'])) {
 			ob_start();

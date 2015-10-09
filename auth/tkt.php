@@ -1,36 +1,36 @@
 <?php
 
 class auth_tkt {
-	
+
 	/**
 	 * Determine whether we need to encrypt user/data/token do not change it to
 	 * true unless you have reversal of encode function which is currently not available
 	 * 
 	 * @var boolean
 	 */
-    public static $encrypt_cookie = false;
+	public static $encrypt_cookie = false;
 
-    /**
-     * $result = getTKTHash( $ip, $user, $tokens, $data, $key, [, $base64 [, $ts [, $forcetokens]]] );
-     * Returns a string that contains the signed cookie. The cookie includes the ip address of the user, 
-     * the user UID, the tokens, the user data and a time stamp. The cookie can be
-     * optionnally base64 encoded. The data is also crypted with the encode() function.
-     * Usage on the same domain:
-     *      $hash = getTKTHash("0.0.0.0","username","","",getSecretKey(),false,"');
-     *      setcookie("AuthTkt",$hash,time() + (86400 * 30),"/","");
-     * If between 2 diferent domains send cookies in URL as AuthTkt=...
-     * 
-     * @param string $ip
-     * @param string $user
-     * @param string $tokens
-     * @param string $data
-     * @param string $key
-     * @param boolean $base64
-     * @param integer $ts
-     * @param boolean $forcetokens
-     * @return string
-     */
-    public static function getTKTHash($ip, $user, $tokens, $data, $key, $base64 = false, $ts = 0, $forcetokens = false) {
+	/**
+	 * $result = getTKTHash( $ip, $user, $tokens, $data, $key, [, $base64 [, $ts [, $forcetokens]]] );
+	 * Returns a string that contains the signed cookie. The cookie includes the ip address of the user, 
+	 * the user UID, the tokens, the user data and a time stamp. The cookie can be
+	 * optionnally base64 encoded. The data is also crypted with the encode() function.
+	 * Usage on the same domain:
+	 *      $hash = getTKTHash("0.0.0.0","username","","",getSecretKey(),false,"');
+	 *      setcookie("AuthTkt",$hash,time() + (86400 * 30),"/","");
+	 * If between 2 diferent domains send cookies in URL as AuthTkt=...
+	 * 
+	 * @param string $ip
+	 * @param string $user
+	 * @param string $tokens
+	 * @param string $data
+	 * @param string $key
+	 * @param boolean $base64
+	 * @param integer $ts
+	 * @param boolean $forcetokens
+	 * @return string
+	 */
+	public static function getTKTHash($ip, $user, $tokens, $data, $key, $base64 = false, $ts = 0, $forcetokens = false) {
 		// set the timestamp to now unless a time is specified
 		if (empty($ts)) {
 			$ts = time(); 
@@ -44,37 +44,37 @@ class auth_tkt {
 		$digest0 = md5($ipts . $key . $user . "\0" . $tokens . "\0" . $data);
 		$digest = md5($digest0 . $key);
 		if (!empty($tokens) or $forcetokens) {
-			$tkt = sprintf( "%s%08x%s!%s!%s", $digest, $ts,
-							self::encode( $user, $ts, 0, $key ),
-							self::encode( $tokens, $ts, 4, $key ),
-							self::encode( $data, $ts, 8, $key ) );
+			$tkt = sprintf("%s%08x%s!%s!%s", $digest, $ts,
+							self::encode($user, $ts, 0, $key),
+							self::encode($tokens, $ts, 4, $key),
+							self::encode($data, $ts, 8, $key));
 		} else {
-			$tkt = sprintf( "%s%08x%s!%s", $digest, $ts,
-							self::encode( $user, $ts, 0, $key ),
-							self::encode( $data, $ts, 8, $key ) );
+			$tkt = sprintf("%s%08x%s!%s", $digest, $ts,
+							self::encode( $user, $ts, 0, $key),
+							self::encode( $data, $ts, 8, $key));
 		}
 		if ($base64) {
 			return base64_encode($tkt);
 		} else {
 			return $tkt;
 		}
-    }
+	}
 
-    /**
-     * Function to get all parameters from the auth_tkt hash
-     * 
-     * @param string $AuthTkt
-     * @param boolean $base64_encoded
-     * @return array
-     */
-    public static function decodeTKTHash($AuthTkt, $base64_encoded = false) {
-		$AuthTkt = $base64_encoded? base64_decode($AuthTkt) : $AuthTkt;
+	/**
+	 * Function to get all parameters from the auth_tkt hash
+	 * 
+	 * @param string $auth_tkt
+	 * @param boolean $base64_encoded
+	 * @return array
+	 */
+	public static function decodeTKTHash($auth_tkt, $base64_encoded = false) {
+		$auth_tkt = $base64_encoded? base64_decode($auth_tkt) : $auth_tkt;
 		// 1st parameter comes from md5 which returns the hash as a 32-character hexadecimal number.
-		$result["digest"] = substr($AuthTkt, 0, 32);
+		$result["digest"] = substr($auth_tkt, 0, 32);
 		// %08x in sprintf - 8 digit timestamp
-		$result["ts"] = hexdec(substr($AuthTkt, 32, 8));
+		$result["ts"] = hexdec(substr($auth_tkt, 32, 8));
 		// explode the rest
-		$tmptmp = explode("!", substr($AuthTkt, 40, (sizeof($AuthTkt)>40)? sizeof($AuthTkt) : 40));
+		$tmptmp = explode("!", substr($auth_tkt, 40, (sizeof($auth_tkt)>40)? sizeof($auth_tkt) : 40));
 		$result["user"] = @$tmptmp[0];
 		if (sizeof($tmptmp)==3) {
 			$result["token"] = @$tmptmp[1];
@@ -84,7 +84,7 @@ class auth_tkt {
 			$result["data"] = @$tmptmp[1];
 		}
 		return $result;
-    }
+	}
 
 	/**
 	 * Returns a "crypted" version of the data. The length of the data is
@@ -109,9 +109,9 @@ class auth_tkt {
 	 * @param string $secretkey
 	 * @return string
 	 */
-    private static function encode($data, $timestamp, $offset, $secretkey) {
+	private static function encode($data, $timestamp, $offset, $secretkey) {
 		// check if encryption is activated
-		if (!@self::$encrypt_cookie) {
+		if (!self::$encrypt_cookie) {
 			return $data;
 		}
 		$CHARS_TO_ENCODE = " abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-.:";
@@ -130,5 +130,5 @@ class auth_tkt {
 			}
 		}
 		return $encoded;
-    }
+	}
 }

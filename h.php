@@ -4,7 +4,7 @@
  * h class is designed to help generate HTML 5 code
  */
 class h {
-	
+
 	/**
 	 * Autocomplete with ajax
 	 * 
@@ -27,7 +27,7 @@ class h {
 		$result = h::input($options);
 		return $result;
 	}
-	
+
 	/**
 	 * Building tabs
 	 * 
@@ -71,11 +71,11 @@ class h {
 						});
 						$("#' .$input[$options['id'] . '_current_tab_element'] .  '").click();
 					});
-				
+
 				');
 		return $ms;
 	}
-	
+
 	/**
 	 * Build a calendar
 	 * 
@@ -118,7 +118,7 @@ class h {
 		$result.= '>' . $value . '</a>';
 		return $result;
 	}
-	
+
 	/**
 	 * This function will generate img element
 	 * 
@@ -257,7 +257,7 @@ class h {
 		$options['class'] = isset($options['class']) ? $options['class'] : 'button';
 		return self::input($options);
 	}
-	
+
 	/**
 	 * Button element 2nd edition
 	 *
@@ -404,12 +404,12 @@ class h {
 		} else {
 			unset($options['disabled'], $options['readonly']);
 		}
-		
+
 		$optgroups = @$options['optgroups'];
 		$options_array = @$options['options'];
 		$value = @$options['value'];
 		unset($options['options'], $options['optgroups'], $options['value'], $options['no_choose']);
-		
+
 		$result = '';
 		$result.= '<select';
 		foreach($options as $k=>$v) {
@@ -484,7 +484,7 @@ class h {
 		}
 		return $result;
 	}
-	
+
 	/**
 	 * An alias for multi select
 	 * 
@@ -495,7 +495,7 @@ class h {
 		if (!isset($options['multiselect'])) $options['multiselect'] = array();
 		return self::select($options);
 	}
-	
+
 	/**
 	 * Message box
 	 * 
@@ -535,7 +535,7 @@ class h {
 		$result.= '</fieldset>';
 		return $result;
 	}
-	
+
 	/**
 	 * Render a frame
 	 * 
@@ -553,7 +553,7 @@ class h {
 		}
 		return $result;
 	}
-	
+
 	/**
 	 * Mandatory tag
 	 * 
@@ -562,7 +562,7 @@ class h {
 	public static function mandatory() {
 		return '<span class="mandatory" title="Mandatory">*</span>';
 	}
-	
+
 	/**
 	 * Crean an element
 	 * 
@@ -591,7 +591,7 @@ class h {
 		unset($options['options_paremeters'], $options['format_paremeters'], $options['sequence']);
 		return call_user_func(array('h', $element), $options);
 	}
-	
+
 	// tooltip widjet
 	public static function tooltip($name, $text, $header = '', $class = 'classic', $url = '', $style = '') {
 		$img = '';
@@ -607,29 +607,29 @@ class h {
 		return self::a(array('href'=>$url, 'value'=>$temp, 'class'=>'tooltip'));
 	}
 
-    // dialog box mostly for popup comments
-    public static function dialog($id, $value, $title, $body, $options = array()) {
+	// dialog box mostly for popup comments
+	public static function dialog($id, $value, $title, $body, $options = array()) {
 		// loading files
-    	layout::add_js('/jquery/js/jquery.min.js', -32000);
-    	layout::add_js('/jquery/js/jquery-ui.min.js', -30000);
+		layout::add_js('/jquery/js/jquery.min.js', -32000);
+		layout::add_js('/jquery/js/jquery-ui.min.js', -30000);
 		layout::add_css('/jquery/css/jquery-ui.css');
-		
+
 		// options
 		$options['height'] = @$options['height'] ? $options['height'] : 'auto';
 		$options['width'] = @$options['width'] ? '"'. $options['width'] .'"' : '"350"'; // sreen width: ($(window).width()) * 0.9
 		$options['style'] = @$options['style'] ? (' style="' . $options['style'] . '" ') : '';
 		$options['class'] = @$options['class'] ? (' class="' . $options['class'] . '" ') : '';
-		
+
 		$hover_id = 'h_hoverbox_id_' . $id;
-        
-        if (@$options['clickable']) {
-            $result = '<a href="" id="' . $hover_id . '_hover"' . $options['style'] . $options['class'] . '>'. $value .'</a><div id="' . $hover_id . '_dialog" style="display:none;">' . $body . '</div>'; 
-        } else if (@$options['hidden']) {
-           $result = '<div id="' . $hover_id . '_dialog" style="display:none;">' . $body . '</div>';
-        } else {
-           $result = '<span id="' . $hover_id . '_hover"' . $options['style'] . '><span>' . $value . '</span><div id="' . $hover_id . '_dialog" style="display:none;">' . $body . '</div></span>'; 
-        }
-        
+
+		if (@$options['clickable']) {
+			$result = '<a href="" id="' . $hover_id . '_hover"' . $options['style'] . $options['class'] . '>'. $value .'</a><div id="' . $hover_id . '_dialog" style="display:none;">' . $body . '</div>'; 
+		} else if (@$options['hidden']) {
+		   $result = '<div id="' . $hover_id . '_dialog" style="display:none;">' . $body . '</div>';
+		} else {
+		   $result = '<span id="' . $hover_id . '_hover"' . $options['style'] . '><span>' . $value . '</span><div id="' . $hover_id . '_dialog" style="display:none;">' . $body . '</div></span>'; 
+		}
+
 		$js = '$("#' . $hover_id . '_dialog").dialog({
 		    autoOpen: false,
 		    modal: false,
@@ -638,12 +638,12 @@ class h {
 		    dialogopened: false,
 		    title: "' . $title . '",';
 			if (isset($options['close_off_hover'])) {
-            	$js.= 'dialogClass: "no-close",';
-            }
-            // centering dialog
-            if (isset($options['position'])) {
-            	$js.= 'position: "' . $options['position'] . '",';
-            }
+				$js.= 'dialogClass: "no-close",';
+			}
+			// centering dialog
+			if (isset($options['position'])) {
+				$js.= 'position: "' . $options['position'] . '",';
+			}
 			if (!empty($options['onopen'])) {
 			    $js.= 'open: function (event, ui) {
 				if (!$("#' . $hover_id . '_dialog").dialog("option", "dialogopened")) {
@@ -652,61 +652,61 @@ class h {
 				}
 			    },';
 			}
-                
+
 	        $js.= 'close: function(event, ui) {}});';
-               
+
 		if (@$options['clickable']) {
-            $js.= '$("#' . $hover_id . '_hover").click(function() { if ($("#' . $hover_id . '_dialog").dialog("isOpen") != true) { $("#' . $hover_id . '_dialog").dialog("open");';
-            if (empty($options['position'])) {
-            	$js.= '$("#' . $hover_id . '_dialog").dialog("option", "position", { my: "left top", at: "left bottom", of: $("#' . $hover_id . '_hover") });';
-            }
+			$js.= '$("#' . $hover_id . '_hover").click(function() { if ($("#' . $hover_id . '_dialog").dialog("isOpen") != true) { $("#' . $hover_id . '_dialog").dialog("open");';
+			if (empty($options['position'])) {
+				$js.= '$("#' . $hover_id . '_dialog").dialog("option", "position", { my: "left top", at: "left bottom", of: $("#' . $hover_id . '_hover") });';
+			}
 			$js.= '} return false; });';
 		} else if (@$options['hidden']) {
 			// nothing for now
-        } else {
-            $js.= '$("#' . $hover_id . '_hover").mouseover(function() {
+		} else {
+			$js.= '$("#' . $hover_id . '_hover").mouseover(function() {
 				if ($("#' . $hover_id . '_dialog").dialog("isOpen") != true) {
 					$("#' . $hover_id . '_dialog").dialog("open");
 					$("#' . $hover_id . '_dialog").dialog("option", "position", { my: "left top", at: "left bottom", of: $("#' . $hover_id . '_hover") });
 				}
 	    	});';
-            
-            if (isset($options['close_off_hover'])) {
-                $js.= '
 
-                $("#' . $hover_id . '_hover").mouseout(function() {
-                    if ($("#' . $hover_id . '_dialog").dialog("isOpen") == true) {
-                        $("#' . $hover_id . '_dialog").dialog("close");
-                    }
-                });';
-            }
-        }
-        
-        if (!empty($options['form'])) {
-        	$js.= '$("#' . $hover_id . '_dialog").parent().appendTo($("form#' . $options['form'] . '"));';
-        }
-        
+			if (isset($options['close_off_hover'])) {
+				$js.= '
+
+				$("#' . $hover_id . '_hover").mouseout(function() {
+					if ($("#' . $hover_id . '_dialog").dialog("isOpen") == true) {
+						$("#' . $hover_id . '_dialog").dialog("close");
+					}
+				});';
+			}
+		}
+
+		if (!empty($options['form'])) {
+			$js.= '$("#' . $hover_id . '_dialog").parent().appendTo($("form#' . $options['form'] . '"));';
+		}
+
 		layout::onload($js);
 		return $result;
-    }
-    
-    /**
-     * Catcomplete
-     * 
-     * @param array $options
-     * @return string
-     */
-    public static function catcomplete($options) {
-    	$result = h::input($options);
-    	
-    	// including files
-    	layout::add_js('/jquery/js/jquery.catcomplete.js');
-    	layout::add_css('/jquery/css/jquery.catcomplete.css');
-    	
-    	$keyword = '';
-    	if (!empty($options['keyword'])) {
-    		$keyword = <<<TTT
-    			, select: function(event, ui) {
+	}
+
+	/**
+	 * Catcomplete
+	 * 
+	 * @param array $options
+	 * @return string
+	 */
+	public static function catcomplete($options) {
+		$result = h::input($options);
+
+		// including files
+		layout::add_js('/jquery/js/jquery.catcomplete.js');
+		layout::add_css('/jquery/css/jquery.catcomplete.css');
+
+		$keyword = '';
+		if (!empty($options['keyword'])) {
+			$keyword = <<<TTT
+				, select: function(event, ui) {
 					$.ajax({
 						url: "{$options['keyword']}",
 						dataType: "json",
@@ -719,12 +719,12 @@ class h {
 					});
 				}
 TTT;
-    	}
-    	
-    	// building widget
-    	$js = <<<TTT
-    		$('#{$options['id']}').catcomplete({
-    			source: function(request, response) {
+		}
+
+		// building widget
+		$js = <<<TTT
+			$('#{$options['id']}').catcomplete({
+				source: function(request, response) {
 					$.ajax({
 						url: "{$options['ajax']}",
 						dataType: "json",
@@ -740,18 +740,18 @@ TTT;
 				{$keyword}
 			});
 TTT;
-    	layout::onload($js);
-    	return $result;
-    }
-    
-    /**
-     * Buldintg a tree
-     * 
-     * @param array $options
-     * @return string
-     */
-    public static function tree($options) {
-    	$result = <<<TTT
+		layout::onload($js);
+		return $result;
+	}
+
+	/**
+	 * Buldintg a tree
+	 * 
+	 * @param array $options
+	 * @return string
+	 */
+	public static function tree($options) {
+		$result = <<<TTT
 	    	<div id="container" role="main">
 				<div id="tree"></div>
 				<div id="data">
@@ -762,13 +762,13 @@ TTT;
 				</div>
 			</div>
 TTT;
-    	 
-    	// including files
-    	layout::add_js('/jstree/jstree.min.js');
-    	layout::add_css('/jstree/jstree.css');
-    	
-    	// building widget
-    	$js = <<<TTT
+
+		// including files
+		layout::add_js('/jstree/jstree.min.js');
+		layout::add_css('/jstree/jstree.css');
+
+		// building widget
+		$js = <<<TTT
 			$(window).resize(function () {
 				var h = Math.max($(window).height() - 0, 420);
 				$('#container, #data, #tree, #data .content').height(h).filter('.default').css('lineHeight', h + 'px');
@@ -929,7 +929,7 @@ TTT;
 					}
 				});
 TTT;
-    	layout::onload($js);
-    	return $result;
-    }
+		layout::onload($js);
+		return $result;
+	}
 }

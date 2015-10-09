@@ -1,14 +1,14 @@
 <?php
 
 class crud {
-	
+
 	/**
 	 * We would store data in memory for future reuse
 	 * 
 	 * @var unknown_type
 	 */
 	public static $cache_memory_container = array();
-	
+
 	/**
 	 * Constructor
 	 * 
@@ -20,7 +20,7 @@ class crud {
 		if (empty($this->pk)) Throw new Exception('Primary Key?');
 		if (empty($this->orderby)) Throw new Exception('Order By?');
 	}
-	
+
 	/**
 	 * Get data
 	 * 
@@ -58,7 +58,7 @@ class crud {
 		}
 		return $result['rows'];
 	}
-	
+
 	/**
 	 * Get one row based on primary key
 	 * 
@@ -87,7 +87,7 @@ class crud {
 		}
 		return $one ? array_shift($result_main['rows']) : $result_main['rows'];
 	}
-	
+
 	/**
 	 * Options for select element
 	 * 
@@ -104,7 +104,7 @@ class crud {
 		natsort2($data);
 		return $data;
 	}
-	
+
 	/**
 	 * Active options for system use
 	 * 
@@ -115,7 +115,7 @@ class crud {
 		if (!isset($this->options_active)) Throw new Exception('options_active?');
 		return $this->options(@$this->options_active, $map);
 	}
-	
+
 	/**
 	 * Searching for particular data
 	 * 
@@ -139,7 +139,7 @@ class crud {
 		natsort2($data);
 		return $data;
 	}
-	
+
 	/**
 	 * Active search
 	 * 
@@ -152,7 +152,7 @@ class crud {
 		$where = array_merge2($where, $this->options_active);
 		return $this->options_search($where, $map, $search_string);
 	}
-	
+
 	/**
 	 * Save/create a record
 	 * 
@@ -160,35 +160,35 @@ class crud {
 	 * @return array
 	 */
 	public function save($data) {
-    	$result = array(
+		$result = array(
    			'success' => false,
-    		'error' => array(),
-    		'data' => array(),
-    		'inserted' => false
-    	);
-		
+			'error' => array(),
+			'data' => array(),
+			'inserted' => false
+		);
+
 		// populating fields
 		$save = $this->process_fields($data, @$data['ignore_not_set_fields']);
-		
+
 		// verifying
 		do {
 			if (empty($save)) {
 				$result['error'][] = 'You must specify atleast one field!';
 			}
-			
+
 			// verification against columns
 			if (!empty($this->save_columns)) {
 				// verification
 				$this->verify_fields($save, $this->save_columns, $result);
-			
+
 				// additional verification
 				if (method_exists($this, 'save_verify')) {
 					array_merge3($result['error'], $this->save_verify($save, $this->save_columns));
 				}
 			}
-			
+
 			if (!empty($result['error'])) break;
-			
+
 			// processing sequence
 			if (!empty($this->save_columns)) {
 				$settings = new model_co_settings();
@@ -203,7 +203,7 @@ class crud {
 					}
 				}
 			}
-			
+
 			// saving record to database
 			$link = isset($this->link) ? $this->link : 'default';
 			$save_result = db::save($this->table, $save, $this->pk, $link);
@@ -221,7 +221,7 @@ class crud {
 		} while(0);
 		return $result;
 	}
-	
+
 	/**
 	 * Remove one row based on primary key
 	 *  
@@ -247,14 +247,14 @@ class crud {
 				array_merge3($result['error'], $delete_result['error']);
 			}
 		}
-		
+
 		if (empty($result['error'])) {
 			$result['success'] = true;
 			$this->reset_cache();
 		}
 		return $result;
 	}
-	
+
 	/**
 	 * Convert input into array
 	 * 
@@ -285,7 +285,7 @@ class crud {
 		}
 		return $save;
 	}
-	
+
 	/**
 	 * Verify fields
 	 * 
@@ -315,7 +315,7 @@ class crud {
 			}
 		}
 	}
-	
+
 	/**
 	 * Reset cache
 	 */

@@ -26,23 +26,23 @@ class ftp {
 
 			$conn_id = ftp_connect($options['host']);
 			$flag_ftp_openned = true;
-			
+
 			// login with username and password
 			$login_result = @ftp_login($conn_id, @$options['username'], @$options['password']);
-			
+
 			// check connection
 			if ((!$conn_id) || (!$login_result)) {
 				$result['error'][] = 'FTP connection has failed!';
 				break;
 			}
-			
+
 			// turning on passive mode
 			ftp_pasv($conn_id, true);
-			
+
 			// get directory + file name
 			$dir = pathinfo($out_file, PATHINFO_DIRNAME);
 			$file = pathinfo($out_file, PATHINFO_BASENAME);
-			
+
 			// changing directory if it is not root
 			if ($dir && $dir!='/') {
 				if ($dir[0]=='/') $dir = substr($dir, 1);
@@ -56,7 +56,7 @@ class ftp {
 					break;
 				}
 			}
-			
+
 			// uploading a file
 			$options['upload_mode'] = !empty($options['upload_mode']) ? $options['upload_mode'] : FTP_BINARY;
 			if (!ftp_put($conn_id, $file, $in_file, $options['upload_mode'])) {
@@ -66,14 +66,13 @@ class ftp {
 
 			$result['success'] = true;
 		} while(0);
-		
+
 		// closing connection
 		if ($flag_ftp_openned) {
 			@ftp_close($conn_id);
 		}
 		return $result;
 	}
-
 
 	/**
 	 * This would upload file to the ftp site, it will also change and create
@@ -99,18 +98,18 @@ class ftp {
 
 			$conn_id = ftp_connect($options['host']);
 			$flag_ftp_openned = true;
-			
+
 			// login with username and password
 			$ftp_user_name = "media";
 			$ftp_password = "media123";
 			$login_result = @ftp_login($conn_id, @$options['username'], @$options['password']);
-			
+
 			// check connection
 			if ((!$conn_id) || (!$login_result)) {
 				$result['error'][] = 'FTP connection has failed!';
 				break;
 			}
-			
+
 			// turning on passive mode
 			ftp_pasv($conn_id, true);
 
@@ -133,7 +132,7 @@ class ftp {
 
 			$result['success'] = true;
 		} while(0);
-		
+
 		// closing connection
 		if ($flag_ftp_openned) {
 			ftp_close($conn_id);

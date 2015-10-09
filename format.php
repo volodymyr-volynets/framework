@@ -1,14 +1,14 @@
 <?php
 
 class format {
-	
+
 	/**
 	 * Options
 	 * 
 	 * @var array
 	 */
 	public static $options = null;
-	
+
 	/**
 	 * Initialize locales
 	 * 
@@ -33,7 +33,7 @@ class format {
 		*/
 		self::$options = $options;
 	}
-	
+
 	/**
 	 * Determine if we can use locales, windows system is not supported
 	 * 
@@ -44,7 +44,7 @@ class format {
 		return false;
 		//return (PHP_OS == 'Linux') ? true : false;
 	}
-	
+
 	/**
 	 * Format date
 	 * 
@@ -56,7 +56,7 @@ class format {
 		$date = is_numeric($date) ? $date : @strtotime($date);
 		return date('Y-m-d', $date);
 	}
-	
+
 	/**
 	 * Format time
 	 * 
@@ -68,7 +68,7 @@ class format {
 		$date = is_numeric($date) ? $date : @strtotime($date);
 		return date('H:i:s', $date);
 	}
-	
+
 	/**
 	 * Format datetime
 	 * 
@@ -80,7 +80,7 @@ class format {
 		$date = is_numeric($date) ? $date : @strtotime($date);
 		return date('Y-m-d H:i:s', $date);
 	}
-	
+
 	/**
 	 * Current date and time
 	 * 
@@ -90,7 +90,7 @@ class format {
 		// todo: convert to proper timezone, important
 		return date($date_only ? 'Y-m-d' : 'Y-m-d H:i:s', time());
 	}
-	
+
 	/**
 	 * Determine date format
 	 * 
@@ -118,7 +118,7 @@ class format {
 		}
 		return $result;
 	}
-	
+
 	/**
 	 * Transform date from locale into php
 	 * 
@@ -130,7 +130,7 @@ class format {
 		$date = is_numeric($date) ? $date : @strtotime($date);
 		return date('Y-m-d', $date);
 	}
-	
+
 	/**
 	 * Read 5 character time string
 	 * 
@@ -146,7 +146,7 @@ class format {
 			return str_pad(intval($temp[0]), 2, '0', STR_PAD_LEFT) . ':' .str_pad(intval($temp[1]), 2, '0', STR_PAD_LEFT);
 		}
 	}
-	
+
 	/**
 	 * Transform float from locale to php
 	 * 
@@ -165,7 +165,7 @@ class format {
 		if ($locale['decimal_point']!='.') $amount = str_replace($locale['decimal_point'], '.', $amount);
 		return floatval($amount);
 	}
-	
+
 	/**
 	 * Transform integer from locale to php
 	 * 
@@ -175,7 +175,7 @@ class format {
 	public static function read_intval($amount) {
 		return round(self::read_floatval($amount), 0);
 	}
-	
+
 	/**
 	 * Display number as per currency code
 	 * 
@@ -197,7 +197,7 @@ class format {
 		}
 		return $result;
 	}
-	
+
 	/**
 	 * Display number as in locale
 	 * 
@@ -226,7 +226,7 @@ class format {
 			}
 		}
 	}
-	
+
 	/**
 	 * Format currency
 	 * 
@@ -238,7 +238,7 @@ class format {
 		$options['decimals'] = 8;
 		return self::amount($amount, $options);
 	}
-	
+
 	/**
 	 * Format hourly rate
 	 * 
@@ -250,7 +250,7 @@ class format {
 		$options['decimals'] = 4;
 		return self::amount($amount, $options);
 	}
-	
+
 	/**
 	 * Format Fiscal Year/Period
 	 * 
@@ -268,7 +268,7 @@ class format {
 			return $year . '-' . $period;
 		}
 	}
-	
+
 	/**
 	 * Format amount to show on cheques
 	 * 

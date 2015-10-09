@@ -1,8 +1,7 @@
 <?php
 
 class request {
-	
-	
+
 	/**
 	 * User IP
 	 * 
@@ -19,7 +18,7 @@ class request {
 		}
 		return $result;
 	}
-	
+
 	/**
 	 * Get merged cookie, get and post
 	 * 
@@ -28,17 +27,17 @@ class request {
 	 * @return mixed
 	 */
 	public static function input($key = '', $xss = true, $cookie = false) {
-		
+
 		// cookie first, get and post after
 		if ($cookie) {
 			$result = array_merge2($_COOKIE, $_GET, $_POST);
 		} else {
 			$result = array_merge2($_GET, $_POST);
 		}
-		
+
 		// protection against XSS attacks is on by default
 		if ($xss) $result = self::strip_tags($result);
-		
+
 		// returning result
 		if ($key) {
 			return array_key_get($result, $key);
@@ -46,7 +45,7 @@ class request {
 			return $result;
 		}
 	}
-	
+
 	/**
 	 * Strip tags
 	 * 
@@ -65,15 +64,14 @@ class request {
 		}
 		return $result;
 	}
-	
 
-    /**
-     * Host, input parameters: ip, request, protocol
-     * 
-     * @param array $params
-     * @return string
-     */
-    public static function host($params = array()) {
+	/**
+	 * Host, input parameters: ip, request, protocol
+	 * 
+	 * @param array $params
+	 * @return string
+	 */
+	public static function host($params = array()) {
 		$protocol = @$params['protocol'] ? $params['protocol'] : '';
 		if (!$protocol) $protocol = self::is_ssl() ? 'https' : 'http';
 		$host = @$params['ip'] ? (getenv('SERVER_ADDR') . ':' . getenv('SERVER_PORT')) : getenv('HTTP_HOST');
@@ -82,41 +80,41 @@ class request {
 			$host = @$params['level3'] . '.' . $host;
 		}
 		return $protocol . '://' . $host . (@$params['request'] ? $_SERVER['REQUEST_URI'] : '/');
-    }
-    
-    /**
-     * Get host parts
-     * 
-     * @param string $host
-     * @return array
-     */
-    public static function host_parts($host = null) {
-    	if (empty($host)) $host = self::host();
-    	$host = str_replace(array('http://', 'https://'), '', $host);
-    	$host = str_replace('/', '', $host);
-    	$temp = explode('.', $host);
-    	krsort($temp);
-    	$result = array();
-    	$counter = 1;
-    	foreach ($temp as $k=>$v) {
-    		$result[$counter] = $v;
-    		$counter++;
-    	}
-    	return $result;
-    }
-    
-    /**
-     * Is ssl
-     * 
-     * @return boolean
-     */
-    public static function is_ssl() {
+	}
+
+	/**
+	 * Get host parts
+	 * 
+	 * @param string $host
+	 * @return array
+	 */
+	public static function host_parts($host = null) {
+		if (empty($host)) $host = self::host();
+		$host = str_replace(array('http://', 'https://'), '', $host);
+		$host = str_replace('/', '', $host);
+		$temp = explode('.', $host);
+		krsort($temp);
+		$result = array();
+		$counter = 1;
+		foreach ($temp as $k=>$v) {
+			$result[$counter] = $v;
+			$counter++;
+		}
+		return $result;
+	}
+
+	/**
+	 * Is ssl
+	 * 
+	 * @return boolean
+	 */
+	public static function is_ssl() {
 		if (strtolower(@$_SERVER['HTTP_X_FORWARDED_PROTO'])=='https') {
 			return true;
 		} else if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS']!='off') {
-    		return true;
-    	} else {
-    		return false;
-    	}
-    }
+			return true;
+		} else {
+			return false;
+		}
+	}
 }
