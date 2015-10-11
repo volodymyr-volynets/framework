@@ -1,0 +1,6 @@
+/app/localhost.ini
+/app/cache/*
+/public_html/cache/*
+
+!.gitkeep
+!.htaccess

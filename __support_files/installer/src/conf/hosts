@@ -1,0 +1,5 @@
+# add these lines to /etc/hosts file
+
+# [domain]
+127.0.0.1	[domain]
+127.0.0.1	www.[domain]

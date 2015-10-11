@@ -1,8 +1,5 @@
 <?php
 
-/**
- * Application Class
- */
 class application {
 
 	/**
@@ -37,11 +34,11 @@ class application {
 	 * @param array $decrypt_keys
 	 * @return mixed
 	 */
-	public static function get($keys = null, $decrypt_keys = array()) {
-		$options = array_key_get(self::$settings, $keys);
+	public static function get($key = null, $decrypt_keys = array()) {
+		$options = array_key_get(self::$settings, $key);
 		// decrypting certain columns
 		if (!empty($decrypt_keys)) {
-			array_walk_recursive($options, create_function('&$v, $k, $fn', 'if (in_array($k, $fn)) $v = cryptography::decrypt($v);'), $decrypt_keys);
+			array_walk_recursive($options, create_function('&$v, $k, $fn', 'if (in_array($k, $fn)) $v = crypt::decrypt($v);'), $decrypt_keys);
 		}
 		return $options;
 	}
@@ -49,25 +46,34 @@ class application {
 	/**
 	 * Set value in settings
 	 * 
-	 * @param unknown_type $keys
-	 * @param unknown_type $value
+	 * @param mixed $key
+	 * @param mixed $value
 	 */
-	public static function set($keys, $value, $options = array()) {
-		array_key_set(self::$settings, $keys, $value, $options);
+	public static function set($key, $value, $options = array()) {
+		array_key_set(self::$settings, $key, $value, $options);
 	}
 
 	/**
 	 * Run application
-	 *
-	 * @param string $location - where to load application from
-	 * @param string $environment - production, staging, testing, development
+	 * 
+	 * @param string $application_name
+	 * @param string $application_path
+	 * @param string $environment
+	 * @param array $options
+	 * @throws Exception
 	 */
-	public static function run($application_name, $application_path, $environment = 'production', $options = array()) {
+	public static function run($application_name = 'default', $application_path = '../app', $environment = null, $options = array()) {
 		// support functions
 		require("functions.php");
 
 		// fixing location paths
 		$application_path = rtrim($application_path, '/') . '/';
+
+		// environment
+		if (empty($environment)) {
+			$numbers_env = getenv('numbers_env');
+			$environment = !empty($numbers_env) ? $numbers_env : 'production';
+		}
 
 		// we need to solve chicken and egg problem so we load cache first and then run application
 		cache::create('php', array('type'=>'php', 'dir'=>'../app/cache'));
@@ -99,6 +105,7 @@ class application {
 
 		// making variables accesible though settings function
 		self::$settings['environment'] = $environment;
+		self::$settings['wildcard'] = getenv('numbers_wildcard') ? true : false;
 		self::$settings['application']['name'] = $application_name;
 		self::$settings['application']['path'] = $application_path;
 
@@ -118,7 +125,7 @@ class application {
 			}
 		}
 
-		// Main Try Catch block
+		// main try catch block
 		try {
 
 			// working directory is location of the application
@@ -195,7 +202,7 @@ class application {
 			self::process(array('exception'=>$e));
 		}
 
-		// Headers
+		// headers
 		if (!empty(self::$settings['header']) && !headers_sent()) {
 			foreach (self::$settings['header'] as $k=>$v) header($v);
 		}
@@ -235,6 +242,7 @@ class application {
 			}
 		}
 		// we need to store class path so we can load js and css files
+		// todo: refactor here
 		global $__class_paths;
 		$__class_paths[$class] = $file;
 		require_once($file);
@@ -259,6 +267,7 @@ class application {
 		$request_uri = @$request_uri[0];
 
 		// determine action and controller
+		// todo: we need to make it flexible
 		$parts = explode('/', $request_uri);
 		$flag_action_found = false;
 		$flag_id_found = false;
@@ -387,6 +396,7 @@ class application {
 
 		// autoloading media files
 		if (!empty(self::$settings['application']['controller']['media'])) {
+			// todo: refactor here
 			$company_id = session::get('company_id');
 			$extensions = explode(',', self::$settings['application']['controller']['media']);
 			foreach ($extensions as $extension) {
@@ -412,10 +422,11 @@ class application {
 			if (file_exists($file)) {
 				$controller = new layout($controller, $file);
 			}
-			// buffer output and handling javascript files
+			// buffer output and handling javascript files, chicken and egg problem
+			// todo: refactor here, numbers specific variables
 			echo str_replace('<!-- JavaScript Files -->', layout::render_js(), @ob_get_clean());
 		} else {
-			echo $controller->layout;
+			echo $controller->view;
 		}
 		flush();
 	}
