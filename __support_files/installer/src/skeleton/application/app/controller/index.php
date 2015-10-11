@@ -9,6 +9,6 @@ class controller_index {
 	);
 
 	public function action_index() {
-		echo "<h3>Welcome to index controller!</h3>";
+		echo "<h3>This is index controller</h3>";
 	}
 }

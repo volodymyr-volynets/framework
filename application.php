@@ -378,7 +378,7 @@ class application {
 		$controller_file = end(self::$settings['mvc']['controllers']);
 		$view = self::$settings['mvc']['controller_view'];
 		if (!empty($view)) {
-			$extensions = explode(',', @self::$settings['application']['view']['extension'] ? self::$settings['application']['view']['extension'] : 'html');
+			$extensions = explode(',', isset(self::$settings['application']['view']['extension']) ? self::$settings['application']['view']['extension'] : 'html');
 			$flag_view_found = false;
 			foreach ($extensions as $extension) {
 				$file = $controller_dir  . $controller_file . '.' . $view . '.' . $extension;
@@ -389,7 +389,7 @@ class application {
 				}
 			}
 			// if views are mandatory
-			if (@self::$settings['application']['view']['mandatory'] && !$flag_view_found) {
+			if (!empty(self::$settings['application']['view']['mandatory']) && !$flag_view_found) {
 				Throw new Exception('View ' . $view . ' does not exists!');
 			}
 		}
@@ -413,18 +413,20 @@ class application {
 		}
 
 		// appending view after controllers output
-		$controller->view = @$controller->view . @ob_get_clean();
+		$controller->view = (isset($controller->view) ? $controller->view : '') . @ob_get_clean();
 
 		// rendering layout
 		if (!empty(self::$settings['mvc']['controller_layout'])) {
 			ob_start();
-			$file = './layout/' . self::$settings['mvc']['controller_layout'] . '.' . @self::$settings['application']['layout']['extension'];
+			$extension = isset(self::$settings['application']['layout']['extension']) ? self::$settings['application']['layout']['extension'] : 'html';
+			$file = './layout/' . self::$settings['mvc']['controller_layout'] . '.' . $extension;
 			if (file_exists($file)) {
 				$controller = new layout($controller, $file);
 			}
 			// buffer output and handling javascript files, chicken and egg problem
-			// todo: refactor here, numbers specific variables
-			echo str_replace('<!-- JavaScript Files -->', layout::render_js(), @ob_get_clean());
+			$from = array('<!-- [numbers: javascript links] -->', '<!-- [numbers: css links] -->');
+			$to = array(layout::render_js(), layout::render_css());
+			echo str_replace($from, $to, @ob_get_clean());
 		} else {
 			echo $controller->view;
 		}
