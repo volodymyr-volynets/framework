@@ -161,7 +161,7 @@ class crud {
 	 */
 	public function save($data) {
 		$result = array(
-   			'success' => false,
+			'success' => false,
 			'error' => array(),
 			'data' => array(),
 			'inserted' => false

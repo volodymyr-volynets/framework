@@ -688,7 +688,7 @@ class db {
 	 */
 	public static function save($table, $data, $keys, $link = 'default') {
 		$result = array(
-   			'success' => false,
+			'success' => false,
 			'error' => array(),
 			'data' => array(),
 			'inserted' => false

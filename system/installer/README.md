@@ -13,7 +13,6 @@ Installation instruction:
 
 	sudo php installer.php --build-phar-file
 
-
 Usage:
 1) get version:
 
