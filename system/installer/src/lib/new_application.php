@@ -39,9 +39,14 @@ echo " - copied files to $install_dir\n";
 $params['domain'] = trim($params['domain']);
 $params['version'] = trim($params['version']);
 
+// updating composer file
+$file = file_get_contents($install_dir . '/code/libraries/composer.json');
+$file = str_replace('[numbers_framework_version]', $params['version'], $file);
+file_put_contents($install_dir . '/code/libraries/composer.json', $file);
+
 // generating application.ini file
 $temp = file_get_contents($install_dir . '/code/app/application.ini.default');
-str_replace('[numbers_framework_version]', $params['version'], $temp);
+$temp = str_replace('[numbers_framework_version]', $params['version'], $temp);
 file_put_contents($install_dir . '/code/app/application.ini', $temp);
 shell_exec("rm $install_dir/code/app/application.ini.default");
 
@@ -49,7 +54,8 @@ shell_exec("rm $install_dir/code/app/application.ini.default");
 shell_exec("mv $install_dir/code/app/localhost.ini.default $install_dir/code/app/localhost.ini");
 
 // create a folder with config files
-$conf_dir = $install_dir . '/conf';
+$conf_dir = $install_dir . '/conf/production';
+mkdir($conf_dir);
 
 // copy hosts
 $file = file_get_contents($temp_dir . '/skeleton/conf/hosts');

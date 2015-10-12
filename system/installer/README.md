@@ -31,11 +31,11 @@ Usage:
 
 	full usage:
 
-		php numbers.phar new_application version=1.1.21 dir=/home/domains/software.numbers.playground domain=playground.numbers.software clean=1
+		php numbers.phar new_application version=1.0.24 dir=/home/domains/local.playground domain=playground.local clean=1
 
 		or with wildcard
 
-		php numbers.phar new_application version=1.1.21 dir=/home/domains/software.numbers.playground domain=playground.numbers.software clean=1 wildcard=1
+		php numbers.phar new_application version=1.0.24 dir=/home/domains/local.playground domain=playground.local clean=1 wildcard=1
 
 3) clean the code:
 

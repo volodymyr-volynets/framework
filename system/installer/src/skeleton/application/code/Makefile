@@ -3,9 +3,14 @@
 all: build
 
 build:
-	# building
+	# building application
 	@-$(MAKE) git
-	@-$(MAKE) dep_test
+	@-$(MAKE) permissions
+	@-if test -d "libraries/vendor/numbers/framework/system/managers"; \
+	then \
+		@-$(MAKE) dep_commit ; \
+	fi
+	@-$(MAKE) composer
 	@-$(MAKE) permissions
 
 git:
