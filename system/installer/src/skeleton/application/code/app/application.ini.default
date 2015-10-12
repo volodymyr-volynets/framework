@@ -1,0 +1,52 @@
+[*,production,staging,testing,development]
+; --- php settings ---
+php.display_startup_errors = 0
+php.display_errors = 0
+php.max_execution_time = 30
+php.memory_limit = "1024M"
+php.date.timezone = "America/Toronto"
+
+; --- default headers ---
+header.content_type = "Content-type: text/html; charset=UTF-8";
+header.cache_control = "Cache-Control: no-cache";
+
+; --- application settings ---
+;application.version = ""
+;application.controller.input = false ; make input available like $this->input in controller
+;application.view.mandatory = false	; whether controllers require views
+;application.view.extension = "html"
+;application.layout.extension = "html"
+;application.layout.name = "Numbers"
+application.dispatch.before_controller = "model_dispatch::before"
+application.dispatch.after_controller = "model_dispatch::after"
+
+; --- dependency overrides ---
+;dep.submodule.[vendor].[library].[submodule](.[submodule] ...) = 0
+
+[staging]
+
+[testings]
+
+[development]
+php.display_startup_errors = 1
+php.display_errors = 1
+php.error_reporting = -1
+php.log_errors = 1
+
+; --- dependency override ---
+;dep.submodule.[vendor].[library].[submodule](.[submodule] ...) = 0
+
+[dependencies]
+; composer libraries
+;dep.composer.[vendor].[library] = "version"
+dep.composer.numbers.framework = "[numbers_framework_version]"
+
+; submodules within composer libraries
+;dep.submodule.[vendor].[library].[submodule](.[submodule] ...) = 1
+
+; php extensions & ini settings
+;dep.php.extension.[name] = 1;
+;dep.php.ini.[name].[name] = ""
+
+; apache modules
+;dep.apache.module.[name] = 1

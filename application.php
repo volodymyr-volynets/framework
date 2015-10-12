@@ -18,7 +18,17 @@ class application {
 	public static function ini($ini_file, $environment) {
 		$result = array();
 		$data = parse_ini_file($ini_file, true);
-		foreach ($data as $section=>$values) {
+
+		// processing dependencies first
+		if (!empty($data['dependencies'])) {
+			foreach ($data['dependencies'] as $k => $v) {
+				array_key_set($result, explode('.', $k), $v);
+			}
+		}
+		unset($data['dependencies']);
+
+		// proccesing environment specific sectings
+		foreach ($data as $section => $values) {
 			$sections = explode(',', $section);
 			if (empty($values) || (!in_array($environment, $sections) && !in_array('*', $sections))) continue;
 			foreach ($values as $k=>$v) {
@@ -68,6 +78,7 @@ class application {
 
 		// fixing location paths
 		$application_path = rtrim($application_path, '/') . '/';
+		$ini_folder = isset($options['ini_folder']) ? (rtrim($options['ini_folder'], '/') . '/') : $application_path;
 
 		// environment
 		if (empty($environment)) {
@@ -90,7 +101,6 @@ class application {
 			}
 
 			// loading and processing ini files
-			$ini_folder = isset($options['ini_folder']) ? (rtrim($options['ini_folder'], '/') . '/') : $application_path;
 			$ini_files = array($ini_folder . 'application.ini', $ini_folder . 'localhost.ini');
 			foreach ($ini_files as $ini_file) {
 				if (file_exists($ini_file)) {

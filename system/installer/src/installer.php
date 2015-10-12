@@ -19,15 +19,16 @@ if ($command == 'version') {
 
 // if we need to make numbers.phar file
 if ($command == '--build-phar-file') {
-	$phar = new Phar('../build/numbers.phar', 0, 'numbers.phar');
+	$phar = new Phar(dirname(__FILE__) . '/../build/numbers.phar', 0, 'numbers.phar');
 	$phar->buildFromDirectory(dirname(__FILE__) . '/../src/');
 	$phar->setStub($phar->createDefaultStub('installer.php'));
-	chmod('../build/numbers.phar', 0777);
+	$phar->setMetadata(array('timestamp' => time()));
+	chmod(dirname(__FILE__) . '/../build/numbers.phar', 0777);
 	exit;
 }
 
 // available commands
-$commands = array('help', 'new_application', 'upgrade', 'clean', 'code_cleaner');
+$commands = array('new_application', 'code_cleaner');
 
 // redirecting to command handler
 if (in_array($command, $commands)) {

@@ -13,7 +13,6 @@ if (file_exists($install_dir)) {
 		exit;
 	} else { // cleaning
 		shell_exec("rm -r $install_dir");
-		shell_exec("rm -r $install_dir.c");
 		echo " - cleaning installation directory $install_dir\n";
 	}
 }
@@ -39,38 +38,41 @@ echo " - copied files to $install_dir\n";
 // making replaces
 $params['domain'] = trim($params['domain']);
 $params['version'] = trim($params['version']);
-$file = file_get_contents($install_dir . '/libraries/composer.json');
-$file = str_replace('[version]', $params['version'], $file);
-file_put_contents($install_dir . '/libraries/composer.json', $file);
+
+// generating application.ini file
+$temp = file_get_contents($install_dir . '/code/app/application.ini.default');
+str_replace('[numbers_framework_version]', $params['version'], $temp);
+file_put_contents($install_dir . '/code/app/application.ini', $temp);
+shell_exec("rm $install_dir/code/app/application.ini.default");
+
+// renaming localhost.ini file
+shell_exec("mv $install_dir/code/app/localhost.ini.default $install_dir/code/app/localhost.ini");
 
 // create a folder with config files
-mkdir($install_dir . '.c', 0777);
-mkdir($install_dir . '.c/production', 0777);
-echo " - created conf directory $install_dir.c/production\n";
+$conf_dir = $install_dir . '/conf';
 
 // copy hosts
-$file = file_get_contents($temp_dir . '/conf/hosts');
+$file = file_get_contents($temp_dir . '/skeleton/conf/hosts');
 $file = str_replace('[domain]', $params['domain'], $file);
-file_put_contents($install_dir . '.c/production/hosts', $file);
+file_put_contents($conf_dir . '/hosts', $file);
 
 // copy common apache settings
-file_put_contents($install_dir . '.c/production/vhosts.000.general.conf', file_get_contents($temp_dir . '/conf/vhosts.000.general.conf'));
+file_put_contents($conf_dir . '/vhosts.000.general.conf', file_get_contents($temp_dir . '/skeleton/conf/vhosts.000.general.conf'));
 
 // copy domain specific conf file
 if (empty($params['wildcard'])) {
-	$file = file_get_contents($temp_dir . '/conf/vhosts.xxx.domain.conf');
+	$file = file_get_contents($temp_dir . '/skeleton/conf/vhosts.xxx.domain.conf');
 	$last_dir = basename($install_dir);
 	$file = str_replace(array('[domain]', '[dir]', '[last_dir]'), array($params['domain'], $install_dir, $last_dir), $file);
-	file_put_contents($install_dir . '.c/production/vhosts.' . rand(100, 999) .'.' . $last_dir . '.conf', $file);
 } else {
-	$file = file_get_contents($temp_dir . '/conf/vhosts.xxx.wildcard.conf');
+	$file = file_get_contents($temp_dir . '/skeleton/conf/vhosts.xxx.wildcard.conf');
 	$last_dir = basename($install_dir);
 	$temp = explode('.', $params['domain']);
 	unset($temp[0]);
 	$main_domain = implode('.', $temp);
 	$file = str_replace(array('[domain]', '[dir]', '[last_dir]', '[main_domain]'), array($params['domain'], $install_dir, $last_dir, $main_domain), $file);
-	file_put_contents($install_dir . '.c/production/vhosts.' . rand(100, 999) .'.' . $last_dir . '.conf', $file);
 }
+file_put_contents($conf_dir . '/vhosts.' . rand(100, 999) .'.' . $last_dir . '.conf', $file);
 
 echo " - copied configuration files\n";
 

@@ -1,0 +1,25 @@
+; --- notice ---
+; use this localhost.ini file to keep environment specific settings that
+; can not be shared, like database passwords and keys, for the rest its
+; recommended to use application.ini file
+
+[*,production,staging,testing,development]
+
+; default database connections
+;db.default.1.submodule= "numbers.system.db.pgsql"
+;db.default.1.host     = "localhost"
+;db.default.1.port     = 5432
+;db.default.1.username = "postgres"
+;db.default.1.password = "postgres"
+;db.default.1.dbname   = "database"
+
+; cryptography
+;crypt.key = "...16 chars preffered..."
+;crypt.salt = "...10 chars preffered..."
+;crypt.hash = "sha1" ; md5, sha1, sha512 ...
+
+[staging]
+
+[testings]
+
+[development]

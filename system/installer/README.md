@@ -3,15 +3,16 @@
 Installation instruction:
 1) generate a phar file from source, navigate to:
 
-	(...)/framework/__support_files/src/
+	(...)/numbers/framework/system/installer/src/
 
 2) run following command:
 
-	sudo php installer.php --build-phar-file
+	make
 
 	or
 
-	make
+	sudo php installer.php --build-phar-file
+
 
 Usage:
 1) get version:
@@ -48,4 +49,3 @@ Usage:
 	full usage:
 
 		php numbers.phar code_cleaner dir=/temp/numbers new=1
-
