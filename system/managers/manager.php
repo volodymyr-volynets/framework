@@ -21,7 +21,8 @@ require('../libraries/vendor/numbers/framework/functions.php');
 
 // running proper class
 switch ($type) {
-	case 'database':
+	case 'deploy':
+		$result = system_deployments::deploy(array('mode' => $mode));
 		break;
 	case 'dependency':
 	default:
@@ -30,5 +31,5 @@ switch ($type) {
 if (!$result['success']) {
 	echo implode("\n", $result['error']) . "\n";
 } else {
-	echo "Dependency check succeeded!\n";
+	echo "Operation \"$type\" with mode \"$mode\" succeeded!\n";
 }
