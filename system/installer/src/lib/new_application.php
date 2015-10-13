@@ -82,6 +82,9 @@ file_put_contents($conf_dir . '/vhosts.' . rand(100, 999) .'.' . $last_dir . '.c
 
 echo " - copied configuration files\n";
 
+// we need to set permissions after installation
+shell_exec("chmod -R 0777 $install_dir");
+
 // remove temporary directory
 shell_exec("rm -r $temp_dir");
 echo " - removed temporary directory $temp_dir\n";
