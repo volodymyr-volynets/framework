@@ -14,9 +14,22 @@ class system_deployments {
 			'error' => array()
 		);
 		do {
+			if (empty($options['mode'])) $options['mode'] = 'code';
+
 			$temp = rtrim(getcwd(), '/');
 			$deployed_dir = $temp . '/../../deployed';
 			$code_dir = $temp . '/../../code';
+
+			// for development we handle deployment differently, just symlink to the code
+			if ($options['mode'] == 'code_dev') {
+				if (file_exists($deployed_dir)) {
+					shell_exec("rm -r $deployed_dir");
+				}
+				symlink($code_dir, $deployed_dir);
+				$result['success'] = true;
+				break;
+			}
+
 			$all_deps_dir = $temp . '/../../deployments';
 			$time = time();
 			$dep_id = 'build.' . $time . '.' . rand(100, 999);
@@ -36,7 +49,7 @@ class system_deployments {
 				shell_exec("rm -r $dep_dir/$v");
 			}
 
-			// javascript, css, scss, files here
+			// js, css, scss, files here
 			$files_to_copy = array();
 			$process_extensions = array('js', 'css');
 			$iterator = new RecursiveIteratorIterator(
@@ -53,21 +66,25 @@ class system_deployments {
 				}
 			}
 
+			// create media directory
+			$media_dir_full = $media_dir . '/media_generated';
+			if (!empty($files_to_copy['js']) || !empty($files_to_copy['css'])) {
+				mkdir($media_dir_full, 0777);
+			}
+
 			// coping javescript files
 			if (!empty($files_to_copy['js'])) {
-				mkdir($media_dir . '/js_generated', 0777);
 				foreach ($files_to_copy['js'] as $k => $v) {
 					$newname = ltrim(str_replace('/', '_', $k), '_');
-					shell_exec("cp -r $v $media_dir/js_generated/$newname");
+					shell_exec("cp -r $v $media_dir_full/$newname");
 				}
 			}
 
 			// coping css files
 			if (!empty($files_to_copy['css'])) {
-				mkdir($media_dir . '/css_generated', 0777);
 				foreach ($files_to_copy['css'] as $k => $v) {
 					$newname = ltrim(str_replace('/', '_', $k), '_');
-					shell_exec("cp -r $v $media_dir/css_generated/$newname");
+					shell_exec("cp -r $v $media_dir_full/$newname");
 				}
 			}
 
@@ -90,7 +107,7 @@ class system_deployments {
 					if (strpos($filename, 'build.') === 0) {
 						if ($time - $fileinfo->getMTime() > 259200) {
 							$temp = $fileinfo->getPathname();
-							//shell_exec("rm -r $temp");
+							shell_exec("rm -r $temp");
 						}
 					}
 				}

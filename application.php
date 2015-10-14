@@ -73,18 +73,23 @@ class application {
 	 * @throws Exception
 	 */
 	public static function run($application_name = 'default', $application_path = '../app', $environment = null, $options = array()) {
-		// support functions
-		require("functions.php");
 
 		// fixing location paths
 		$application_path = rtrim($application_path, '/') . '/';
-		$ini_folder = isset($options['ini_folder']) ? (rtrim($options['ini_folder'], '/') . '/') : $application_path;
 
 		// environment
 		if (empty($environment)) {
 			$numbers_env = getenv('numbers_env');
 			$environment = !empty($numbers_env) ? $numbers_env : 'production';
 		}
+
+		// special handling of media files for development, so there's no need to redeploy application
+		if ($environment == 'development') {
+			system_media::serve_media_if_exists($_SERVER['REQUEST_URI'], $application_path);
+		}
+
+		// support functions
+		require("functions.php");
 
 		// we need to solve chicken and egg problem so we load cache first and then run application
 		cache::create('php', array('type'=>'php', 'dir'=>'../app/cache'));
@@ -101,6 +106,7 @@ class application {
 			}
 
 			// loading and processing ini files
+			$ini_folder = isset($options['ini_folder']) ? (rtrim($options['ini_folder'], '/') . '/') : $application_path;
 			$ini_files = array($ini_folder . 'application.ini', $ini_folder . 'localhost.ini');
 			foreach ($ini_files as $ini_file) {
 				if (file_exists($ini_file)) {
@@ -145,7 +151,7 @@ class application {
 			// setting include_path
 			$paths = array();
 			$paths[] = __DIR__;
-			$paths[] = __DIR__.'/..';
+			$paths[] = str_replace('/numbers/framework', '', __DIR__);
 			$paths[] = $application_path;
 			set_include_path(implode(PATH_SEPARATOR, $paths));
 

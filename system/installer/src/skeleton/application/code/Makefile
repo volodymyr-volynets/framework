@@ -1,6 +1,6 @@
 .PHONY: all build dep_test dep_commit permissions
 
-all: build
+all: deploy
 
 build:
 	# building application
@@ -48,10 +48,17 @@ composer:
 	find vendor -type d -name ".git" -exec rm -rf {} \;
 
 deploy:
-	# deploying code
+	# deploying code in production mode
 	@-if test -d "libraries/vendor/numbers/framework/system/managers"; \
 	then \
 		php libraries/vendor/numbers/framework/system/managers/manager.php deploy code ; \
+	fi
+
+deploy_dev:
+	# deploying code in development mode, use this when developing
+	@-if test -d "libraries/vendor/numbers/framework/system/managers"; \
+	then \
+		php libraries/vendor/numbers/framework/system/managers/manager.php deploy code_dev ; \
 	fi
 
 dev_symlink:
