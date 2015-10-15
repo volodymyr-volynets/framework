@@ -127,6 +127,7 @@ class application {
 
 		// settings system variables
 		self::$settings['layout'] = array();
+		self::$settings['flag'] = array();
 
 		// processing php settings
 		if (isset(self::$settings['php'])) {
