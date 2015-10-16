@@ -72,7 +72,7 @@ class application {
 	 * @param array $options
 	 * @throws Exception
 	 */
-	public static function run($application_name = 'default', $application_path = '../app', $environment = null, $options = array()) {
+	public static function run($application_name = 'default', $application_path = '../application', $environment = null, $options = array()) {
 
 		// fixing location paths
 		$application_path = rtrim($application_path, '/') . '/';
@@ -92,7 +92,7 @@ class application {
 		require("functions.php");
 
 		// we need to solve chicken and egg problem so we load cache first and then run application
-		cache::create('php', array('type'=>'php', 'dir'=>'../app/cache'));
+		cache::create('php', array('type'=>'php', 'dir'=>'../application/cache'));
 
 		// loading ini files
 		do {

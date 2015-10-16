@@ -9,7 +9,7 @@ class system_media {
 	 */
 	public static function serve_media_if_exists($filename, $application_path) {
 		if (strpos($filename, '/numbers/media_generated/') === 0) {
-			$filename = str_replace('/numbers/media_generated/app_', '', $filename);
+			$filename = str_replace('/numbers/media_generated/application_', '', $filename);
 			$ext = pathinfo($filename, PATHINFO_EXTENSION);
 			if ($ext == 'css' || $ext == 'js') {
 				$filename = $application_path . str_replace('_', '/', $filename);

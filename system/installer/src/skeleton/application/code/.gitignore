@@ -1,5 +1,5 @@
-/app/localhost.ini
-/app/cache/*
+/application/localhost.ini
+/application/cache/*
 /public_html/cache/*
 
 !.gitkeep

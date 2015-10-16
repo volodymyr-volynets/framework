@@ -45,13 +45,13 @@ $file = str_replace('[numbers_framework_version]', $params['version'], $file);
 file_put_contents($install_dir . '/code/libraries/composer.json', $file);
 
 // generating application.ini file
-$temp = file_get_contents($install_dir . '/code/app/application.ini.default');
+$temp = file_get_contents($install_dir . '/code/application/application.ini.default');
 $temp = str_replace('[numbers_framework_version]', $params['version'], $temp);
-file_put_contents($install_dir . '/code/app/application.ini', $temp);
-shell_exec("rm $install_dir/code/app/application.ini.default");
+file_put_contents($install_dir . '/code/application/application.ini', $temp);
+shell_exec("rm $install_dir/code/application/application.ini.default");
 
 // renaming localhost.ini file
-shell_exec("mv $install_dir/code/app/localhost.ini.default $install_dir/code/app/localhost.ini");
+shell_exec("mv $install_dir/code/application/localhost.ini.default $install_dir/code/application/localhost.ini");
 
 // create a folder with config files
 $conf_dir = $install_dir . '/conf/production';
