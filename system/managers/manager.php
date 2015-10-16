@@ -5,7 +5,7 @@ $type = $argv[1];
 $mode = $argv[2];
 
 // change dir to app
-chdir('app');
+chdir('application');
 
 // autoloading composer first
 if (file_exists('../libraries/vendor/autoload.php')) {
