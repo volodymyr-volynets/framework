@@ -49,7 +49,8 @@ class cache {
 	public static function id($filename, $company = null) {
 		$path_parts = pathinfo($filename);
 		if (empty($company)) $company = '';
-		return crypt::hash('/' . $company . '/' . $filename) . '.' . $path_parts['extension'];
+		$crypt_object = new crypt();
+		return $crypt_object->hash('/' . $company . '/' . $filename) . '.' . $path_parts['extension'];
 	}
 
 	/**

@@ -15,9 +15,20 @@ class db implements numbers_backend_db_interface_base {
 	 * @param string $db_link
 	 * @param string $class
 	 */
-	public function __construct($db_link = 'default', $class = null) {
+	public function __construct($db_link = null, $class = null) {
+		// if we need to use default link from application
+		if ($db_link == null) {
+			$db_link = application::get(['flag', 'global', 'db', 'default_link']);
+			if (empty($db_link)) {
+				Throw new Exception('You must specify database link and/or class!');
+			}
+		}
+
+		// get object from factory
 		$temp = factory::get(['db', $db_link]);
-		if (!empty($class)) {
+
+		// if we have class
+		if (!empty($class) && !empty($db_link)) {
 			// replaces in case we have it as submodule
 			$class = str_replace('.', '_', trim($class));
 
@@ -34,6 +45,8 @@ class db implements numbers_backend_db_interface_base {
 			factory::set(['db', $db_link], ['object' => $this->object, 'class' => $class]);
 		} else if (!empty($temp['object'])) {
 			$this->object = $temp['object'];
+		} else {
+			Throw new Exception('You must specify database link and/or class!');
 		}
 	}
 

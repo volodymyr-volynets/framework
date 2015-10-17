@@ -22,10 +22,39 @@ class bootstrap {
 			$class_i18n = new i18n($i18n['default'], $current_lang, $i18n['path']);
 		}
 
+		// get flags
+		$flags = application::get('flag');
+
+		// initialize cryptography
+		$crypt = application::get('crypt');
+		if (!empty($crypt) && !empty($flags['global']['crypt']['autoconnect'])) {
+			// converting flags to array
+			if (!is_array($flags['global']['crypt']['autoconnect'])) {
+				$flags['global']['crypt']['autoconnect'] = [$flags['global']['crypt']['autoconnect']];
+			}
+			// going though all available links
+			foreach ($crypt as $crypt_link => $crypt_settings) {
+				if (!in_array($crypt_link, $flags['global']['crypt']['autoconnect']) && !in_array('*', $flags['global']['crypt']['autoconnect'])) {
+					continue;
+				}
+				if (!empty($crypt_settings['submodule'])) {
+					$crypt_object = new crypt($crypt_link, $crypt_settings['submodule'], $crypt_settings);
+				}
+			}
+		}
+
 		// create database connections
 		$db = application::get('db');
-		if (!empty($db)) {
+		if (!empty($db) && !empty($flags['global']['db']['autoconnect'])) {
+			// converting flags to array
+			if (!is_array($flags['global']['db']['autoconnect'])) {
+				$flags['global']['db']['autoconnect'] = [$flags['global']['db']['autoconnect']];
+			}
+			// going though all available links
 			foreach ($db as $db_link => $db_settings) {
+				if (!in_array($db_link, $flags['global']['db']['autoconnect']) && !in_array('*', $flags['global']['db']['autoconnect'])) {
+					continue;
+				}
 				$connected = false;
 				foreach ($db_settings as $server_key => $server_values) {
 					if (!empty($server_values['submodule'])) {

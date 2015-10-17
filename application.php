@@ -7,7 +7,7 @@ class application {
 	 *
 	 * @var array
 	 */
-	protected static $settings = array();
+	protected static $settings = [];
 
 	/**
 	 * Process ini file
@@ -16,7 +16,7 @@ class application {
 	 * @param string $environment
 	*/
 	public static function ini($ini_file, $environment) {
-		$result = array();
+		$result = [];
 		$data = parse_ini_file($ini_file, true);
 
 		// processing dependencies first
@@ -44,7 +44,7 @@ class application {
 	 * @param array $decrypt_keys
 	 * @return mixed
 	 */
-	public static function get($key = null, $decrypt_keys = array()) {
+	public static function get($key = null, $decrypt_keys = []) {
 		$options = array_key_get(self::$settings, $key);
 		// decrypting certain columns
 		if (!empty($decrypt_keys)) {
@@ -59,7 +59,7 @@ class application {
 	 * @param mixed $key
 	 * @param mixed $value
 	 */
-	public static function set($key, $value, $options = array()) {
+	public static function set($key, $value, $options = []) {
 		array_key_set(self::$settings, $key, $value, $options);
 	}
 
@@ -72,10 +72,21 @@ class application {
 	 * @param array $options
 	 * @throws Exception
 	 */
-	public static function run($application_name = 'default', $application_path = '../application', $environment = null, $options = array()) {
+	public static function run($application_name = 'default', $application_path = '../application', $environment = null, $options = []) {
 
 		// fixing location paths
 		$application_path = rtrim($application_path, '/') . '/';
+
+		// working directory is location of the application
+		chdir($application_path);
+		$application_path_new = getcwd();
+
+		// setting include_path
+		$paths = [];
+		$paths[] = __DIR__;
+		$paths[] = str_replace('/numbers/framework', '', __DIR__);
+		$paths[] = $application_path_new;
+		set_include_path(implode(PATH_SEPARATOR, $paths));
 
 		// environment
 		if (empty($environment)) {
@@ -97,13 +108,15 @@ class application {
 		// loading ini files
 		do {
 			// see if we have cached version
+			/* todo: build cached php file during deployment
 			$cache_id = cache::id('application.ini.php');
-			$data = cache::get($cache_id, $options['cache']);
+			$data = cache::get($cache_id, 'php');
 			if ($data !== false) {
 				self::$settings = $data;
 				self::$settings['cache']['php'] = cache::$adapters['php'];
 				break;
 			}
+			*/
 
 			// loading and processing ini files
 			$ini_folder = isset($options['ini_folder']) ? (rtrim($options['ini_folder'], '/') . '/') : $application_path;
@@ -116,7 +129,7 @@ class application {
 			}
 
 			// at this point we need to store data in cache
-			cache::set($cache_id, self::$settings, 0, null, 'php');
+			//cache::set($cache_id, self::$settings, 0, null, 'php');
 		} while(0);
 
 		// making variables accesible though settings function
@@ -126,8 +139,8 @@ class application {
 		self::$settings['application']['path'] = $application_path;
 
 		// settings system variables
-		self::$settings['layout'] = array();
-		self::$settings['flag'] = array();
+		self::$settings['layout'] = [];
+		self::$settings['flag'] = (isset(self::$settings['flag']) && is_array(self::$settings['flag'])) ? self::$settings['flag'] : [];
 
 		// processing php settings
 		if (isset(self::$settings['php'])) {
@@ -144,17 +157,6 @@ class application {
 
 		// main try catch block
 		try {
-
-			// working directory is location of the application
-			chdir($application_path);
-			$application_path = getcwd();
-
-			// setting include_path
-			$paths = array();
-			$paths[] = __DIR__;
-			$paths[] = str_replace('/numbers/framework', '', __DIR__);
-			$paths[] = $application_path;
-			set_include_path(implode(PATH_SEPARATOR, $paths));
 
 			// Destructor
 			register_shutdown_function(array('bootstrap', 'destroy'));
@@ -276,7 +278,7 @@ class application {
 			'controller' => '',
 			'action' => '',
 			'id' => 0,
-			'controllers' => array(),
+			'controllers' => [],
 		);
 
 		// remove an extra backslashes from left side
@@ -326,7 +328,7 @@ class application {
 		// storing previous mvc settings
 		if (!empty(self::$settings['mvc']['module'])) {
 			if (!isset(self::$settings['mvc_prev'])) {
-				self::$settings['mvc_prev'] = array();
+				self::$settings['mvc_prev'] = [];
 			}
 			self::$settings['mvc_prev'][] = self::$settings['mvc'];
 		}
@@ -354,7 +356,7 @@ class application {
 	 * 
 	 * @return string
 	 */
-	private static function process($options = array()) {
+	private static function process($options = []) {
 
 		// get buffer content in case it is auto mode
 		$buffer = @ob_end_clean();

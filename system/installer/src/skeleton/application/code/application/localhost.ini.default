@@ -14,9 +14,10 @@
 ;db.default.1.dbname   = "database"
 
 ; cryptography
-;crypt.key = "...16 chars preffered..."
-;crypt.salt = "...10 chars preffered..."
-;crypt.hash = "sha1" ; md5, sha1, sha512 ...
+;crypt.default.submodule= "numbers.backend.crypt.default.default"
+;crypt.default.key = "...16 chars preffered..."
+;crypt.default.salt = "...10 chars preffered..."
+;crypt.default.hash = "sha1" ; md5, sha1, sha512 ...
 
 [staging]
 

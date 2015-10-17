@@ -23,6 +23,18 @@ application.dispatch.after_controller = "model_dispatch::after"
 ; --- dependency overrides ---
 ;dep.submodule.[vendor].[library].[submodule](.[submodule] ...) = 0
 
+; --- flags ---
+;flag.global.[library](.[submodule] ...).[parameter] = "[value]"
+;flag.[vendor].[library].[submodule](.[submodule] ...) = ""
+
+; database specific flags
+;flag.global.db.default_link = "default" ; default link, will be used when calling "new db();" without parameters
+;flag.global.db.autoconnect.1 = "*" ; which db links autoconnect, * means all
+
+; crypt specific flags
+;flag.global.crypt.default_link = "default" ;default link, will be used when calling "new crypt();" without parameters
+;flag.global.crypt.autoconnect.1 = "*" ; which crypt links autoconnect, * means all
+
 [staging]
 
 [testings]
