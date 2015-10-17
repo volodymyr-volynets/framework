@@ -6,7 +6,7 @@
 [*,production,staging,testing,development]
 
 ; default database connections
-;db.default.1.submodule= "numbers.system.db.pgsql"
+;db.default.1.submodule= "numbers.backend.db.pgsql"
 ;db.default.1.host     = "localhost"
 ;db.default.1.port     = 5432
 ;db.default.1.username = "postgres"

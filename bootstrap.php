@@ -25,13 +25,16 @@ class bootstrap {
 		// create database connections
 		$db = application::get('db');
 		if (!empty($db)) {
-			foreach ($db as $db_link=>$db_settings) {
+			foreach ($db as $db_link => $db_settings) {
 				$connected = false;
-				foreach ($db_settings as $server_key=>$server_values) {
-					$db_status = db::connect($server_values, $db_link);
-					if ($db_status['success'] && $db_status['status']) {
-						$connected = true;
-						break;
+				foreach ($db_settings as $server_key => $server_values) {
+					if (!empty($server_values['submodule'])) {
+						$db_object = new db($db_link, $server_values['submodule']);
+						$db_status = $db_object->connect($server_values);
+						if ($db_status['success'] && $db_status['status']) {
+							$connected = true;
+							break;
+						}
 					}
 				}
 
@@ -70,10 +73,12 @@ class bootstrap {
 		// write sessions
 		session_write_close();
 
-		// kill db connections
-		if (!empty(db::$links)) {
-			foreach (db::$links as $db_link=>$db_settings) {
-				db::close($db_link);
+		// close db connections
+		$dbs = factory::get(['db']);
+		if (!empty($dbs)) {
+			foreach ($dbs as $k => $v) {
+				$object = $v['object'];
+				$object->close();
 			}
 		}
 	}

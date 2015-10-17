@@ -94,11 +94,15 @@ class system_dependencies {
 				}
 			}
 
+			// sometimes we need to make sure we have functions available
+			$func_per_extension = [
+				'pgsql' => 'pg_connect'
+			];
+
 			// proceccing php extensions
 			if (!empty($data['php']['extension'])) {
-				$ext_have = array_map('strtolower', get_loaded_extensions());
 				foreach ($data['php']['extension'] as $k => $v) {
-					if (!in_array($k, $ext_have)) {
+					if ((isset($func_per_extension[$k]) && function_exists($func_per_extension[$k]) == false) || !extension_loaded($k)) {
 						$result['error'][] = " - PHP extension \"$k\" is not loaded!";
 					}
 				}

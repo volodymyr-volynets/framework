@@ -68,3 +68,13 @@ dev_symlink:
 		rm -r libraries/vendor/numbers/framework ; \
 		ln -s /home/numbers/framework libraries/vendor/numbers/framework ; \
 	fi
+	@-if test -d "libraries/vendor/numbers/backend"; \
+	then \
+		rm -r libraries/vendor/numbers/backend ; \
+		ln -s /home/numbers/backend libraries/vendor/numbers/backend ; \
+	fi
+	@-if test -d "libraries/vendor/numbers/frontend"; \
+	then \
+		rm -r libraries/vendor/numbers/frontend ; \
+		ln -s /home/numbers/frontend libraries/vendor/numbers/frontend ; \
+	fi
