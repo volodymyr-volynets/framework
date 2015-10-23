@@ -4,8 +4,7 @@
 $type = $argv[1];
 $mode = $argv[2];
 
-// change dir to app
-chdir('application');
+chdir('public_html');
 
 // autoloading composer first
 if (file_exists('../libraries/vendor/autoload.php')) {
@@ -16,20 +15,32 @@ if (file_exists('../libraries/vendor/autoload.php')) {
 require('../libraries/vendor/numbers/framework/application.php');
 spl_autoload_register(array('application', 'autoloader'));
 
-// functions
-require('../libraries/vendor/numbers/framework/functions.php');
+// running application
+application::run(['__run_only_bootstrap' => 1]);
 
-// running proper class
-switch ($type) {
-	case 'deploy':
-		$result = system_deployments::deploy(array('mode' => $mode));
-		break;
-	case 'dependency':
-	default:
-		$result = system_dependencies::process_deps_all(array('mode' => $mode));
+// wrapping everything into try-catch block for system exceptions
+try {
+	// running proper class
+	switch ($type) {
+		case 'deploy':
+			$result = system_deployments::deploy(['mode' => $mode]);
+			break;
+		case 'schema':
+			$result = system_dependencies::process_models(['mode' => $mode]);
+			break;
+		case 'dependency':
+		default:
+			$result = system_dependencies::process_deps_all(['mode' => $mode]);
+	}
+
+	// if we did not succede
+	if (!$result['success']) {
+		echo implode("\n", $result['error']) . "\n";
+		exit;
+	}
+} catch(Exception $e) {
+	echo $e->getMessage();
 }
-if (!$result['success']) {
-	echo implode("\n", $result['error']) . "\n";
-} else {
-	echo "Operation \"$type\" with mode \"$mode\" succeeded!\n";
-}
+
+// if we succedded
+echo "Operation \"$type\" with mode \"$mode\" succeeded!\n";

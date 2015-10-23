@@ -18,7 +18,7 @@ class crypt implements numbers_backend_crypt_interface_base {
 	public function __construct($crypt_link = null, $class = null, $options = []) {
 		// if we need to use default link from application
 		if ($crypt_link == null) {
-			$crypt_link = application::get(['flag', 'global', 'crypt', 'default_link']);
+			$crypt_link = application::get(['flag', 'global', 'crypt', 'default_crypt_link']);
 			if (empty($crypt_link)) {
 				Throw new Exception('You must specify crypt link!');
 			}
@@ -39,7 +39,7 @@ class crypt implements numbers_backend_crypt_interface_base {
 		} else if (!empty($temp['object'])) {
 			$this->object = $temp['object'];
 		} else {
-			Throw new Exception('You must specify database link and/or class!');
+			Throw new Exception('You must specify crypt link and/or class!');
 		}
 	}
 

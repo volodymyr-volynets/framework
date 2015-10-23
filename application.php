@@ -10,35 +10,6 @@ class application {
 	protected static $settings = [];
 
 	/**
-	 * Process ini file
-	 *
-	 * @param string $ini_file
-	 * @param string $environment
-	*/
-	public static function ini($ini_file, $environment) {
-		$result = [];
-		$data = parse_ini_file($ini_file, true);
-
-		// processing dependencies first
-		if (!empty($data['dependencies'])) {
-			foreach ($data['dependencies'] as $k => $v) {
-				array_key_set($result, explode('.', $k), $v);
-			}
-		}
-		unset($data['dependencies']);
-
-		// proccesing environment specific sectings
-		foreach ($data as $section => $values) {
-			$sections = explode(',', $section);
-			if (empty($values) || (!in_array($environment, $sections) && !in_array('*', $sections))) continue;
-			foreach ($values as $k=>$v) {
-				array_key_set($result, explode('.', $k), $v);
-			}
-		}
-		return $result;
-	}
-
-	/**
 	 * Access to settings, we can get a set of keys
 	 * @param mixed $key
 	 * @param array $decrypt_keys
@@ -72,10 +43,12 @@ class application {
 	 * @param array $options
 	 * @throws Exception
 	 */
-	public static function run($application_name = 'default', $application_path = '../application', $environment = null, $options = []) {
+	public static function run($options = []) {
 
 		// fixing location paths
-		$application_path = rtrim($application_path, '/') . '/';
+		$application_path = isset($options['application_path']) ? (rtrim($options['application_path'], '/') . '/') : '../application/';
+		$application_name = isset($options['application_name']) ? $options['application_name'] : 'default';
+		$ini_folder = isset($options['ini_folder']) ? (rtrim($options['ini_folder'], '/') . '/') : $application_path . 'config/';
 
 		// working directory is location of the application
 		chdir($application_path);
@@ -88,57 +61,26 @@ class application {
 		$paths[] = $application_path_new;
 		set_include_path(implode(PATH_SEPARATOR, $paths));
 
-		// environment
-		if (empty($environment)) {
-			$numbers_env = getenv('numbers_env');
-			$environment = !empty($numbers_env) ? $numbers_env : 'production';
-		}
-
-		// special handling of media files for development, so there's no need to redeploy application
-		if ($environment == 'development') {
-			system_media::serve_media_if_exists($_SERVER['REQUEST_URI'], $application_path);
-		}
-
 		// support functions
 		require("functions.php");
 
+		// load ini settings
+		self::$settings = system_config::load($ini_folder);
+
+		// special handling of media files for development, so there's no need to redeploy application
+		if (self::$settings['environment'] == 'development' && isset($_SERVER['REQUEST_URI'])) {
+			system_media::serve_media_if_exists($_SERVER['REQUEST_URI'], $application_path);
+		}
+
 		// we need to solve chicken and egg problem so we load cache first and then run application
-		cache::create('php', array('type'=>'php', 'dir'=>'../application/cache'));
+		//cache::create('php', array('type'=>'php', 'dir'=>'../application/cache'));
 
-		// loading ini files
-		do {
-			// see if we have cached version
-			/* todo: build cached php file during deployment
-			$cache_id = cache::id('application.ini.php');
-			$data = cache::get($cache_id, 'php');
-			if ($data !== false) {
-				self::$settings = $data;
-				self::$settings['cache']['php'] = cache::$adapters['php'];
-				break;
-			}
-			*/
-
-			// loading and processing ini files
-			$ini_folder = isset($options['ini_folder']) ? (rtrim($options['ini_folder'], '/') . '/') : $application_path;
-			$ini_files = array($ini_folder . 'application.ini', $ini_folder . 'localhost.ini');
-			foreach ($ini_files as $ini_file) {
-				if (file_exists($ini_file)) {
-					$ini_data = self::ini($ini_file, $environment);
-					self::$settings = array_merge2(self::$settings, $ini_data);
-				}
-			}
-
-			// at this point we need to store data in cache
-			//cache::set($cache_id, self::$settings, 0, null, 'php');
-		} while(0);
-
-		// making variables accesible though settings function
-		self::$settings['environment'] = $environment;
-		self::$settings['wildcard'] = getenv('numbers_wildcard') ? true : false;
+		// setting variables
+		if (!isset(self::$settings['application']) || !is_array(self::$settings['application'])) {
+			self::$settings['application'] = [];
+		}
 		self::$settings['application']['name'] = $application_name;
 		self::$settings['application']['path'] = $application_path;
-
-		// settings system variables
 		self::$settings['layout'] = [];
 		self::$settings['flag'] = (isset(self::$settings['flag']) && is_array(self::$settings['flag'])) ? self::$settings['flag'] : [];
 
@@ -168,6 +110,15 @@ class application {
 				if (strpos($method, 'init')===0) call_user_func(array($bootstrap, $method));
 			}
 
+			// if we are calling application from the command line
+			if (!empty($options['__run_only_bootstrap'])) {
+				// dispatch before, in case if we open database connections in there
+				if (!empty(self::$settings['application']['dispatch']['before_controller'])) {
+					call_user_func(self::$settings['application']['dispatch']['before_controller']);
+				}
+				return;
+			}
+
 			// processing mvc settings
 			self::set_mvc();
 
@@ -181,7 +132,7 @@ class application {
 			// check if controller exists
 			$file = './' . str_replace('_', '/', self::$settings['mvc']['controller_class'] . '.php');
 			if (!file_exists($file)) {
-				Throw new Exception('File not found!');
+				Throw new Exception('Controller not found!');
 			}
 
 			// initialize the controller

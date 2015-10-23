@@ -877,7 +877,7 @@ TTT;
 		if (!empty($column['character_maximum_length'])) $type.= '(' . $column['character_maximum_length'] . ')';
 		// numeric data type
 		if ($column['data_type']=='numeric') {
-		$type.= '(' . $column['numeric_precision'] . ',' . $column['numeric_scale'] . ')';
+			$type.= '(' . $column['numeric_precision'] . ',' . $column['numeric_scale'] . ')';
 		}
 		// serial data type
 		if ($type=='integer' && strpos($default, 'nextval(')!==false) {

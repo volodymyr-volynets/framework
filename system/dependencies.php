@@ -8,38 +8,40 @@ class system_dependencies {
 	 * @param array $options
 	 * @return array
 	 */
-	public static function process_deps_all($options = array()) {
-		$result = array(
+	public static function process_deps_all($options = []) {
+		$result = [
 			'success' => false,
-			'error' => array(),
-			'data' => array()
-		);
+			'error' => [],
+			'data' => []
+		];
 		do {
 			// processing main dependency file
-			$main_dep_filename = 'application.ini';
+			$main_dep_filename = 'config/application.ini';
 			if (!file_exists($main_dep_filename)) {
 				$result['error'][] = "Main dep. file not found!";
 				break;
 			}
 
 			// some array arrangements
-			$data = application::ini($main_dep_filename, 'dependencies');
-			$data = isset($data['dep']) ? $data['dep'] : array();
-			$data['composer'] = isset($data['composer']) ? $data['composer'] : array();
-			$data['submodule'] = isset($data['submodule']) ? $data['submodule'] : array();
-			$data['apache'] = isset($data['apache']) ? $data['apache'] : array();
-			$data['php'] = isset($data['php']) ? $data['php'] : array();
+			$data = system_config::ini($main_dep_filename, 'dependencies');
+			$data = isset($data['dep']) ? $data['dep'] : [];
+			$data['composer'] = isset($data['composer']) ? $data['composer'] : [];
+			$data['submodule'] = isset($data['submodule']) ? $data['submodule'] : [];
+			$data['apache'] = isset($data['apache']) ? $data['apache'] : [];
+			$data['php'] = isset($data['php']) ? $data['php'] : [];
+			$data['model'] = isset($data['model']) ? $data['model'] : [];
+			$data['model_processed'] = [];
 
 			// we have small chicken and egg problem with composer
-			$composer_data = array();
-			$composer_dirs = array();
+			$composer_data = [];
+			$composer_dirs = [];
 			if (file_exists('../libraries/composer.json')) {
 				$composer_data = json_decode(file_get_contents('../libraries/composer.json'), true);
 			}
 
 			// if we have composer or submodules from main dep file
 			if (!empty($data['composer']) || !empty($data['submodules'])) {
-				$composer_data['require'] = array();
+				$composer_data['require'] = [];
 				if (!empty($data['composer'])) {
 					self::process_deps_array($data['composer'], $composer_data['require'], $composer_dirs);
 				}
@@ -49,7 +51,8 @@ class system_dependencies {
 			}
 
 			// processing submodules
-			$temp = array();
+			$temp = [];
+			$__any = [];
 			if (!empty($composer_dirs)) {
 				for ($i = 0; $i < 3; $i++) {
 					foreach ($composer_dirs as $k => $v) {
@@ -59,8 +62,8 @@ class system_dependencies {
 							$temp[$k] = 1;
 						}
 						if (file_exists($v . 'module.ini')) {
-							$sub_data = application::ini($v . 'module.ini', 'dependencies');
-							$sub_data = isset($sub_data['dep']) ? $sub_data['dep'] : array();
+							$sub_data = system_config::ini($v . 'module.ini', 'dependencies');
+							$sub_data = isset($sub_data['dep']) ? $sub_data['dep'] : [];
 							if (!empty($sub_data['composer'])) {
 								self::process_deps_array($sub_data['composer'], $composer_data['require'], $composer_dirs);
 								$data['composer'] = array_merge_recursive($data['composer'], $sub_data['composer']);
@@ -75,12 +78,35 @@ class system_dependencies {
 							if (!empty($sub_data['php'])) {
 								$data['php'] = array_merge_recursive($data['php'], $sub_data['php']);
 							}
+							if (!empty($sub_data['model'])) {
+								$data['model'] = array_merge_recursive($data['model'], $sub_data['model']);
+							}
 						} else {
 							$keys = explode('/', $k);
-							if ($keys[0] == 'numbers') {
+							$last = end($keys);
+							if ($last == '__any') {
+								$temp2 = [];
+								foreach ($keys as $v2) {
+									if ($v2 != '__any') {
+										$temp2[] = $v2;
+									}
+								}
+								$__any[$k] = $temp2;
+							} else if ($keys[0] == 'numbers') {
 								$result['error'][] = " - Submodule not found in {$v}module.ini";
 							}
 						}
+					}
+				}
+			}
+
+			// processing any dependencies
+			if (!empty($__any)) {
+				foreach ($__any as $k => $v) {
+					$temp = array_key_get($data['submodule'], $v);
+					unset($temp['__any']);
+					if (empty($temp)) {
+						$result['error'][] = " - Any dependency required $k!";
 					}
 				}
 			}
@@ -140,6 +166,11 @@ class system_dependencies {
 				}
 			}
 
+			// processing models
+			if (!empty($data['model'])) {
+				array_keys_to_string($data['model'], $data['model_processed']);
+			}
+
 			// updating composer.json file
 			if ($options['mode'] == 'commit') {
 				file_put_contents('../libraries/composer.json', json_encode($composer_data, JSON_PRETTY_PRINT));
@@ -152,6 +183,139 @@ class system_dependencies {
 				$result['success'] = true;
 			}
 		} while (0);
+		return $result;
+	}
+
+	/**
+	 * Process models
+	 *
+	 * @param array $options
+	 * @return array
+	 */
+	public static function process_models($options = []) {
+		$result = [
+			'success' => false,
+			'error' => [],
+			'data' => []
+		];
+		do {
+			// we need to process all dependencies first
+			$dep = self::process_deps_all($options);
+			if (!$dep['success']) {
+				$result = $dep;
+				$result['error'][] = 'You must fix all dependency related errors first before processing models.';
+				break;
+			}
+
+			// proccesing models
+			if (empty($dep['data']['model_processed'])) {
+				$result['error'][] = 'You do not have models to process!';
+				break;
+			}
+
+			$ddl = new numbers_backend_db_class_ddl();
+			foreach ($dep['data']['model_processed'] as $k => $v) {
+				if ($v == 'table') {
+					$temp_result = $ddl->process_table_model(str_replace('.', '_', $k));
+					if (!$temp_result['success']) {
+						array_merge3($result['error'], $temp_result['error']);
+					}
+				}
+			}
+			//print_r($ddl->objects);
+
+			// if we have erros
+			if (!empty($result['error'])) {
+				break;
+			}
+
+			// we load objects from database
+			$loaded_objects = [];
+			foreach ($ddl->db_links as $k => $v) {
+				$ddl_factory = factory::get(['ddl', $k]);
+				$ddl_object = $ddl_factory['object'];
+				$temp_result = $ddl_object->load_schema($k);
+				if (!$temp_result['success']) {
+					array_merge3($result['error'], $temp_result['error']);
+				} else {
+					$loaded_objects[$k] = $temp_result['data'];
+				}
+			}
+			//print_r($loaded_objects);
+
+			// if we have erros
+			if (!empty($result['error'])) {
+				break;
+			}
+
+			// get a list of all db links
+			$db_link_list = array_unique(array_merge(array_keys($ddl->objects), array_keys($loaded_objects)));
+
+			// compare schems per db link
+			$schema_diff = [];
+			$total_per_db_link = [];
+			$total = 0;
+			foreach ($db_link_list as $k) {
+				$temp_result = $ddl->compare_schemas(isset($ddl->objects[$k]) ? $ddl->objects[$k] : [], isset($loaded_objects[$k]) ? $loaded_objects[$k] : []);
+				if (!$temp_result['success']) {
+					array_merge3($result['error'], $temp_result['error']);
+				} else {
+					$schema_diff[$k] = $temp_result['data'];
+					if (!isset($total_per_db_link[$k])) {
+						$total_per_db_link[$k] = 0;
+					}
+					$total_per_db_link[$k]+= $temp_result['count'];
+					$total+= $temp_result['count'];
+				}
+			}
+
+			// if there's no schame changes
+			if ($total == 0) {
+				$result['success'] = true;
+				break;
+			}
+
+			// if we are in no commit mode
+			if ($options['mode'] != 'commit') {
+				foreach ($total_per_db_link as $k => $v) {
+					$result['error'][] = "Db link $k requires $v changes!";
+				}
+				break;
+			}
+
+			// generating sql
+			foreach ($total_per_db_link as $k => $v) {
+				if ($v == 0) continue;
+				$ddl_factory = factory::get(['ddl', $k]);
+				$ddl_object = $ddl_factory['object'];
+				foreach ($schema_diff[$k] as $k2 => $v2) {
+					foreach ($v2 as $k3 => $v3) {
+						$schema_diff[$k][$k2][$k3]['sql'] = $ddl_object->render_sql($v3['type'], $v3);
+					}
+				}
+			}
+			//print_r($schema_diff);
+			//exit;
+
+			// executing sql
+			foreach ($total_per_db_link as $k => $v) {
+				if ($v == 0) continue;
+				$db_object = new db($k);
+				foreach ($schema_diff[$k] as $k2 => $v2) {
+					foreach ($v2 as $k3 => $v3) {
+						$temp_result = $db_object->query($v3['sql']);
+						if (!$temp_result['success']) {
+							array_merge3($result['error'], $temp_result['error']);
+							goto error;
+						}
+					}
+				}
+			}
+
+			// if we got here - we are ok
+			$result['success'] = true;
+		} while(0);
+error:
 		return $result;
 	}
 

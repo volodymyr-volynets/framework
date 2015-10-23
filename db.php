@@ -17,8 +17,8 @@ class db implements numbers_backend_db_interface_base {
 	 */
 	public function __construct($db_link = null, $class = null) {
 		// if we need to use default link from application
-		if ($db_link == null) {
-			$db_link = application::get(['flag', 'global', 'db', 'default_link']);
+		if (empty($db_link)) {
+			$db_link = application::get(['flag', 'global', 'db', 'default_db_link']);
 			if (empty($db_link)) {
 				Throw new Exception('You must specify database link and/or class!');
 			}
@@ -42,7 +42,12 @@ class db implements numbers_backend_db_interface_base {
 
 			// creating new class
 			$this->object = new $class($db_link);
-			factory::set(['db', $db_link], ['object' => $this->object, 'class' => $class]);
+
+			// determining ddl class
+			$ddl_class = str_replace('_base_abc123', '_ddl', $class . '_abc123');
+
+			// putting every thing into factory
+			factory::set(['db', $db_link], ['object' => $this->object, 'class' => $class, 'ddl_class' => $ddl_class]);
 		} else if (!empty($temp['object'])) {
 			$this->object = $temp['object'];
 		} else {

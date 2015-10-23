@@ -12,15 +12,6 @@ class bootstrap {
 	 * Initialize db connections, cache and session
 	 */
 	public static function init() {
-		$input = request::input(null, true, true);
-		$mvc = application::mvc($_SERVER['REQUEST_URI']);
-
-		// internationalization
-		$i18n = application::get(array('i18n'));
-		if (!empty($i18n)) {
-			$current_lang = !empty($input[$i18n['current_variable']]) ? $input[$i18n['current_variable']] : $i18n['default'];
-			$class_i18n = new i18n($i18n['default'], $current_lang, $i18n['path']);
-		}
 
 		// get flags
 		$flags = application::get('flag');

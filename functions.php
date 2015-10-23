@@ -409,3 +409,47 @@ function array_diff_assoc_recursive_by_keys($arr1, $arr2, $options = array()) {
 	if (isset($difference) && !is_array($difference) && floatval($difference) == 0) unset($difference);
 	return !isset($difference) ? false : $difference;
 }
+
+/**
+ * Convert multi-dimentional array to array of keys
+ *
+ * @param array $data
+ * @param array $result
+ * @param array $keys
+ */
+function array_keys_to_string($data, & $result, $keys = []) {
+	foreach ($data as $k => $v) {
+		$temp = $keys;
+		$temp[] = $k;
+		if (is_array($v)) {
+			array_keys_to_string($v, $result, $temp);
+		} else {
+			$temp2 = implode('.', $temp);
+			$result[$temp2] = $v;
+		}
+	}
+}
+
+/**
+ * Compares two array by key and value
+ *
+ * @param array $arr1
+ * @param array $arr2
+ * @return boolean
+ */
+function array_compare_level1($arr1, $arr2) {
+	if (count($arr1) <> count($arr2)) {
+		return false;
+	}
+	foreach ($arr1 as $k => $v) {
+		if (!isset($arr2[$k]) || $v != $arr2[$k]) {
+			return false;
+		}
+	}
+	foreach ($arr2 as $k => $v) {
+		if (!isset($arr1[$k]) || $v != $arr1[$k]) {
+			return false;
+		}
+	}
+	return true;
+}

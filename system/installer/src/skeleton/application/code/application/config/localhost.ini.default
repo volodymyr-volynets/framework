@@ -3,10 +3,18 @@
 ; can not be shared, like database passwords and keys, for the rest its
 ; recommended to use application.ini file
 
+; --- environment ---
+; this section is loaded first so we can later process proper section in this
+; file or in application.ini file
+[environment]
+environment = "production" ; one of production,staging,testing or development
+wildcard = 0 ; whether its a whild card domain, used to determine database name from the host
+
+
 [*,production,staging,testing,development]
 
 ; default database connections
-;db.default.1.submodule= "numbers.backend.db.pgsql"
+;db.default.1.submodule= "numbers.backend.db.pgsql.base"
 ;db.default.1.host     = "localhost"
 ;db.default.1.port     = 5432
 ;db.default.1.username = "postgres"
