@@ -3,26 +3,23 @@
 class session {
 
 	/**
-	 * Available adapters
-	 * 
-	 * @var array
+	 * Submodule object
+	 *
+	 * @var object
 	 */
-	private static $adapter_types = array(
-		'file' => array('class'=>'session_file'),
-		'db' => array('class'=>'session_db')
-	);
+	public static $object;
 
 	/**
 	 * Array of default options
 	 * 
 	 * @var array
 	 */
-	private static $_default_options = array(
+	public static $default_options = [
 		'save_path'                 => null,
 		'name'                      => null,
 		'save_handler'              => null,
 		'gc_probability'            => 1,
-		'gc_divisor'                => 1000,
+		'gc_divisor'                => 100,
 		'gc_maxlifetime'            => 7200,
 		'serialize_handler'         => null,
 		'cookie_lifetime'           => null,
@@ -31,7 +28,7 @@ class session {
 		'cookie_secure'             => null,
 		'cookie_httponly'           => null,
 		'use_cookies'               => null,
-		'use_only_cookies'          => 'on',
+		'use_only_cookies'          => 'off',
 		'referer_check'             => null,
 		'entropy_file'              => null,
 		'entropy_length'            => null,
@@ -42,31 +39,59 @@ class session {
 		'bug_compat_warn'           => null,
 		'hash_function'             => null,
 		'hash_bits_per_character'   => null
-	);
+	];
 
 	/**
 	 * Starting session
-	 * 
+	 *
 	 * @param array $options
 	 */
 	public static function start($options) {
-
 		// setting default options
-		foreach (self::$_default_options as $k=>$v) {
-			if (isset($options[$k])) {
+		foreach (self::$default_options as $k => $v) {
+			if (isset($options[$k]) || array_key_exists($k, $options)) {
 				ini_set("session.$k", $options[$k]);
-			} else if (isset(self::$_default_options[$k])) {
+				self::$default_options[$k] = $options[$k];
+			} else if (isset(self::$default_options[$k])) {
 				ini_set("session.$k", $v);
 			}
 		}
-
-		// starting session from adapter
-		if (!isset($options['gc_maxlifetime'])) $options['gc_maxlifetime'] = self::$_default_options['gc_maxlifetime'];
-		$type = isset($options['type']) && isset(self::$adapter_types[$options['type']]) ? $options['type'] : 'file';
-		call_user_func_array(array(self::$adapter_types[$type]['class'], 'start'), array($options));
-
+		// starting session submodule
+		$class = application::get('flag.global.session.submodule');
+		$class = str_replace('.', '_', $class);
+		$object = new $class();
+		$object->init();
+		self::$object = $object;
 		// starting session
 		session_start();
+		// session fixation prevention
+		if (empty($_SESSION['numbers']['flag_generated_by_system'])) {
+			$old_id = session_id();
+			session_regenerate_id();
+			$new_id = session_id();
+			session_id($old_id);
+			session_destroy();
+			// starting new session
+			session_id($new_id);
+			session_start();
+			$_SESSION = [];
+			$_SESSION['numbers']['flag_generated_by_system'] = true;
+		}
+		// processing IP address
+		$ip = request::ip();
+		if (empty($_SESSION['numbers']['ip']['ip']) || $_SESSION['numbers']['ip']['ip'] != $ip) {
+			$ip_submodule = application::get('flag.global.ip.submodule');
+			if (!empty($ip_submodule)) {
+				$ip_class = str_replace('.', '_', $ip_submodule);
+				$ip_object = new $ip_class();
+				$ip_data = $ip_object->get($ip);
+				$_SESSION['numbers']['ip'] = $ip_data['data'];
+			} else {
+				$_SESSION['numbers']['ip'] = [
+					'ip' => $ip
+				];
+			}
+		}
 	}
 
 	/**
@@ -78,6 +103,13 @@ class session {
 		// destroy the session.
 		session_destroy();
 		session_write_close();
+	}
+
+	/**
+	 * Garbage collector
+	 */
+	public static function gc() {
+		self::$object->gc(1);
 	}
 
 	/**
@@ -127,6 +159,7 @@ class session {
 	 * @return type
 	 */
 	public function __isset($key) {
+		// todo: what if key is an array
 		return isset($_SESSION[$key]);
 	}
 
@@ -136,6 +169,7 @@ class session {
 	 * @param type $key
 	 */
 	public function __unset($key) {
+		// todo: what if key is an array
 		unset($_SESSION[$key]);
 	}
 }

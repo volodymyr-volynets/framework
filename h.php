@@ -932,4 +932,34 @@ TTT;
 		layout::onload($js);
 		return $result;
 	}
+
+	public static function array2table($data, $keys) {
+		if (empty($data)) return '';
+		if (!is_array($keys)) $keys = explode(',', $keys);
+		$result = '';
+		if (count($keys) == 1) {
+			$result.= '<table border="1">';
+				$temp = current($data);
+				$result.= '<tr>';
+					foreach ($temp as $k0=>$v0) {
+						$result.= '<th>' . $k0 . '</th>'; // ucwords(str_replace('_', ' ', $k0))
+					}
+				$result.= '</tr>';
+				foreach ($data as $k=>$v) {
+					$result.= '<tr>';
+						foreach ($temp as $k0=>$v0) {
+							$result.= '<td>';
+								if (is_array($v[$k0])) {
+									$result.= implode(', ', $v[$k0]);
+								} else {
+									$result.= $v[$k0];
+								}
+							$result.= '</td>'; // ucwords(str_replace('_', ' ', $k0))
+						}
+					$result.= '</tr>';
+				}
+			$result.= '</table>';
+		}
+		return $result;
+	}
 }

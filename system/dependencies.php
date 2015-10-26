@@ -229,11 +229,13 @@ class system_dependencies {
 				break;
 			}
 
+			// db factory
+			$db_factory = factory::get('db');
+
 			// we load objects from database
 			$loaded_objects = [];
 			foreach ($ddl->db_links as $k => $v) {
-				$ddl_factory = factory::get(['ddl', $k]);
-				$ddl_object = $ddl_factory['object'];
+				$ddl_object = $db_factory[$k]['ddl_object'];
 				$temp_result = $ddl_object->load_schema($k);
 				if (!$temp_result['success']) {
 					array_merge3($result['error'], $temp_result['error']);
@@ -286,8 +288,7 @@ class system_dependencies {
 			// generating sql
 			foreach ($total_per_db_link as $k => $v) {
 				if ($v == 0) continue;
-				$ddl_factory = factory::get(['ddl', $k]);
-				$ddl_object = $ddl_factory['object'];
+				$ddl_object = $db_factory[$k]['ddl_object'];
 				foreach ($schema_diff[$k] as $k2 => $v2) {
 					foreach ($v2 as $k3 => $v3) {
 						$schema_diff[$k][$k2][$k3]['sql'] = $ddl_object->render_sql($v3['type'], $v3);

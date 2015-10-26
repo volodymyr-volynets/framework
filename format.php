@@ -83,12 +83,29 @@ class format {
 
 	/**
 	 * Current date and time
-	 * 
+	 *
+	 * @param string $type
+	 * @param array $options
 	 * @return string
 	 */
-	public static function now($date_only = false) {
-		// todo: convert to proper timezone, important
-		return date($date_only ? 'Y-m-d' : 'Y-m-d H:i:s', time());
+	public static function now($type = 'datetime', $options = []) {
+		// todo: convert to proper timezone, important!!!
+		$time = time();
+		if (!empty($options['add_seconds'])) {
+			$time+= $options['add_seconds'];
+		}
+		// rendering
+		switch ($type) {
+			case 'time':
+				return date('H:i:s', $time);
+				break;
+			case 'datetime':
+				return date('Y-m-d H:i:s', $time);
+				break;
+			case 'date':
+			default:
+				return date('Y-m-d', $time);
+		}
 	}
 
 	/**
@@ -123,12 +140,23 @@ class format {
 	 * Transform date from locale into php
 	 * 
 	 * @param string $date
+	 * @param string $type
 	 * @return string
 	 */
-	public static function read_date($date) {
+	public static function read_date($date, $type = 'date') {
 		if (empty($date)) return null;
 		$date = is_numeric($date) ? $date : @strtotime($date);
-		return date('Y-m-d', $date);
+		switch ($type) {
+			case 'time':
+				return date('H:i:s', $date);
+				break;
+			case 'datetime':
+				return date('Y-m-d H:i:s', $date);
+				break;
+			case 'date':
+			default:
+				return date('Y-m-d', $date);
+		}
 	}
 
 	/**

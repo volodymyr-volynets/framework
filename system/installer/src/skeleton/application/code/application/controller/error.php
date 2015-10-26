@@ -9,30 +9,25 @@ class controller_error {
 	);
 
 	public function action_error() {
-		if (isset($this->exception)) {
-			echo '<div>';
-				echo '<h3>Exception information:</h3>';
-				echo '<b>Message: </b><br/>';
-				echo $this->exception->getMessage() . '<br/>';
-				if (application::get('environment')!='production') {
-					echo '<h3>Stack trace:</h3>';
-					echo '<pre>';
-						echo $this->exception->getTraceAsString();
-					echo '</pre>';
-					echo '<h3>MVC Parameters:</h3>';
-					echo '<pre>';
-						echo var_export(application::get('mvc'), true);
-					echo '</pre>';
-					echo '<h3>MVC Parameters (Initial):</h3>';
-					echo '<pre>';
-						echo var_export(application::get('mvc_prev'), true);
-					echo '</pre>';
-					echo '<h3>Request Parameters:</h3>';
-					echo '<pre>';
-						echo var_export(request::input(), true);
-					echo '</pre>';
+		$ms = '';
+		if (count(error::$errors) > 0) {
+			$ms.= '<table>';
+				foreach (error::$errors as $k => $v) {
+					$ms.= '<tr>';
+						$ms.= '<td><b>' . error::$error_codes[$v['errno']] . ' (' . $v['errno'] . ') - ' . implode('<br/>', $v['error']) . '</b></td>';
+					$ms.= '</tr>';
+					$ms.= '<tr>';
+						$ms.= '<td>File: ' . $v['file'] . ', Line: ' . $v['line'] . '</td>';
+					$ms.= '</tr>';
+					$ms.= '<tr>';
+						$ms.= '<td><pre>' . $v['code'] . '</pre></td>';
+					$ms.= '</tr>';
+					$ms.= '<tr>';
+						$ms.= '<td><hr/></td>';
+					$ms.= '</tr>';
 				}
-			echo '</div>';
+			$ms.= '</table>';
 		}
+		echo $ms;
 	}
 }

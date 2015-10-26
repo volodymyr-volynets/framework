@@ -15,6 +15,7 @@ class object_type_table_columns {
 		'bigint' => ['name' => 'Big Integer'],
 		'numeric' => ['name' => 'Numeric'],
 		// numbers with sequences, will be converted to autoincrement for some databases
+		'smallserial' => ['name' => 'Serial Smallint'],
 		'serial' => ['name' => 'Serial Integer'],
 		'bigserial' => ['name' => 'Big Serial'],
 		// text data types
@@ -26,7 +27,7 @@ class object_type_table_columns {
 		// date types
 		'date' => ['name' => 'Date'],
 		'time' => ['name' => 'Time'],
-		'timestamp' => ['name' => 'Date & time'],
+		'datetime' => ['name' => 'Date & time'],
 		// types specific to numbers framework
 		'numbers_code' => ['name' => 'Code / ID'], // varchar(50)
 		'numbers_hash' => ['name' => 'Hash'], // varchar(128) for sha512

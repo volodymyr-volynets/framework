@@ -89,92 +89,97 @@ class application {
 			foreach (self::$settings['php'] as $k=>$v) {
 				if (is_array($v)) {
 					foreach ($v as $k2=>$v2) {
+						if (is_numeric($v2)) {
+							$v2 = $v2 * 1;
+						}
 						ini_set($k . '.' . $k2, $v2);
 					}
 				} else {
+					if (is_numeric($v)) {
+						$v = $v * 1;
+					}
 					ini_set($k, $v);
 				}
 			}
 		}
 
-		// main try catch block
-		try {
+		// Destructor
+		register_shutdown_function(array('bootstrap', 'destroy'));
 
-			// Destructor
-			register_shutdown_function(array('bootstrap', 'destroy'));
+		// error handler first
+		error::init();
 
-			// Bootstrap Class
-			$bootstrap = new bootstrap();
-			$bootstrap_methods = get_class_methods($bootstrap);
-			foreach ($bootstrap_methods as $method) {
-				if (strpos($method, 'init')===0) call_user_func(array($bootstrap, $method));
-			}
+		// debug after error handler
+		debug::init(self::get('debug'));
 
-			// if we are calling application from the command line
-			if (!empty($options['__run_only_bootstrap'])) {
-				// dispatch before, in case if we open database connections in there
-				if (!empty(self::$settings['application']['dispatch']['before_controller'])) {
-					call_user_func(self::$settings['application']['dispatch']['before_controller']);
-				}
-				return;
-			}
+		// Bootstrap Class
+		$bootstrap = new bootstrap();
+		$bootstrap_methods = get_class_methods($bootstrap);
+		foreach ($bootstrap_methods as $method) {
+			if (strpos($method, 'init')===0) call_user_func(array($bootstrap, $method), $options);
+		}
 
-			// processing mvc settings
-			self::set_mvc();
-
-			// special handling for captcha
-			if (strpos(self::$settings['mvc']['controller_class'], 'captcha.jpg')!==false) {
-				$type = str_replace(array('controller_', '_captcha.jpg'), '',self::$settings['mvc']['controller_class']);
-				require('./controller/captcha.jpg');
-				exit;
-			}
-
-			// check if controller exists
-			$file = './' . str_replace('_', '/', self::$settings['mvc']['controller_class'] . '.php');
-			if (!file_exists($file)) {
-				Throw new Exception('Controller not found!');
-			}
-
-			// initialize the controller
-			$controller_class = self::$settings['mvc']['controller_class'];
-			$controller = new $controller_class;
-			self::$settings['controller'] = get_object_vars($controller);
-
-			// dispatch before, we need some settings from the controller
+		// if we are calling application from the command line
+		if (!empty($options['__run_only_bootstrap'])) {
+			// dispatch before, in case if we open database connections in there
 			if (!empty(self::$settings['application']['dispatch']['before_controller'])) {
 				call_user_func(self::$settings['application']['dispatch']['before_controller']);
 			}
+			return;
+		}
 
-			// singleton start
-			if (!empty(self::$settings['controller']['singleton_flag'])) {
-				$message = !empty(self::$settings['controller']['singleton_message']) ? self::$settings['controller']['singleton_message'] : 'This script is being run by another user!';
-				$lock_id = "singleton_" . $controller_class;
-				if (lock::process($lock_id)===false) {
-					Throw new Exception($message);
-				}
+		// processing mvc settings
+		self::set_mvc();
+
+		// special handling for captcha
+		if (strpos(self::$settings['mvc']['controller_class'], 'captcha.jpg')!==false) {
+			$type = str_replace(array('controller_', '_captcha.jpg'), '',self::$settings['mvc']['controller_class']);
+			require('./controller/captcha.jpg');
+			exit;
+		}
+
+		// check if controller exists
+		$file = './' . str_replace('_', '/', self::$settings['mvc']['controller_class'] . '.php');
+		if (!file_exists($file)) {
+			Throw new Exception('Controller not found!');
+		}
+
+		// initialize the controller
+		$controller_class = self::$settings['mvc']['controller_class'];
+		$controller = new $controller_class;
+		self::$settings['controller'] = get_object_vars($controller);
+
+		// dispatch before, we need some settings from the controller
+		if (!empty(self::$settings['application']['dispatch']['before_controller'])) {
+			call_user_func(self::$settings['application']['dispatch']['before_controller']);
+		}
+
+		// singleton start
+		if (!empty(self::$settings['controller']['singleton_flag'])) {
+			$message = !empty(self::$settings['controller']['singleton_message']) ? self::$settings['controller']['singleton_message'] : 'This script is being run by another user!';
+			$lock_id = "singleton_" . $controller_class;
+			if (lock::process($lock_id)===false) {
+				Throw new Exception($message);
 			}
+		}
 
-			self::process();
+		self::process();
 
-			// release singleton lock
-			if (!empty(self::$settings['controller']['singleton_flag'])) {
-				lock::release($lock_id);
-			}
+		// release singleton lock
+		if (!empty(self::$settings['controller']['singleton_flag'])) {
+			lock::release($lock_id);
+		}
 
-			// dispatch after controller
-			if (!empty(self::$settings['application']['dispatch']['after_controller'])) {
-				call_user_func(self::$settings['application']['dispatch']['after_controller']);
-			}
-
-		} catch (Exception $e) {
-			$previous_output = @ob_get_clean();
-			self::set_mvc('/error/~error/500');
-			self::process(array('exception'=>$e));
+		// dispatch after controller
+		if (!empty(self::$settings['application']['dispatch']['after_controller'])) {
+			call_user_func(self::$settings['application']['dispatch']['after_controller']);
 		}
 
 		// headers
 		if (!empty(self::$settings['header']) && !headers_sent()) {
-			foreach (self::$settings['header'] as $k=>$v) header($v);
+			foreach (self::$settings['header'] as $k=>$v) {
+				header($v);
+			}
 		}
 	}
 
@@ -275,7 +280,7 @@ class application {
 	 *
 	 * @param string $request_uri
 	 */
-	private static function set_mvc($request_uri = null) {
+	public static function set_mvc($request_uri = null) {
 		// storing previous mvc settings
 		if (!empty(self::$settings['mvc']['module'])) {
 			if (!isset(self::$settings['mvc_prev'])) {
@@ -307,7 +312,7 @@ class application {
 	 * 
 	 * @return string
 	 */
-	private static function process($options = []) {
+	public static function process($options = []) {
 
 		// get buffer content in case it is auto mode
 		$buffer = @ob_end_clean();
@@ -385,6 +390,11 @@ class application {
 		// appending view after controllers output
 		$controller->view = (isset($controller->view) ? $controller->view : '') . @ob_get_clean();
 
+		// if we have to render debug toolbar
+		if (debug::$toolbar) {
+			ob_start();
+		}
+
 		// rendering layout
 		if (!empty(self::$settings['mvc']['controller_layout'])) {
 			ob_start();
@@ -394,13 +404,23 @@ class application {
 				$controller = new layout($controller, $file);
 			}
 			// buffer output and handling javascript files, chicken and egg problem
-			$from = array('<!-- [numbers: javascript links] -->', '<!-- [numbers: css links] -->');
-			$to = array(layout::render_js(), layout::render_css());
+			$from = [
+				'<!-- [numbers: javascript links] -->',
+				'<!-- [numbers: css links] -->'
+			];
+			$to = [
+				layout::render_js(),
+				layout::render_css()
+			];
 			echo str_replace($from, $to, @ob_get_clean());
 		} else {
 			echo $controller->view;
 		}
-		flush();
+
+		// flushing
+		if (!debug::$toolbar) {
+			flush();
+		}
 	}
 
 	/**

@@ -43,11 +43,17 @@ class db implements numbers_backend_db_interface_base {
 			// creating new class
 			$this->object = new $class($db_link);
 
-			// determining ddl class
+			// determining ddl class & object
 			$ddl_class = str_replace('_base_abc123', '_ddl', $class . '_abc123');
+			$ddl_object = new $ddl_class();
 
 			// putting every thing into factory
-			factory::set(['db', $db_link], ['object' => $this->object, 'class' => $class, 'ddl_class' => $ddl_class]);
+			factory::set(['db', $db_link], [
+				'object' => $this->object,
+				'class' => $class,
+				'ddl_class' => $ddl_class,
+				'ddl_object' => $ddl_object
+			]);
 		} else if (!empty($temp['object'])) {
 			$this->object = $temp['object'];
 		} else {
@@ -139,8 +145,8 @@ class db implements numbers_backend_db_interface_base {
 	 * @param mixed $keys
 	 * @return array
 	 */
-	public function save($table, $data, $keys) {
-		return $this->object->save($table, $data, $keys);
+	public function save($table, $data, $keys, $options = []) {
+		return $this->object->save($table, $data, $keys, $options);
 	}
 
 	/**
@@ -148,9 +154,47 @@ class db implements numbers_backend_db_interface_base {
 	 *
 	 * @param string $table
 	 * @param array $rows
+	 * @param mixed $keys
 	 * @return array
 	 */
-	public function insert($table, $rows) {
-		return $this->object->insert($table, $rows);
+	public function insert($table, $rows, $keys = null, $options = []) {
+		return $this->object->insert($table, $rows, $keys, $options);
+	}
+
+	/**
+	 * Update table rows
+	 *
+	 * @param string $table
+	 * @param array $data
+	 * @param mixed $keys
+	 * @param array $options
+	 * @return array
+	 */
+	public function update($table, $data, $keys, $options = []) {
+		return $this->object->update($table, $data, $keys, $options);
+	}
+
+	/**
+	 * Delete rows from table
+	 *
+	 * @param string $table
+	 * @param array $data
+	 * @param mixed $keys
+	 * @param array $options
+	 * @return array
+	 */
+	public function delete($table, $data, $keys, $options = []) {
+		return $this->object->delete($table, $data, $keys, $options);
+	}
+
+	/**
+	 * Other methods inherited from base
+	 *
+	 * @param string $name
+	 * @param array $arguments
+	 * @return mixed
+	 */
+	public function __call($name, $arguments) {
+		return call_user_func_array(array($this->object, $name), $arguments);
 	}
 }

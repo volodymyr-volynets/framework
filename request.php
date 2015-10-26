@@ -8,13 +8,20 @@ class request {
 	 * @return string
 	 */
 	public static function ip() {
+		// if we are developing we return static IP address
+		if (application::get('environment') == 'development') {
+			return '198.91.198.240';
+		}
+		// get users IP
 		$result = $_SERVER['REMOTE_ADDR'];
 		// if request goes through the proxy
-		if (@$_SERVER['HTTP_X_FORWARDED_FOR']) $result = $_SERVER['HTTP_X_FORWARDED_FOR'];
+		if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+			$result = $_SERVER['HTTP_X_FORWARDED_FOR'];
+		}
 		// sometimes we have few IP addresses we take last one
 		if (strpos($result, ',') !== false) {
 			$temp = explode(',', $result);
-			$result = trim($temp[sizeof($temp)-1]);
+			$result = trim($temp[sizeof($temp) - 1]);
 		}
 		return $result;
 	}
@@ -37,6 +44,14 @@ class request {
 
 		// protection against XSS attacks is on by default
 		if ($xss) $result = self::strip_tags($result);
+
+		// we need to get rid of session id from the result
+		unset($result[session_name()]);
+
+		// if we are debugging
+		if (debug::$debug) {
+			debug::$data['input'][] = $result;
+		}
 
 		// returning result
 		if ($key) {
@@ -72,14 +87,14 @@ class request {
 	 * @return string
 	 */
 	public static function host($params = array()) {
-		$protocol = @$params['protocol'] ? $params['protocol'] : '';
+		$protocol = !empty($params['protocol']) ? $params['protocol'] : '';
 		if (!$protocol) $protocol = self::is_ssl() ? 'https' : 'http';
-		$host = @$params['ip'] ? (getenv('SERVER_ADDR') . ':' . getenv('SERVER_PORT')) : getenv('HTTP_HOST');
-		if (@$params['level3']) {
+		$host = !empty($params['ip']) ? (getenv('SERVER_ADDR') . ':' . getenv('SERVER_PORT')) : getenv('HTTP_HOST');
+		if (!empty($params['level3'])) {
 			$host = str_replace('www.', '', $host);
 			$host = @$params['level3'] . '.' . $host;
 		}
-		return $protocol . '://' . $host . (@$params['request'] ? $_SERVER['REQUEST_URI'] : '/');
+		return $protocol . '://' . $host . (!empty($params['request']) ? $_SERVER['REQUEST_URI'] : '/');
 	}
 
 	/**
@@ -94,9 +109,9 @@ class request {
 		$host = str_replace('/', '', $host);
 		$temp = explode('.', $host);
 		krsort($temp);
-		$result = array();
+		$result = [];
 		$counter = 1;
-		foreach ($temp as $k=>$v) {
+		foreach ($temp as $k => $v) {
 			$result[$counter] = $v;
 			$counter++;
 		}
@@ -109,7 +124,7 @@ class request {
 	 * @return boolean
 	 */
 	public static function is_ssl() {
-		if (strtolower(@$_SERVER['HTTP_X_FORWARDED_PROTO'])=='https') {
+		if (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && strtolower($_SERVER['HTTP_X_FORWARDED_PROTO'])=='https') {
 			return true;
 		} else if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS']!='off') {
 			return true;

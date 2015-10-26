@@ -35,6 +35,21 @@ application.dispatch.after_controller = "model_dispatch::after"
 ;flag.global.crypt.default_link = "default" ;default link, will be used when calling "new crypt();" without parameters
 ;flag.global.crypt.autoconnect.1 = "*" ; which crypt links autoconnect, * means all
 
+; cache specific flags
+;flag.global.cache.default_cache_link = "default" ; default link, will be used when calling "new cache();" without parameters
+;flag.global.cache.autoconnect.1 = "*" ; which cache links autoconnect, * means all
+
+; session specific flags
+;flag.numbers.backend.session.db.default_db_link = "default" ; default db link to be used by submodule
+;flag.global.session.submodule = "numbers.backend.session.db.base" ; which submodule to use for sessions
+;flag.global.session.start = 1
+; use options to override default options
+;flag.global.session.options.gc_maxlifetime = 7200
+
+; IP geo decoding
+;flag.numbers.backend.ip.cache.default_db_link = "default"
+;flag.global.ip.submodule = "numbers.backend.ip.ipinfo.base"
+
 [staging]
 
 [testings]
@@ -52,9 +67,14 @@ php.log_errors = 1
 ; composer libraries
 ;dep.composer.[vendor].[library] = "version"
 dep.composer.numbers.framework = "[numbers_framework_version]"
+;dep.composer.numbers.backend = "1.0.5"
 
 ; submodules within composer libraries
 ;dep.submodule.[vendor].[library].[submodule](.[submodule] ...) = 1
+;dep.submodule.numbers.backend.db.pgsql = 1
+;dep.submodule.numbers.backend.crypt.default = 1
+;dep.submodule.numbers.backend.session.db = 1
+;dep.submodule.numbers.backend.ip.ipinfo = 1
 
 ; php extensions & ini settings
 ;dep.php.extension.[name] = 1;

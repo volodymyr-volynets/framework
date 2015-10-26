@@ -63,10 +63,10 @@ function array_options_to_string($options, $option, $implode = ',') {
  * Fix an array string
  * 
  * @param unknown_type $tokens
- * @return Ambigous <unknown, multitype:, multitype:unknown >
+ * @return array
  */
 function array_fix($tokens) {
-	return is_array($tokens) ? $tokens : (!empty($tokens) ? array($tokens) : array());
+	return is_array($tokens) ? $tokens : (!empty($tokens) ? [$tokens] : []);
 }
 
 /**
@@ -306,7 +306,10 @@ function array_key_get(& $arr, $keys = null) {
 	if ($keys === null) {
 		return $arr;
 	} else {
-		if (!is_array($keys)) $keys = explode(',', $keys . '');
+		if (!is_array($keys)) {
+			$keys = str_replace('.', ',', $keys . '');
+			$keys = explode(',', $keys);
+		}
 		$key = $keys;
 		$last = array_pop($key);
 		$pointer = & $arr;

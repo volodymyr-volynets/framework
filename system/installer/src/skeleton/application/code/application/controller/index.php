@@ -9,6 +9,7 @@ class controller_index {
 	);
 
 	public function action_index() {
+		echo application::get('environment');
 		echo "<h3>This is index controller</h3>";
 	}
 }

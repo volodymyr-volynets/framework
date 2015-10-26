@@ -6,149 +6,121 @@
 class cache {
 
 	/**
-	 * Available adapters
-	 * 
-	 * @var array
+	 * Cache object
+	 *
+	 * @var object
 	 */
-	private static $adapter_types = array(
-		'media' => array('class'=>'cache_media'),
-		'file' => array('class'=>'cache_file'),
-		'php' => array('class'=>'cache_php'),
-	);
+	public $object;
 
 	/**
-	 * Adapter settings
-	 * 
-	 * @var array
+	 * Constructing cache object
+	 *
+	 * @param string $cache_link
+	 * @param string $class
 	 */
-	public static $adapters = array();
-
-	/**
-	 * Default lifetime
-	 * 
-	 * @var int
-	 */
-	private static $default_lifetime = 7200;
-
-	/**
-	 * Get adapter information
-	 * 
-	 * @param string $id
-	 */
-	public static function adapter($id) {
-		return @self::$adapters[$id];
+	public function __construct($cache_link = null, $class = null) {
+		// if we need to use default link from application
+		if (empty($cache_link)) {
+			$cache_link = application::get(['flag', 'global', 'cache', 'default_cache_link']);
+			if (empty($cache_link)) {
+				Throw new Exception('You must specify cache link and/or class!');
+			}
+		}
+		// get object from factory
+		$temp = factory::get(['cache', $cache_link]);
+		// if we have class
+		if (!empty($class) && !empty($cache_link)) {
+			// replaces in case we have it as submodule
+			$class = str_replace('.', '_', trim($class));
+			// if we are replacing database connection with the same link we
+			// need to manually close connection
+			if (!empty($temp['object']) && $temp['class'] != $class) {
+				$object = $temp['object'];
+				$object->close();
+				unset($this->object);
+			}
+			$this->object = new $class($cache_link);
+			// putting every thing into factory
+			factory::set(['cache', $cache_link], [
+				'object' => $this->object,
+				'class' => $class
+			]);
+		} else if (!empty($temp['object'])) {
+			$this->object = $temp['object'];
+		} else {
+			Throw new Exception('You must specify cache link and/or class!');
+		}
 	}
 
 	/**
-	 * Generate unique id based on filename and company name
-	 * 
-	 * @param string $filename
-	 * @param int $company
-	 * @return string
-	 */
-	public static function id($filename, $company = null) {
-		$path_parts = pathinfo($filename);
-		if (empty($company)) $company = '';
-		$crypt_object = new crypt();
-		return $crypt_object->hash('/' . $company . '/' . $filename) . '.' . $path_parts['extension'];
-	}
-
-	/**
-	 * Create an adapter
-	 * 
-	 * @param string $link
+	 * Connect
+	 *
 	 * @param array $options
 	 * @return array
 	 */
-	public static function create($link, $options) {
-		do {
-			// handling cache type
-			$options['type'] = strtolower($options['type']);
-			if (empty($options['type'])) {
-				$options['type'] = 'file';
-			}
+	public function connect($options) {
+		return $this->object->connect($options);
+	}
 
-			// lifetime
-			if (empty($options['lifetime'])) {
-				$options['lifetime'] = self::$default_lifetime;
-			}
-
-			// handling directory
-			if ($options['type']=='file' || $options['type']=='php') {
-				if (empty($options['dir'])) {
-					$result['error'][] = 'You must specify directory!';
-					break;
-				}
-				$options['dir'] = rtrim($options['dir'], '/') . '/';
-				if (@$options['key']) $options['dir'].= $options['key'] . '/';
-				// create a cache directory
-				if (!file_exists($options['dir'])) mkdir($options['dir'], 0777, true);
-			}
-
-			// setting the adapter
-			self::$adapters[$link] = $options;
-
-			// and we set success in a result
-			return true;
-		} while(0);
-		return false;
+	/**
+	 * Close
+	 *
+	 * @return array
+	 */
+	public function close() {
+		return $this->object->close();
 	}
 
 	/**
 	 * Get data from cache
-	 * 
-	 * @param array $cache_id
-	 * @param array $link
-	 * @return array 
-	 */
-	public static function get($cache_id, $link = 'default') {
-		if (empty($link)) $link = 'default';
-		if (isset(self::$adapters[$link]['type'])) {
-			$class_name = self::$adapter_types[self::$adapters[$link]['type']]['class'];
-			$class = new $class_name;
-			return $class->get($cache_id, $link);
-		} else {
-			return false;
-		}
-	}
-
-	/**
-	 * Cache data
-	 * 
+	 *
 	 * @param string $cache_id
-	 * @param mixed $data
-	 * @param int $expire - seconds
-	 * @param mixed $tags
-	 * @param string $link
 	 * @return mixed
 	 */
-	public static function set($cache_id, $data, $expire = null, $tags = null, $link = 'default') {
-		if (empty($link)) $link = 'default';
-		if (isset(self::$adapters[$link]['type'])) {
-			$class_name = self::$adapter_types[self::$adapters[$link]['type']]['class'];
-			$class = new $class_name;
-			$expire = $expire ? $expire : self::$adapters[$link]['lifetime'];
-			return $class->set($cache_id, $data, $expire, $tags, $link);
-		} else {
-			return false;
+	public function get($cache_id) {
+		$data = $this->object->get($cache_id);
+		// if we are debugging
+		if (debug::$debug) {
+			debug::$data['cache'][] = array(
+				'type' => 'get',
+				'link' => $this->object->cache_link,
+				'cache_id' => $cache_id,
+				'have_data' => ($data !== false)
+			);
 		}
+		return $data;
 	}
 
 	/**
-	 * Garbage collector
-	 * 
-	 * @param int $mode - 1 - old, 2 - all
+	 * Set cache
+	 *
+	 * @param string $cache_id
+	 * @param mixed $data
 	 * @param array $tags
-	 * @param string $link 
+	 * @return bool
 	 */
-	public static function gc($mode = 1, $tags = array(), $link = 'default') {
-		if (!isset($link)) $link = 'default';
-		if (isset(self::$adapters[$link]['type'])) {
-			$class_name = self::$adapter_types[self::$adapters[$link]['type']]['class'];
-			$class = new $class_name;
-			return $class->gc($mode, $tags, $link);
-		} else {
-			return false;
+	public function set($cache_id, $data, $tags = []) {
+		$data = $this->object->set($cache_id, $data, $tags);
+		// if we are debugging
+		if (debug::$debug) {
+			debug::$data['cache'][] = array(
+				'type' => 'set',
+				'link' => $this->object->cache_link,
+				'cache_id' => $cache_id,
+				'have_data' => ($data !== false)
+			);
 		}
+		return $data;
+	}
+
+	/**
+	 * Collect garbage
+	 *
+	 * @param string $mode
+	 * @param array $tags
+	 * @return bool
+	 */
+	public function gc($mode = 1, $tags = []) {
+		return $this->object->gc($mode, $tags);
 	}
 }
