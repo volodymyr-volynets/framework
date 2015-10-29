@@ -47,7 +47,7 @@ class error {
 		16384 => 'E_USER_DEPRECATED',
 		32767 => 'E_ALL'
 	];
-	
+
 	/**
 	 * Initialize error handler
 	 */

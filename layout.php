@@ -12,18 +12,18 @@ class layout extends view {
 	public static $icon_override = null;
 
 	/**
+	 * Version to be used when rendering js/css links
+	 *
+	 * @var int
+	 */
+	public static $version;
+
+	/**
 	 * Onload javascript
 	 * 
 	 * @var string
 	 */
 	private static $onload = '';
-
-	/**
-	 * Html to be prepended can be stored here
-	 * 
-	 * @var string 
-	 */
-	public static $last_html = '';
 
 	/**
 	 * Add css file to layout
@@ -43,11 +43,13 @@ class layout extends view {
 	public static function render_css() {
 		$result = '';
 		$css = application::get(array('layout', 'css'));
-		$version = application::get(array('content', 'version', 'css'));
 		if (!empty($css)) {
 			asort($css);
+			if (empty(self::$version)) {
+				self::$version = filemtime('./../../deployed');
+			}
 			foreach ($css as $k=>$v) {
-				$script = $k . (strpos($k, '?')!=false ? '&' : '?') . $version;
+				$script = $k . (strpos($k, '?') !== false ? '&' : '?') . self::$version;
 				$result.= '<link href="' . $script . '" rel="stylesheet" type="text/css" />';
 			}
 		}
@@ -73,11 +75,14 @@ class layout extends view {
 	public static function render_js() {
 		$result = '';
 		$js = application::get(array('layout', 'js'));
-		$version = application::get(array('content', 'version', 'js'));
 		if (!empty($js)) {
 			asort($js);
+			// get deployment version
+			if (empty(self::$version)) {
+				self::$version = filemtime('./../../deployed');
+			}
 			foreach ($js as $k=>$v) {
-				$script = $k . (strpos($k, '?')!=false ? '&' : '?') . $version;
+				$script = $k . (strpos($k, '?') !== false ? '&' : '?') . self::$version;
 				$result.= '<script type="text/javascript" src="' . $script . '"></script>';
 			}
 		}

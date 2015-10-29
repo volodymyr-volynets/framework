@@ -134,6 +134,7 @@ class bootstrap {
 	 * Destroy everything
 	 */
 	public static function destroy() {
+		$__run_only_bootstrap = application::get(['flag', 'global', '__run_only_bootstrap']);
 		// error processing
 		if (empty(error::$flag_error_already)) {
 			$last_error = error_get_last();
@@ -144,8 +145,13 @@ class bootstrap {
 				$flag_render = true;
 			}
 			if ($flag_render || error::$flag_exception) {
-				application::set_mvc('/error/~error/500');
-				application::process();
+				if ($__run_only_bootstrap) {
+					$temp = @ob_get_clean();
+					print_r(error::$errors);
+				} else {
+					application::set_mvc('/error/~error/500');
+					application::process();
+				}
 			}
 		}
 
@@ -171,7 +177,7 @@ class bootstrap {
 		}
 
 		// debugging toolbar last
-		if (debug::$toolbar) {
+		if (debug::$toolbar && !$__run_only_bootstrap) {
 			$from = [
 				'<!-- [numbers: debug toolbar] -->'
 			];

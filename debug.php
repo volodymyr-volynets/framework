@@ -4,29 +4,29 @@ class debug {
 
 	/**
 	 * Whether or not we need to debug our application
-	 * 
-	 * @var boolean 
+	 *
+	 * @var boolean
 	 */
 	public static $debug = false;
 
 	/**
 	 * Whether or not we need to email administrator
 	 *
-	 * @var boolean 
+	 * @var boolean
 	 */
 	public static $email = false;
 
 	/**
 	 * Whether or not we show toolbar
 	 *
-	 * @var boolean 
+	 * @var boolean
 	 */
 	public static $toolbar = false;
 
 	/**
 	 * All variables will be sotred in here
-	 * 
-	 * @var array 
+	 *
+	 * @var array
 	 */
 	public static $data = [
 		'sql' => [], // if we need to see queries
@@ -37,6 +37,7 @@ class debug {
 		'benchmark' => [], // if we need to know how long it takes
 		'errors' => [], // number of errors
 		'suppressed' => [], // if we need to see suppressed errors
+		'js' => [] //// if we have javascript errors
 	];
 
 	/**
@@ -121,7 +122,7 @@ class debug {
 									if ($k == 'errors') {
 										$v = error::$errors;
 									}
-									$result.= '<td>&nbsp;' . h::a(array('value' => ucwords($k) . ' (' . count($v) . ')', 'href' => 'javascript:void(0);', 'onclick' => "$('#debuging_toolbar_{$k}').toggle();")) . '&nbsp;</td>';
+									$result.= '<td>&nbsp;' . h::a(array('value' => ucwords($k) . ' (' . count($v) . ')', 'id' => "debuging_toolbar_{$k}_a", 'href' => 'javascript:void(0);', 'onclick' => "$('#debuging_toolbar_{$k}').toggle();")) . '&nbsp;</td>';
 								}
 							$result.= '</tr>';
 						$result.= '</table>';
@@ -284,7 +285,7 @@ class debug {
 				// suppressed
 				$result.= '<tr id="debuging_toolbar_suppressed" class="debuging_toolbar_class" style="display: none;">';
 					$result.= '<td>';
-						$result.= '<h3>Errors (' . count(self::$data['suppressed']) . ')' . '</h3>';
+						$result.= '<h3>Suppressed (' . count(self::$data['suppressed']) . ')' . '</h3>';
 						$result.= '<table border="1" cellpadding="2" cellspacing="2">';
 							foreach (self::$data['suppressed'] as $k => $v) {
 								$result.= '<tr>';
@@ -298,6 +299,15 @@ class debug {
 								$result.= '</tr>';
 							}
 						$result.= '</table>';
+					$result.= '</td>';
+				$result.= '</tr>';
+
+				$result.= '<tr id="debuging_toolbar_js" class="debuging_toolbar_class" style="display: none;">';
+					$result.= '<td>';
+						$result.= '<h3>Javascript Errors</h3>';
+						$result.= '<div id="debuging_toolbar_js_data">';
+							$result.= '&nbsp;';
+						$result.= '</div>';
 					$result.= '</td>';
 				$result.= '</tr>';
 

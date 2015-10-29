@@ -15,7 +15,7 @@ class object_table {
 	 * @var string 
 	 */
 	public $db_link_flag;
-	
+
 	/**
 	 * Table name including schema in format [schema].[name]
 	 *
@@ -278,7 +278,7 @@ class object_table {
 	 * @param array $data
 	 * @return array
 	 */
-	public function save($data) {
+	public function save($data, $options = []) {
 		$result = [
 			'success' => false,
 			'error' => [],
@@ -287,7 +287,7 @@ class object_table {
 		];
 
 		// populating fields
-		$save = $this->process_fields($data, isset($data['ignore_not_set_fields']) ? $data['ignore_not_set_fields'] : false);
+		$save = $this->process_fields($data, isset($options['ignore_not_set_fields']) ? $options['ignore_not_set_fields'] : false);
 
 		// verifying
 		do {
@@ -329,7 +329,7 @@ class object_table {
 
 			// saving record to database
 			$db = new db($this->db_link);
-			$result = $db->save($this->table_name, $save, $this->table_pk, ['returning' => true]);
+			$result = $db->save($this->table_name, $save, $this->table_pk, $options);
 			if ($result['success'] && $this->cache) {
 				// now we need to reset cache
 				if (empty($data['do_not_reset_cache'])) {

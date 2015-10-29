@@ -258,7 +258,10 @@ class system_dependencies {
 			$total_per_db_link = [];
 			$total = 0;
 			foreach ($db_link_list as $k) {
-				$temp_result = $ddl->compare_schemas(isset($ddl->objects[$k]) ? $ddl->objects[$k] : [], isset($loaded_objects[$k]) ? $loaded_objects[$k] : []);
+				// we need to have a back end for comparison
+				$compare_options['backend'] = $db_factory[$k]['backend'];
+				// comparing
+				$temp_result = $ddl->compare_schemas(isset($ddl->objects[$k]) ? $ddl->objects[$k] : [], isset($loaded_objects[$k]) ? $loaded_objects[$k] : [], $compare_options);
 				if (!$temp_result['success']) {
 					array_merge3($result['error'], $temp_result['error']);
 				} else {

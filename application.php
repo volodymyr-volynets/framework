@@ -83,6 +83,7 @@ class application {
 		self::$settings['application']['path'] = $application_path;
 		self::$settings['layout'] = [];
 		self::$settings['flag'] = (isset(self::$settings['flag']) && is_array(self::$settings['flag'])) ? self::$settings['flag'] : [];
+		self::$settings['flag']['global']['__run_only_bootstrap'] = !empty($options['__run_only_bootstrap']);
 
 		// processing php settings
 		if (isset(self::$settings['php'])) {
@@ -406,11 +407,13 @@ class application {
 			// buffer output and handling javascript files, chicken and egg problem
 			$from = [
 				'<!-- [numbers: javascript links] -->',
-				'<!-- [numbers: css links] -->'
+				'<!-- [numbers: css links] -->',
+				'<!-- [numbers: layout onload] -->'
 			];
 			$to = [
 				layout::render_js(),
-				layout::render_css()
+				layout::render_css(),
+				layout::render_onload()
 			];
 			echo str_replace($from, $to, @ob_get_clean());
 		} else {

@@ -144,7 +144,7 @@ class h {
 	public static function script($options = array()) {
 		$value = @$options['value'];
 		unset($options['value']);
-		$options['type'] = @$options['type'] ? $options['type'] : 'text/javascript';
+		$options['type'] = !empty($options['type']) ? $options['type'] : 'text/javascript';
 		$result = '';
 		$result.= '<script';
 		foreach($options as $k=>$v) {

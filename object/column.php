@@ -1,7 +1,7 @@
 <?php
 
 class object_column {
-	
+
 	/**
 	 * Available column attributes
 	 *

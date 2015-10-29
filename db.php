@@ -51,6 +51,7 @@ class db implements numbers_backend_db_interface_base {
 			factory::set(['db', $db_link], [
 				'object' => $this->object,
 				'class' => $class,
+				'backend' => str_replace(['numbers_backend_db_', '_base'], '', $class),
 				'ddl_class' => $ddl_class,
 				'ddl_object' => $ddl_object
 			]);
