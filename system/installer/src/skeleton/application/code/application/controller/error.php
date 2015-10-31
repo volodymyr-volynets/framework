@@ -19,9 +19,12 @@ class controller_error {
 					$ms.= '<tr>';
 						$ms.= '<td>File: ' . $v['file'] . ', Line: ' . $v['line'] . '</td>';
 					$ms.= '</tr>';
-					$ms.= '<tr>';
-						$ms.= '<td><pre>' . $v['code'] . '</pre></td>';
-					$ms.= '</tr>';
+					// showing code only when we debug
+					if (debug::$debug) {
+						$ms.= '<tr>';
+							$ms.= '<td><pre>' . $v['code'] . '</pre></td>';
+						$ms.= '</tr>';
+					}
 					$ms.= '<tr>';
 						$ms.= '<td><hr/></td>';
 					$ms.= '</tr>';
