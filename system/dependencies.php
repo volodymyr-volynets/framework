@@ -35,6 +35,7 @@ class system_dependencies {
 			// we have small chicken and egg problem with composer
 			$composer_data = [];
 			$composer_dirs = [];
+			$composer_dirs[] = 'config/';
 			if (file_exists('../libraries/composer.json')) {
 				$composer_data = json_decode(file_get_contents('../libraries/composer.json'), true);
 			}
@@ -66,20 +67,20 @@ class system_dependencies {
 							$sub_data = isset($sub_data['dep']) ? $sub_data['dep'] : [];
 							if (!empty($sub_data['composer'])) {
 								self::process_deps_array($sub_data['composer'], $composer_data['require'], $composer_dirs);
-								$data['composer'] = array_merge_recursive($data['composer'], $sub_data['composer']);
+								$data['composer'] = array_merge2($data['composer'], $sub_data['composer']);
 							}
 							if (!empty($sub_data['submodule'])) {
 								self::process_deps_array($sub_data['submodule'], $composer_data['require'], $composer_dirs);
-								$data['submodule'] = array_merge_recursive($data['submodule'], $sub_data['submodule']);
+								$data['submodule'] = array_merge2($data['submodule'], $sub_data['submodule']);
 							}
 							if (!empty($sub_data['apache'])) {
-								$data['apache'] = array_merge_recursive($data['apache'], $sub_data['apache']);
+								$data['apache'] = array_merge2($data['apache'], $sub_data['apache']);
 							}
 							if (!empty($sub_data['php'])) {
-								$data['php'] = array_merge_recursive($data['php'], $sub_data['php']);
+								$data['php'] = array_merge2($data['php'], $sub_data['php']);
 							}
 							if (!empty($sub_data['model'])) {
-								$data['model'] = array_merge_recursive($data['model'], $sub_data['model']);
+								$data['model'] = array_merge2($data['model'], $sub_data['model']);
 							}
 						} else {
 							$keys = explode('/', $k);
@@ -215,14 +216,24 @@ class system_dependencies {
 
 			$ddl = new numbers_backend_db_class_ddl();
 			foreach ($dep['data']['model_processed'] as $k => $v) {
-				if ($v == 'table') {
+				if ($v == 'object_table') {
 					$temp_result = $ddl->process_table_model(str_replace('.', '_', $k));
+					if (!$temp_result['success']) {
+						array_merge3($result['error'], $temp_result['error']);
+					}
+				} else if ($v == 'object_sequence') {
+					$temp_result = $ddl->process_sequence_model(str_replace('.', '_', $k));
+					if (!$temp_result['success']) {
+						array_merge3($result['error'], $temp_result['error']);
+					}
+				} else if ($v == 'object_function') {
+					$temp_result = $ddl->process_function_model(str_replace('.', '_', $k));
 					if (!$temp_result['success']) {
 						array_merge3($result['error'], $temp_result['error']);
 					}
 				}
 			}
-			//print_r($ddl->objects);
+			//print_r($ddl->objects['default']['function']);
 
 			// if we have erros
 			if (!empty($result['error'])) {
@@ -243,7 +254,6 @@ class system_dependencies {
 					$loaded_objects[$k] = $temp_result['data'];
 				}
 			}
-			//print_r($loaded_objects);
 
 			// if we have erros
 			if (!empty($result['error'])) {
@@ -307,10 +317,17 @@ class system_dependencies {
 				$db_object = new db($k);
 				foreach ($schema_diff[$k] as $k2 => $v2) {
 					foreach ($v2 as $k3 => $v3) {
-						$temp_result = $db_object->query($v3['sql']);
-						if (!$temp_result['success']) {
-							array_merge3($result['error'], $temp_result['error']);
-							goto error;
+						if (is_array($v3['sql'])) {
+							$temp = $v3['sql'];
+						} else {
+							$temp = [$v3['sql']];
+						}
+						foreach ($temp as $v4) {
+							$temp_result = $db_object->query($v4);
+							if (!$temp_result['success']) {
+								array_merge3($result['error'], $temp_result['error']);
+								goto error;
+							}
 						}
 					}
 				}

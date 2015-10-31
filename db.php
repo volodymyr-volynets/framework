@@ -189,6 +189,18 @@ class db implements numbers_backend_db_interface_base {
 	}
 
 	/**
+	 * Generate sequence
+	 *
+	 * @param string $sequence_name
+	 * @param string $sequence_table
+	 * @param string $type
+	 * @return array
+	 */
+	public function sequence($sequence_name, $sequence_table, $type) {
+		return $this->object->sequence($sequence_name, $sequence_table, $type);
+	}
+
+	/**
 	 * Other methods inherited from base
 	 *
 	 * @param string $name

@@ -152,18 +152,25 @@ function pk($pk, & $data) {
  */
 function array_merge2($arr1, $arr2) {
 	$arrays = func_get_args();
-	$base = array_shift($arrays);
-	foreach ($arrays as $array) {
-		@reset($base);
-		while (list($key, $value) = @each($array)) {
-			if (is_array($value) && @is_array($base[$key])) {
-				$base[$key] = array_merge($base[$key], $value);
+	$merged = array();
+	while ($arrays) {
+		$array = array_shift($arrays);
+		if (!is_array($array) || !$array) {
+			continue;
+		}
+		foreach ($array as $key => $value) {
+			if (is_string($key)) {
+				if (is_array($value) && array_key_exists($key, $merged) && is_array($merged[$key])) {
+					$merged[$key] = array_merge2($merged[$key], $value);
+				} else {
+					$merged[$key] = $value;
+				}
 			} else {
-				$base[$key] = $value;
+				$merged[] = $value;
 			}
 		}
 	}
-	return $base;
+	return $merged;
 }
 
 /**
@@ -173,14 +180,7 @@ function array_merge2($arr1, $arr2) {
  * @param array $arr2
  */
 function array_merge3(& $arr1, $arr2) {
-	$arrays = func_get_args();
-	$base = array_shift($arrays);
-	if (!is_array($base)) $base = array($base);
-	foreach ($arrays as $array) {
-		if (!is_array($array)) $array = array($array);
-		$base = array_merge($base, $array);
-	}
-	$arr1 = $base;
+	$arr1 = call_user_func_array('array_merge2', func_get_args());
 }
 
 /**
@@ -192,18 +192,21 @@ function array_merge3(& $arr1, $arr2) {
  */
 function array_merge5($arr1, $arr2) {
 	$arrays = func_get_args();
-	$base = array_shift($arrays);
-	foreach ($arrays as $array) {
-		reset($base);
-		while (list($key, $value) = @each($array)) {
-			if (is_array($value) && @is_array($base[$key])) {
-				$base[$key] = array_merge5($base[$key], $value);
+	$merged = array();
+	while ($arrays) {
+		$array = array_shift($arrays);
+		if (!is_array($array) || !$array) {
+			continue;
+		}
+		foreach ($array as $key => $value) {
+			if (is_array($value) && array_key_exists($key, $merged) && is_array($merged[$key])) {
+				$merged[$key] = array_merge2($merged[$key], $value);
 			} else {
-				$base[$key] = $value;
+				$merged[$key] = $value;
 			}
 		}
 	}
-	return $base;
+	return $merged;
 }
 
 /**
