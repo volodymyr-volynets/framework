@@ -15,7 +15,7 @@ class bootstrap {
 
 		// get flags & dependencies
 		$flags = application::get('flag');
-		$dep = application::get('dep');
+		$backend = application::get('numbers.backend', ['backend_exists' => true]);
 
 		// processing wildcard first
 		$wildcard = application::get('wildcard');
@@ -27,7 +27,7 @@ class bootstrap {
 
 		// initialize cryptography
 		$crypt = application::get('crypt');
-		if (!empty($crypt) && !empty($dep['composer']['numbers']['backend']) && !empty($flags['global']['crypt']['autoconnect'])) {
+		if (!empty($crypt) && $backend && !empty($flags['global']['crypt']['autoconnect'])) {
 			// converting flags to array
 			if (!is_array($flags['global']['crypt']['autoconnect'])) {
 				$flags['global']['crypt']['autoconnect'] = [$flags['global']['crypt']['autoconnect']];
@@ -45,7 +45,7 @@ class bootstrap {
 
 		// create database connections
 		$db = application::get('db');
-		if (!empty($db) && !empty($dep['composer']['numbers']['backend']) && !empty($flags['global']['db']['autoconnect'])) {
+		if (!empty($db) && $backend && !empty($flags['global']['db']['autoconnect'])) {
 			// converting flags to array
 			if (!is_array($flags['global']['db']['autoconnect'])) {
 				$flags['global']['db']['autoconnect'] = [$flags['global']['db']['autoconnect']];
@@ -88,7 +88,7 @@ class bootstrap {
 
 		// initialize cache
 		$cache = application::get('cache');
-		if (!empty($cache) && !empty($dep['composer']['numbers']['backend']) && !empty($flags['global']['cache']['autoconnect'])) {
+		if (!empty($cache) && $backend && !empty($flags['global']['cache']['autoconnect'])) {
 			// converting flags to array
 			if (!is_array($flags['global']['cache']['autoconnect'])) {
 				$flags['global']['cache']['autoconnect'] = [$flags['global']['cache']['autoconnect']];
@@ -118,7 +118,7 @@ class bootstrap {
 
 		// initialize session
 		$session = application::get('flag.global.session');
-		if (!empty($session['start'])) {
+		if (!empty($session['start']) && $backend) {
 			session::start(isset($session['options']) ? $session['options'] : []);
 		}
 
@@ -134,7 +134,7 @@ class bootstrap {
 		layout::add_js('/numbers/media_submodules/numbers_framework_functions.js', -32001);
 		layout::add_js('/numbers/media_submodules/numbers_framework_base.js', -32000);
 		// generating token to receive data from frontend
-		if (!empty($dep['composer']['numbers']['backend'])) {
+		if ($backend) {
 			$crypt_class = new crypt();
 			$token = urldecode($crypt_class->token_create('general'));
 			layout::js_data(['token' => $token]);

@@ -15,9 +15,25 @@ class application {
 	 * @param array $options
 	 *		array decrypt_keys - if we need to decrypt keys
 	 *		boolean class - if we need to return proper class name
+	 *		boolean backend_exists - if we need to determine if backend exists
 	 * @return mixed
 	 */
 	public static function get($key = null, $options = []) {
+		// if we need to determine if backend exists
+		if (!empty($options['backend_exists'])) {
+			$key = str_replace('.', '_', $key);
+			$existing = array_key_get(self::$settings, ['backend_exists', $key]);
+			if (isset($existing)) {
+				return $existing;
+			} else {
+				$temp = str_replace('.', '/', $key);
+				$flag = file_exists('./../libraries/vendor/' . $temp);
+				array_key_set(self::$settings, ['backend_exists', $key], $flag);
+				return $flag;
+			}
+		}
+
+		// get data from settings
 		$result = array_key_get(self::$settings, $key);
 		// decrypting certain columns
 		if (!empty($options['decrypt_keys'])) {
