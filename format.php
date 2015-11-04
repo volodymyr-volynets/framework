@@ -70,6 +70,17 @@ class format {
 	}
 
 	/**
+	 * Time in seconds
+	 *
+	 * @param mixed $time
+	 * @param array $options
+	 * @return string
+	 */
+	public static function time_seconds($time, $options = []) {
+		return number_format($time, 4);
+	}
+
+	/**
 	 * Format datetime
 	 * 
 	 * @param string/int $date

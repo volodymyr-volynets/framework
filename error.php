@@ -66,23 +66,33 @@ class error {
 	 * @param int $line
 	 */
 	public static function error_handler($errno, $errmsg, $file, $line) {
-		// important: we do not process suppressed errors
-		if (error_reporting() !== 0) {
-			$result = [
+		// if its a javascript error submitted to backend
+		if ($errno == 'javascript') {
+			debug::$data['js'][] = [
 				'errno' => $errno,
 				'error' => [$errmsg],
 				'file' => $file,
 				'line' => $line,
-				'code' => self::get_code($file, $line)
+				'code' => '',
+				'backtrace' => []
 			];
-			self::$errors[] = $result;
+		} else if (error_reporting() !== 0) { // important: we do not process suppressed errors
+			self::$errors[] = [
+				'errno' => $errno,
+				'error' => [$errmsg],
+				'file' => $file,
+				'line' => $line,
+				'code' => self::get_code($file, $line),
+				'backtrace' => self::debug_backtrace_string()
+			];
 		} else if (debug::$debug) {
 			debug::$data['suppressed'][] = [
 				'errno' => $errno,
 				'error' => [$errmsg],
 				'file' => $file,
 				'line' => $line,
-				'code' => self::get_code($file, $line)
+				'code' => self::get_code($file, $line),
+				'backtrace' => self::debug_backtrace_string()
 			];
 		}
 	}
@@ -93,14 +103,14 @@ class error {
 	 * @param Exception $e
 	 */
 	public static function exception_handler(Exception $e) {
-		$result = [
+		self::$errors[] = [
 			'errno' => $e->getCode(),
 			'error' => [$e->getMessage()],
 			'file' => $e->getFile(),
 			'line' => $e->getLine(),
-			'code' => self::get_code($e->getFile(), $e->getLine())
+			'code' => self::get_code($e->getFile(), $e->getLine()),
+			'backtrace' => self::debug_backtrace_string($e->getTrace())
 		];
-		self::$errors[] = $result;
 		self::$flag_exception = true;
 		exit;
 	}
@@ -125,5 +135,44 @@ class error {
 			}
 		}
 		return implode("\n", $result);
+	}
+
+	/**
+	 * Format debug trace
+	 *
+	 * @param array $trace
+	 * @return array
+	 */
+	public static function debug_backtrace_string($trace = null) {
+		$result = [];
+		$i = 1;
+		// if trace is not provided
+		if (empty($trace)) {
+			$trace = debug_backtrace();
+			unset($trace[0]);
+		}
+		foreach($trace as $v) {
+			$stack = '#' . $i . ' ' . (isset($v['file']) ? $v['file'] : 'Unknown');
+			if (isset($v['line'])) {
+				$stack.= '(' . $v['line'] . ')';
+			}
+			// do not show error handler
+			if (!(isset($v['class']) && $v['class'] == 'error' && $v['function'] == 'error_handler')) {
+				$stack.= ': ';
+				if(isset($v['class'])) {
+					$stack.= $v['class'] . $v['type'];
+				}
+				$params = [];
+				if (isset($v['args'])) {
+					foreach ($v['args'] as $v2) {
+						$params[] = gettype($v2);
+					}
+				}
+				$stack.= $v['function'] . '(' . implode(', ', $params) . ');';
+			}
+			$i++;
+			$result[] = $stack;
+		}
+		return $result;
 	}
 }

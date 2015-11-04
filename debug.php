@@ -10,11 +10,11 @@ class debug {
 	public static $debug = false;
 
 	/**
-	 * Whether or not we need to email administrator
+	 * Email to administrator
 	 *
 	 * @var boolean
 	 */
-	public static $email = false;
+	public static $email;
 
 	/**
 	 * Whether or not we show toolbar
@@ -35,9 +35,10 @@ class debug {
 		'session' => [], // if we need to see session
 		'input' => [], // if we need to see input
 		'benchmark' => [], // if we need to know how long it takes
+		'classes' => [], // autoloaded classes
 		'errors' => [], // number of errors
 		'suppressed' => [], // if we need to see suppressed errors
-		'js' => [] //// if we have javascript errors
+		'js' => [], // if we have javascript errors
 	];
 
 	/**
@@ -48,8 +49,9 @@ class debug {
 	public static function init($options) {
 		self::$debug = !empty($options['debug']) ? true : false;
 		if (self::$debug) {
-			self::$email = !empty($options['email']) ? true : false;
+			self::$email = !empty($options['email']) ? $options['email'] : null;
 			self::$toolbar = !empty($options['toolbar']) ? true : false;
+			self::benchmark('application start');
 		}
 	}
 
@@ -93,11 +95,27 @@ class debug {
 			if (is_null($start)) {
 				$start = self::get_microtime();
 			} else {
-				$benchmark = self::get_microtime() - $start;
-				$start = self::get_microtime();
+				$temp = self::get_microtime();
+				$benchmark = $temp - $start;
+				$start = $temp;
 			}
 			$total+= $benchmark;
-			self::$data['benchmark'][] = array('name' => $name, 'time' => format::time($benchmark, true) . '', 'total' => format::time($total, true), 'start' => format::datetime($start));
+			self::$data['benchmark'][] = array('name' => $name, 'time' => format::time_seconds($benchmark) . '', 'total' => format::time_seconds($total), 'start' => format::datetime($start));
+		}
+	}
+
+	/**
+	 * Send errors to admin
+	 */
+	public static function send_errors_to_admin() {
+		// determine if we need to send anything
+		if (!empty(error::$errors) || !empty(self::$data['suppressed']) || !empty(self::$data['js'])) {
+			$message = str_replace('display: none;', '', self::render());
+			return mail::send([
+				'to' => self::$email,
+				'subject' => 'application error',
+				'message' => $message
+			]);
 		}
 	}
 
@@ -107,9 +125,6 @@ class debug {
 	 * @return string
 	 */
 	public static function render() {
-		if (!self::$toolbar) {
-			return '';
-		}
 		$result = '';
 		$result.= '<div class="container">';
 			$result.= '<table cellpadding="2" cellspacing="2">';
@@ -117,12 +132,14 @@ class debug {
 					$result.= '<td>';
 						$result.= '<table>';
 							$result.= '<tr>';
-								$result.= '<td>&nbsp;' . h::a(array('value' => 'Hide All', 'href' => 'javascript:void(0);', 'onclick' => "$('.debuging_toolbar_class').hide();")) . '&nbsp;</td>';
+								$result.= '<td>&nbsp;' . html::a(['value' => 'Hide All', 'href' => 'javascript:void(0);', 'onclick' => "$('.debuging_toolbar_class').hide();"]) . '&nbsp;</td>';
 								foreach (self::$data as $k => $v) {
 									if ($k == 'errors') {
-										$v = error::$errors;
+										$count = count(error::$errors);
+									} else {
+										$count = count($v);
 									}
-									$result.= '<td>&nbsp;' . h::a(array('value' => ucwords($k) . ' (' . count($v) . ')', 'id' => "debuging_toolbar_{$k}_a", 'href' => 'javascript:void(0);', 'onclick' => "$('#debuging_toolbar_{$k}').toggle();")) . '&nbsp;</td>';
+									$result.= '<td>&nbsp;' . html::a(['value' => ucwords($k) . ' (' . $count . ')', 'id' => "debuging_toolbar_{$k}_a", 'href' => 'javascript:void(0);', 'onclick' => "$('#debuging_toolbar_{$k}').toggle();"]) . '&nbsp;</td>';
 								}
 							$result.= '</tr>';
 						$result.= '</table>';
@@ -176,9 +193,9 @@ class debug {
 									$result.= '<td valign="top">' . $v['errno'] . '</td>';
 									$result.= '<td valign="top">' . $v['num_rows'] . '</td>';
 									$result.= '<td valign="top">' . $v['affected_rows'] . '</td>';
-									$result.= '<td valign="top">' . h::array2table($v['rows'], $v['key']) . '</td>';
+									$result.= '<td valign="top">' . html::table(['options' => $v['rows']]) . '</td>';
 									$result.= '<td valign="top">' . $temp . '</td>';
-									$result.= '<td valign="top">' . h::array2table($v['structure'], '') . '</td>';
+									$result.= '<td valign="top">' . html::table(['options' => $v['structure']]) . '</td>';
 									$result.= '<td valign="top">' . $v['time'] . '</td>';
 								$result.= '</tr>';
 							}
@@ -262,10 +279,25 @@ class debug {
 					$result.= '</td>';
 				$result.= '</tr>';
 
+				// autoloaded classes
+				$result.= '<tr id="debuging_toolbar_classes" class="debuging_toolbar_class" style="display: none;">';
+					$result.= '<td>';
+						$result.= '<h3>Loaded Classes (' . count(self::$data['classes']) . ')</h3>';
+						$result.= '<table border="1" cellpadding="2" cellspacing="2">';
+							foreach (self::$data['classes'] as $k => $v) {
+								$result.= '<tr>';
+									$result.= '<td><b>' . $v['class'] . '</b></td>';
+									$result.= '<td>' . $v['file'] . '</td>';
+								$result.= '</tr>';
+							}
+						$result.= '</table>';
+					$result.= '</td>';
+				$result.= '</tr>';
+
 				// errors
 				$result.= '<tr id="debuging_toolbar_errors" class="debuging_toolbar_class" style="display: none;">';
 					$result.= '<td>';
-						$result.= '<h3>Errors (' . count(error::$errors) . ')' . '</h3>';
+						$result.= '<h3>Errors (' . count(error::$errors) . ')</h3>';
 						$result.= '<table border="1" cellpadding="2" cellspacing="2">';
 							foreach (error::$errors as $k => $v) {
 								$result.= '<tr>';
@@ -277,6 +309,9 @@ class debug {
 								$result.= '<tr>';
 									$result.= '<td><pre>' . $v['code'] . '</pre></td>';
 								$result.= '</tr>';
+								$result.= '<tr>';
+									$result.= '<td><pre>' . implode("\n", $v['backtrace']) . '</pre></td>';
+								$result.= '</tr>';
 							}
 						$result.= '</table>';
 					$result.= '</td>';
@@ -285,7 +320,7 @@ class debug {
 				// suppressed
 				$result.= '<tr id="debuging_toolbar_suppressed" class="debuging_toolbar_class" style="display: none;">';
 					$result.= '<td>';
-						$result.= '<h3>Suppressed (' . count(self::$data['suppressed']) . ')' . '</h3>';
+						$result.= '<h3>Suppressed (' . count(self::$data['suppressed']) . ')</h3>';
 						$result.= '<table border="1" cellpadding="2" cellspacing="2">';
 							foreach (self::$data['suppressed'] as $k => $v) {
 								$result.= '<tr>';
@@ -304,7 +339,17 @@ class debug {
 
 				$result.= '<tr id="debuging_toolbar_js" class="debuging_toolbar_class" style="display: none;">';
 					$result.= '<td>';
-						$result.= '<h3>Javascript Errors</h3>';
+						$result.= '<h3>Javascript Errors (' . count(self::$data['js']) . ')</h3>';
+						$result.= '<table border="1" cellpadding="2" cellspacing="2">';
+							foreach (self::$data['js'] as $k => $v) {
+								$result.= '<tr>';
+									$result.= '<td><b>' . implode('<br/>', $v['error']) . '</b></td>';
+								$result.= '</tr>';
+								$result.= '<tr>';
+									$result.= '<td>File: ' . $v['file'] . ', Line: ' . $v['line'] . '</td>';
+								$result.= '</tr>';
+							}
+						$result.= '</table>';
 						$result.= '<div id="debuging_toolbar_js_data">';
 							$result.= '&nbsp;';
 						$result.= '</div>';

@@ -105,4 +105,17 @@ class crypt implements numbers_backend_crypt_interface_base {
 	public function token_validate($token, $valid_hours = 2, $check_ip = false) {
 		return $this->object->token_validate($token, $valid_hours, $check_ip);
 	}
+
+	/**
+	 * If we need to call methods statically
+	 *
+	 * @param string $name
+	 * @param mixed $arguments
+	 * @return mixed
+	 */
+	public static function __callStatic($name, $arguments) {
+		$crypt = new crypt();
+		$method = str_replace('static_', '', $name);
+		return call_user_func_array([$crypt, $method], $arguments);
+	}
 }

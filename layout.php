@@ -8,8 +8,19 @@
  */
 class layout extends view {
 
-	public static $title_override = null;
-	public static $icon_override = null;
+	/**
+	 * Title override
+	 *
+	 * @var string
+	 */
+	public static $title_override;
+
+	/**
+	 * Icon override
+	 *
+	 * @var string
+	 */
+	public static $icon_override;
 
 	/**
 	 * Version to be used when rendering js/css links
@@ -24,6 +35,20 @@ class layout extends view {
 	 * @var string
 	 */
 	private static $onload = '';
+
+	/**
+	 * Javascript data would be here
+	 *
+	 * @var array
+	 */
+	private static $js_data = [];
+
+	/**
+	 * Non HTML output
+	 *
+	 * @var boolean
+	 */
+	public static $non_html_output;
 
 	/**
 	 * Add css file to layout
@@ -105,8 +130,24 @@ class layout extends view {
 	 */
 	public static function render_onload() {
 		if (!empty(self::$onload)) {
-			return h::script(array('value'=>'$(document).ready(function(){ ' . self::$onload . ' });'));
+			return html::script(array('value'=>'$(document).ready(function(){ ' . self::$onload . ' });'));
 		}
+	}
+
+	/**
+	 * Add array to js data
+	 *
+	 * @param array $data
+	 */
+	public static function js_data($data) {
+		self::$js_data = array_merge2(self::$js_data, $data);
+	}
+
+	/**
+	 * Render js data
+	 */
+	public static function render_js_data() {
+		return html::script(['value' => 'var numbers_js_data = ' . json_encode(self::$js_data) . '; $.extend(numbers, numbers_js_data); numbers_js_data = null;']);
 	}
 
 	/**
@@ -117,12 +158,15 @@ class layout extends view {
 	public static function render_title() {
 		$result = '';
 		$data = application::get(array('controller'));
-		//$controllers = application::get(array('mvc', 'controllers'));
-		if (!empty(self::$title_override)) $data['title'] = self::$title_override;
-		if (!empty(self::$icon_override)) $data['icon'] = self::$icon_override;
+		if (!empty(self::$title_override)) {
+			$data['title'] = self::$title_override;
+		}
+		if (!empty(self::$icon_override)) {
+			$data['icon'] = self::$icon_override;
+		}
 		if (!empty($data['title'])) {
 			$data['icon'] = !empty($data['icon']) ? icon::render($data['icon']) : '';
-			$result.= '<br/><h3 class="content_title" style="margin-top: 0;">'. ($data['icon'] ? ($data['icon'] . ' ') : '') . $data['title'] . '</h3>';
+			$result.= (!empty($data['icon']) ? ($data['icon'] . ' ') : '') . $data['title'];
 		}
 		return $result;
 	}
@@ -161,9 +205,9 @@ class layout extends view {
 	public static function render_messages() {
 		$result = '';
 		$messages = application::get(array('messages'));
-		if (is_array($messages)) {
-			foreach ($messages as $k=>$v) {
-				$result.= h::message($v, $k);
+		if (!empty($messages)) {
+			foreach ($messages as $k => $v) {
+				$result.= html::message(['options' => $v, 'type' => $k]);
 			}
 		}
 		return $result;
@@ -193,11 +237,33 @@ class layout extends view {
 			// looping through data and building html
 			$temp = array();
 			foreach ($data as $k=>$v) {
-				$icon = @$v['icon'] ? $v['icon'] : '';
-				$temp[] = h::a(array('value'=>$icon . @$v['value'], 'href'=>$v['href'], 'onclick'=>@$v['onclick']));
+				$icon = !empty($v['icon']) ? $v['icon'] : '';
+				$onclick = !empty($v['onclick']) ? $v['onclick'] : '';
+				$value = !empty($v['value']) ? $v['value'] : '';
+				$temp[] = html::a(array('value' => $icon . $value, 'href' => $v['href'], 'onclick' => $onclick));
 			}
 			$result = implode(' ', $temp);
 		}
 		return $result;
+	}
+
+	/**
+	 * Render breadcrumbs
+	 *
+	 * @return string
+	 */
+	public static function render_breadcrumbs() {
+
+	}
+
+	/**
+	 * Render json output
+	 *
+	 * @param mixed $data
+	 */
+	public static function render_as_json($data) {
+		self::$non_html_output = true;
+		echo json_encode($data);
+		exit;
 	}
 }

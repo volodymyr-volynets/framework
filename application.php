@@ -12,16 +12,22 @@ class application {
 	/**
 	 * Access to settings, we can get a set of keys
 	 * @param mixed $key
-	 * @param array $decrypt_keys
+	 * @param array $options
+	 *		array decrypt_keys - if we need to decrypt keys
+	 *		boolean class - if we need to return proper class name
 	 * @return mixed
 	 */
-	public static function get($key = null, $decrypt_keys = []) {
-		$options = array_key_get(self::$settings, $key);
+	public static function get($key = null, $options = []) {
+		$result = array_key_get(self::$settings, $key);
 		// decrypting certain columns
-		if (!empty($decrypt_keys)) {
-			array_walk_recursive($options, create_function('&$v, $k, $fn', 'if (in_array($k, $fn)) $v = crypt::decrypt($v);'), $decrypt_keys);
+		if (!empty($options['decrypt_keys'])) {
+			array_walk_recursive($result, create_function('&$v, $k, $fn', 'if (in_array($k, $fn)) $v = crypt::static_decrypt($v);'), $options['decrypt_keys']);
 		}
-		return $options;
+		// if we need to fix class name
+		if (!empty($options['class'])) {
+			$result = str_replace('.', '_', $result);
+		}
+		return $result;
 	}
 
 	/**
@@ -132,16 +138,8 @@ class application {
 		// processing mvc settings
 		self::set_mvc();
 
-		// special handling for captcha
-		if (strpos(self::$settings['mvc']['controller_class'], 'captcha.jpg')!==false) {
-			$type = str_replace(array('controller_', '_captcha.jpg'), '',self::$settings['mvc']['controller_class']);
-			require('./controller/captcha.jpg');
-			exit;
-		}
-
 		// check if controller exists
-		$file = './' . str_replace('_', '/', self::$settings['mvc']['controller_class'] . '.php');
-		if (!file_exists($file)) {
+		if (!file_exists(self::$settings['mvc']['controller_file'])) {
 			Throw new Exception('Controller not found!');
 		}
 
@@ -196,7 +194,7 @@ class application {
 		// we need to check if we have customization for classes, we only allow 
 		// customizaton for models and controllers
 		$file = str_replace('_', DIRECTORY_SEPARATOR, $class) . '.php';
-		if (strpos($class, 'model_')!==false || strpos($class, 'controller_')!==false) {
+		if (strpos($class, 'model_') !== false || strpos($class, 'controller_') !== false) {
 			// todo: refactor code here
 			$company_id = session::get('company_id');
 			if (!empty($company_id)) {
@@ -221,6 +219,10 @@ class application {
 		// todo: refactor here
 		global $__class_paths;
 		$__class_paths[$class] = $file;
+		// debuging
+		if (class_exists('debug', false) && debug::$debug) {
+			debug::$data['classes'][] = ['class' => $class, 'file' => $file];
+		}
 		require_once($file);
 	}
 
@@ -233,6 +235,7 @@ class application {
 	public static function mvc($url = '') {
 		$result = array(
 			'controller' => '',
+			'controller_extension' => '',
 			'action' => '',
 			'id' => 0,
 			'controllers' => [],
@@ -240,7 +243,7 @@ class application {
 
 		// remove an extra backslashes from left side
 		$request_uri = explode('?', trim($url, '/'));
-		$request_uri = @$request_uri[0];
+		$request_uri = $request_uri[0];
 
 		// determine action and controller
 		// todo: we need to make it flexible
@@ -265,6 +268,17 @@ class application {
 		// set default values for action and controller
 		if (empty($result['controllers'])) {
 			$result['controllers'][] = 'index';
+		} else {
+			// processing controller extension
+			end($result['controllers']);
+			$key = key($result['controllers']);
+			$last = $result['controllers'][$key];
+			if (strpos($last, '.')) {
+				$temp = explode('.', $last);
+				$result['controllers'][$key] = $temp[0];
+				unset($temp[0]);
+				$result['controller_extension'] = implode('.', $temp);
+			}
 		}
 		$result['controller'] = '/' . implode('/', $result['controllers']);
 		$result['controller'] = str_replace('_', '/', $result['controller']);
@@ -298,14 +312,22 @@ class application {
 		// parsing request
 		$data = self::mvc($request_uri);
 
-		// forming class name and method
-		$controller_class = 'controller_' . str_replace(' ', '_', implode(' ', $data['controllers']));
-		$controller_action = 'action_' . $data['action'];
+		// forming class name and file
+		if (in_array('controller', $data['controllers'])) {
+			// todo: custom modules handling
+			$controller_class = str_replace(' ', '_', implode(' ', $data['controllers']));
+			$file = './../libraries/vendor/' . str_replace('_', '/', $controller_class . '.php');
+		} else {
+			$controller_class = 'controller_' . str_replace(' ', '_', implode(' ', $data['controllers']));
+			$file = './' . str_replace('_', '/', $controller_class . '.php');
+		}
+		// assembling everything into settings
 		self::$settings['mvc'] = $data;
 		self::$settings['mvc']['controller_class'] = $controller_class;
-		self::$settings['mvc']['controller_action'] = $controller_action;
+		self::$settings['mvc']['controller_action'] = 'action_' . $data['action'];
 		self::$settings['mvc']['controller_view'] = $data['action'];
 		self::$settings['mvc']['controller_layout'] = 'index';
+		self::$settings['mvc']['controller_file'] = $file;
 	}
 
 	/*
@@ -316,12 +338,17 @@ class application {
 	public static function process($options = []) {
 
 		// get buffer content in case it is auto mode
-		$buffer = @ob_end_clean();
+		$buffer = ob_end_clean();
 
 		// start buffering
 		ob_start();
 
 		$controller_class = self::$settings['mvc']['controller_class'];
+
+		// if we are handling error message and controller class has not been loaded
+		if ($controller_class == 'controller_error' && error::$flag_error_already && !class_exists('controller_error')) {
+			require('./controller/error.php');
+		}
 		$controller = new $controller_class;
 
 		// processing options
@@ -389,7 +416,7 @@ class application {
 		}
 
 		// appending view after controllers output
-		$controller->view = (isset($controller->view) ? $controller->view : '') . @ob_get_clean();
+		$controller->view = (isset($controller->view) ? $controller->view : '') . ob_get_clean();
 
 		// if we have to render debug toolbar
 		if (debug::$toolbar) {
@@ -407,15 +434,27 @@ class application {
 			// buffer output and handling javascript files, chicken and egg problem
 			$from = [
 				'<!-- [numbers: javascript links] -->',
+				'<!-- [numbers: javascript data] -->',
 				'<!-- [numbers: css links] -->',
-				'<!-- [numbers: layout onload] -->'
+				'<!-- [numbers: layout onload] -->',
+				'<!-- [numbers: messages] -->',
+				'<!-- [numbers: title] -->',
+				'<!-- [numbers: document title] -->',
+				'<!-- [numbers: actions] -->',
+				'<!-- [numbers: breadcrumbs] -->'
 			];
 			$to = [
 				layout::render_js(),
+				layout::render_js_data(),
 				layout::render_css(),
-				layout::render_onload()
+				layout::render_onload(),
+				layout::render_messages(),
+				layout::render_title(),
+				layout::render_document_title(),
+				layout::render_actions(),
+				layout::render_breadcrumbs()
 			];
-			echo str_replace($from, $to, @ob_get_clean());
+			echo str_replace($from, $to, ob_get_clean());
 		} else {
 			echo $controller->view;
 		}

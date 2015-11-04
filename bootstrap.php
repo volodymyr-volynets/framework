@@ -128,6 +128,14 @@ class bootstrap {
 			format::init($format);
 		}
 		*/
+
+		// including media files
+		layout::add_js('/numbers/media_submodules/numbers_framework_functions.js', -32001);
+		layout::add_js('/numbers/media_submodules/numbers_framework_base.js', -32000);
+		// generating token to receive data from frontend
+		$crypt_class = new crypt();
+		$token = urldecode($crypt_class->token_create('general'));
+		layout::js_data(['token' => $token]);
 	}
 
 	/**
@@ -176,16 +184,20 @@ class bootstrap {
 			}
 		}
 
+		// final benchmark
+		if (debug::$debug) {
+			debug::benchmark('application end');
+		}
+
 		// debugging toolbar last
 		if (debug::$toolbar && !$__run_only_bootstrap) {
-			$from = [
-				'<!-- [numbers: debug toolbar] -->'
-			];
-			$to = [
-				debug::render()
-			];
-			echo str_replace($from, $to, @ob_get_clean());
+			echo str_replace('<!-- [numbers: debug toolbar] -->', debug::render(), ob_get_clean());
 			flush();
+		}
+
+		// emails with erros
+		if (debug::$debug && !empty(debug::$email)) {
+			debug::send_errors_to_admin();
 		}
 	}
 }

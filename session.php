@@ -57,8 +57,7 @@ class session {
 			}
 		}
 		// starting session submodule
-		$class = application::get('flag.global.session.submodule');
-		$class = str_replace('.', '_', $class);
+		$class = application::get('flag.global.session.submodule', ['class' => 1]);
 		$object = new $class();
 		$object->init();
 		self::$object = $object;
@@ -80,10 +79,9 @@ class session {
 		// processing IP address
 		$ip = request::ip();
 		if (empty($_SESSION['numbers']['ip']['ip']) || $_SESSION['numbers']['ip']['ip'] != $ip) {
-			$ip_submodule = application::get('flag.global.ip.submodule');
+			$ip_submodule = application::get('flag.global.ip.submodule', ['class' => 1]);
 			if (!empty($ip_submodule)) {
-				$ip_class = str_replace('.', '_', $ip_submodule);
-				$ip_object = new $ip_class();
+				$ip_object = new $ip_submodule();
 				$ip_data = $ip_object->get($ip);
 				$_SESSION['numbers']['ip'] = $ip_data['data'];
 			} else {
@@ -128,7 +126,7 @@ class session {
 	 * @param string $key
 	 * @return type
 	 */
-	public static function get($key = '') {
+	public static function get($key = null) {
 		return array_key_get($_SESSION, $key);
 	}
 

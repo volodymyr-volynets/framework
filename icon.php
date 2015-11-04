@@ -23,6 +23,6 @@ class icon {
 		$width_and_height = 16;
 		if (strpos($name, '24.')!==false) $width_and_height = 24;
 		if (strpos($name, '32.')!==false) $width_and_height = 32;
-		return h::img(array('src'=>self::$path_html . $name, 'width'=>$width_and_height, 'height'=>$width_and_height, 'alt'=>$alt, 'style'=>'vertical-align: top;'));
+		return html::img(array('src'=>self::$path_html . $name, 'width'=>$width_and_height, 'height'=>$width_and_height, 'alt'=>$alt, 'style'=>'vertical-align: top;'));
 	}
 }
