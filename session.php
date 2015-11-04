@@ -56,11 +56,13 @@ class session {
 				ini_set("session.$k", $v);
 			}
 		}
-		// starting session submodule
+		// starting session submodule if we have one
 		$class = application::get('flag.global.session.submodule', ['class' => 1]);
-		$object = new $class();
-		$object->init();
-		self::$object = $object;
+		if (!empty($class)) {
+			$object = new $class();
+			$object->init();
+			self::$object = $object;
+		}
 		// starting session
 		session_start();
 		// session fixation prevention

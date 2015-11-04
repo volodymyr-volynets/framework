@@ -13,8 +13,9 @@ class bootstrap {
 	 */
 	public static function init($options = []) {
 
-		// get flags
+		// get flags & dependencies
 		$flags = application::get('flag');
+		$dep = application::get('dep');
 
 		// processing wildcard first
 		$wildcard = application::get('wildcard');
@@ -26,7 +27,7 @@ class bootstrap {
 
 		// initialize cryptography
 		$crypt = application::get('crypt');
-		if (!empty($crypt) && !empty($flags['global']['crypt']['autoconnect'])) {
+		if (!empty($crypt) && !empty($dep['composer']['numbers']['backend']) && !empty($flags['global']['crypt']['autoconnect'])) {
 			// converting flags to array
 			if (!is_array($flags['global']['crypt']['autoconnect'])) {
 				$flags['global']['crypt']['autoconnect'] = [$flags['global']['crypt']['autoconnect']];
@@ -44,7 +45,7 @@ class bootstrap {
 
 		// create database connections
 		$db = application::get('db');
-		if (!empty($db) && !empty($flags['global']['db']['autoconnect'])) {
+		if (!empty($db) && !empty($dep['composer']['numbers']['backend']) && !empty($flags['global']['db']['autoconnect'])) {
 			// converting flags to array
 			if (!is_array($flags['global']['db']['autoconnect'])) {
 				$flags['global']['db']['autoconnect'] = [$flags['global']['db']['autoconnect']];
@@ -87,7 +88,7 @@ class bootstrap {
 
 		// initialize cache
 		$cache = application::get('cache');
-		if (!empty($cache) && !empty($flags['global']['cache']['autoconnect'])) {
+		if (!empty($cache) && !empty($dep['composer']['numbers']['backend']) && !empty($flags['global']['cache']['autoconnect'])) {
 			// converting flags to array
 			if (!is_array($flags['global']['cache']['autoconnect'])) {
 				$flags['global']['cache']['autoconnect'] = [$flags['global']['cache']['autoconnect']];
@@ -133,9 +134,11 @@ class bootstrap {
 		layout::add_js('/numbers/media_submodules/numbers_framework_functions.js', -32001);
 		layout::add_js('/numbers/media_submodules/numbers_framework_base.js', -32000);
 		// generating token to receive data from frontend
-		$crypt_class = new crypt();
-		$token = urldecode($crypt_class->token_create('general'));
-		layout::js_data(['token' => $token]);
+		if (!empty($dep['composer']['numbers']['backend'])) {
+			$crypt_class = new crypt();
+			$token = urldecode($crypt_class->token_create('general'));
+			layout::js_data(['token' => $token]);
+		}
 	}
 
 	/**
@@ -166,19 +169,19 @@ class bootstrap {
 		// write sessions
 		session_write_close();
 
-		// close db connections
-		$dbs = factory::get(['db']);
-		if (!empty($dbs)) {
-			foreach ($dbs as $k => $v) {
+		// closing caches before db
+		$cache = factory::get(['cache']);
+		if (!empty($cache)) {
+			foreach ($cache as $k => $v) {
 				$object = $v['object'];
 				$object->close();
 			}
 		}
 
-		// closing caches
-		$cache = factory::get(['cache']);
-		if (!empty($cache)) {
-			foreach ($cache as $k => $v) {
+		// close db connections
+		$dbs = factory::get(['db']);
+		if (!empty($dbs)) {
+			foreach ($dbs as $k => $v) {
 				$object = $v['object'];
 				$object->close();
 			}
