@@ -30,6 +30,7 @@ class system_dependencies {
 			$data['apache'] = isset($data['apache']) ? $data['apache'] : [];
 			$data['php'] = isset($data['php']) ? $data['php'] : [];
 			$data['model'] = isset($data['model']) ? $data['model'] : [];
+			$data['media'] = isset($data['media']) ? $data['media'] : [];
 			$data['model_processed'] = [];
 
 			// we have small chicken and egg problem with composer
@@ -81,6 +82,9 @@ class system_dependencies {
 							}
 							if (!empty($sub_data['model'])) {
 								$data['model'] = array_merge2($data['model'], $sub_data['model']);
+							}
+							if (!empty($sub_data['media'])) {
+								$data['media'] = array_merge2($data['media'], $sub_data['media']);
 							}
 						} else {
 							$keys = explode('/', $k);

@@ -105,6 +105,37 @@ class system_deployments {
 				}
 			}
 
+			// we need to load media from dependencies
+			$result = system_dependencies::process_deps_all(['mode' => 'test']);
+
+			// copying js, css & scss files
+			$media_dir_submodule = $dep_dir . '/public_html';
+			if (!empty($result['data']['media'])) {
+				mkdir($media_dir_submodule . '/numbers/media_submodules', 0777);
+				foreach ($result['data']['media'] as $k => $v) {
+					if (!in_array($k, ['js', 'css', 'scss'])) {
+						continue;
+					}
+					foreach ($v as $k2 => $v2) {
+						if (!isset($v2['origin']) || !isset($v2['destination'])) {
+							continue;
+						}
+						// js and css we just copy
+						$copy_from = $dep_dir . '/libraries/vendor' . $v2['origin'];
+						$copy_to = $media_dir_submodule . $v2['destination'];
+						if ($k == 'js' || $k == 'css') {
+							shell_exec("cp -r $copy_from $copy_to");
+						} else if ($k == 'scss' && application::get('dep.submodule.numbers.frontend.media.scss')) {
+							// we need to process scss
+							$temp = numbers_frontend_media_scss_base::serve($copy_from);
+							if ($temp['success']) {
+								file_put_contents($copy_to, $temp['data']);
+							}
+						}
+					}
+				}
+			}
+
 			// setting permissions
 			shell_exec("chmod -R 0777 $dep_dir");
 
