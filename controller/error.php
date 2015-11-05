@@ -3,7 +3,7 @@
 class numbers_framework_controller_error {
 
 	/**
-	 * This would draw captcha in png image format
+	 * This would process error message sent from frontend
 	 */
 	public function action_index() {
 		$input = request::input();
@@ -15,7 +15,8 @@ class numbers_framework_controller_error {
 				error::error_handler('javascript', $input['data']['message'], $input['data']['file'], $input['data']['line']);
 			}
 		}
-		layout::$non_html_output = true;
+		// we must set content type in application
+		application::set('flag.global.__content_type', 'image/png');
 		header("Content-Type: image/png");
 		echo file_get_contents(__DIR__ . '/error.png');
 		exit;

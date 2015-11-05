@@ -44,11 +44,17 @@ class layout extends view {
 	private static $js_data = [];
 
 	/**
-	 * Non HTML output
+	 * Get application version
 	 *
-	 * @var boolean
+	 * @return int
 	 */
-	public static $non_html_output;
+	public static function get_version() {
+		if (empty(self::$version)) {
+			$filename = application::is_deployed() ? './../../../deployed' : './../../deployed';
+			self::$version = filemtime($filename);
+		}
+		return self::$version;
+	}
 
 	/**
 	 * Add css file to layout
@@ -70,11 +76,8 @@ class layout extends view {
 		$css = application::get(array('layout', 'css'));
 		if (!empty($css)) {
 			asort($css);
-			if (empty(self::$version)) {
-				self::$version = filemtime('./../../deployed');
-			}
 			foreach ($css as $k=>$v) {
-				$script = $k . (strpos($k, '?') !== false ? '&' : '?') . self::$version;
+				$script = $k . (strpos($k, '?') !== false ? '&' : '?') . self::get_version();
 				$result.= '<link href="' . $script . '" rel="stylesheet" type="text/css" />';
 			}
 		}
@@ -102,12 +105,8 @@ class layout extends view {
 		$js = application::get(array('layout', 'js'));
 		if (!empty($js)) {
 			asort($js);
-			// get deployment version
-			if (empty(self::$version)) {
-				self::$version = filemtime('./../../deployed');
-			}
 			foreach ($js as $k=>$v) {
-				$script = $k . (strpos($k, '?') !== false ? '&' : '?') . self::$version;
+				$script = $k . (strpos($k, '?') !== false ? '&' : '?') . self::get_version();
 				$result.= '<script type="text/javascript" src="' . $script . '"></script>';
 			}
 		}
@@ -257,13 +256,68 @@ class layout extends view {
 	}
 
 	/**
-	 * Render json output
+	 * Render as content type, non html output should go though this function
 	 *
 	 * @param mixed $data
+	 * @param string $content_type
 	 */
-	public static function render_as_json($data) {
-		self::$non_html_output = true;
-		echo json_encode($data);
+	public static function render_as($data, $content_type) {
+		application::set('flag.global.__content_type', $content_type);
+		header("Content-type: " . $content_type);
+		switch ($content_type) {
+			case 'application/json':
+				echo json_encode($data);
+				break;
+			default:
+				echo $data;
+		}
 		exit;
+	}
+
+	/**
+	 * Include all media files for controller
+	 *
+	 * @param string $path
+	 * @param string $controller
+	 * @param string $view
+	 * @param string $class
+	 */
+	public static function include_media($path, $controller, $view, $class) {
+		// generating a list of extensions
+		$valid_extensions = ['js', 'css'];
+		if (application::get('dep.submodule.numbers.frontend.media.scss')) {
+			$valid_extensions[] = 'scss';
+		}
+		// we need to fi path for submodules
+		if (substr($path, 0, 8) == 'numbers/') {
+			$path = './../libraries/vendor/' . $path;
+		}
+		// build an iterator
+		$iterator = new FilesystemIterator($path);
+		$filter = new RegexIterator($iterator, '/' . $controller . '(.' . $view . ')?.(' . implode('|', $valid_extensions) . ')$/');
+		$file_list = [];
+		$path_fixed = str_replace('/', '_', $path);
+		// iterating
+		foreach($filter as $v) {
+			$temp = $v->getFilename();
+			$extension = pathinfo($temp, PATHINFO_EXTENSION);
+			// we need to sort in a way that view files are included second
+			if ($controller . '.' . $extension == $temp) {
+				$sort = 1000;
+			} else {
+				$sort = 2000;
+			}
+			$new = '/numbers/media_generated/application_' . $path_fixed . $temp;
+			if ($extension == 'js') {
+				self::add_js($new, $sort);
+			} else if ($extension == 'css') {
+				self::add_css($new, $sort);
+			} else if ($extension == 'scss') {
+				$new.= '.css';
+				self::add_css($new, $sort);
+			}
+			// adding media files to application for further reporting
+			application::set(['application', 'loaded_classes', $class, 'media'], ['file' => $temp, 'full' => $new], ['append' => true]);
+		}
 	}
 }

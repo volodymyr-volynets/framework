@@ -156,6 +156,7 @@ class bootstrap {
 				$flag_render = true;
 			}
 			if ($flag_render || error::$flag_exception) {
+				error::$flag_error_already = true;
 				if ($__run_only_bootstrap) {
 					$temp = @ob_get_clean();
 					print_r(error::$errors);

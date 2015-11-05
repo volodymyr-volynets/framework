@@ -43,12 +43,43 @@ class object_data {
 	];
 
 	/**
+	 * Get raw data
+	 *
+	 * @param array $options
+	 * @return array
+	 */
+	public function get($where = [], $options = []) {
+		if (empty($this->columns) || empty($this->pk)) {
+			$data = $this->data;
+		} else {
+			// we require additional processing
+			Throw new Exception('Not implemented!');
+		}
+		if (!empty($where)) {
+			$temp = [];
+			foreach ($data as $k => $v) {
+				$found = true;
+				foreach ($where as $k2 => $v2) {
+					if (!isset($v[$k2]) || $v[$k2] != $v2) {
+						$found = false;
+					}
+				}
+				if ($found) {
+					$temp[$k] = $v;
+				}
+			}
+			$data = $temp;
+		}
+		return $data;
+	}
+
+	/**
 	 * Get data for datasource
 	 *
 	 * @param array $options
 	 * @return array
 	 */
-	public function get_datasource($options = array()) {
+	public function get_datasource($options = []) {
 		return [
 			'success' => true,
 			'error' => [],

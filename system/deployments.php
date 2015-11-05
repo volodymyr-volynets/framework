@@ -14,7 +14,9 @@ class system_deployments {
 			'error' => array()
 		);
 		do {
-			if (empty($options['mode'])) $options['mode'] = 'code';
+			if (empty($options['mode'])) {
+				$options['mode'] = 'code';
+			}
 
 			$temp = rtrim(getcwd(), '/');
 			$deployed_dir = $temp . '/../../deployed';
@@ -50,8 +52,11 @@ class system_deployments {
 			}
 
 			// js, css, scss, files here
-			$files_to_copy = array();
-			$process_extensions = array('js', 'css');
+			$files_to_copy = [];
+			$process_extensions = ['js', 'css'];
+			if (application::get('dep.submodule.numbers.frontend.media.scss')) {
+				$process_extensions[] = 'scss';
+			}
 			$iterator = new RecursiveIteratorIterator(
 				new RecursiveDirectoryIterator($dep_dir)
 			);
@@ -59,7 +64,7 @@ class system_deployments {
 				$extension = $cur->getExtension();
 				if (in_array($extension, $process_extensions)) {
 					$parent_dir_name = basename(dirname($filename));
-					if ($parent_dir_name == 'controller') {
+					if (strpos($filename, '/controller/') !== false) {
 						$key = str_replace($dep_dir, '', $filename);
 						$files_to_copy[$extension][$key] = $filename;
 					}
@@ -68,7 +73,7 @@ class system_deployments {
 
 			// create media directory
 			$media_dir_full = $media_dir . '/media_generated';
-			if (!empty($files_to_copy['js']) || !empty($files_to_copy['css'])) {
+			if (!empty($files_to_copy['js']) || !empty($files_to_copy['css']) || !empty($files_to_copy['scss'])) {
 				mkdir($media_dir_full, 0777);
 			}
 
@@ -85,6 +90,18 @@ class system_deployments {
 				foreach ($files_to_copy['css'] as $k => $v) {
 					$newname = ltrim(str_replace('/', '_', $k), '_');
 					shell_exec("cp -r $v $media_dir_full/$newname");
+				}
+			}
+
+			// coping scss files
+			if (!empty($files_to_copy['scss'])) {
+				foreach ($files_to_copy['scss'] as $k => $v) {
+					$newname = ltrim(str_replace('/', '_', $k), '_');
+					// processing scss files
+					$temp = numbers_frontend_media_scss_base::serve($v);
+					if ($temp['success']) {
+						file_put_contents("{$media_dir_full}/{$newname}.css", $temp['data']);
+					}
 				}
 			}
 

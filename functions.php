@@ -330,14 +330,19 @@ function array_key_get(& $arr, $keys = null) {
  * @param array $arr
  * @param mixed $keys - keys can be in this format: "1,2,3", "a", 1, array(1,2,3)
  * @param mixed $value
- * @param array $options 
+ * @param array $options
+ *		boolean append - whether to append value to array
  */
-function array_key_set(& $arr, $keys = null, $value, $options = array()) {
+function array_key_set(& $arr, $keys = null, $value, $options = []) {
 	if (!isset($arr)) $arr = array();
 	if ($keys === null) {
 		$arr = $value;
 	} else {
-		if (!is_array($keys)) $keys = explode(',', $keys . '');
+		// processing keys
+		if (!is_array($keys)) {
+			$keys = str_replace('.', ',', $keys);
+			$keys = explode(',', $keys . '');
+		}
 		$key = $keys;
 		$pointer = & $arr;
 		foreach ($key as $k2) {
@@ -345,7 +350,9 @@ function array_key_set(& $arr, $keys = null, $value, $options = array()) {
 			$pointer = & $pointer[$k2];
 		}
 		if (!empty($options['append'])) {
-			// todo: convert to array if it is not array!!!
+			if (!is_array($pointer)) {
+				$pointer = [];
+			}
 			$pointer[] = $value;
 		} else {
 			$pointer = $value;

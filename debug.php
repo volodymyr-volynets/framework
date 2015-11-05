@@ -125,22 +125,26 @@ class debug {
 	 * @return string
 	 */
 	public static function render() {
+		$loaded_classes = application::get(['application', 'loaded_classes']);
 		$result = '';
 		$result.= '<div class="container">';
-			$result.= '<table cellpadding="2" cellspacing="2">';
+			$result.= '<table cellpadding="2" cellspacing="2" width="100%">';
 				$result.= '<tr>';
 					$result.= '<td>';
-						$result.= '<table>';
+						$result.= '<table width="100%">';
 							$result.= '<tr>';
-								$result.= '<td>&nbsp;' . html::a(['value' => 'Hide All', 'href' => 'javascript:void(0);', 'onclick' => "$('.debuging_toolbar_class').hide();"]) . '&nbsp;</td>';
+								$result.= '<td nowrap>&nbsp;' . html::a(['value' => 'Hide All', 'href' => 'javascript:void(0);', 'onclick' => "$('.debuging_toolbar_class').hide();"]) . '&nbsp;</td>';
 								foreach (self::$data as $k => $v) {
 									if ($k == 'errors') {
 										$count = count(error::$errors);
+									} else if ($k == 'classes') {
+										$count = count($loaded_classes);
 									} else {
 										$count = count($v);
 									}
-									$result.= '<td>&nbsp;' . html::a(['value' => ucwords($k) . ' (' . $count . ')', 'id' => "debuging_toolbar_{$k}_a", 'href' => 'javascript:void(0);', 'onclick' => "$('#debuging_toolbar_{$k}').toggle();"]) . '&nbsp;</td>';
+									$result.= '<td nowrap>&nbsp;' . html::a(['value' => ucwords($k) . ' (' . $count . ')', 'id' => "debuging_toolbar_{$k}_a", 'href' => 'javascript:void(0);', 'onclick' => "$('#debuging_toolbar_{$k}').toggle();"]) . '&nbsp;</td>';
 								}
+								$result.= '<td width="50%" align="right">' . html::a(['href' => '/numbers/framework/controller/dev', 'value' => 'Dev. Portal']) . '</td>';
 							$result.= '</tr>';
 						$result.= '</table>';
 					$result.= '</td>';
@@ -282,12 +286,18 @@ class debug {
 				// autoloaded classes
 				$result.= '<tr id="debuging_toolbar_classes" class="debuging_toolbar_class" style="display: none;">';
 					$result.= '<td>';
-						$result.= '<h3>Loaded Classes (' . count(self::$data['classes']) . ')</h3>';
+						$result.= '<h3>Loaded Classes (' . count($loaded_classes) . ')</h3>';
 						$result.= '<table border="1" cellpadding="2" cellspacing="2">';
-							foreach (self::$data['classes'] as $k => $v) {
+							$result.= '<tr>';
+								$result.= '<th>Class Name</th>';
+								$result.= '<th>File</th>';
+								$result.= '<th>Media</th>';
+							$result.= '</tr>';
+							foreach ($loaded_classes as $k => $v) {
 								$result.= '<tr>';
 									$result.= '<td><b>' . $v['class'] . '</b></td>';
 									$result.= '<td>' . $v['file'] . '</td>';
+									$result.= '<td>' . html::table(['options' => $v['media']]) . '</td>';
 								$result.= '</tr>';
 							}
 						$result.= '</table>';

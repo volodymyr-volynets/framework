@@ -26,8 +26,7 @@ class application {
 			if (isset($existing)) {
 				return $existing;
 			} else {
-				$temp = str_replace('.', '/', $key);
-				$flag = file_exists('./../libraries/vendor/' . $temp);
+				$flag = file_exists('./../libraries/vendor/' . str_replace('_', '/', $key));
 				array_key_set(self::$settings, ['backend_exists', $key], $flag);
 				return $flag;
 			}
@@ -48,9 +47,11 @@ class application {
 
 	/**
 	 * Set value in settings
-	 * 
+	 *
 	 * @param mixed $key
 	 * @param mixed $value
+	 * @param array $options
+	 *		boolean append - whether to append value to array
 	 */
 	public static function set($key, $value, $options = []) {
 		array_key_set(self::$settings, $key, $value, $options);
@@ -103,9 +104,16 @@ class application {
 		}
 		self::$settings['application']['name'] = $application_name;
 		self::$settings['application']['path'] = $application_path;
-		self::$settings['layout'] = [];
+		self::$settings['application']['loaded_classes'] = []; // class paths
+		self::$settings['layout'] = []; // layout settings
+
+		// flags
 		self::$settings['flag'] = (isset(self::$settings['flag']) && is_array(self::$settings['flag'])) ? self::$settings['flag'] : [];
 		self::$settings['flag']['global']['__run_only_bootstrap'] = !empty($options['__run_only_bootstrap']);
+
+		// magic variables processed here
+		self::$settings['flag']['global']['__content_type'] = 'text/html';
+		self::process_magic_variables();
 
 		// processing php settings
 		if (isset(self::$settings['php'])) {
@@ -231,10 +239,12 @@ class application {
 				}
 			}
 		}
-		// we need to store class path so we can load js and css files
-		// todo: refactor here
-		global $__class_paths;
-		$__class_paths[$class] = $file;
+		// we need to store class path so we can load js, css and scss files
+		self::$settings['application']['loaded_classes'][$class] = [
+			'class' => $class,
+			'file' => $file,
+			'media' => []
+		];
 		// debuging
 		if (class_exists('debug', false) && debug::$debug) {
 			debug::$data['classes'][] = ['class' => $class, 'file' => $file];
@@ -392,13 +402,12 @@ class application {
 		call_user_func(array($controller, $action));
 
 		// auto rendering view only if view exists, processing extension order as specified in .ini file
-		global $__class_paths;
-		$controller_dir = pathinfo($__class_paths[$controller_class], PATHINFO_DIRNAME) . '/';
+		$controller_dir = pathinfo(self::$settings['application']['loaded_classes'][$controller_class]['file'], PATHINFO_DIRNAME) . '/';
 		$controller_file = end(self::$settings['mvc']['controllers']);
 		$view = self::$settings['mvc']['controller_view'];
+		$flag_view_found = false;
 		if (!empty($view)) {
 			$extensions = explode(',', isset(self::$settings['application']['view']['extension']) ? self::$settings['application']['view']['extension'] : 'html');
-			$flag_view_found = false;
 			foreach ($extensions as $extension) {
 				$file = $controller_dir  . $controller_file . '.' . $view . '.' . $extension;
 				if (file_exists($file)) {
@@ -414,22 +423,7 @@ class application {
 		}
 
 		// autoloading media files
-		if (!empty(self::$settings['application']['controller']['media'])) {
-			// todo: refactor here
-			$company_id = session::get('company_id');
-			$extensions = explode(',', self::$settings['application']['controller']['media']);
-			foreach ($extensions as $extension) {
-				$file = $controller_dir . $controller_file . '.' . $extension;
-				$cache_id = cache::id($file, $company_id);
-				$http_file = '/cache/' . $cache_id;
-				if (file_exists($file)) {
-					cache::set($cache_id, file_get_contents($file), null, null, 'media');
-					// including media into layout
-					if ($extension=='css') layout::add_css($http_file);
-					if ($extension=='js') layout::add_js($http_file);
-				}
-			}
-		}
+		layout::include_media($controller_dir, $controller_file, $view, $controller_class);
 
 		// appending view after controllers output
 		$controller->view = (isset($controller->view) ? $controller->view : '') . ob_get_clean();
@@ -514,5 +508,29 @@ class application {
 			}
 		}
 		return $result;
+	}
+
+	/**
+	 * Process magic variables
+	 */
+	public static function process_magic_variables() {
+		// content type
+		$object = new object_type_content();
+		$data = $object->get();
+		if (isset($_GET['__content_type']) && isset($data[$_GET['__content_type']])) {
+			self::$settings['flag']['global']['__content_type'] = $_GET['__content_type'];
+		}
+		if (isset($_POST['__content_type']) && isset($data[$_POST['__content_type']])) {
+			self::$settings['flag']['global']['__content_type'] = $_POST['__content_type'];
+		}
+	}
+
+	/**
+	 * Check if application has been deployed
+	 *
+	 * @return boolean
+	 */
+	public static function is_deployed() {
+		return (strpos(__FILE__, '/deployments/build.') !== false);
 	}
 }

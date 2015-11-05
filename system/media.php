@@ -31,12 +31,31 @@ class system_media {
 			// we must return, do not exit !!!
 			return;
 		}
+		// we need to know extension of a file
 		$ext = pathinfo($filename, PATHINFO_EXTENSION);
 		if ($ext == 'css' || $ext == 'js') {
-			if (file_exists($filename)) {
-				if ($ext == 'js') header('Content-Type: application/javascript');
-				if ($ext == 'css') header('Content-type: text/css');
-				echo file_get_contents($filename);
+			$new = $filename;
+			$flag_scss = false;
+			if (strpos($filename, '.scss.css') !== false) {
+				$new = str_replace('.scss.css', '.scss', $new);
+				$flag_scss = true;
+			}
+			if (file_exists($new)) {
+				if ($ext == 'js') {
+					header('Content-Type: application/javascript');
+					echo file_get_contents($new);
+				}
+				if ($ext == 'css') {
+					header('Content-type: text/css');
+					if (!$flag_scss) {
+						echo file_get_contents($new);
+					} else if (application::get('dep.submodule.numbers.frontend.media.scss')) {
+						$temp = numbers_frontend_media_scss_base::serve($new);
+						if ($temp['success']) {
+							echo $temp['data'];
+						}
+					}
+				}
 				exit;
 			}
 		}
