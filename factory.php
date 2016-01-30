@@ -60,10 +60,9 @@ class factory {
 	public static function delegate($flag, $submodule, $arguments) {
 		// we need to determine whether we need to use additional submodule
 		if (application::get($flag . '.' . $submodule . '.submodule')) {
-			return call_user_func_array(array(self::submodule($flag . '.' . $submodule . '.submodule'), $submodule), $arguments);
+			return call_user_func_array([self::submodule($flag . '.' . $submodule . '.submodule'), $submodule], $arguments);
 		} else {
-			// calling parent
-			return call_user_func_array(array(self::submodule($flag . '.submodule'), $submodule), $arguments);
+			return call_user_func_array([self::submodule($flag . '.submodule'), $submodule], $arguments);
 		}
 	}
 }

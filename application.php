@@ -35,9 +35,11 @@ class application {
 		// get data from settings
 		$result = array_key_get(self::$settings, $key);
 		// decrypting certain columns
+		/* todo: maybe this is not needed at all
 		if (!empty($options['decrypt_keys'])) {
 			array_walk_recursive($result, create_function('&$v, $k, $fn', 'if (in_array($k, $fn)) $v = crypt::static_decrypt($v);'), $options['decrypt_keys']);
 		}
+		*/
 		// if we need to fix class name
 		if (!empty($options['class'])) {
 			$result = str_replace('.', '_', $result);

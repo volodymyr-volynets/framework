@@ -194,6 +194,16 @@ class html {
 	}
 
 	/**
+	 * Calendar
+	 *
+	 * @param array $options
+	 * @return string
+	 */
+	public static function calendar($options = []) {
+		return factory::delegate('flag.global.html', 'calendar', [$options]);
+	}
+
+	/**
 	 * Convert array of percentages to grid columns
 	 *
 	 * @param mixed $percentage_array
