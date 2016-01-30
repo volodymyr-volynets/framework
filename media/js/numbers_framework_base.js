@@ -4,12 +4,69 @@
  * @type object
  */
 var numbers = {
+
 	/**
 	 * Token for communication with backend
 	 *
 	 * @type string
 	 */
 	token: null,
+
+	/**
+	 * System flags
+	 *
+	 * @type object
+	 */
+	flag: {},
+
+	/**
+	 * Generate url
+	 *
+	 * @param mixed controller
+	 * @param string action
+	 * @param mixed id
+	 * @returns {String}
+	 */
+	url: function(controller, action, id, options) {
+		var result = [];
+		// processng controller
+		if (Array.isArray(controller)) {
+			result = controller;
+		} else {
+			controller = controller + '';
+			if (controller[0] == '/') {
+				result.push(controller.substr(1, controller.length()));
+			} else if (controller.indexOf('.') != -1) {
+				result = controller.split('.');
+			} else if (controller.indexOf('_') != -1) {
+				result = controller.split('_');
+			} else {
+				if (!controller) {
+					controller = 'index';
+				}
+				result.push(controller);
+			}
+		}
+		// processing action
+		if (action) {
+			result.push('~' + action);
+		}
+		// processing id
+		if (id) {
+			if (!action) {
+				result.push('~index');
+			}
+			result.push(id);
+		}
+		// host
+		if (options && options['host']) {
+			var host = location.protocol + '//' + location.hostname + (location.port ? ':' + location.port : '');
+			return host + '/' + result.join('/');
+		} else {
+			return '/' + result.join('/');
+		}
+	},
+
 	/**
 	 * Error handling
 	 */
@@ -54,6 +111,7 @@ var numbers = {
 			img.src = src;
 		}
 	},
+
 	/**
 	 * Controller objects
 	 */
@@ -65,6 +123,7 @@ var numbers = {
 			}
 		}
 	},
+
 	/**
 	 * Ajax calls will be done via these get/post methods
 	 */

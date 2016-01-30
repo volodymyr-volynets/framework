@@ -28,7 +28,7 @@ class system_config {
 		// processing dependencies first
 		if (!empty($data['dependencies'])) {
 			foreach ($data['dependencies'] as $k => $v) {
-				array_key_set($result, explode('.', $k), $v);
+				array_key_set($result, $k, $v);
 			}
 		}
 		unset($data['dependencies']);
@@ -38,7 +38,7 @@ class system_config {
 			$sections = explode(',', $section);
 			if (empty($values) || (!in_array($environment, $sections) && !in_array('*', $sections))) continue;
 			foreach ($values as $k=>$v) {
-				array_key_set($result, explode('.', $k), $v);
+				array_key_set($result, $k, $v);
 			}
 		}
 		return $result;

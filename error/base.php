@@ -1,6 +1,6 @@
 <?php
 
-class error {
+class error_base {
 
 	/**
 	 * All errors would be kept here
@@ -52,8 +52,8 @@ class error {
 	 * Initialize error handler
 	 */
 	public static function init() {
-		set_error_handler(array('error', 'error_handler'));
-		set_exception_handler(array('error', 'exception_handler'));
+		set_error_handler(array('error_base', 'error_handler'));
+		set_exception_handler(array('error_base', 'exception_handler'));
 		ini_set('display_errors', 0);
 	}
 
@@ -102,7 +102,7 @@ class error {
 	 *
 	 * @param Exception $e
 	 */
-	public static function exception_handler(Exception $e) {
+	public static function exception_handler(Throwable $e) {
 		self::$errors[] = [
 			'errno' => $e->getCode(),
 			'error' => [$e->getMessage()],
@@ -123,6 +123,9 @@ class error {
 	 * @return string
 	 */
 	public static function get_code($file, $line) {
+		if (empty($file)) {
+			return '';
+		}
 		$rows = explode("\n", file_get_contents($file));
 		$start = ($line - 6) > 0 ? ($line - 6) : 0;
 		$end = ($line + 5) < count($rows) ? ($line + 5) : count($rows);

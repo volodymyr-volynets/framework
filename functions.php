@@ -10,8 +10,12 @@
 function concat_ws($delimiter, $arg1) {
 	$arrays = func_get_args();
 	$delimiter = array_shift($arrays);
-	$temp = array();
-	foreach ($arrays as $v) if ($v . ''<> '') $temp[] = $v;
+	$temp = [];
+	foreach ($arrays as $v) {
+		if ($v . '' <> '') {
+			$temp[] = $v;
+		}
+	}
 	return implode($delimiter, $temp);
 }
 
@@ -54,19 +58,37 @@ function array_merge_values($arr, $val) {
  */
 function array_options_to_string($options, $option, $implode = ',') {
 	$option = array_fix($option);
-	$result = array();
-	foreach ($options as $k=>$v) if (in_array($k, $option)) $result[$k] = $v['name'];
+	$result = [];
+	foreach ($options as $k => $v) {
+		if (in_array($k, $option)) {
+			$result[$k] = $v['name'];
+		}
+	}
 	return implode($implode, $result);
 }
 
 /**
  * Fix an array string
  * 
- * @param unknown_type $tokens
+ * @param mixed $tokens
+ * @param string $explode_on
  * @return array
  */
-function array_fix($tokens) {
-	return is_array($tokens) ? $tokens : (!empty($tokens) ? [$tokens] : []);
+function array_fix($tokens, $explode_on = null) {
+	if (is_array($tokens)) {
+		return array_values($tokens);
+	} else {
+		if ($tokens . '' == '') {
+			return [];
+		} else {
+			$tokens.= '';
+			if ($explode_on !== null) {
+				return explode($explode_on, $tokens);
+			} else {
+				return [$tokens];
+			}
+		}
+	}
 }
 
 /**
@@ -74,12 +96,13 @@ function array_fix($tokens) {
  * 
  * @param array $tokens
  * @param string $token
+ * @param string $explode_on
  * @return array
  */
-function array_add_token($tokens, $token) {
-	$tokens = array_fix($tokens);
-	if (!in_array($token, $tokens)) $tokens[] = $token;
-	return $tokens;
+function array_add_token($tokens, $token, $explode_on = null) {
+	$tokens = array_fix($tokens, $explode_on);
+	$token = array_fix($token, $explode_on);
+	return array_unique(array_merge($tokens, $token));
 }
 
 /**
@@ -91,7 +114,11 @@ function array_add_token($tokens, $token) {
  */
 function array_remove_token($tokens, $token) {
 	$tokens = array_fix($tokens);
-	foreach ($tokens as $k=>$v) if ($v==$token) unset($tokens[$k]);
+	foreach ($tokens as $k => $v) {
+		if ($v == $token) {
+			unset($tokens[$k]);
+		}
+	}
 	return $tokens;
 }
 
@@ -110,18 +137,18 @@ function print_r2($data, $return = false) {
 }
 
 /**
- * Natural sort
+ * Natural sort by array key
  * 
  * @param unknown_type $arr
  */
 function natsort2(& $arr, $field = 'name') {
-	$temp = array();
+	$temp = [];
 	foreach ($arr as $k=>$v) {
 		$temp[$k] = $v[$field];
 	}
 	natsort($temp);
 	$data = $arr;
-	$arr = array();
+	$arr = [];
 	foreach ($temp as $k=>$v) {
 		$arr[$k] = $data[$k];
 	}
@@ -190,19 +217,19 @@ function array_merge3(& $arr1, $arr2) {
  * @param array $arr2
  * @return a
  */
-function array_merge5($arr1, $arr2) {
+function array_merge_hard($arr1, $arr2) {
 	$arrays = func_get_args();
 	$merged = array();
 	while ($arrays) {
 		$array = array_shift($arrays);
-		if (!is_array($array) || !$array) {
+		if (!is_array($array) || empty($array)) {
 			continue;
 		}
-		foreach ($array as $key => $value) {
-			if (is_array($value) && array_key_exists($key, $merged) && is_array($merged[$key])) {
-				$merged[$key] = array_merge2($merged[$key], $value);
+		foreach ($array as $k => $v) {
+			if (is_array($v) && array_key_exists($k, $merged) && is_array($merged[$k])) {
+				$merged[$k] = array_merge2($merged[$k], $v);
 			} else {
-				$merged[$key] = $value;
+				$merged[$k] = $v;
 			}
 		}
 	}
@@ -248,14 +275,14 @@ function function2($function, $value) {
 }
 
 /**
- * Build a query string
+ * Build a query string and strip empty fields
  * 
  * @param array $arr
  * @return string 
  */
 function http_build_query2($arr) {
-	foreach ($arr as $k=>$v) {
-		if (empty($v)) unset($arr[$k]);
+	foreach ($arr as $k => $v) {
+		if (is_scalar($v) && $v . '' == '') unset($arr[$k]);
 	}
 	return http_build_query($arr);
 }
@@ -283,19 +310,71 @@ function remap(& $data, $map) {
 }
 
 /**
- * Sort an array by column
+ * Sort an array by certain keys with certain methods
  * 
  * @param array $arr
- * @param mixed $col
- * @param mixed $dir
+ * @param array $keys
+ *		['id' => SORT_ASC, 'name' => SORT_DESC]
+ *		['id' => 'asc', 'name' => 'desc']
+ * @param array $methods
+ *		['id' => SORT_NUMERIC, 'name' => SORT_NATURAL]
  */
-function array_key_sort(& $arr, $key, $dir = SORT_ASC, $function = '') {
-	$sort_col = array();
-	foreach ($arr as $k=>$v) {
-		if ($function) $v[$key] = $function(@$v[$key]);
-		$sort_col[$k] = $v[$key];
+function array_key_sort(& $arr, $keys, $methods = []) {
+	// fixing keys array
+	foreach ($keys as $k => $v) {
+		if (strtolower($v) == 'asc' || empty($v)) {
+			$keys[$k] = SORT_ASC;
+		} else if (strtolower($v) == 'desc') {
+			$keys[$k] = SORT_DESC;
+		}
 	}
-	array_multisort($sort_col, $dir, $arr);
+	// prepare a single array of parameters for multisort function
+	$params = [];
+	foreach ($keys as $k => $v) {
+		$params[$k . '_column'] = [];
+		$params[$k . '_order'] = $v;
+		$params[$k . '_flags'] = $methods[$k] ?? SORT_REGULAR;
+		foreach ($arr as $k2 => $v2) {
+			$params[$k . '_column']['_' . $k2] = $v2[$k];
+		}
+	}
+	// calling multisort function
+	call_user_func_array('array_multisort', $params);
+	// create final array
+	$final = [];
+	foreach ($keys as $k => $v) {
+		foreach ($params[$k . '_column'] as $k2 => $v2) {
+			$k2 = substr($k2, 1);
+			if (!isset($final[$k2])) {
+				$final[$k2] = $arr[$k2];
+			}
+		}
+	}
+	$arr = $final;
+}
+
+/**
+ * Perform math on an array
+ *
+ * @param array $arr
+ * @param mixed $key
+ * @param string $type - add, sub, mul, div
+ * @return numeric
+ */
+function array_key_math(& $arr, $key, $type = 'add') {
+	$result = 0;
+	foreach ($arr as $v) {
+		if ($type == 'add') {
+			$result+= $v[$key];
+		} else if ($type == 'sub') {
+			$result-= $v[$key];
+		} else if ($type == 'mul') {
+			$result*= $v[$key];
+		} else if ($type == 'div') {
+			$result/= $v[$key];
+		}
+	}
+	return $result;
 }
 
 /**
@@ -340,8 +419,8 @@ function array_key_set(& $arr, $keys = null, $value, $options = []) {
 	} else {
 		// processing keys
 		if (!is_array($keys)) {
-			$keys = str_replace('.', ',', $keys);
-			$keys = explode(',', $keys . '');
+			$keys = str_replace('.', ',', $keys . '');
+			$keys = explode(',', $keys);
 		}
 		$key = $keys;
 		$pointer = & $arr;
@@ -465,4 +544,44 @@ function array_compare_level1($arr1, $arr2) {
 		}
 	}
 	return true;
+}
+
+/**
+ * Extract values out of array by key prefix
+ *
+ * @param array $arr
+ * @param string $key_prefix
+ * @param boolean $unset
+ * @return array
+ */
+function array_key_extract_by_prefix(& $arr, $key_prefix, $unset = true) {
+	$result = [];
+	foreach ($arr as $k => $v) {
+		if (strpos($k, $key_prefix) === 0) {
+			$result[str_replace($key_prefix, '', $k)] = $v;
+			if ($unset) {
+				unset($arr[$k]);
+			}
+		}
+	}
+	return $result;
+}
+
+/**
+ * Unset a set of keys in the array
+ *
+ * @param array $arr
+ * @param array $keys
+ */
+function array_key_unset(& $arr, $keys) {
+	foreach ($keys as $v) {
+		unset($arr[$v]);
+	}
+}
+
+/**
+ * Short alias to i18n class
+ */
+function i18n($i18n, $text, $options = []) {
+	return i18n::get($i18n, $text, $options);
 }

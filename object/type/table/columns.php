@@ -28,6 +28,7 @@ class object_type_table_columns {
 		'date' => ['name' => 'Date'],
 		'time' => ['name' => 'Time'],
 		'datetime' => ['name' => 'Date & time'],
+		'timestamp' => ['name' => 'Timestamp'],
 		// types specific to numbers framework
 		'numbers_code' => ['name' => 'Code / ID'], // varchar(50)
 		'numbers_hash' => ['name' => 'Hash'], // varchar(128) for sha512

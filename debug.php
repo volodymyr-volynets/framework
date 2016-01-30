@@ -76,8 +76,7 @@ class debug {
 	 * @return float
 	 */
 	public static function get_microtime() {
-		list($usec, $sec) = explode(" ", microtime());
-		return ((float) $usec + (float) $sec);
+		return microtime(true);
 	}
 
 	/**
@@ -109,7 +108,7 @@ class debug {
 	 */
 	public static function send_errors_to_admin() {
 		// determine if we need to send anything
-		if (!empty(error::$errors) || !empty(self::$data['suppressed']) || !empty(self::$data['js'])) {
+		if (!empty(error_base::$errors) || !empty(self::$data['suppressed']) || !empty(self::$data['js'])) {
 			$message = str_replace('display: none;', '', self::render());
 			return mail::send([
 				'to' => self::$email,
@@ -126,6 +125,7 @@ class debug {
 	 */
 	public static function render() {
 		$loaded_classes = application::get(['application', 'loaded_classes']);
+		self::$data['session'] = [$_SESSION];
 		$result = '';
 		$result.= '<div class="container">';
 			$result.= '<table cellpadding="2" cellspacing="2" width="100%">';
@@ -136,7 +136,7 @@ class debug {
 								$result.= '<td nowrap>&nbsp;' . html::a(['value' => 'Hide All', 'href' => 'javascript:void(0);', 'onclick' => "$('.debuging_toolbar_class').hide();"]) . '&nbsp;</td>';
 								foreach (self::$data as $k => $v) {
 									if ($k == 'errors') {
-										$count = count(error::$errors);
+										$count = count(error_base::$errors);
 									} else if ($k == 'classes') {
 										$count = count($loaded_classes);
 									} else {
@@ -307,11 +307,11 @@ class debug {
 				// errors
 				$result.= '<tr id="debuging_toolbar_errors" class="debuging_toolbar_class" style="display: none;">';
 					$result.= '<td>';
-						$result.= '<h3>Errors (' . count(error::$errors) . ')</h3>';
+						$result.= '<h3>Errors (' . count(error_base::$errors) . ')</h3>';
 						$result.= '<table border="1" cellpadding="2" cellspacing="2">';
-							foreach (error::$errors as $k => $v) {
+							foreach (error_base::$errors as $k => $v) {
 								$result.= '<tr>';
-									$result.= '<td><b>' . error::$error_codes[$v['errno']] . ' (' . $v['errno'] . ') - ' . implode('<br/>', $v['error']) . '</b></td>';
+									$result.= '<td><b>' . error_base::$error_codes[$v['errno']] . ' (' . $v['errno'] . ') - ' . implode('<br/>', $v['error']) . '</b></td>';
 								$result.= '</tr>';
 								$result.= '<tr>';
 									$result.= '<td>File: ' . $v['file'] . ', Line: ' . $v['line'] . '</td>';
@@ -334,7 +334,7 @@ class debug {
 						$result.= '<table border="1" cellpadding="2" cellspacing="2">';
 							foreach (self::$data['suppressed'] as $k => $v) {
 								$result.= '<tr>';
-									$result.= '<td><b>' . error::$error_codes[$v['errno']] . ' (' . $v['errno'] . ') - ' . implode('<br/>', $v['error']) . '</b></td>';
+									$result.= '<td><b>' . error_base::$error_codes[$v['errno']] . ' (' . $v['errno'] . ') - ' . implode('<br/>', $v['error']) . '</b></td>';
 								$result.= '</tr>';
 								$result.= '<tr>';
 									$result.= '<td>File: ' . $v['file'] . ', Line: ' . $v['line'] . '</td>';

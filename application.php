@@ -79,9 +79,9 @@ class application {
 
 		// setting include_path
 		$paths = [];
+		$paths[] = $application_path_new;
 		$paths[] = __DIR__;
 		$paths[] = str_replace('/numbers/framework', '', __DIR__);
-		$paths[] = $application_path_new;
 		set_include_path(implode(PATH_SEPARATOR, $paths));
 
 		// support functions
@@ -138,7 +138,7 @@ class application {
 		register_shutdown_function(array('bootstrap', 'destroy'));
 
 		// error handler first
-		error::init();
+		error_base::init();
 
 		// debug after error handler
 		debug::init(self::get('debug'));
@@ -372,14 +372,16 @@ class application {
 		$controller_class = self::$settings['mvc']['controller_class'];
 
 		// if we are handling error message and controller class has not been loaded
-		if ($controller_class == 'controller_error' && error::$flag_error_already && !class_exists('controller_error')) {
+		if ($controller_class == 'controller_error' && error_base::$flag_error_already && !class_exists('controller_error')) {
 			require('./controller/error.php');
 		}
 		$controller = new $controller_class;
 
 		// processing options
  		if (!empty($options)) {
- 			foreach ($options as $k=>$v) $controller->{$k} = $v;
+			foreach ($options as $k => $v) {
+				$controller->{$k} = $v;
+			}
  		}
 
  		// auto populating input property in controller

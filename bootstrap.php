@@ -76,7 +76,7 @@ class bootstrap {
 
 				// checking if not connected
 				if (!$connected) {
-					Throw new Exception('Unable to open database connection.');
+					Throw new Exception('Unable to open database connection!');
 				}
 			}
 		}
@@ -122,6 +122,18 @@ class bootstrap {
 			session::start(isset($session['options']) ? $session['options'] : []);
 		}
 
+		// we need to get overrides from session and put them back to flag array
+		$flags = array_merge_hard($flags, session::get('numbers.flag'));
+		application::set('flag', $flags);
+
+		// initialize i18n
+		if ($backend) {
+			$temp_result = i18n::init();
+			if (!$temp_result['success']) {
+				Throw new Exception('Could not initialize i18n.');
+			}
+		}
+
 		// format: locale and timezone after database and cache
 		/* todo: fix here
 		$format = application::get(array('format'));
@@ -130,9 +142,24 @@ class bootstrap {
 		}
 		*/
 
+		// including libraries that we need to auto include
+		if (!empty($flags['global']['library'])) {
+			foreach ($flags['global']['library'] as $k => $v) {
+				// we need to skip certain keys
+				if ($k == 'submodule' || $k == 'options') continue;
+				// we only include if autoconnect is on
+				if (!empty($v['autoconnect'])) {
+					factory::submodule('flag.global.library.' . $k . '.submodule')->add();
+				}
+			}
+		}
+
 		// including media files
-		layout::add_js('/numbers/media_submodules/numbers_framework_functions.js', -32001);
-		layout::add_js('/numbers/media_submodules/numbers_framework_base.js', -32000);
+		layout::add_js('/numbers/media_submodules/numbers_framework_functions.js', -32200);
+		layout::add_js('/numbers/media_submodules/numbers_framework_base.js', -32100);
+		layout::add_js('/numbers/media_submodules/numbers_framework_element.js', -32050);
+		layout::add_js('/numbers/media_submodules/numbers_framework_format.js', -32045);
+
 		// generating token to receive data from frontend
 		if ($backend) {
 			$crypt_class = new crypt();
@@ -147,19 +174,19 @@ class bootstrap {
 	public static function destroy() {
 		$__run_only_bootstrap = application::get(['flag', 'global', '__run_only_bootstrap']);
 		// error processing
-		if (empty(error::$flag_error_already)) {
+		if (empty(error_base::$flag_error_already)) {
 			$last_error = error_get_last();
 			$flag_render = false;
 			if (in_array($last_error['type'], [E_COMPILE_ERROR, E_PARSE, E_ERROR])) {
-				error::error_handler($last_error['type'], $last_error['message'], $last_error['file'], $last_error['line']);
-				error::$flag_error_already = true;
+				error_base::error_handler($last_error['type'], $last_error['message'], $last_error['file'], $last_error['line']);
+				error_base::$flag_error_already = true;
 				$flag_render = true;
 			}
-			if ($flag_render || error::$flag_exception) {
-				error::$flag_error_already = true;
+			if ($flag_render || error_base::$flag_exception) {
+				error_base::$flag_error_already = true;
 				if ($__run_only_bootstrap) {
 					$temp = @ob_get_clean();
-					print_r(error::$errors);
+					print_r(error_base::$errors);
 				} else {
 					application::set_mvc('/error/~error/500');
 					application::process();

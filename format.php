@@ -46,27 +46,99 @@ class format {
 	}
 
 	/**
-	 * Format date
-	 * 
-	 * @param string/int $date
+	 * Get date format
+	 *
+	 * @param string $type
 	 * @return string
 	 */
-	public static function date($date) {
-		if (empty($date)) return '';
-		$date = is_numeric($date) ? $date : @strtotime($date);
-		return date('Y-m-d', $date);
+	public static function get_date_format($type) {
+		// we load format from global flags
+		$global_format = application::get('flag.global.format');
+		if ($type == 'time') {
+			$format = $global_format['time'] ?? 'H:i:s';
+		} else if ($type == 'datetime') {
+			$format = $global_format['datetime'] ?? 'Y-m-d H:i:s';
+		} else {
+			$format = $global_format['date'] ?? 'Y-m-d';
+		}
+		return $format;
+	}
+
+	/**
+	 * Get placeholder base on format
+	 *
+	 * @param string $format
+	 * @return string
+	 */
+	public static function get_date_placeholder($format) {
+		$format = str_replace('Y', 'YYYY', $format);
+		$format = str_replace('m', 'MM', $format);
+		$format = str_replace('d', 'DD', $format);
+		$format = str_replace('H', 'HH', $format);
+		$format = str_replace('i', 'MM', $format);
+		$format = str_replace('s', 'SS', $format);
+		$format = str_replace('g', 'HH', $format);
+		$format = str_replace('a', 'am', $format);
+		return $format;
+	}
+
+	/**
+	 * Format date based on format
+	 *
+	 * @param mixed $value
+	 * @param string $type
+	 *		date
+	 *		datetime
+	 *		time
+	 * @param array $options
+	 *		format for date function
+	 * @return string
+	 */
+	public static function date_format($value, $type = 'date', $options = []) {
+		if (empty($value)) {
+			return null;
+		}
+		$value = is_numeric($value) ? $value : strtotime($value);
+		// processing format
+		if (isset($options['format'])) {
+			$format = $options['format'];
+		} else {
+			$format = self::get_date_format($type);
+		}
+		return date($format, $value);
+	}
+
+	/**
+	 * Format date
+	 *
+	 * @param mixed $value
+	 * @param array $options
+	 * @return string
+	 */
+	public static function date($value, $options = []) {
+		return self::date_format($value, 'date', $options);
 	}
 
 	/**
 	 * Format time
-	 * 
-	 * @param string/int $date
+	 *
+	 * @param mixed $value
+	 * @param array $options
 	 * @return string
 	 */
-	public static function time($date) {
-		if (empty($date)) return '';
-		$date = is_numeric($date) ? $date : @strtotime($date);
-		return date('H:i:s', $date);
+	public static function time($value, $options = []) {
+		return self::date_format($value, 'time', $options);
+	}
+
+	/**
+	 * Format datetime
+	 *
+	 * @param mixed $value
+	 * @param array $options
+	 * @return string
+	 */
+	public static function datetime($value, $options = []) {
+		return self::date_format($value, 'datetime', $options);
 	}
 
 	/**
@@ -81,18 +153,6 @@ class format {
 	}
 
 	/**
-	 * Format datetime
-	 * 
-	 * @param string/int $date
-	 * @return string
-	 */
-	public static function datetime($date) {
-		if (empty($date)) return '';
-		$date = is_numeric($date) ? $date : @strtotime($date);
-		return date('Y-m-d H:i:s', $date);
-	}
-
-	/**
 	 * Current date and time
 	 *
 	 * @param string $type
@@ -101,12 +161,15 @@ class format {
 	 */
 	public static function now($type = 'datetime', $options = []) {
 		// todo: convert to proper timezone, important!!!
-		$time = time();
+		list($msec, $time) = explode(" ", microtime());
 		if (!empty($options['add_seconds'])) {
 			$time+= $options['add_seconds'];
 		}
 		// rendering
 		switch ($type) {
+			case 'timestamp':
+				return date('Y-m-d H:i:s', $time) . '.' . round($msec * 1000000, 0);
+				break;
 			case 'time':
 				return date('H:i:s', $time);
 				break;
@@ -117,34 +180,6 @@ class format {
 			default:
 				return date('Y-m-d', $time);
 		}
-	}
-
-	/**
-	 * Determine date format
-	 * 
-	 * @param string $type
-	 * @return string
-	 */
-	public static function date_format($type = 'php', $display = false) {
-		$replaces = array(
-			'php' => array('year4'=>'Y', 'year2'=>'y', 'month2'=>'m', 'month1'=>'n', 'day2'=>'d', 'day1'=>'j'),
-			'jquery' => array('year4'=>'yy', 'year2'=>'y', 'month2'=>'mm', 'month1'=>'m', 'day2'=>'dd', 'day1'=>'d'),
-		);
-		$result = '2013-09-08';
-		// year
-		if (strpos($result, '2013')!==false) $result = str_replace('2013', $replaces[$type]['year4'], $result);
-		if (strpos($result, '13')!==false) $result = str_replace('13', $replaces[$type]['year2'], $result);
-		// month
-		if (strpos($result, '09')!==false) $result = str_replace('09', $replaces[$type]['month2'], $result);
-		if (strpos($result, '9')!==false) $result = str_replace('9', $replaces[$type]['month1'], $result);
-		// day
-		if (strpos($result, '08')!==false) $result = str_replace('08', $replaces[$type]['day2'], $result);
-		if (strpos($result, '8')!==false) $result = str_replace('8', $replaces[$type]['day1'], $result);
-		// display value
-		if ($display) {
-			$result = str_replace(array('Y', 'y', 'm', 'n', 'd', 'j'), array('YYYY', 'YY', 'MM', 'M', 'DD', 'D'), $result);
-		}
-		return $result;
 	}
 
 	/**
@@ -201,7 +236,7 @@ class format {
 		// remove currency symbol and name, thousands separator
 		$amount = str_replace(array($locale['int_curr_symbol'], $locale['currency_symbol'], $locale['mon_thousands_sep'], $locale['thousands_sep']), '', $amount . '');
 		// handle decimal separator
-		if ($locale['decimal_point']!='.') $amount = str_replace($locale['decimal_point'], '.', $amount);
+		if ($locale['decimal_point'] != '.') $amount = str_replace($locale['decimal_point'], '.', $amount);
 		return floatval($amount);
 	}
 

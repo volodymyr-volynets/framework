@@ -74,6 +74,23 @@ class object_data {
 	}
 
 	/**
+	 * Generate options
+	 *
+	 * @param array $where
+	 * @param array $options
+	 * @return array
+	 */
+	public function options($where = [], $options = []) {
+		$data = $this->get($where, $options);
+		// remapping
+		if ($this->data_options_map) {
+			return remap($data, $this->data_options_map);
+		} else {
+			return $data;
+		}
+	}
+
+	/**
 	 * Get data for datasource
 	 *
 	 * @param array $options

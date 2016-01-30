@@ -67,26 +67,28 @@ class session {
 		session_start();
 		// session fixation prevention
 		if (empty($_SESSION['numbers']['flag_generated_by_system'])) {
-			$old_id = session_id();
-			session_regenerate_id();
-			$new_id = session_id();
-			session_id($old_id);
-			session_destroy();
-			// starting new session
-			session_id($new_id);
-			session_start();
+			session_regenerate_id(true);
 			$_SESSION = [];
 			$_SESSION['numbers']['flag_generated_by_system'] = true;
 		}
 		// processing IP address
 		$ip = request::ip();
-		if (empty($_SESSION['numbers']['ip']['ip']) || $_SESSION['numbers']['ip']['ip'] != $ip) {
+		// we need to reset ip address details if we have different ip
+		if (!empty($_SESSION['numbers']['ip']['ip']) && $_SESSION['numbers']['ip']['ip'] != $ip) {
+			$_SESSION['numbers']['ip'] = [];
+		}
+		// we need to try to decode ip address
+		if (!isset($_SESSION['numbers']['ip']['ip'])) {
 			$ip_submodule = application::get('flag.global.ip.submodule', ['class' => 1]);
 			if (!empty($ip_submodule)) {
 				$ip_object = new $ip_submodule();
 				$ip_data = $ip_object->get($ip);
-				$_SESSION['numbers']['ip'] = $ip_data['data'];
-			} else {
+				if ($ip_data['success']) {
+					$_SESSION['numbers']['ip'] = $ip_data['data'];
+				}
+			}
+			// we only store ip address if its not set
+			if (!isset($_SESSION['numbers']['ip']['ip'])) {
 				$_SESSION['numbers']['ip'] = [
 					'ip' => $ip
 				];

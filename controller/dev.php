@@ -2,12 +2,26 @@
 
 class numbers_framework_controller_dev {
 
+	public $title = 'Development Portal';
+	public $acl = array(
+		'login' => false,
+		'tokens' => array()
+	);
+
 	/**
 	 * A list of available topics wuld be here
 	 *
 	 * @var array
 	 */
 	public static $topics = [
+		'frontend' => [
+			'name' => 'Frontend Framework',
+			'href' => '/numbers/framework/controller/dev/~frontend'
+		],
+		'form_editor' => [
+			'name' => 'Form Editor',
+			'href' => '/numbers/frontend/assemblies/form/controller/editor/~edit'
+		],
 		'names' => [
 			'name' => 'Naming Conventions',
 			'href' => '/numbers/framework/controller/dev/~names',
@@ -42,7 +56,7 @@ class numbers_framework_controller_dev {
 				$value.= html::ul(['options' => $temp2]);
 				$temp[] = $value;
 			} else {
-				$temp[] = html::a(['href' => $v2['href'], 'value' => $v2['name']]);
+				$temp[] = html::a(['href' => $v['href'], 'value' => $v['name']]);
 			}
 		}
 		echo html::ul(['options' => $temp]);
@@ -54,6 +68,80 @@ class numbers_framework_controller_dev {
 	public function action_index() {
 		// rendering
 		self::render_topic();
+	}
+
+	/**
+	 * Frontend action
+	 */
+	public function action_frontend() {
+		$input = request::input();
+
+		// legend
+		echo self::render_topic('frontend');
+
+		// processing submit
+		$input['name'] = $input['name'] ?? 'numbers.frontend.html.class.base';
+		$frontend_frameworks = [
+			'numbers.frontend.html.class.base' => ['name' => 'Plain'],
+			'numbers.frontend.html.semanticui.base' => ['name' => 'Semantic UI'],
+			'numbers.frontend.html.bootstrap.base' => ['name' => 'Bootstrap']
+		];
+		if (!empty($input['submit_yes'])) {
+			$settings = [];
+			$libraries = [];
+			if ($input['name'] == 'numbers.frontend.html.class.base') {
+				$settings = [
+					'submodule' => $input['name'],
+					'options' => [
+						'grid_columns' => 16
+					],
+					'calendar' => [
+						'submodule' => 'numbers.frontend.components.calendar.numbers.base'
+					]
+				];
+				$libraries['semanticui']['autoconnect'] = false;
+				$libraries['bootstrap']['autoconnect'] = false;
+			} else if ($input['name'] == 'numbers.frontend.html.semanticui.base') {
+				$settings = [
+					'submodule' => $input['name'],
+					'options' => [
+						'grid_columns' => 16
+					],
+					'calendar' => [
+						'submodule' => 'numbers.frontend.components.calendar.numbers.base'
+					]
+				];
+				$libraries['semanticui']['autoconnect'] = true;
+				$libraries['bootstrap']['autoconnect'] = false;
+			} else if ($input['name'] == 'numbers.frontend.html.bootstrap.base') {
+				$settings = [
+					'submodule' => $input['name'],
+					'options' => [
+						'grid_columns' => 12
+					],
+					'calendar' => [
+						'submodule' => 'numbers.frontend.components.calendar.numbers.base'
+					]
+				];
+				$libraries['semanticui']['autoconnect'] = false;
+				$libraries['bootstrap']['autoconnect'] = true;
+			}
+			// we need to merge old and new values
+			session::set('numbers.flag.global.html', array_merge_hard(session::get('numbers.flag.global.html'), $settings));
+			session::set('numbers.flag.global.library', array_merge_hard(session::get('numbers.flag.global.library'), $libraries));
+			header('Location: /numbers/framework/controller/dev/~frontend?name=' . $input['name']);
+			exit;
+		}
+
+		// form
+		$ms = 'Name: ' . html::select([
+			'name' => 'name',
+			'options' => $frontend_frameworks,
+			'no_choose' => true,
+			'value' => $input['name']
+		]) . ' ';
+		$ms.= html::submit(['name' => 'submit_yes']);
+		echo html::form(['name' => 'db', 'action' => '#db_test', 'value' => $ms]);
 	}
 
 	/**

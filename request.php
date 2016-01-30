@@ -8,13 +8,17 @@ class request {
 	 * @return string
 	 */
 	public static function ip() {
-		// if we are developing we return static IP address
-		if (application::get('environment') == 'development') {
-			return '198.91.198.240';
+		// for development purposes we might need to have specific IP address
+		$request_ip = application::get('numbers.framework.request.ip');
+		if (!empty($request_ip)) {
+			return $request_ip;
 		}
 		// get users IP
 		$result = $_SERVER['REMOTE_ADDR'];
 		// if request goes through the proxy
+		if (!empty($_SERVER['HTTP_X_REAL_IP'])) {
+			$result = $_SERVER['HTTP_X_REAL_IP'];
+		}
 		if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
 			$result = $_SERVER['HTTP_X_FORWARDED_FOR'];
 		}
@@ -104,7 +108,9 @@ class request {
 	 * @return array
 	 */
 	public static function host_parts($host = null) {
-		if (empty($host)) $host = self::host();
+		if (empty($host)) {
+			$host = self::host();
+		}
 		$host = str_replace(array('http://', 'https://'), '', $host);
 		$host = str_replace('/', '', $host);
 		$temp = explode('.', $host);
@@ -126,7 +132,7 @@ class request {
 	public static function is_ssl() {
 		if (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && strtolower($_SERVER['HTTP_X_FORWARDED_PROTO'])=='https') {
 			return true;
-		} else if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS']!='off') {
+		} else if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off') {
 			return true;
 		} else {
 			return false;

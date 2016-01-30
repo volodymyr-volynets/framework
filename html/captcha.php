@@ -1,6 +1,6 @@
 <?php
 
-class html_captcha {
+class html_captcha implements numbers_frontend_html_interface_captcha {
 
 	/**
 	 * Generate captcha
@@ -9,8 +9,7 @@ class html_captcha {
 	 * @return string
 	 */
 	public static function captcha($options = []) {
-		$captcha_object = self::get_object();
-		return $captcha_object->captcha($options);
+		return factory::submodule('flag.global.captcha.submodule')->captcha($options);
 	}
 
 	/**
@@ -20,21 +19,6 @@ class html_captcha {
 	 * @param string $password
 	 */
 	public static function validate($captcha_id, $password) {
-		$captcha_object = self::get_object();
-		return $captcha_object->validate($captcha_id, $password);
-	}
-
-	/**
-	 * Get submodule object
-	 *
-	 * @return captcha_class
-	 * @throws Exception
-	 */
-	private static function get_object() {
-		$captcha_class = application::get('flag.global.captcha.submodule', ['class' => 1]);
-		if (empty($captcha_class)) {
-			Throw new Exception('You must indicate captcha submodule!');
-		}
-		return new $captcha_class();
+		return factory::submodule('flag.global.captcha.submodule')->validate($captcha_id, $password);
 	}
 }

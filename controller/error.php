@@ -12,7 +12,7 @@ class numbers_framework_controller_error {
 			$token_data = $crypt->token_validate($input['token'], 1, true);
 			if (!($token_data === false || $token_data['id'] !== 'general')) {
 				$input['data'] = json_decode($input['data'], true);
-				error::error_handler('javascript', $input['data']['message'], $input['data']['file'], $input['data']['line']);
+				error_base::error_handler('javascript', $input['data']['message'], $input['data']['file'], $input['data']['line']);
 			}
 		}
 		// we must set content type in application

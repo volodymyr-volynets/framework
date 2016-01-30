@@ -14,8 +14,8 @@ class mail {
 	 *		'subject' => 'test subject',
 	 * 		'message' => 'test message',
 	 * 		'attachments' => [
-	 *	 		['path'=>'path to file', 'name'=>'test.txt'],
-	 * 			['data'=>'!!!data!!!', 'name'=>'test.txt', 'type' => 'plain/text']
+	 *	 		['path' => 'path to file', 'name' => 'test.txt'],
+	 * 			['data' => '!!!data!!!', 'name' => 'test.txt', 'type' => 'plain/text']
 	 * 		]
 	 * 	]);
 	 *
@@ -39,5 +39,16 @@ class mail {
 			$result['success'] = true;
 		}
 		return $result;
+	}
+
+	/**
+	 * Send simple
+	 *
+	 * @param string $to
+	 * @param string $subject
+	 * @param string $message
+	 */
+	public static function send_simple($to, $subject, $message) {
+		return self::send(['to' => $to, 'subject' => $subject, 'message' => $message]);
 	}
 }

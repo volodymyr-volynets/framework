@@ -3,58 +3,36 @@
 /**
  * Internalization class
  */
-class i18n {
+class i18n implements numbers_backend_i18n_interface_base {
 
-	public static $default;
-	public static $current;
-	public static $path;
-
-	public function __construct($default, $current, $path) {
-		self::$default = $default;
-		self::$current = $current;
-		self::$path = $path;
+	/**
+	 * Initializing i18n
+	 *
+	 * @param array $options
+	 */
+	public static function init($options = []) {
+		return factory::submodule('flag.global.i18n.submodule')->init($options);
 	}
 
-	public static function get($id, $lang = null) {
-		if (empty(self::$default) || empty(self::$current)) {
-			Throw new Exception('i18n: default or current?');
-		}
-		// require internalization file with translations
-		global $internalization;
-		if (empty($internalization)) require_once(self::$path);
-		// processing
-		if (isset($internalization[$id])) {
-			$lang = $lang ? $lang : self::$current;
-			if (isset($internalization[$id][$lang])) {
-				return $internalization[$id][$lang];
-			} else {
-				return $internalization[$id][self::$default];
-			}
-		} else {
-			Throw new Exception('i18n: id?');
-		}
+	/**
+	 * Get translation
+	 *
+	 * @param string $i18n
+	 * @param string $text
+	 * @param array $options
+	 * @return string
+	 */
+	public static function get($i18n, $text, $options = []) {
+		return factory::submodule('flag.global.i18n.submodule')->get($i18n, $text, $options);
 	}
 
-	public static function download() {
-		global $internalization;
-		if (empty($internalization)) require_once(self::$path);
-		// find all available languages
-		$languages = array();
-		foreach ($internalization as $k=>$v) foreach ($v as $k2=>$v2) $languages[$k2] = $k2;
-		// build data array
-		$data = array();
-		foreach ($internalization as $k=>$v) {
-			foreach ($languages as $v2) {
-				$data[$k][$v2] = @$v[$v2];
-			}
-		}
-		return $data;
+	/**
+	 * Set variable into i18n
+	 *
+	 * @param string $variable
+	 * @param mixed $value
+	 */
+	public static function set($variable, $value) {
+		return factory::submodule('flag.global.i18n.submodule')->set($variable, $value);
 	}
-}
-
-/**
- * Short alias to class name
- */
-function i18n($id, $lang = null) {
-	return i18n::get($id, $lang);
 }
