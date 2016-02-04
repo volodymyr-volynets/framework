@@ -33,7 +33,8 @@ if (is_dir($dir)) {
 		if (in_array($extension, $process_files) || $name == '.htaccess' || $name == '.gitkeep') {
 			$content_original = $content = file_get_contents($filename);
 
-			// step 1: remove windows new lines
+			// step 1: remove windows new lines, two runs
+			$content = str_replace(array("\r\n", "\n\r"), "\n", $content);
 			$content = str_replace(array("\r\n", "\n\r"), "\n", $content);
 
 			// step 2.1: replace four spaces with tabs
