@@ -1,9 +1,9 @@
 <?php
 
-class object_type_table_constraints {
+class object_type_table_constraint {
 
 	/**
-	 * A list of constraint types
+	 * Constraint types
 	 *
 	 * @var array
 	 */

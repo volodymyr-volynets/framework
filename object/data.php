@@ -90,6 +90,8 @@ class object_data {
 		}
 	}
 
+	// todo: add options_active()
+
 	/**
 	 * Get data for datasource
 	 *
@@ -104,6 +106,4 @@ class object_data {
 			'data' => $this->data
 		];
 	}
-
-	// todo: add options() and options_active() methods
 }

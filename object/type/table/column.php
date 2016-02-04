@@ -1,9 +1,9 @@
 <?php
 
-class object_type_table_columns {
+class object_type_table_column {
 
 	/**
-	 * A list of data types
+	 * Column types
 	 *
 	 * @var array
 	 */
@@ -29,9 +29,6 @@ class object_type_table_columns {
 		'time' => ['name' => 'Time'],
 		'datetime' => ['name' => 'Date & time'],
 		'timestamp' => ['name' => 'Timestamp'],
-		// types specific to numbers framework
-		'numbers_code' => ['name' => 'Code / ID'], // varchar(50)
-		'numbers_hash' => ['name' => 'Hash'], // varchar(128) for sha512
 		//  array data types, not supported everywhere
 		//'smallint[]' => ['name' => 'Array Small Integer'],
 		//'integer[]' => ['name' => 'Array Integer'],

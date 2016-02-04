@@ -9,7 +9,7 @@ class request {
 	 */
 	public static function ip() {
 		// for development purposes we might need to have specific IP address
-		$request_ip = application::get('numbers.framework.request.ip');
+		$request_ip = application::get('flag.numbers.framework.request.ip');
 		if (!empty($request_ip)) {
 			return $request_ip;
 		}

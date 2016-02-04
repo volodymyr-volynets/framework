@@ -55,8 +55,8 @@ class system_config {
 			'environment' => 'production'
 		];
 
-		// localhost ini file first
-		$file = $ini_folder . 'localhost.ini';
+		// environment ini file first
+		$file = $ini_folder . 'environment.ini';
 		if (file_exists($file)) {
 			$ini_data = self::ini($file);
 			$settings = array_merge2($settings, $ini_data);

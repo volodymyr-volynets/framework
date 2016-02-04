@@ -23,15 +23,12 @@ class crypt implements numbers_backend_crypt_interface_base {
 				Throw new Exception('You must specify crypt link!');
 			}
 		}
-
 		// get object from factory
 		$temp = factory::get(['crypt', $crypt_link]);
-
 		// if we have class
 		if (!empty($class) && !empty($crypt_link)) {
 			// replaces in case we have it as submodule
 			$class = str_replace('.', '_', trim($class));
-
 			// creating new class
 			unset($this->object);
 			$this->object = new $class($crypt_link, $options);
@@ -57,7 +54,7 @@ class crypt implements numbers_backend_crypt_interface_base {
 	 * Decrypting data (URL safe)
 	 * 
 	 * @param string $data
-	 * @return string
+	 * @return string or false on error
 	 */
 	public function decrypt($data) {
 		return $this->object->decrypt($data);
@@ -88,7 +85,7 @@ class crypt implements numbers_backend_crypt_interface_base {
 	 *
 	 * @param string $id
 	 * @param mixed $data
-	 * @return string
+	 * @return string - erlencoded
 	 */
 	public function token_create($id, $data = null){
 		return $this->object->token_create($id, $data);
@@ -97,12 +94,10 @@ class crypt implements numbers_backend_crypt_interface_base {
 	/**
 	 * Validate token
 	 *
-	 * @param string $token
-	 * @param integer $valid_hours
-	 * @param bool $check_ip
-	 * @return array
+	 * @param string $token - urldecoded
+	 * @return array or false on error
 	 */
-	public function token_validate($token, $valid_hours = 2, $check_ip = false) {
-		return $this->object->token_validate($token, $valid_hours, $check_ip);
+	public function token_validate($token) {
+		return $this->object->token_validate($token);
 	}
 }

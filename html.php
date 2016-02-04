@@ -1,6 +1,6 @@
 <?php
 
-class html {
+class html /*implements numbers_frontend_html_interface_base*/ {
 
 	/**
 	 * Segment
@@ -15,7 +15,7 @@ class html {
 	 * @return string
 	 */
 	public static function segment($options = []) {
-		return factory::delegate('flag.global.html', 'segment', [$options]);
+		return factory::delegate('flag.numbers.framework.html', 'segment', [$options]);
 	}
 
 	/**
@@ -27,19 +27,20 @@ class html {
 	 * @return string
 	 */
 	public static function a($options = []) {
-		return factory::delegate('flag.global.html', 'a', [$options]);
+		return factory::delegate('flag.numbers.framework.html', 'a', [$options]);
 	}
 
 	/**
 	 * Mandatory
 	 *
-	 * @param string $type
-	 * @param string $value
-	 * @param string $prepend
+	 * @param array $options
+	 *		type - mandatory or conditional
+	 *		value - string or array
+	 *		prepend - what to prepend to value
 	 * @return string
 	 */
-	public static function mandatory($type = 'mandatory', $value = null, $prepend = null) {
-		return factory::delegate('flag.global.html', 'mandatory', [$type, $value, $prepend]);
+	public static function mandatory($options = []) {
+		return factory::delegate('flag.numbers.framework.html', 'mandatory', [$options]);
 	}
 
 	/**
@@ -49,7 +50,7 @@ class html {
 	 * @return string
 	 */
 	public static function div($options = []) {
-		return factory::delegate('flag.global.html', 'div', [$options]);
+		return factory::delegate('flag.numbers.framework.html', 'div', [$options]);
 	}
 
 	/**
@@ -60,7 +61,7 @@ class html {
 	 * @return string
 	 */
 	public static function tag($tag, $options = []) {
-		return factory::delegate('flag.global.html', 'tag', [$tag, $options]);
+		return factory::delegate('flag.numbers.framework.html', 'tag', [$tag, $options]);
 	}
 
 	/**
@@ -70,7 +71,7 @@ class html {
 	 * @return string
 	 */
 	public static function label($options = []) {
-		return factory::delegate('flag.global.html', 'label', [$options]);
+		return factory::delegate('flag.numbers.framework.html', 'label', [$options]);
 	}
 
 	/**
@@ -80,7 +81,37 @@ class html {
 	 * @return string
 	 */
 	public static function input($options = []) {
-		return factory::delegate('flag.global.html', 'input', [$options]);
+		return factory::delegate('flag.numbers.framework.html', 'input', [$options]);
+	}
+
+	/**
+	 * Checkbox
+	 *
+	 * @param array $options
+	 * @return string
+	 */
+	public static function checkbox($options = []) {
+		return factory::delegate('flag.numbers.framework.html', 'checkbox', [$options]);
+	}
+
+	/**
+	 * Radio
+	 *
+	 * @param array $options
+	 * @return string
+	 */
+	public static function radio($options = []) {
+		return factory::delegate('flag.numbers.framework.html', 'radio', [$options]);
+	}
+
+	/**
+	 * Span
+	 *
+	 * @param array $options
+	 * @return string
+	 */
+	public static function span($options = []) {
+		return factory::delegate('flag.numbers.framework.html', 'span', [$options]);
 	}
 
 	/**
@@ -90,7 +121,7 @@ class html {
 	 * @return string
 	 */
 	public static function grid($options = []) {
-		return factory::delegate('flag.global.html', 'grid', [$options]);
+		return factory::delegate('flag.numbers.framework.html', 'grid', [$options]);
 	}
 
 	/**
@@ -100,7 +131,7 @@ class html {
 	 * @return string
 	 */
 	public static function form($options = []) {
-		return factory::delegate('flag.global.html', 'form', [$options]);
+		return factory::delegate('flag.numbers.framework.html', 'form', [$options]);
 	}
 
 	/**
@@ -110,7 +141,7 @@ class html {
 	 * @return string
 	 */
 	public static function table($options = []) {
-		return factory::delegate('flag.global.html', 'table', [$options]);
+		return factory::delegate('flag.numbers.framework.html', 'table', [$options]);
 	}
 
 	/**
@@ -120,7 +151,7 @@ class html {
 	 * @return string
 	 */
 	public static function script($options = []) {
-		return factory::delegate('flag.global.html', 'script', [$options]);
+		return factory::delegate('flag.numbers.framework.html', 'script', [$options]);
 	}
 
 	/**
@@ -130,7 +161,7 @@ class html {
 	 * @return string
 	 */
 	public static function password($options = []) {
-		return factory::delegate('flag.global.html', 'password', [$options]);
+		return factory::delegate('flag.numbers.framework.html', 'password', [$options]);
 	}
 
 	/**
@@ -140,7 +171,7 @@ class html {
 	 * @return string
 	 */
 	public static function submit($options = []) {
-		return factory::delegate('flag.global.html', 'submit', [$options]);
+		return factory::delegate('flag.numbers.framework.html', 'submit', [$options]);
 	}
 
 	/**
@@ -150,7 +181,7 @@ class html {
 	 * @return string
 	 */
 	public static function ul($options = []) {
-		return factory::delegate('flag.global.html', 'ul', [$options]);
+		return factory::delegate('flag.numbers.framework.html', 'ul', [$options]);
 	}
 
 	/**
@@ -160,7 +191,7 @@ class html {
 	 * @return string
 	 */
 	public static function select($options = []) {
-		return factory::delegate('flag.global.html', 'select', [$options]);
+		return factory::delegate('flag.numbers.framework.html', 'select', [$options]);
 	}
 
 	/**
@@ -170,7 +201,7 @@ class html {
 	 * @return string
 	 */
 	public static function img($options = []) {
-		return factory::delegate('flag.global.html', 'img', [$options]);
+		return factory::delegate('flag.numbers.framework.html', 'img', [$options]);
 	}
 
 	/**
@@ -190,7 +221,7 @@ class html {
 	 * @return string
 	 */
 	public static function icon($options = []) {
-		return factory::delegate('flag.global.html', 'icon', [$options]);
+		return factory::delegate('flag.numbers.framework.html', 'icon', [$options]);
 	}
 
 	/**
@@ -200,7 +231,17 @@ class html {
 	 * @return string
 	 */
 	public static function calendar($options = []) {
-		return factory::delegate('flag.global.html', 'calendar', [$options]);
+		return factory::delegate('flag.numbers.framework.html', 'calendar', [$options]);
+	}
+
+	/**
+	 * Captcha
+	 *
+	 * @param array $options
+	 * @return string
+	 */
+	public static function captcha($options = []) {
+		return factory::delegate('flag.numbers.framework.html', 'captcha', [$options]);
 	}
 
 	/**
@@ -213,7 +254,7 @@ class html {
 		if (!is_array($percentage_array)) {
 			$percentage_array = [$percentage_array];
 		}
-		$options = array_merge2(application::get('flag.global.html.options'), $options);
+		$options = array_merge_hard(application::get('flag.numbers.framework.html.options'), $options);
 		if (empty($options['grid_columns'])) {
 			$options['grid_columns'] = 12;
 		}

@@ -1,9 +1,9 @@
 <?php
 
-class object_type_table_indexes {
+class object_type_table_index {
 
 	/**
-	 * A list of constraint types
+	 * Index types
 	 *
 	 * @var array
 	 */

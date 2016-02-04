@@ -1,6 +1,6 @@
 <?php
 
-class object_type_sequences {
+class object_type_sequence {
 
 	/**
 	 * A list of sequence types

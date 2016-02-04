@@ -24,9 +24,9 @@ class object_table {
 	public $table_name;
 
 	/**
-	 * Table primary key in format 'id' or ['id1', 'id2']
+	 * Table primary key in format ['id1'] or ['id1', 'id2', 'id3']
 	 *
-	 * @var string or array
+	 * @var array
 	 */
 	public $table_pk;
 
@@ -157,22 +157,6 @@ class object_table {
 	public $cache_memory = false;
 
 	/**
-	 * Verify data against columns
-	 *
-	 * @param array $data
-	 * @param array $columns
-	 */
-/*
-	public function save_verify(& $data) {
-		$result = [
-			'success' => false,
-			'error' => []
-		];
-		return $result;
-	}
-*/
-
-	/**
 	 * Constructing object
 	 *
 	 * @throws Exception
@@ -203,12 +187,24 @@ class object_table {
 	}
 
 	/**
-	 * Convert input into array
+	 * Insert single row into table
 	 *
 	 * @param array $data
 	 * @return array
 	 */
-	public function process_fields($data, $ignore_not_set_fields = false) {
+	public function insert($data) {
+		$db = new db($this->db_link);
+		return $db->insert($this->table_name, [$data], null, ['returning' => $this->table_pk]);
+	}
+
+	/**
+	 * Convert input into array
+	 *
+	 * @param array $data
+	 * @param boolean $ignore_not_set_fields
+	 * @return array
+	 */
+	public function process_columns($data, $ignore_not_set_fields = false) {
 		$save = [];
 		foreach ($this->table_columns as $k => $v) {
 			if ($ignore_not_set_fields && !isset($data[$k]) && !array_key_exists($k, $data)) {
@@ -221,7 +217,7 @@ class object_table {
 				$save[$k] = format::read_intval(isset($data[$k]) ? $data[$k] : null);
 			} else if ($v['type'] == 'numeric') {
 				$save[$k] = format::read_floatval(isset($data[$k]) ? $data[$k] : null);
-			} else if (in_array($v['type'], ['date', 'time', 'datetime'])) {
+			} else if (in_array($v['type'], ['date', 'time', 'datetime', 'timestamp'])) {
 				$save[$k] = format::read_date(isset($data[$k]) ? $data[$k] : null, $v['type']);
 			} else if ($v['type'] == 'json') {
 				if (!isset($data[$k]) || is_null($data[$k])) {
@@ -345,13 +341,14 @@ class object_table {
 	 *
 	 * @param array $where
 	 * @param array $options
-	 * @param array $search
+	 *		no_cache
+	 *		search
 	 * @return array
 	 */
-	public function get($where = [], $options = [], $search = []) {
+	public function get($where = [], $options = []) {
 		$options_query = array();
 		// if we are caching
-		if (!empty($this->cache) && empty($options2['no_cache'])) {
+		if (!empty($this->cache) && empty($options['no_cache'])) {
 			$options_query['cache'] = true;
 		}
 		$options_query['cache_tags'] = !empty($this->cache_tags) ? array_values($this->cache_tags) : [];
@@ -361,7 +358,7 @@ class object_table {
 		// where
 		$sql = '';
 		$sql.= !empty($where) ? (' AND ' . $db->prepare_condition($where)) : '';
-		$sql.= !empty($search) ? (' AND (' . $db->prepare_condition($search, 'OR') . ')') : '';
+		$sql.= !empty($options['search']) ? (' AND (' . $db->prepare_condition($options['search'], 'OR') . ')') : '';
 		// order by
 		if (!empty($options['orderby'])) {
 			$sql.= ' ORDER BY ' . $options['orderby'];
@@ -375,7 +372,7 @@ class object_table {
 			$sql.= ' LIMIT ' . $this->table_get_limit;
 		}
 		// pk
-		$pk = array_key_exists('pk', $options) ? $options['pk'] : $this->pk;
+		$pk = array_key_exists('pk', $options) ? $options['pk'] : $this->table_pk;
 		// columns
 		if (!empty($options['columns'])) {
 			$columns = $db->prepare_expression($options['columns']);
@@ -384,12 +381,14 @@ class object_table {
 		}
 		// querying
 		$sql_full = 'SELECT ' . $columns . ' FROM ' . $this->table_name . ' WHERE 1=1' . $sql;
-		$crypt = new crypt();
-		// hash is query + primary key
-		$sql_hash = $crypt->hash($sql_full . serialize($pk));
 		// memory caching
-		if ($this->cache_memory && isset(cache::$memory_storage[$sql_hash])) {
-			return cache::$memory_storage[$sql_hash];
+		if ($this->cache_memory) {
+			// hash is query + primary key
+			$crypt = new crypt();
+			$sql_hash = $crypt->hash($sql_full . serialize($pk));
+			if (isset(cache::$memory_storage[$sql_hash])) {
+				return cache::$memory_storage[$sql_hash];
+			}
 		}
 		$result = $db->query($sql_full, $pk, $options_query);
 		if ($this->cache_memory) {

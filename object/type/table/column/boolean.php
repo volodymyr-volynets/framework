@@ -1,9 +1,9 @@
 <?php
 
-class object_type_field_boolean extends object_data {
+class object_type_table_column_boolean extends object_data {
 
 	/**
-	 * A list of container types
+	 * Boolean values
 	 *
 	 * @var array
 	 */

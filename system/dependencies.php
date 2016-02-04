@@ -298,6 +298,14 @@ class system_dependencies {
 			if ($options['mode'] != 'commit') {
 				foreach ($total_per_db_link as $k => $v) {
 					$result['error'][] = "Db link $k requires $v changes!";
+					// printing summary
+					$result['error'][] = ' * Link ' . $k . ': ';
+					foreach ($schema_diff[$k] as $k2 => $v2) {
+						$result['error'][] = '   * ' . $k2 . ': ';
+						foreach ($v2 as $k3 => $v3) {
+							$result['error'][] = '    * ' . $k3 . ' - ' . $v3['type'];
+						}
+					}
 				}
 				break;
 			}

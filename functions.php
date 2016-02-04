@@ -572,10 +572,20 @@ function array_key_extract_by_prefix(& $arr, $key_prefix, $unset = true) {
  *
  * @param array $arr
  * @param array $keys
+ * @param array $options
+ *		boolean preserve - keep only these
  */
-function array_key_unset(& $arr, $keys) {
-	foreach ($keys as $v) {
-		unset($arr[$v]);
+function array_key_unset(& $arr, $keys, $options = []) {
+	if (empty($options['preserve'])) {
+		foreach ($keys as $v) {
+			unset($arr[$v]);
+		}
+	} else {
+		foreach (array_keys($arr) as $v) {
+			if (!in_array($v, $keys)) {
+				unset($arr[$v]);
+			}
+		}
 	}
 }
 

@@ -27,17 +27,9 @@ class bootstrap {
 
 		// initialize cryptography
 		$crypt = application::get('crypt');
-		if (!empty($crypt) && $backend && !empty($flags['global']['crypt']['autoconnect'])) {
-			// converting flags to array
-			if (!is_array($flags['global']['crypt']['autoconnect'])) {
-				$flags['global']['crypt']['autoconnect'] = [$flags['global']['crypt']['autoconnect']];
-			}
-			// going though all available links
+		if (!empty($crypt) && $backend) {
 			foreach ($crypt as $crypt_link => $crypt_settings) {
-				if (!in_array($crypt_link, $flags['global']['crypt']['autoconnect']) && !in_array('*', $flags['global']['crypt']['autoconnect'])) {
-					continue;
-				}
-				if (!empty($crypt_settings['submodule'])) {
+				if (!empty($crypt_settings['submodule']) && !empty($crypt_settings['autoconnect'])) {
 					$crypt_object = new crypt($crypt_link, $crypt_settings['submodule'], $crypt_settings);
 				}
 			}
@@ -45,35 +37,25 @@ class bootstrap {
 
 		// create database connections
 		$db = application::get('db');
-		if (!empty($db) && $backend && !empty($flags['global']['db']['autoconnect'])) {
-			// converting flags to array
-			if (!is_array($flags['global']['db']['autoconnect'])) {
-				$flags['global']['db']['autoconnect'] = [$flags['global']['db']['autoconnect']];
-			}
-			// going though all available links
+		if (!empty($db) && $backend) {
 			foreach ($db as $db_link => $db_settings) {
-				if (!in_array($db_link, $flags['global']['db']['autoconnect']) && !in_array('*', $flags['global']['db']['autoconnect'])) {
+				if (empty($db_settings['autoconnect']) || empty($db_settings['servers']) || empty($db_settings['submodule'])) {
 					continue;
 				}
 				$connected = false;
-				foreach ($db_settings as $server_key => $server_values) {
-					if (!empty($server_values['submodule'])) {
-						$db_object = new db($db_link, $server_values['submodule']);
-
-						// wildcards replaces
-						if ($wildcard_keys !== null) {
-							$server_values['dbname'] = $wildcard_keys['dbname'];
-						}
-
-						// connecting
-						$db_status = $db_object->connect($server_values);
-						if ($db_status['success'] && $db_status['status']) {
-							$connected = true;
-							break;
-						}
+				foreach ($db_settings['servers'] as $server_key => $server_values) {
+					$db_object = new db($db_link, $db_settings['submodule']);
+					// wildcards replaces
+					if (isset($wildcard_keys[$db_link])) {
+						$server_values['dbname'] = $wildcard_keys[$db_link]['dbname'];
+					}
+					// connecting
+					$db_status = $db_object->connect($server_values);
+					if ($db_status['success'] && $db_status['status']) {
+						$connected = true;
+						break;
 					}
 				}
-
 				// checking if not connected
 				if (!$connected) {
 					Throw new Exception('Unable to open database connection!');
@@ -88,30 +70,23 @@ class bootstrap {
 
 		// initialize cache
 		$cache = application::get('cache');
-		if (!empty($cache) && $backend && !empty($flags['global']['cache']['autoconnect'])) {
-			// converting flags to array
-			if (!is_array($flags['global']['cache']['autoconnect'])) {
-				$flags['global']['cache']['autoconnect'] = [$flags['global']['cache']['autoconnect']];
-			}
-			// going though all available links
-			foreach ($cache as $cache_link => $cache_clusters) {
+		if (!empty($cache) && $backend) {
+			foreach ($cache as $cache_link => $cache_settings) {
+				if (empty($cache_settings['submodule']) || empty($cache_settings['autoconnect'])) {
+					continue;
+				}
 				$connected = false;
-				foreach ($cache_clusters as $cache_settings) {
-					if (!in_array($cache_link, $flags['global']['cache']['autoconnect']) && !in_array('*', $flags['global']['cache']['autoconnect'])) {
-						continue;
-					}
-					if (!empty($cache_settings['submodule'])) {
-						$cache_object = new cache($cache_link, $cache_settings['submodule']);
-						$cache_status = $cache_object->connect($cache_settings);
-						if ($cache_status['success']) {
-							$connected = true;
-							break;
-						}
+				foreach ($cache_settings['servers'] as $cache_server) {
+					$cache_object = new cache($cache_link, $cache_settings['submodule']);
+					$cache_status = $cache_object->connect($cache_server);
+					if ($cache_status['success']) {
+						$connected = true;
+						break;
 					}
 				}
 				// checking if not connected
 				if (!$connected) {
-					Throw new Exception('Unable to open cache connection.');
+					Throw new Exception('Unable to open cache connection!');
 				}
 			}
 		}

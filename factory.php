@@ -58,6 +58,11 @@ class factory {
 	 * @return mixed
 	 */
 	public static function delegate($flag, $submodule, $arguments) {
+		$options = application::get($flag . '.' . $submodule . '.options');
+		if (!empty($options)) {
+			// todo: maybe add to first array instead to first element in arguments
+			$arguments[0] = array_merge_hard($options, $arguments[0]);
+		}
 		// we need to determine whether we need to use additional submodule
 		if (application::get($flag . '.' . $submodule . '.submodule')) {
 			return call_user_func_array([self::submodule($flag . '.' . $submodule . '.submodule'), $submodule], $arguments);

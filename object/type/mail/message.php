@@ -1,9 +1,9 @@
 <?php
 
-class object_type_mail_messages {
+class object_type_mail_message {
 
 	/**
-	 * A list of message types
+	 * Message types
 	 *
 	 * @var array
 	 */
