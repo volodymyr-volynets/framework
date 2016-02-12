@@ -161,9 +161,13 @@ function natsort2(& $arr, $field = 'name') {
  * @param array $data
  */
 function pk($pk, & $data) {
-	if (!is_array($pk)) $pk = array($pk);
-	$result = array();
-	if (!is_array($data)) $data = array();
+	if (!is_array($pk)) {
+		$pk = [$pk];
+	}
+	$result = [];
+	if (!is_array($data)) {
+		$data = [];
+	}
 	foreach ($data as $k=>$v) {
 		array_key_set_by_key_name($result, $pk, $v);
 	}
@@ -282,7 +286,9 @@ function function2($function, $value) {
  */
 function http_build_query2($arr) {
 	foreach ($arr as $k => $v) {
-		if (is_scalar($v) && $v . '' == '') unset($arr[$k]);
+		if (is_scalar($v) && $v . '' == '') {
+			unset($arr[$k]);
+		}
 	}
 	return http_build_query($arr);
 }
@@ -300,7 +306,9 @@ function remap(& $data, $map) {
 		foreach ($map as $k2 => $v2) {
 			$k2 = str_replace('*', '', $k2);
 			if (isset($result[$k][$v2])) {
-				if (!empty($v[$k2])) $result[$k][$v2].= ', ' . $v[$k2];
+				if (isset($v[$k2])) {
+					$result[$k][$v2].= ', ' . $v[$k2];
+				}
 			} else {
 				$result[$k][$v2] = @$v[$k2];
 			}
@@ -320,14 +328,7 @@ function remap(& $data, $map) {
  *		['id' => SORT_NUMERIC, 'name' => SORT_NATURAL]
  */
 function array_key_sort(& $arr, $keys, $methods = []) {
-	// fixing keys array
-	foreach ($keys as $k => $v) {
-		if (strtolower($v) == 'asc' || empty($v)) {
-			$keys[$k] = SORT_ASC;
-		} else if (strtolower($v) == 'desc') {
-			$keys[$k] = SORT_DESC;
-		}
-	}
+	$keys = array_key_sort_prepare_keys($keys, false);
 	// prepare a single array of parameters for multisort function
 	$params = [];
 	foreach ($keys as $k => $v) {
@@ -351,6 +352,33 @@ function array_key_sort(& $arr, $keys, $methods = []) {
 		}
 	}
 	$arr = $final;
+}
+
+/**
+ * Prepare sort keys
+ *
+ * @param array $keys
+ * @param boolean $flag_string
+ * @return miced
+ */
+function array_key_sort_prepare_keys($keys, $flag_string = false) {
+	foreach ($keys as $k => $v) {
+		if (strtolower($v) == 'asc' || empty($v)) {
+			$keys[$k] = SORT_ASC;
+		} else if (strtolower($v) == 'desc') {
+			$keys[$k] = SORT_DESC;
+		}
+	}
+	// if we need to generate string for ORDER BY clause
+	if ($flag_string) {
+		$str = [];
+		foreach ($keys as $k => $v) {
+			$str[] = $k . ' ' . ($v == SORT_ASC ? 'ASC' : 'DESC');
+		}
+		return implode(', ', $str);
+	} else {
+		return $keys;
+	}
 }
 
 /**
@@ -594,4 +622,28 @@ function array_key_unset(& $arr, $keys, $options = []) {
  */
 function i18n($i18n, $text, $options = []) {
 	return i18n::get($i18n, $text, $options);
+}
+
+/**
+ * Merge vars into object
+ *
+ * @param object $object
+ * @param array $vars
+ */
+function object_merge_values(& $object, $vars) {
+	foreach ($vars as $k => $v) {
+		if (property_exists($object, $k) && is_array($object->{$k})) {
+			foreach ($v as $k2 => $v2) {
+				if ($v2 === null) {
+					unset($object->{$k}[$k2]);
+				} else if (isset($object->{$k}[$k2]) && is_array($object->{$k}[$k2])) {
+					$object->{$k}[$k2] = array_merge_hard($object->{$k}[$k2], $v2);
+				} else {
+					$object->{$k}[$k2] = $v2;
+				}
+			}
+		} else {
+			$object->{$k} = $v;
+		}
+	}
 }

@@ -24,13 +24,14 @@ class system_dependencies {
 
 			// some array arrangements
 			$data = system_config::ini($main_dep_filename, 'dependencies');
-			$data = isset($data['dep']) ? $data['dep'] : [];
-			$data['composer'] = isset($data['composer']) ? $data['composer'] : [];
-			$data['submodule'] = isset($data['submodule']) ? $data['submodule'] : [];
-			$data['apache'] = isset($data['apache']) ? $data['apache'] : [];
-			$data['php'] = isset($data['php']) ? $data['php'] : [];
-			$data['model'] = isset($data['model']) ? $data['model'] : [];
-			$data['media'] = isset($data['media']) ? $data['media'] : [];
+			$data = $data['dep'] ?? [];
+			$data['composer'] = $data['composer'] ?? [];
+			$data['submodule'] = $data['submodule'] ?? [];
+			$data['apache'] = $data['apache'] ?? [];
+			$data['php'] = $data['php'] ?? [];
+			$data['model'] = $data['model'] ?? [];
+			$data['override'] = $data['override'] ?? [];
+			$data['media'] = $data['media'] ?? [];
 			$data['model_processed'] = [];
 
 			// we have small chicken and egg problem with composer
@@ -82,6 +83,9 @@ class system_dependencies {
 							}
 							if (!empty($sub_data['model'])) {
 								$data['model'] = array_merge2($data['model'], $sub_data['model']);
+							}
+							if (!empty($sub_data['override'])) {
+								$data['override'] = array_merge2($data['override'], $sub_data['override']);
 							}
 							if (!empty($sub_data['media'])) {
 								$data['media'] = array_merge2($data['media'], $sub_data['media']);
@@ -174,6 +178,45 @@ class system_dependencies {
 			// processing models
 			if (!empty($data['model'])) {
 				array_keys_to_string($data['model'], $data['model_processed']);
+			}
+
+			// handling overrides, cleanup directory first
+			foreach (new DirectoryIterator('./overrides/class') as $v) {
+				if(!$v->isDot()) {
+					unlink($v->getPathname());
+				}
+			}
+			if (!empty($data['override'])) {
+				array_keys_to_string($data['override'], $data['override_processed']);
+				$override_classes = [];
+				$override_found = false;
+				foreach ($data['override_processed'] as $k => $v) {
+					if (!isset($override_classes[$v])) {
+						$override_classes[$v] = [
+							'object' => new object_override_blank(),
+							'found' => false
+						];
+					}
+					$override_class = str_replace('.', '_', $k);
+					$override_object = new $override_class();
+					$vars = get_object_vars($override_object);
+					if (!empty($vars)) {
+						$override_classes[$v]['found'] = true;
+						$override_found = true;
+						object_merge_values($override_classes[$v]['object'], $vars);
+					}
+				}
+				// we need to write overrides to disk
+				if ($override_found) {
+					foreach ($override_classes as $k => $v) {
+						if ($v['found']) {
+							$class_code = "<?php\n\n" . '$object_override_blank_object = ' . var_export($v['object'], true) . ';';
+							$filename = './overrides/class/override_' . $k . '.php';
+							file_put_contents($filename, $class_code);
+							chmod($filename, 0777);
+						}
+					}
+				}
 			}
 
 			// updating composer.json file

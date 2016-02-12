@@ -115,6 +115,9 @@ class object_sequence {
 			'simple' => null,
 			'advanced' => null
 		];
+
+		// todo: move it to model
+
 		$db = new db($this->db_link);
 		$sequence_table_model = new numbers_backend_db_class_model_sequences();
 		$temp = $db->sequence($this->sequence_name, $sequence_table_model->table_name, $type);

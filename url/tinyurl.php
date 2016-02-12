@@ -1,6 +1,6 @@
 <?php
 
-class tinyurl implements numbers_backend_misc_tinyurl_interface_base {
+class url_tinyurl implements numbers_backend_misc_tinyurl_interface_base {
 
 	/**
 	 * Get url

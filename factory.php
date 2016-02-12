@@ -64,7 +64,7 @@ class factory {
 			$arguments[0] = array_merge_hard($options, $arguments[0]);
 		}
 		// we need to determine whether we need to use additional submodule
-		if (application::get($flag . '.' . $submodule . '.submodule')) {
+		if (application::get($flag . '.' . $submodule . '.submodule') && empty($arguments[0]['flag_call_previous_parent'])) {
 			return call_user_func_array([self::submodule($flag . '.' . $submodule . '.submodule'), $submodule], $arguments);
 		} else {
 			return call_user_func_array([self::submodule($flag . '.submodule'), $submodule], $arguments);

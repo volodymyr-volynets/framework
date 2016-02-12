@@ -21,86 +21,84 @@ class object_table {
 	 *
 	 * @var string
 	 */
-	public $table_name;
+	public $name;
 
 	/**
 	 * Table primary key in format ['id1'] or ['id1', 'id2', 'id3']
 	 *
 	 * @var array
 	 */
-	public $table_pk;
+	public $pk;
 
 	/**
-	 * Table default order
+	 * Table default order as array
+	 * Format:
+	 *		column 1 => asc or SORT_ASC
+	 *		column 2 => desc or SORT_DESC
 	 *
-	 * @var string or array
+	 * @var array
 	 */
-	public $table_orderby = null;
+	public $orderby = [];
 
 	/**
 	 * Table get limit
 	 *
 	 * @var int
 	 */
-	public $table_get_limit = 0;
+	public $get_limit = 0;
 
 	/**
 	 * Table columns
 	 *
 	 * @var array
 	 */
-	public $table_columns = [
+	public $columns = [
 		//'id' => array('name' => '#', 'type' => 'bigserial'),
 		//'name' => array('name' => 'Name', 'type' => 'varchar', 'length' => 255),
 	];
 
 	/**
-	 * Tables constraints
+	 * Table constraints
 	 *
 	 * @var array
 	 */
-	public $table_constraints = [
+	public $constraints = [
 		//'name_un' => array('type' => 'unique', 'columns' => ['name']),
 	];
 
 	/**
-	 * Tables indexes
+	 * Table indexes
 	 *
 	 * @var array
 	 */
-	public $table_indexes = [
+	public $indexes = [
 		//'name_idx' => array('type' => 'btree', 'columns' => ['name']),
 	];
-
-	/**
-	 * Final table columns after processing inheritance
-	 *
-	 * @var type
-	 */
-	public $table_columns_final;
 
 	/**
 	 * Whether its a table with a history, and we do point in time quering
 	 *
 	 * @var bool
 	 */
-	public $table_history = false;
+	public $history = false;
 
 	/**
 	 * Whether we need to keep audit log for this table
 	 *
 	 * @var bool
 	 */
-	public $table_audit = false;
+	public $audit = false;
 
 	/**
 	 * Table row details for crud::row() function
 	 *
 	 * @var type
 	 */
+	/* todo: refactor here
  	public $table_row_details = [
 		//'[model]' => ['map' => ['[filed from parent table]'=>'[field from child table]'], 'pk' => ['[arranges child data]'], 'counter' => '[conter filed form parent table]']
  	];
+	*/
 
 	/**
 	 * Mapping for crud::options(),
@@ -108,7 +106,7 @@ class object_table {
 	 *
 	 * @var array
 	 */
-	public $table_options_map = [
+	public $options_map = [
 		//'[table field]' => '[key in array]',
 	];
 
@@ -117,7 +115,7 @@ class object_table {
 	 *
 	 * @var type
 	 */
-	public $table_options_active = [
+	public $options_active = [
 		//'[table field]' => [value],
 	];
 
@@ -182,8 +180,8 @@ class object_table {
 
 		// processing table name
 		$ddl = factory::get(['db', $this->db_link, 'ddl_object']);
-		$temp = $ddl->is_schema_supported($this->table_name);
-		$this->table_name = $temp['full_table_name'];
+		$temp = $ddl->is_schema_supported($this->name);
+		$this->name = $temp['full_table_name'];
 	}
 
 	/**
@@ -194,7 +192,7 @@ class object_table {
 	 */
 	public function insert($data) {
 		$db = new db($this->db_link);
-		return $db->insert($this->table_name, [$data], null, ['returning' => $this->table_pk]);
+		return $db->insert($this->name, [$data], null, ['returning' => $this->pk]);
 	}
 
 	/**
@@ -206,7 +204,7 @@ class object_table {
 	 */
 	public function process_columns($data, $ignore_not_set_fields = false) {
 		$save = [];
-		foreach ($this->table_columns as $k => $v) {
+		foreach ($this->columns as $k => $v) {
 			if ($ignore_not_set_fields && !isset($data[$k]) && !array_key_exists($k, $data)) {
 				continue;
 			}
@@ -283,7 +281,7 @@ class object_table {
 		];
 
 		// populating fields
-		$save = $this->process_fields($data, isset($options['ignore_not_set_fields']) ? $options['ignore_not_set_fields'] : false);
+		$save = $this->process_columns($data, isset($options['ignore_not_set_fields']) ? $options['ignore_not_set_fields'] : false);
 
 		// verifying
 		do {
@@ -325,7 +323,7 @@ class object_table {
 
 			// saving record to database
 			$db = new db($this->db_link);
-			$result = $db->save($this->table_name, $save, $this->table_pk, $options);
+			$result = $db->save($this->name, $save, $this->pk, $options);
 			if ($result['success'] && $this->cache) {
 				// now we need to reset cache
 				if (empty($data['do_not_reset_cache'])) {
@@ -339,40 +337,40 @@ class object_table {
 	/**
 	 * Get data as an array of rows
 	 *
-	 * @param array $where
 	 * @param array $options
 	 *		no_cache
 	 *		search
+	 *		where - array of conditions
+	 *		orderby - array of columns to sort by
 	 * @return array
 	 */
-	public function get($where = [], $options = []) {
+	public function get($options = []) {
 		$options_query = array();
 		// if we are caching
 		if (!empty($this->cache) && empty($options['no_cache'])) {
 			$options_query['cache'] = true;
 		}
 		$options_query['cache_tags'] = !empty($this->cache_tags) ? array_values($this->cache_tags) : [];
-		$options_query['cache_tags'][] = $this->table_name;
+		$options_query['cache_tags'][] = $this->name;
 		// db object
 		$db = new db($this->db_link);
 		// where
 		$sql = '';
-		$sql.= !empty($where) ? (' AND ' . $db->prepare_condition($where)) : '';
+		$sql.= !empty($options['where']) ? (' AND ' . $db->prepare_condition($options['where'])) : '';
 		$sql.= !empty($options['search']) ? (' AND (' . $db->prepare_condition($options['search'], 'OR') . ')') : '';
 		// order by
-		if (!empty($options['orderby'])) {
-			$sql.= ' ORDER BY ' . $options['orderby'];
-		} else if ($this->table_orderby){
-			$sql.= ' ORDER BY ' . $this->table_orderby;
+		$orderby = $options['orderby'] ?? (!empty($this->orderby) ? $this->orderby : null);
+		if (!empty($orderby)) {
+			$sql.= ' ORDER BY ' . array_key_sort_prepare_keys($orderby, true);
 		}
 		// limit
 		if (!empty($options['limit'])) {
 			$sql.= ' LIMIT ' . $options['limit'];
-		} else if (!empty($this->table_get_limit)) {
-			$sql.= ' LIMIT ' . $this->table_get_limit;
+		} else if (!empty($this->get_limit)) {
+			$sql.= ' LIMIT ' . $this->get_limit;
 		}
 		// pk
-		$pk = array_key_exists('pk', $options) ? $options['pk'] : $this->table_pk;
+		$pk = array_key_exists('pk', $options) ? $options['pk'] : $this->pk;
 		// columns
 		if (!empty($options['columns'])) {
 			$columns = $db->prepare_expression($options['columns']);
@@ -380,7 +378,7 @@ class object_table {
 			$columns = '*';
 		}
 		// querying
-		$sql_full = 'SELECT ' . $columns . ' FROM ' . $this->table_name . ' WHERE 1=1' . $sql;
+		$sql_full = 'SELECT ' . $columns . ' FROM ' . $this->name . ' WHERE 1=1' . $sql;
 		// memory caching
 		if ($this->cache_memory) {
 			// hash is query + primary key

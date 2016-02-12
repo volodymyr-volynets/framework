@@ -39,6 +39,7 @@ class debug {
 		'errors' => [], // number of errors
 		'suppressed' => [], // if we need to see suppressed errors
 		'js' => [], // if we have javascript errors
+		'application' => []
 	];
 
 	/**
@@ -126,6 +127,7 @@ class debug {
 	public static function render() {
 		$loaded_classes = application::get(['application', 'loaded_classes']);
 		self::$data['session'] = [$_SESSION];
+		$application = application::get();
 		$result = '';
 		$result.= '<div class="container">';
 			$result.= '<table cellpadding="2" cellspacing="2" width="100%">';
@@ -139,6 +141,8 @@ class debug {
 										$count = count(error_base::$errors);
 									} else if ($k == 'classes') {
 										$count = count($loaded_classes);
+									} else if ($k == 'application') {
+										$count = count($application);
 									} else {
 										$count = count($v);
 									}
@@ -347,6 +351,7 @@ class debug {
 					$result.= '</td>';
 				$result.= '</tr>';
 
+				// javascript
 				$result.= '<tr id="debuging_toolbar_js" class="debuging_toolbar_class" style="display: none;">';
 					$result.= '<td>';
 						$result.= '<h3>Javascript Errors (' . count(self::$data['js']) . ')</h3>';
@@ -363,6 +368,14 @@ class debug {
 						$result.= '<div id="debuging_toolbar_js_data">';
 							$result.= '&nbsp;';
 						$result.= '</div>';
+					$result.= '</td>';
+				$result.= '</tr>';
+
+				// application
+				$result.= '<tr id="debuging_toolbar_application" class="debuging_toolbar_class" style="display: none;">';
+					$result.= '<td>';
+						$result.= '<h3>Application (' . count($application) . ')</h3>';
+						$result.= print_r2($application, true);
 					$result.= '</td>';
 				$result.= '</tr>';
 

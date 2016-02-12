@@ -138,4 +138,15 @@ class request {
 			return false;
 		}
 	}
+
+	/**
+	 * Redirect
+	 *
+	 * @param string $url
+	 */
+	public static function redirect($url) {
+		// todo: handle flow
+		header('Location: ' . $url);
+		exit;
+	}
 }

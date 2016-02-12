@@ -1,12 +1,13 @@
 <?php
 
-class object_type_content extends object_data {
-
-	/**
-	 * A list of content types
-	 *
-	 * @var array
-	 */
+class object_content_types extends object_data {
+	public $column_key = 'code';
+	public $column_prefix = 'no_content_type_';
+	public $columns = [
+		'code' => ['name' => 'Content Type', 'type' => 'varchar', 'length' => 100],
+		'name' => ['name' => 'Name', 'type' => 'text'],
+		'presentation' => ['name' => 'Is Presentational Flag', 'type' => 'boolean'],
+	];
 	public $data = [
 		// data transfer
 		'application/javascript' => ['name' => 'Javascript'],
@@ -23,7 +24,7 @@ class object_type_content extends object_data {
 	];
 
 	/**
-	 * Check if its a presentational content type
+	 * Check if its presentational type
 	 *
 	 * @param string $content_type
 	 * @return boolean

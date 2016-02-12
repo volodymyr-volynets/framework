@@ -56,12 +56,12 @@ class html /*implements numbers_frontend_html_interface_base*/ {
 	/**
 	 * Tag
 	 *
-	 * @param string $tag
 	 * @param array $options
+	 *		tag - defaulted to div
 	 * @return string
 	 */
-	public static function tag($tag, $options = []) {
-		return factory::delegate('flag.numbers.framework.html', 'tag', [$tag, $options]);
+	public static function tag($options = []) {
+		return factory::delegate('flag.numbers.framework.html', 'tag', [$options]);
 	}
 
 	/**
@@ -82,6 +82,19 @@ class html /*implements numbers_frontend_html_interface_base*/ {
 	 */
 	public static function input($options = []) {
 		return factory::delegate('flag.numbers.framework.html', 'input', [$options]);
+	}
+
+	/**
+	 * Input group
+	 *
+	 * @param array $options
+	 *		left - left elements
+	 *		right - right elements
+	 *		value - center element
+	 * @return string
+	 */
+	public static function input_group($options = []) {
+		return factory::delegate('flag.numbers.framework.html', 'input_group', [$options]);
 	}
 
 	/**
@@ -188,10 +201,30 @@ class html /*implements numbers_frontend_html_interface_base*/ {
 	 * Select
 	 *
 	 * @param array $options
+	 *		searchable - whether search is enabled
+	 *		tree - whether we have multi-level tree
+	 *		color_picker - whether its a color select
 	 * @return string
 	 */
 	public static function select($options = []) {
+		if (!empty($options['searchable'])) {
+			$options['searchable'] = 'searchable';
+		}
+		if (!empty($options['tree'])) {
+			$options['tree'] = 'tree';
+		}
+		if (!empty($options['color_picker'])) {
+			$options['color_picker'] = 'color_picker';
+		}
 		return factory::delegate('flag.numbers.framework.html', 'select', [$options]);
+	}
+
+	/**
+	 * see html::select() with multiple
+	 */
+	public static function multiselect($options = []) {
+		$options['multiple'] = true;
+		return self::select($options);
 	}
 
 	/**
@@ -217,6 +250,7 @@ class html /*implements numbers_frontend_html_interface_base*/ {
 	 *				type - becomes a class depends on backend
 	 *					for base - icon [type]
 	 *					for fontawesome - fa fa-[type]
+	 *				class_only - whether to return class only
 	 *
 	 * @return string
 	 */
@@ -228,6 +262,14 @@ class html /*implements numbers_frontend_html_interface_base*/ {
 	 * Calendar
 	 *
 	 * @param array $options
+	 *		calendar_type - date, datetime or time
+	 *		calendar_format - i.e. Y-m-d
+	 *		calendar_date_week_start_day - start day number
+	 *		calendar_date_disable_week_days - array of week days to be disabled
+	 *		calendar_master_id - id of master calendar
+	 *		calendar_slave_id - id of slave element
+	 *		calendar_placeholder - whether to display plaseholder based on calendar_type
+	 *		calendar_icon - left, right
 	 * @return string
 	 */
 	public static function calendar($options = []) {

@@ -274,22 +274,34 @@ class application {
 		$request_uri = $request_uri[0];
 
 		// determine action and controller
-		// todo: we need to make it flexible
 		$parts = explode('/', $request_uri);
+		// virtual controller
+		if (substr($parts[0], 0, 2) == '__') {
+			$virtual_object = new object_virtual_controllers();
+			$virtual_data = $virtual_object->get();
+			$key = substr($parts[0], 2);
+			if (isset($virtual_data[$key])) {
+				$temp = $parts;
+				unset($temp[0]);
+				$parts = explode('/', trim($virtual_data[$key]['no_virtual_controller_path'], '/'));
+				foreach ($temp as $v) {
+					$parts[] = $v;
+				}
+			}
+		}
 		$flag_action_found = false;
-		$flag_id_found = false;
-		foreach ($parts as $part) {
-			if (empty($part)) continue;
-			if (strpos($part, '~')!==false) {
+		foreach ($parts as $v) {
+			if ($v[0] == '_' && !$flag_action_found) {
 				$flag_action_found = true;
-				$result['action'] = str_replace('~', '', $part);
+				$result['action'] = str_replace('_', '', $v);
 				continue;
 			}
 			if (!$flag_action_found) {
-				$result['controllers'][] = $part;
+				$result['controllers'][] = $v;
 			}
 			if ($flag_action_found) {
-				$result['id'] = $part;
+				$result['id'] = $v;
+				break;
 			}
 		}
 
@@ -314,7 +326,7 @@ class application {
 			$result['action'] = 'index';
 		}
 		// full string
-		$result['full'] = $result['controller'] . '/~' . $result['action'];
+		$result['full'] = $result['controller'] . '/_' . $result['action'];
 		return $result;
 	}
 
@@ -339,6 +351,8 @@ class application {
 
 		// parsing request
 		$data = self::mvc($request_uri);
+//		print_r2($data);
+//		exit;
 
 		// forming class name and file
 		if (in_array('controller', $data['controllers'])) {
@@ -353,6 +367,7 @@ class application {
 		self::$settings['mvc'] = $data;
 		self::$settings['mvc']['controller_class'] = $controller_class;
 		self::$settings['mvc']['controller_action'] = 'action_' . $data['action'];
+		self::$settings['mvc']['controller_id'] = $data['id'];
 		self::$settings['mvc']['controller_view'] = $data['action'];
 		self::$settings['mvc']['controller_layout'] = 'index';
 		self::$settings['mvc']['controller_file'] = $file;
@@ -519,7 +534,7 @@ class application {
 	 */
 	public static function process_magic_variables() {
 		// content type
-		$object = new object_type_content();
+		$object = new object_content_types();
 		$data = $object->get();
 		if (isset($_GET['__content_type']) && isset($data[$_GET['__content_type']])) {
 			self::$settings['flag']['global']['__content_type'] = $_GET['__content_type'];

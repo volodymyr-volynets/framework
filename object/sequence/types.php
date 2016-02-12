@@ -1,12 +1,6 @@
 <?php
 
-class object_type_sequence {
-
-	/**
-	 * A list of sequence types
-	 *
-	 * @var array
-	 */
+class object_sequence_types {
 	public $data = [
 		'simple' => ['name' => 'Simple'],
 		'advanced' => ['name' => 'Advanced']

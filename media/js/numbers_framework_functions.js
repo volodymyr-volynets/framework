@@ -422,3 +422,16 @@ function array_key_get(arr, keys) {
 		return null;
 	}
 }
+
+/**
+ * Strip tags
+ * @param string str
+ * @param string allowable_tags
+ * @returns string
+ */
+function strip_tags(str, allowable_tags) {
+	allowable_tags = (((allowable_tags || '') + '').toLowerCase().match(/<[a-z][a-z0-9]*>/g) || []).join('');
+	return str.replace(/<!--[\s\S]*?-->|<\?(?:php)?[\s\S]*?\?>/gi, '').replace(/<\/?([a-z][a-z0-9]*)\b[^>]*>/gi, function($0, $1) {
+		return allowable_tags.indexOf('<' + $1.toLowerCase() + '>') > -1 ? $0 : '';
+	});
+}

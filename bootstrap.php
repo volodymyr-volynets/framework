@@ -163,7 +163,7 @@ class bootstrap {
 					$temp = @ob_get_clean();
 					print_r(error_base::$errors);
 				} else {
-					application::set_mvc('/error/~error/500');
+					application::set_mvc('/error/_error/500');
 					application::process();
 				}
 			}
