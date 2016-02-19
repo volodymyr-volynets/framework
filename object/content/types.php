@@ -22,15 +22,4 @@ class object_content_types extends object_data {
 		// images
 		'image/png' => ['name' => 'Png Image'],
 	];
-
-	/**
-	 * Check if its presentational type
-	 *
-	 * @param string $content_type
-	 * @return boolean
-	 */
-	public function is_presentational($content_type) {
-		$data = $this->get(['presentation' => 1]);
-		return !empty($data[$content_type]);
-	}
 }

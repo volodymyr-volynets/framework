@@ -291,9 +291,12 @@ class application {
 		}
 		$flag_action_found = false;
 		foreach ($parts as $v) {
-			if ($v[0] == '_' && !$flag_action_found) {
+			if ($v . '' == '') {
+				continue;
+			}
+			if (isset($v[0]) && $v[0] == '_' && !$flag_action_found) {
 				$flag_action_found = true;
-				$result['action'] = str_replace('_', '', $v);
+				$result['action'] = substr($v, 1);
 				continue;
 			}
 			if (!$flag_action_found) {
@@ -304,7 +307,6 @@ class application {
 				break;
 			}
 		}
-
 		// set default values for action and controller
 		if (empty($result['controllers'])) {
 			$result['controllers'][] = 'index';
@@ -369,7 +371,7 @@ class application {
 		self::$settings['mvc']['controller_action'] = 'action_' . $data['action'];
 		self::$settings['mvc']['controller_id'] = $data['id'];
 		self::$settings['mvc']['controller_view'] = $data['action'];
-		self::$settings['mvc']['controller_layout'] = 'index';
+		self::$settings['mvc']['controller_layout'] = self::$settings['application']['layout']['layout'] ?? 'index';
 		self::$settings['mvc']['controller_file'] = $file;
 	}
 

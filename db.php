@@ -192,12 +192,11 @@ class db implements numbers_backend_db_interface_base {
 	 * Generate sequence
 	 *
 	 * @param string $sequence_name
-	 * @param string $sequence_table
-	 * @param string $type
+	 * @param string $type - nextval or curval
 	 * @return array
 	 */
-	public function sequence($sequence_name, $sequence_table, $type) {
-		return $this->object->sequence($sequence_name, $sequence_table, $type);
+	public function sequence($sequence_name, $type = 'nextval') {
+		return $this->object->sequence($sequence_name, $type);
 	}
 
 	/**

@@ -287,6 +287,16 @@ class html /*implements numbers_frontend_html_interface_base*/ {
 	}
 
 	/**
+	 * Menu
+	 *
+	 * @param type $options
+	 *		options - array of menu items
+	 */
+	public static function menu($options = []) {
+		return factory::delegate('flag.numbers.framework.html', 'menu', [$options]);
+	}
+
+	/**
 	 * Convert array of percentages to grid columns
 	 *
 	 * @param mixed $percentage_array

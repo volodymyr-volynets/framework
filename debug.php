@@ -128,8 +128,7 @@ class debug {
 		$loaded_classes = application::get(['application', 'loaded_classes']);
 		self::$data['session'] = [$_SESSION];
 		$application = application::get();
-		$result = '';
-		$result.= '<div class="container">';
+		$result = '<div class="container">';
 			$result.= '<table cellpadding="2" cellspacing="2" width="100%">';
 				$result.= '<tr>';
 					$result.= '<td>';
@@ -379,7 +378,7 @@ class debug {
 					$result.= '</td>';
 				$result.= '</tr>';
 
-			$result.= '<table>';
+			$result.= '</table>';
 		$result.= '</div>';
 		return $result;
 	}

@@ -160,6 +160,25 @@ class object_data extends object_override_data {
 	}
 
 	/**
+	 * @see $this->get()
+	 * @return boolean
+	 */
+	public function exists($options = []) {
+		$data = $this->get($options);
+		return !empty($data);
+	}
+
+	/**
+	 * @see $this->get()
+	 * @return boolean
+	 */
+	public static function exists_static($options = []) {
+		$class = get_called_class();
+		$object = new $class();
+		return $object->exists($options);
+	}
+
+	/**
 	 * Generate options
 	 *
 	 * @see $this->get()

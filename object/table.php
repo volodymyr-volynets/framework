@@ -304,23 +304,6 @@ class object_table {
 				break;
 			}
 
-			// processing sequence
-			/* todo: fix sequence here!!!
-			if (!empty($this->save_columns)) {
-				$settings = new model_co_settings();
-				foreach ($this->save_columns as $k=>$v) {
-					if (!empty($save[$k])) continue;
-					if (!empty($v['sequence'])) {
-						if (@$v['sequence']['extended']) {
-							$save[$k] = $settings->extended_sequence($v['sequence']['ledger'], $v['sequence']['key']);
-						} else {
-							$save[$k] = $settings->sequence($v['sequence']['ledger'], $v['sequence']['key']);
-						}
-					}
-				}
-			}
-			*/
-
 			// saving record to database
 			$db = new db($this->db_link);
 			$result = $db->save($this->name, $save, $this->pk, $options);

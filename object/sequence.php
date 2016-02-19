@@ -21,42 +21,35 @@ class object_sequence {
 	 *
 	 * @var string
 	 */
-	public $sequence_name;
-
-	/**
-	 * Sequence table
-	 *
-	 * @var string
-	 */
-	public $sequence_table;
+	public $name;
 
 	/**
 	 * Sequence type
 	 *
 	 * @var string
 	 */
-	public $sequence_type = "simple";
+	public $type = "simple";
 
 	/**
 	 * Sequence prefix
 	 *
 	 * @var string
 	 */
-	public $sequence_prefix;
+	public $prefix;
 
 	/**
 	 * Sequence length
 	 *
 	 * @var int
 	 */
-	public $sequence_length;
+	public $length = 0;
 
 	/**
 	 * Sequence suffix
 	 *
 	 * @var string
 	 */
-	public $sequence_suffix;
+	public $suffix;
 
 	/**
 	 * Constructing object
@@ -81,8 +74,8 @@ class object_sequence {
 		}
 		// processing sequence name
 		$ddl = factory::get(['db', $this->db_link, 'ddl_object']);
-		$temp = $ddl->is_schema_supported($this->sequence_name);
-		$this->sequence_name = $temp['full_table_name'];
+		$temp = $ddl->is_schema_supported($this->name);
+		$this->name = $temp['full_table_name'];
 	}
 
 	/**
@@ -119,8 +112,8 @@ class object_sequence {
 		// todo: move it to model
 
 		$db = new db($this->db_link);
-		$sequence_table_model = new numbers_backend_db_class_model_sequences();
-		$temp = $db->sequence($this->sequence_name, $sequence_table_model->table_name, $type);
+		$table_model = new numbers_backend_db_class_model_sequences();
+		$temp = $db->sequence($this->name, $table_model->name, $type);
 		if (!$temp['success']) {
 			$result['error'] = $temp['error'];
 		} else if (!empty($temp['rows'][0])) {

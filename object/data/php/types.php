@@ -1,6 +1,6 @@
 <?php
 
-class object_data_php_type {
+class object_data_php_types {
 	public $column_key = 'code';
 	public $column_prefix = null; // you must not change it !!!
 	public $columns = [
@@ -11,7 +11,7 @@ class object_data_php_type {
 		'integer' => ['name' => 'Integer'],
 		'float' => ['name' => 'Float'],
 		'string' => ['name' => 'String'],
-		'array' => ['name' => 'array'],
+		'array' => ['name' => 'Array'],
 		'mixed' => ['name' => 'Mixed']
 	];
 }
