@@ -42,7 +42,7 @@ function swap(& $a, & $b, $min = true) {
  * @return array
  */
 function array_merge_values($arr, $val) {
-	foreach ($arr as $k=>$v) {
+	foreach ($arr as $k => $v) {
 		$arr[$k] = array_merge2($v, $val);
 	}
 	return $arr;
@@ -133,24 +133,6 @@ function print_r2($data, $return = false) {
 		return '<pre>' . print_r($data, true) . '</pre>';
 	} else {
 		echo '<pre>' . print_r($data, true) . '</pre>';
-	}
-}
-
-/**
- * Natural sort by array key
- * 
- * @param unknown_type $arr
- */
-function natsort2(& $arr, $field = 'name') {
-	$temp = [];
-	foreach ($arr as $k=>$v) {
-		$temp[$k] = $v[$field];
-	}
-	natsort($temp);
-	$data = $arr;
-	$arr = [];
-	foreach ($temp as $k=>$v) {
-		$arr[$k] = $data[$k];
 	}
 }
 
@@ -248,11 +230,10 @@ function array_merge_hard($arr1, $arr2) {
  * @return array
  */
 function extract_keys($keys, $data) {
-	$keys = is_array($keys) ? $keys : array($keys);
-	// where clause
-	$result = array();
-	foreach ($keys as $key) {
-		$result[$key] = @$data[$key];
+	$keys = is_array($keys) ? $keys : [$keys];
+	$result = [];
+	foreach ($keys as $k) {
+		$result[$k] = $data[$k] ?? null;
 	}
 	return $result;
 }
@@ -310,7 +291,7 @@ function remap(& $data, $map) {
 					$result[$k][$v2].= ', ' . $v[$k2];
 				}
 			} else {
-				$result[$k][$v2] = @$v[$k2];
+				$result[$k][$v2] = $v[$k2] ?? null;
 			}
 		}
 	}
@@ -352,6 +333,22 @@ function array_key_sort(& $arr, $keys, $methods = []) {
 		}
 	}
 	$arr = $final;
+}
+
+/**
+ * Prefix and suffix string to keys in array
+ *
+ * @param array $arr
+ * @param string $prefix
+ * @param string $suffix
+ */
+function array_key_prefix_and_suffix(& $arr, $prefix, $suffix) {
+	if ($prefix . '' != '' || $suffix . '' != '') {
+		foreach ($arr as $k => $v) {
+			$arr[$prefix . $k . $suffix] = $v;
+			unset($arr[$k]);
+		}
+	}
 }
 
 /**

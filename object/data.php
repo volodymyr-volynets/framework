@@ -77,6 +77,16 @@ class object_data extends object_override_data {
 	];
 
 	/**
+	 * Mapping for optmultis() method
+	 *
+	 * @var array
+	 */
+	public $optmultis_map = [
+		//'column' => ['alias' => '[alias name]', 'model' => '[model name]'],
+		//'column' => ['alias' => '[alias name]', 'column' => '[column name]'],
+	];
+
+	/**
 	 * Constructor
 	 */
 	public function __construct() {
@@ -97,6 +107,7 @@ class object_data extends object_override_data {
 	 * @return array
 	 */
 	public function get($options = []) {
+		// get available data types
 		if (get_called_class() == 'object_data_types') {
 			$types = $this->data;
 		} else {
@@ -109,6 +120,7 @@ class object_data extends object_override_data {
 				if ($this->column_key == $k2) {
 					$result[$k][$this->column_prefix . $k2] = $k;
 				} else if (!array_key_exists($k2, $v)) {
+					// todo: add domain handling
 					$result[$k][$this->column_prefix . $k2] = $v2['default'] ?? $types[$v2['type']]['no_data_type_default'] ?? null;
 				} else {
 					$result[$k][$this->column_prefix . $k2] = $v[$k2];
@@ -131,8 +143,8 @@ class object_data extends object_override_data {
 				}
 			}
 		}
-		// sorting, if none specified we sort by name
-		$orderby = $options['orderby'] ?? (!empty($this->orderby) ? $this->orderby : [$this->column_prefix . 'name' => SORT_ASC]);
+		// sorting, if none specified we sort by name if its in columns
+		$orderby = $options['orderby'] ?? (!empty($this->orderby) ? $this->orderby : (isset($this->columns['name']) ? [$this->column_prefix . 'name' => SORT_ASC] : null));
 		if (!empty($orderby)) {
 			$method = [];
 			foreach ($orderby as $k => $v) {
@@ -144,6 +156,7 @@ class object_data extends object_override_data {
 			array_key_sort($result, $orderby, $method);
 		}
 		// if we have primary key
+		$pk = $options['pk'] ?? $this->pk;
 		if (!empty($pk)) {
 			pk($pk, $result);
 		}
@@ -179,47 +192,55 @@ class object_data extends object_override_data {
 	}
 
 	/**
-	 * Generate options
+	 * Options
 	 *
 	 * @see $this->get()
 	 */
 	public function options($options = []) {
 		$data = $this->get($options);
-		return remap($data, !empty($this->options_map) ? $this->options_map : [$this->column_prefix . 'name' => 'name']);
+		$options_map = !empty($this->options_map) ? $this->options_map : ['name' => 'name'];
+		if ($this->column_prefix !== null) {
+			array_key_prefix_and_suffix($options_map, $this->column_prefix, null);
+		}
+		return object_data_common::options($data, $options_map);
 	}
 
 	/**
-	 * Generate optgroups
+	 * Optgroups
 	 *
 	 * @see $this->get()
 	 */
 	public function optgroups($options = []) {
 		$data = $this->get($options);
-		$column = !empty($this->optgroups_map['column']) ? $this->optgroups_map['column'] : ($this->column_prefix . 'name');
-		$model = !empty($this->optgroups_map['model']) ? $this->optgroups_map['model'] : null;
-		if ($model) {
-			$object = new $model();
-			$model_names = $object->options();
+		$options_map = !empty($this->options_map) ? $this->options_map : ['name' => 'name'];
+		if ($this->column_prefix !== null) {
+			array_key_prefix_and_suffix($options_map, $this->column_prefix, null);
+		}
+		if (!empty($this->optgroups_map)) {
+			$optgroups_map = $this->optgroups_map;
+			$optgroups_map['column'] = $this->column_prefix . $optgroups_map['column'];
+			return object_data_common::optgroups($data, $optgroups_map, $options_map);
 		} else {
-			$model_names = [];
+			return object_data_common::options($data, $options_map);
 		}
-		$result = [];
-		foreach ($data as $k => $v) {
-			if (!isset($result[$v[$column]])) {
-				$result[$v[$column]] = [
-					'name' => $model_names[$v[$column]]['name'] ?? $v[$column],
-					'options' => []
-				];
+	}
+
+	/**
+	 * Multi level options
+	 *
+	 * @see $this->get()
+	 */
+	public function optmultis($options = []) {
+		if (empty($this->optmultis_map)) {
+			return [];
+		} else {
+			$data = $this->get($options);
+			$optmultis_map = $this->optmultis_map;
+			if ($this->column_prefix !== null) {
+				array_key_prefix_and_suffix($optmultis_map, $this->column_prefix, null);
 			}
-			$result[$v[$column]]['options'][$k] = $v;
+			return object_data_common::optmultis($data, $optmultis_map);
 		}
-		// sorting and remapping
-		$options_map = !empty($this->options_map) ? $this->options_map : [$this->column_prefix . 'name' => 'name'];
-		foreach ($result as $k => $v) {
-			$result[$k]['options'] = remap($result[$k]['options'], $options_map);
-		}
-		array_key_sort($result, ['name' => SORT_ASC]);
-		return $result;
 	}
 
 	// todo: add options_active()

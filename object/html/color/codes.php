@@ -10,7 +10,7 @@ class object_html_color_codes extends object_data {
 		'group' => ['name' => 'Color Group', 'domain' => 'html_color_group']
 	];
 	public $optgroups_map = [
-		'column' => 'no_html_color_code_group',
+		'column' => 'group',
 		'model' => 'object_html_color_groups'
 	];
 	public $data = [
@@ -102,7 +102,7 @@ class object_html_color_codes extends object_data {
 		'20B2AA' => ['name' => 'Light Sea Green', 'html_name' => 'lightseagreen', 'group' => 'greens'],
 		'008B8B' => ['name' => 'Dark Cyan', 'html_name' => 'darkcyan', 'group' => 'greens'],
 		// Blue(s) 
-	    	'E0FFFF' => ['name' => 'Light Cyan', 'html_name' => 'lightcyan', 'group' => 'blues'],
+		'E0FFFF' => ['name' => 'Light Cyan', 'html_name' => 'lightcyan', 'group' => 'blues'],
 		'AFEEEE' => ['name' => 'Pale Turquoise', 'html_name' => 'paleturquoise', 'group' => 'blues'],
 		'7FFFD4' => ['name' => 'Aquamarine', 'html_name' => 'aquamarine', 'group' => 'blues'],
 		'40E0D0' => ['name' => 'Turquoise', 'html_name' => 'turquoise', 'group' => 'blues'],
@@ -124,7 +124,7 @@ class object_html_color_codes extends object_data {
 		'00008B' => ['name' => 'Dark Blue', 'html_name' => 'darkblue', 'group' => 'blues'],
 		'191970' => ['name' => 'Midnight Blue', 'html_name' => 'midnightblue', 'group' => 'blues'],
 		// Brown(s)
-	    	'FFF8DC' => ['name' => 'Cornsilk', 'html_name' => 'cornsilk', 'group' => 'browns'],
+		'FFF8DC' => ['name' => 'Cornsilk', 'html_name' => 'cornsilk', 'group' => 'browns'],
 		'FFEBCD' => ['name' => 'Blanched Almond', 'html_name' => 'blanchedalmond', 'group' => 'browns'],
 		'FFE4C4' => ['name' => 'Bisque', 'html_name' => 'bisque', 'group' => 'browns'],
 		'FFDEAD' => ['name' => 'Navajo White', 'html_name' => 'navajowhite', 'group' => 'browns'],
@@ -141,7 +141,7 @@ class object_html_color_codes extends object_data {
 		'A0522D' => ['name' => 'Sienna', 'html_name' => 'sienna', 'group' => 'browns'],
 		'A52A2A' => ['name' => 'Brown', 'html_name' => 'brown', 'group' => 'browns'],
 		// White(s)
-	        'FFFAFA' => ['name' => 'Snow', 'html_name' => 'snow', 'group' => 'whites'],
+		'FFFAFA' => ['name' => 'Snow', 'html_name' => 'snow', 'group' => 'whites'],
 		'F0FFF0' => ['name' => 'Honeydew', 'html_name' => 'honeydew', 'group' => 'whites'],
 		'F5FFFA' => ['name' => 'Mint Cream', 'html_name' => 'mintcream', 'group' => 'whites'],
 		'F0FFFF' => ['name' => 'Azure', 'html_name' => 'azure', 'group' => 'whites'],

@@ -11,10 +11,10 @@ class object_html_menu extends object_data {
 		'parent' => ['name' => 'Parent', 'type' => 'varchar', 'length' => 50]
 	];
 	public $options_map = [
-		'no_object_html_menu_name' => 'name',
-		'no_object_html_menu_i18n' => 'i18n',
-		'no_object_html_menu_url' => 'url',
-		'no_object_html_menu_parent' => 'parent',
+		'name' => 'name',
+		'i18n' => 'i18n',
+		'url' => 'url',
+		'parent' => 'parent'
 	];
 	public $data = [
 		'test.test.test1' => ['name' => 'Test 1', 'url' => '/', 'parent' => null],

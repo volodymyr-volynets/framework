@@ -6,6 +6,7 @@ class object_virtual_controllers extends object_data {
 	public $columns = [
 		'code' => ['name' => 'Controller Code', 'type' => 'varchar', 'length' => 100],
 		'name' => ['name' => 'Name', 'type' => 'text'],
+		// full controller path, for example /numbers/backend/misc/tinyurl/db/controller/tinyurl
 		'path' => ['name' => 'Path', 'type' => 'text'],
 	];
 	public $data = [
