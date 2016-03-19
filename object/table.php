@@ -45,7 +45,14 @@ class object_table {
 	 *
 	 * @var int
 	 */
-	public $get_limit = 0;
+	public $limit = 0;
+
+	/**
+	 * Column prefix
+	 *
+	 * @var string
+	 */
+	public $column_prefix;
 
 	/**
 	 * Table columns
@@ -90,15 +97,11 @@ class object_table {
 	public $audit = false;
 
 	/**
-	 * Table row details for crud::row() function
+	 * Table engine
 	 *
-	 * @var type
+	 * @var array
 	 */
-	/* todo: refactor here
- 	public $table_row_details = [
-		//'[model]' => ['map' => ['[filed from parent table]'=>'[field from child table]'], 'pk' => ['[arranges child data]'], 'counter' => '[conter filed form parent table]']
- 	];
-	*/
+	public $engine = [];
 
 	/**
 	 * Mapping for crud::options(),
@@ -349,8 +352,8 @@ class object_table {
 		// limit
 		if (!empty($options['limit'])) {
 			$sql.= ' LIMIT ' . $options['limit'];
-		} else if (!empty($this->get_limit)) {
-			$sql.= ' LIMIT ' . $this->get_limit;
+		} else if (!empty($this->limit)) {
+			$sql.= ' LIMIT ' . $this->limit;
 		}
 		// pk
 		$pk = array_key_exists('pk', $options) ? $options['pk'] : $this->pk;
