@@ -9,8 +9,7 @@ class view {
 	 * @param string $file
 	 * @return object
 	 */
-	public function __construct(& $controller, $file, $type = 'html')
-	{
+	public function __construct(& $controller, $file, $type = 'html') {
 		// get values from controller
 		$vars = get_object_vars($controller);
 		foreach ($vars as $k=>$v) {

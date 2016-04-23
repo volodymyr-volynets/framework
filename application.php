@@ -62,10 +62,11 @@ class application {
 	/**
 	 * Run application
 	 * 
-	 * @param string $application_name
-	 * @param string $application_path
-	 * @param string $environment
 	 * @param array $options
+	 *		string application_name
+	 *		string application_path
+	 *		string ini_folder
+	 *		boolean __run_only_bootstrap
 	 * @throws Exception
 	 */
 	public static function run($options = []) {
@@ -77,11 +78,11 @@ class application {
 
 		// working directory is location of the application
 		chdir($application_path);
-		$application_path_new = getcwd();
+		$application_path_full = getcwd();
 
 		// setting include_path
 		$paths = [];
-		$paths[] = $application_path_new;
+		$paths[] = $application_path_full;
 		$paths[] = __DIR__;
 		$paths[] = str_replace('/numbers/framework', '', __DIR__);
 		set_include_path(implode(PATH_SEPARATOR, $paths));
@@ -106,6 +107,7 @@ class application {
 		}
 		self::$settings['application']['name'] = $application_name;
 		self::$settings['application']['path'] = $application_path;
+		self::$settings['application']['path_full'] = $application_path_full . '/';
 		self::$settings['application']['loaded_classes'] = []; // class paths
 		self::$settings['layout'] = []; // layout settings
 
@@ -188,6 +190,7 @@ class application {
 			}
 		}
 
+		// process parameters and provide output
 		self::process();
 
 		// release singleton lock
@@ -353,8 +356,6 @@ class application {
 
 		// parsing request
 		$data = self::mvc($request_uri);
-//		print_r2($data);
-//		exit;
 
 		// forming class name and file
 		if (in_array('controller', $data['controllers'])) {
@@ -372,6 +373,8 @@ class application {
 		self::$settings['mvc']['controller_id'] = $data['id'];
 		self::$settings['mvc']['controller_view'] = $data['action'];
 		self::$settings['mvc']['controller_layout'] = self::$settings['application']['layout']['layout'] ?? 'index';
+		self::$settings['mvc']['controller_layout_extension'] = (self::$settings['application']['layout']['extension'] ?? 'html');
+		self::$settings['mvc']['controller_layout_file'] = application::get(['application', 'path_full']) . 'layout/' . self::$settings['mvc']['controller_layout'] . '.' . self::$settings['mvc']['controller_layout_extension'];
 		self::$settings['mvc']['controller_file'] = $file;
 	}
 
@@ -381,12 +384,8 @@ class application {
 	 * @return string
 	 */
 	public static function process($options = []) {
-
-		// get buffer content in case it is auto mode
-		$buffer = ob_end_clean();
-
 		// start buffering
-		ob_start();
+		helper_ob::start(true);
 
 		$controller_class = self::$settings['mvc']['controller_class'];
 
@@ -403,7 +402,7 @@ class application {
 			}
  		}
 
- 		// auto populating input property in controller
+		// auto populating input property in controller
  		if (!empty(self::$settings['application']['controller']['input'])) {
  			$controller->input = request::input(null, true, true);
  		}
@@ -420,10 +419,11 @@ class application {
 		}
 
 		// calling action
-		call_user_func(array($controller, $action));
+		echo call_user_func(array($controller, $action));
 
 		// auto rendering view only if view exists, processing extension order as specified in .ini file
-		$controller_dir = pathinfo(self::$settings['application']['loaded_classes'][$controller_class]['file'], PATHINFO_DIRNAME) . '/';
+		$temp_reflection_obj = new ReflectionClass($controller);
+		$controller_dir = pathinfo($temp_reflection_obj->getFileName(), PATHINFO_DIRNAME) . '/';
 		$controller_file = end(self::$settings['mvc']['controllers']);
 		$view = self::$settings['mvc']['controller_view'];
 		$flag_view_found = false;
@@ -447,20 +447,18 @@ class application {
 		layout::include_media($controller_dir, $controller_file, $view, $controller_class);
 
 		// appending view after controllers output
-		$controller->view = (isset($controller->view) ? $controller->view : '') . ob_get_clean();
+		$controller->view = (isset($controller->view) ? $controller->view : '') . helper_ob::clean();
 
 		// if we have to render debug toolbar
 		if (debug::$toolbar) {
-			ob_start();
+			helper_ob::start();
 		}
 
 		// rendering layout
 		if (!empty(self::$settings['mvc']['controller_layout'])) {
-			ob_start();
-			$extension = isset(self::$settings['application']['layout']['extension']) ? self::$settings['application']['layout']['extension'] : 'html';
-			$file = './layout/' . self::$settings['mvc']['controller_layout'] . '.' . $extension;
-			if (file_exists($file)) {
-				$controller = new layout($controller, $file);
+			helper_ob::start();
+			if (file_exists(self::$settings['mvc']['controller_layout_file'])) {
+				$controller = new layout($controller, self::$settings['mvc']['controller_layout_file'], self::$settings['mvc']['controller_layout_extension']);
 			}
 			// buffer output and handling javascript files, chicken and egg problem
 			$from = [
@@ -485,19 +483,15 @@ class application {
 				layout::render_actions(),
 				layout::render_breadcrumbs()
 			];
-			echo str_replace($from, $to, ob_get_clean());
+			echo str_replace($from, $to, helper_ob::clean());
 		} else {
 			echo $controller->view;
-		}
-
-		// flushing
-		if (!debug::$toolbar) {
-			flush();
 		}
 	}
 
 	/**
 	 * Changing view or layout
+	 *
 	 * @param string $what [layout,view]
 	 * @param string $how
 	 */

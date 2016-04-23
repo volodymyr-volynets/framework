@@ -1,6 +1,6 @@
 <?php
 
-class ftp {
+class helper_ftp {
 
 	/**
 	 * This would upload file to the ftp site, it will also change and create
@@ -149,9 +149,13 @@ class ftp {
 	 */
 	public static function mkdir($ftp_stream, $dir) {
 		// if directory already exists or can be immediately created return true
-		if (self::isDir($ftp_stream, $dir) || @ftp_mkdir($ftp_stream, $dir)) return true;
+		if (self::is_dir($ftp_stream, $dir) || @ftp_mkdir($ftp_stream, $dir)) {
+			return true;
+		}
 		// otherwise recursively try to make the directory
-		if (!self::mkdir($ftp_stream, dirname($dir))) return false;
+		if (!self::mkdir($ftp_stream, dirname($dir))) {
+			return false;
+		}
 		// final step to create the directory
 		return ftp_mkdir($ftp_stream, $dir);
 	}

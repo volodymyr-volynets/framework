@@ -1,11 +1,6 @@
 <?php
 
-/**
- * 
- * @author Volodymyr Volynets
- *
- */
-class file {
+class helper_file {
 
 	/**
 	 * Extensions we allow to upload
@@ -31,7 +26,7 @@ class file {
 	 */
 	public static function write($filename, $data, $permission = 0777, $flags = LOCK_EX) {
 		if (file_put_contents($filename, $data, $flags) !== false) {
-			@chmod($filename, $permission);
+			chmod($filename, $permission);
 			return true;
 		}
 		return false;
@@ -45,6 +40,16 @@ class file {
 	 */
 	public static function read($filename) {
 		return file_get_contents($filename);
+	}
+
+	/**
+	 * Delete file
+	 *
+	 * @param string $filename
+	 * @return boolean
+	 */
+	public static function delete($filename) {
+		return unlink($filename);
 	}
 
 	/**
@@ -124,20 +129,74 @@ class file {
 	}
 
 	/**
-	 * Remove directory with its content
+	 * Remove directorys content and optionally itself
 	 * 
-	 * @param unknown_type $dir
+	 * @param string $dir
+	 * @param arary $options
+	 *		only_contents - whether to remove directory contents only
+	 *		skip_files - array of files to skip
+	 * @return boolean
 	 */
-	public static function rmdir($dir) {
+	public static function rmdir($dir, $options = []) {
 		if (is_dir($dir)) {
+			$skip_files = [];
+			if (!empty($options['skip_files'])) {
+				$skip_files = $options['skip_files'];
+				$options['only_contents'] = true;
+			}
+			$skip_files[] = '.';
+			$skip_files[] = '..';
 			$objects = scandir($dir);
-			foreach ($objects as $object) {
-				if ($object != "." && $object != "..") {
-					if (filetype($dir."/".$object) == "dir") file::rmdir($dir."/".$object); else unlink($dir."/".$object);
+			foreach ($objects as $v) {
+				if (!in_array($v, $skip_files)) {
+					if (filetype($dir . '/' . $v) == 'dir') {
+						self::rmdir($dir . '/' . $v, $options);
+					} else {
+						self::delete($dir . '/' . $v);
+					}
 				}
 			}
-			reset($objects);
-			rmdir($dir);
+			if (empty($options['only_contents'])) {
+				return rmdir($dir);
+			} else {
+				return true;
+			}
 		}
+		return false;
+	}
+
+	/**
+	 * Iterate over directory
+	 *
+	 * @param string $dir
+	 * @param array $options
+	 *		boolean recursive
+	 *		array only_extensions
+	 * @return array
+	 */
+	public static function iterate($dir, $options = []) {
+		$result = [];
+		if (empty($options['recursive'])) {
+			$iterator = new DirectoryIterator($dir);
+		} else {
+			$iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($dir));
+		}
+		foreach ($iterator as $v) {
+			if (method_exists($v, 'isDot')) {
+				if ($v->isDot()) {
+					continue;
+				}
+			} else {
+				$filename = $v->getFilename();
+				if ($filename === '.' || $filename === '..') {
+					continue;
+				}
+			}
+			if (!empty($options['only_extensions']) && !in_array($v->getExtension(), $options['only_extensions'])) {
+				continue;
+			}
+			$result[] = $v->getPathname();
+		}
+		return $result;
 	}
 }

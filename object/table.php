@@ -324,10 +324,13 @@ class object_table {
 	 * Get data as an array of rows
 	 *
 	 * @param array $options
-	 *		no_cache
-	 *		search
-	 *		where - array of conditions
+	 *		no_cache - if we need to skip caching
+	 *		search - array of search condition
+	 *		where - array of where conditions
 	 *		orderby - array of columns to sort by
+	 *		pk - primary key to be used by query
+	 *		columns - if we need to get certain columns
+	 *		limit - set this integer if we need to limit query
 	 * @return array
 	 */
 	public function get($options = []) {

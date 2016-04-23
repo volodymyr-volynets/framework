@@ -31,6 +31,7 @@ class factory {
 
 	/**
 	 * Get submodule object
+	 *	- implementation of Factory Method pattern and Simple Factory pattern
 	 *
 	 * @param string $submodule
 	 * @return object

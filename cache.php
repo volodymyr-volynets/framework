@@ -13,6 +13,13 @@ class cache {
 	public $object;
 
 	/**
+	 * Memory caches would be kept here as static
+	 *
+	 * @var array
+	 */
+	public static $memory_storage = [];
+
+	/**
 	 * Constructing cache object
 	 *
 	 * @param string $cache_link
@@ -96,11 +103,12 @@ class cache {
 	 *
 	 * @param string $cache_id
 	 * @param mixed $data
-	 * @param array $tags
+	 * @param mixed $tags
+	 * @param int $expire
 	 * @return bool
 	 */
-	public function set($cache_id, $data, $tags = []) {
-		$data = $this->object->set($cache_id, $data, $tags);
+	public function set($cache_id, $data, $tags = [], $expire = null) {
+		$data = $this->object->set($cache_id, $data, $tags, $expire);
 		// if we are debugging
 		if (debug::$debug) {
 			debug::$data['cache'][] = array(

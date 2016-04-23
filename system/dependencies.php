@@ -33,6 +33,7 @@ class system_dependencies {
 			$data['override'] = $data['override'] ?? [];
 			$data['media'] = $data['media'] ?? [];
 			$data['model_processed'] = [];
+			$data['unit_tests'] = [];
 
 			// we have small chicken and egg problem with composer
 			$composer_data = [];
@@ -54,15 +55,15 @@ class system_dependencies {
 			}
 
 			// processing submodules
-			$temp = [];
+			$mutex = [];
 			$__any = [];
 			if (!empty($composer_dirs)) {
 				for ($i = 0; $i < 3; $i++) {
 					foreach ($composer_dirs as $k => $v) {
-						if (isset($temp[$k])) {
+						if (isset($mutex[$k])) {
 							continue;
 						} else {
-							$temp[$k] = 1;
+							$mutex[$k] = 1;
 						}
 						if (file_exists($v . 'module.ini')) {
 							$sub_data = system_config::ini($v . 'module.ini', 'dependencies');
@@ -89,6 +90,12 @@ class system_dependencies {
 							}
 							if (!empty($sub_data['media'])) {
 								$data['media'] = array_merge2($data['media'], $sub_data['media']);
+							}
+							// processing unit tests
+							if (file_exists($v . 'unit_tests')) {
+								// we have to reload the module.ini file to get module name
+								$sub_data_temp = system_config::ini($v . 'module.ini', 'module');
+								$data['unit_tests'][$sub_data_temp['module']['name']] = $v . 'unit_tests/';
 							}
 						} else {
 							$keys = explode('/', $k);
@@ -181,11 +188,7 @@ class system_dependencies {
 			}
 
 			// handling overrides, cleanup directory first
-			foreach (new DirectoryIterator('./overrides/class') as $v) {
-				if(!$v->isDot()) {
-					unlink($v->getPathname());
-				}
-			}
+			helper_file::rmdir('./overrides/class', ['only_contents' => true, 'skip_files' => ['.gitkeep']]);
 			if (!empty($data['override'])) {
 				array_keys_to_string($data['override'], $data['override_processed']);
 				$override_classes = [];
@@ -211,18 +214,49 @@ class system_dependencies {
 					foreach ($override_classes as $k => $v) {
 						if ($v['found']) {
 							$class_code = "<?php\n\n" . '$object_override_blank_object = ' . var_export($v['object'], true) . ';';
-							$filename = './overrides/class/override_' . $k . '.php';
-							file_put_contents($filename, $class_code);
-							chmod($filename, 0777);
+							helper_file::write('./overrides/class/override_' . $k . '.php', $class_code);
 						}
 					}
 				}
 			}
 
+			// unit tests
+			helper_file::rmdir('./overrides/unit_tests', ['only_contents' => true, 'skip_files' => ['.gitkeep']]);
+			// submodule tests first
+			if (!empty($data['unit_tests'])) {
+				$xml = '';
+				$xml.= '<phpunit bootstrap="../../../libraries/vendor/numbers/framework/system/managers/unit_tests.php">';
+					$xml.= '<testsuites>';
+						foreach ($data['unit_tests'] as $k => $v) {
+							$xml.= '<testsuite name="' . $k . '">';
+								foreach (helper_file::iterate($v, ['recursive' => true, 'only_extensions' => ['php']]) as $v2) {
+									$xml.= '<file>../../' . $v2 . '</file>';
+								}
+							$xml.= '</testsuite>';
+						}
+					$xml.= '</testsuites>';
+				$xml.= '</phpunit>';
+				helper_file::write('./overrides/unit_tests/submodules.xml', $xml);
+			}
+			// application test last
+			$application_tests = helper_file::iterate('misc/unit_tests', ['recursive' => true, 'only_extensions' => ['php']]);
+			if (!empty($application_tests)) {
+				$xml = '';
+				$xml.= '<phpunit bootstrap="../../../libraries/vendor/numbers/framework/system/managers/unit_tests.php">';
+					$xml.= '<testsuites>';
+							$xml.= '<testsuite name="application/unit/tests">';
+								foreach ($application_tests as $v) {
+									$xml.= '<file>../../' . $v . '</file>';
+								}
+							$xml.= '</testsuite>';
+					$xml.= '</testsuites>';
+				$xml.= '</phpunit>';
+				helper_file::write('./overrides/unit_tests/application.xml', $xml);
+			}
+
 			// updating composer.json file
 			if ($options['mode'] == 'commit') {
-				file_put_contents('../libraries/composer.json', json_encode($composer_data, JSON_PRETTY_PRINT));
-				chmod('../libraries/composer.json', 0777);
+				helper_file::write('../libraries/composer.json', json_encode($composer_data, JSON_PRETTY_PRINT));
 			}
 
 			// assinging variables to return to the caller

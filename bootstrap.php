@@ -160,9 +160,12 @@ class bootstrap {
 			if ($flag_render || error_base::$flag_exception) {
 				error_base::$flag_error_already = true;
 				if ($__run_only_bootstrap) {
-					$temp = @ob_get_clean();
+					helper_ob::clean_all();
 					print_r(error_base::$errors);
 				} else {
+					// we need to set working directory again
+					chdir(application::get(['application', 'path_full']));
+					// set mvc + process
 					application::set_mvc('/error/_error/500');
 					application::process();
 				}
@@ -197,9 +200,11 @@ class bootstrap {
 
 		// debugging toolbar last
 		if (debug::$toolbar && !$__run_only_bootstrap) {
-			echo str_replace('<!-- [numbers: debug toolbar] -->', debug::render(), ob_get_clean());
-			flush();
+			echo str_replace('<!-- [numbers: debug toolbar] -->', debug::render(), helper_ob::clean());
 		}
+
+		// flush data to client
+		flush();
 
 		// emails with erros
 		if (debug::$debug && !empty(debug::$email)) {

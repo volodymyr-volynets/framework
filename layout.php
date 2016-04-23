@@ -50,7 +50,7 @@ class layout extends view {
 	 */
 	public static function get_version() {
 		if (empty(self::$version)) {
-			$filename = application::is_deployed() ? './../../../deployed' : './../../deployed';
+			$filename = application::get(['application', 'path_full']) . (application::is_deployed() ? '../../../deployed' : '../../deployed');
 			self::$version = filemtime($filename);
 		}
 		return self::$version;
@@ -288,15 +288,16 @@ class layout extends view {
 		if (application::get('dep.submodule.numbers.frontend.media.scss')) {
 			$valid_extensions[] = 'scss';
 		}
-		// we need to fi path for submodules
+		// we need to fix path for submodules
+		$path_fixed = str_replace('/', '_', $path);
 		if (substr($path, 0, 8) == 'numbers/') {
-			$path = './../libraries/vendor/' . $path;
+			$path = '../libraries/vendor/' . $path;
 		}
+		//$path = application::get(['application', 'path_full']) . $path;
 		// build an iterator
 		$iterator = new FilesystemIterator($path);
 		$filter = new RegexIterator($iterator, '/' . $controller . '(.' . $view . ')?.(' . implode('|', $valid_extensions) . ')$/');
 		$file_list = [];
-		$path_fixed = str_replace('/', '_', $path);
 		// iterating
 		foreach($filter as $v) {
 			$temp = $v->getFilename();
