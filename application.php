@@ -358,6 +358,7 @@ class application {
 		$data = self::mvc($request_uri);
 
 		// forming class name and file
+		// todo: add full path here instead of relative
 		if (in_array('controller', $data['controllers'])) {
 			// todo: custom modules handling
 			$controller_class = str_replace(' ', '_', implode(' ', $data['controllers']));

@@ -14,22 +14,24 @@ class numbers_framework_controller_dev {
 	 * @var array
 	 */
 	public static $topics = [
+		/*
 		'frontend' => [
 			'name' => 'Frontend Framework',
-			'href' => '/numbers/framework/controller/dev/~frontend'
+			'href' => '/numbers/framework/controller/dev/_frontend'
 		],
 		'form_editor' => [
 			'name' => 'Form Editor',
-			'href' => '/numbers/frontend/assemblies/form/controller/editor/~edit'
+			'href' => '/numbers/frontend/assemblies/form/controller/editor/_edit'
 		],
+		*/
 		'names' => [
 			'name' => 'Naming Conventions',
-			'href' => '/numbers/framework/controller/dev/~names',
+			'href' => '/numbers/framework/controller/dev/_names',
 			'options' => [
-				'code' => ['name' => 'Code', 'href' => '/numbers/framework/controller/dev/~names#code'],
-				'code_test' => ['name' => 'Code Test Name', 'href' => '/numbers/framework/controller/dev/~names#code_test'],
-				'db' => ['name' => 'Database', 'href' => '/numbers/framework/controller/dev/~names#db'],
-				'db_test' => ['name' => 'Database Test Name', 'href' => '/numbers/framework/controller/dev/~names#db_test']
+				'code' => ['name' => 'Code', 'href' => '/numbers/framework/controller/dev/_names#code'],
+				'code_test' => ['name' => 'Code Test Name', 'href' => '/numbers/framework/controller/dev/_names#code_test'],
+				'db' => ['name' => 'Database', 'href' => '/numbers/framework/controller/dev/_names#db'],
+				'db_test' => ['name' => 'Database Test Name', 'href' => '/numbers/framework/controller/dev/_names#db_test']
 			]
 		]
 	];
@@ -161,18 +163,16 @@ class numbers_framework_controller_dev {
 		// testing form
 		echo html::a(['name' => 'code_test']);
 		echo '<h3>Test name</h3>';
-		$input['name'] = isset($input['name']) ? $input['name'] : null;
-		$input['type'] = isset($input['type']) ? $input['type'] : null;
 		if (!empty($input['submit_yes'])) {
-			$result = object_name_code::check($input['type'], $input['name']);
+			$result = object_name_code::check($input['type'] ?? null, $input['name'] ?? null);
 			if (!$result['success']) {
 				echo html::message(['options' => $result['error'], 'type' => 'error']);
 			} else {
-				echo html::message(['options' => 'Name if good!', 'type' => 'success']);
+				echo html::message(['options' => 'Name is good!', 'type' => 'success']);
 			}
 		}
-		$ms = 'Name: ' . html::input(['name' => 'name', 'value' => $input['name']]) . ' ';
-		$ms.= 'Type: ' . html::select(['name' => 'type', 'options' => object_name_code::$types, 'value' => $input['type']]) . ' ';
+		$ms = 'Name: ' . html::input(['name' => 'name', 'value' => $input['name'] ?? null]) . ' ';
+		$ms.= 'Type: ' . html::select(['name' => 'type', 'options' => object_name_code::$types, 'value' => $input['type'] ?? null]) . ' ';
 		$ms.= html::submit(['name' => 'submit_yes']);
 		echo html::form(['name' => 'code', 'action' => '#code_test', 'value' => $ms]);
 
@@ -185,19 +185,17 @@ class numbers_framework_controller_dev {
 		// testing form
 		echo html::a(['name' => 'db_test']);
 		echo '<h3>Test name</h3>';
-		$input['name'] = isset($input['name']) ? $input['name'] : null;
-		$input['type'] = isset($input['type']) ? $input['type'] : null;
-		if (!empty($input['submit_yes'])) {
-			$result = object_name_db::check($input['type'], $input['name']);
+		if (!empty($input['submit_yes2'])) {
+			$result = object_name_db::check($input['type2'] ?? null, $input['name2'] ?? null);
 			if (!$result['success']) {
 				echo html::message(['options' => $result['error'], 'type' => 'error']);
 			} else {
-				echo html::message(['options' => 'Name if good!', 'type' => 'success']);
+				echo html::message(['options' => 'Name is good!', 'type' => 'success']);
 			}
 		}
-		$ms = 'Name: ' . html::input(['name' => 'name', 'value' => $input['name']]) . ' ';
-		$ms.= 'Type: ' . html::select(['name' => 'type', 'options' => object_name_db::$types, 'value' => $input['type']]) . ' ';
-		$ms.= html::submit(['name' => 'submit_yes']);
+		$ms = 'Name: ' . html::input(['name' => 'name2', 'value' => $input['name2'] ?? null]) . ' ';
+		$ms.= 'Type: ' . html::select(['name' => 'type2', 'options' => object_name_db::$types, 'value' => $input['type2'] ?? null]) . ' ';
+		$ms.= html::submit(['name' => 'submit_yes2']);
 		echo html::form(['name' => 'db', 'action' => '#db_test', 'value' => $ms]);
 	}
 }

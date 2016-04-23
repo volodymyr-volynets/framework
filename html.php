@@ -297,6 +297,22 @@ class html /*implements numbers_frontend_html_interface_base*/ {
 	}
 
 	/**
+	 * Message
+	 *
+	 * @param array $options
+	 *		type one of:
+	 *			error
+	 *			warning
+	 *			success
+	 *			info
+	 *			other
+	 * @return string
+	 */
+	public static function message($options = []) {
+		return factory::delegate('flag.numbers.framework.html', 'message', [$options]);
+	}
+
+	/**
 	 * Convert array of percentages to grid columns
 	 *
 	 * @param mixed $percentage_array
