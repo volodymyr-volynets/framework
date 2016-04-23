@@ -157,7 +157,7 @@ class debug {
 				$result.= '<tr id="debuging_toolbar_benchmark" class="debuging_toolbar_class" style="display: none;">';
 					$result.= '<td>';
 						$result.= '<h3>Benchmark (' . count(self::$data['benchmark']) . ')' . '</h3>';
-						$result.= '<table border="1" cellpadding="2" cellspacing="2">';
+						$result.= '<table border="1" cellpadding="2" cellspacing="2" width="100%">';
 							$result.= '<tr>';
 								$result.= '<th>Name</th>';
 								$result.= '<th>Time</th>';
@@ -180,7 +180,7 @@ class debug {
 				$result.= '<tr id="debuging_toolbar_sql" class="debuging_toolbar_class" style="display: none;">';
 					$result.= '<td>';
 						$result.= '<h3>Sql (' . count(self::$data['sql']) . ')' . '</h3>';
-						$result.= '<table border="1" cellpadding="2" cellspacing="2">';
+						$result.= '<table border="1" cellpadding="2" cellspacing="2" width="100%">';
 							$result.= '<tr>';
 								$result.= '<th>Sql</th>';
 								$result.= '<th>Error</th>';
@@ -214,7 +214,7 @@ class debug {
 				$result.= '<tr id="debuging_toolbar_cache" class="debuging_toolbar_class" style="display: none;">';
 					$result.= '<td>';
 						$result.= '<h3>Cache (' . count(self::$data['cache']) . ')' . '</h3>';
-						$result.= '<table border="1" cellpadding="2" cellspacing="2">';
+						$result.= '<table border="1" cellpadding="2" cellspacing="2" width="100%">';
 							$result.= '<tr>';
 								$result.= '<th>Type</th>';
 								$result.= '<th>Link</th>';
@@ -237,7 +237,7 @@ class debug {
 				$result.= '<tr id="debuging_toolbar_dump" class="debuging_toolbar_class" style="display: none;">';
 					$result.= '<td>';
 						$result.= '<h3>Dump (' . count(self::$data['dump']) . ')' . '</h3>';
-						$result.= '<table border="1" cellpadding="2" cellspacing="2">';
+						$result.= '<table border="1" cellpadding="2" cellspacing="2" width="100%">';
 							$result.= '<tr>';
 								$result.= '<th>Name</th>';
 								$result.= '<th>Dump</th>';
@@ -256,7 +256,7 @@ class debug {
 				$result.= '<tr id="debuging_toolbar_input" class="debuging_toolbar_class" style="display: none;">';
 					$result.= '<td>';
 						$result.= '<h3>Input (' . count(self::$data['input']) . ')' . '</h3>';
-						$result.= '<table border="1" cellpadding="2" cellspacing="2">';
+						$result.= '<table border="1" cellpadding="2" cellspacing="2" width="100%">';
 							$result.= '<tr>';
 								$result.= '<th>Input</th>';
 							$result.= '</tr>';
@@ -273,7 +273,7 @@ class debug {
 				$result.= '<tr id="debuging_toolbar_session" class="debuging_toolbar_class" style="display: none;">';
 					$result.= '<td>';
 						$result.= '<h3>Session (' . count(self::$data['session']) . ')' . '</h3>';
-						$result.= '<table border="1" cellpadding="2" cellspacing="2">';
+						$result.= '<table border="1" cellpadding="2" cellspacing="2" width="100%">';
 							$result.= '<tr>';
 								$result.= '<th>Session</th>';
 							$result.= '</tr>';
@@ -290,7 +290,7 @@ class debug {
 				$result.= '<tr id="debuging_toolbar_classes" class="debuging_toolbar_class" style="display: none;">';
 					$result.= '<td>';
 						$result.= '<h3>Loaded Classes (' . count($loaded_classes) . ')</h3>';
-						$result.= '<table border="1" cellpadding="2" cellspacing="2">';
+						$result.= '<table border="1" cellpadding="2" cellspacing="2" width="100%">';
 							$result.= '<tr>';
 								$result.= '<th>Class Name</th>';
 								$result.= '<th>File</th>';
@@ -311,7 +311,7 @@ class debug {
 				$result.= '<tr id="debuging_toolbar_errors" class="debuging_toolbar_class" style="display: none;">';
 					$result.= '<td>';
 						$result.= '<h3>Errors (' . count(error_base::$errors) . ')</h3>';
-						$result.= '<table border="1" cellpadding="2" cellspacing="2">';
+						$result.= '<table border="1" cellpadding="2" cellspacing="2" width="100%">';
 							foreach (error_base::$errors as $k => $v) {
 								$result.= '<tr>';
 									$result.= '<td><b>' . error_base::$error_codes[$v['errno']] . ' (' . $v['errno'] . ') - ' . implode('<br/>', $v['error']) . '</b></td>';
@@ -334,7 +334,7 @@ class debug {
 				$result.= '<tr id="debuging_toolbar_suppressed" class="debuging_toolbar_class" style="display: none;">';
 					$result.= '<td>';
 						$result.= '<h3>Suppressed (' . count(self::$data['suppressed']) . ')</h3>';
-						$result.= '<table border="1" cellpadding="2" cellspacing="2">';
+						$result.= '<table border="1" cellpadding="2" cellspacing="2" width="100%">';
 							foreach (self::$data['suppressed'] as $k => $v) {
 								$result.= '<tr>';
 									$result.= '<td><b>' . error_base::$error_codes[$v['errno']] . ' (' . $v['errno'] . ') - ' . implode('<br/>', $v['error']) . '</b></td>';
@@ -354,7 +354,7 @@ class debug {
 				$result.= '<tr id="debuging_toolbar_js" class="debuging_toolbar_class" style="display: none;">';
 					$result.= '<td>';
 						$result.= '<h3>Javascript Errors (' . count(self::$data['js']) . ')</h3>';
-						$result.= '<table border="1" cellpadding="2" cellspacing="2">';
+						$result.= '<table border="1" cellpadding="2" cellspacing="2" width="100%">';
 							foreach (self::$data['js'] as $k => $v) {
 								$result.= '<tr>';
 									$result.= '<td><b>' . implode('<br/>', $v['error']) . '</b></td>';
