@@ -644,3 +644,13 @@ function object_merge_values(& $object, $vars) {
 		}
 	}
 }
+
+/**
+ * Chance
+ *
+ * @param integer $percent
+ * @return boolean
+ */
+function chance($percent) {
+	return (mt_rand(0, 99) < $percent);
+}

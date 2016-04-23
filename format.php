@@ -190,18 +190,23 @@ class format {
 	 * @return string
 	 */
 	public static function read_date($date, $type = 'date') {
-		if (empty($date)) return null;
-		$date = is_numeric($date) ? $date : @strtotime($date);
+		if (empty($date)) {
+			return null;
+		}
+		$time = is_numeric($date) ? $date : strtotime($date);
 		switch ($type) {
+			case 'timestamp':
+				return $date; // as is for now, this type can only be set by application in the code
+				break;
 			case 'time':
-				return date('H:i:s', $date);
+				return date('H:i:s', $time);
 				break;
 			case 'datetime':
-				return date('Y-m-d H:i:s', $date);
+				return date('Y-m-d H:i:s', $time);
 				break;
 			case 'date':
 			default:
-				return date('Y-m-d', $date);
+				return date('Y-m-d', $time);
 		}
 	}
 

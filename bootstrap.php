@@ -175,6 +175,19 @@ class bootstrap {
 		// write sessions
 		session_write_close();
 
+		// final benchmark
+		if (debug::$debug) {
+			debug::benchmark('application end');
+		}
+
+		// debugging toolbar last
+		if (debug::$toolbar && !$__run_only_bootstrap) {
+			echo str_replace('<!-- [numbers: debug toolbar] -->', debug::render(), helper_ob::clean());
+		}
+
+		// flush data to client
+		flush();
+
 		// closing caches before db
 		$cache = factory::get(['cache']);
 		if (!empty($cache)) {
@@ -192,19 +205,6 @@ class bootstrap {
 				$object->close();
 			}
 		}
-
-		// final benchmark
-		if (debug::$debug) {
-			debug::benchmark('application end');
-		}
-
-		// debugging toolbar last
-		if (debug::$toolbar && !$__run_only_bootstrap) {
-			echo str_replace('<!-- [numbers: debug toolbar] -->', debug::render(), helper_ob::clean());
-		}
-
-		// flush data to client
-		flush();
 
 		// emails with erros
 		if (debug::$debug && !empty(debug::$email)) {
