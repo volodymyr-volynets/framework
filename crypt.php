@@ -100,4 +100,25 @@ class crypt implements numbers_backend_crypt_interface_base {
 	public function token_validate($token) {
 		return $this->object->token_validate($token);
 	}
+
+	/**
+	 * Hash password
+	 *
+	 * @param string $password
+	 * @return string
+	 */
+	public function password_hash($password) {
+		return $this->object->password_hash($password);
+	}
+
+	/**
+	 * Verify password
+	 *
+	 * @param string $password
+	 * @param string $hash
+	 * @return boolean
+	 */
+	public function password_verify($password, $hash) {
+		return $this->object->password_verify($password, $hash);
+	}
 }
