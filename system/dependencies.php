@@ -312,9 +312,14 @@ class system_dependencies {
 					if (!$temp_result['success']) {
 						array_merge3($result['error'], $temp_result['error']);
 					}
+				} else if ($v == 'object_extension') {
+					$temp_result = $ddl->process_function_extension(str_replace('.', '_', $k));
+					if (!$temp_result['success']) {
+						array_merge3($result['error'], $temp_result['error']);
+					}
 				}
 			}
-			//print_r($ddl->objects['default']['function']);
+			//print_r($ddl->objects['default']['extension']);
 
 			// if we have erros
 			if (!empty($result['error'])) {
