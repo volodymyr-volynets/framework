@@ -165,8 +165,12 @@ class format {
 		if (!empty($options['add_seconds'])) {
 			$time+= $options['add_seconds'];
 		}
+		// todo: handle timezone here!!!
 		// rendering
 		switch ($type) {
+			case 'unix':
+				return $time;
+				break;
 			case 'timestamp':
 				return date('Y-m-d H:i:s', $time) . '.' . round($msec * 1000000, 0);
 				break;
@@ -180,6 +184,31 @@ class format {
 			default:
 				return date('Y-m-d', $time);
 		}
+	}
+
+	/**
+	 * Datetime parts
+	 *
+	 * @param mixed $time
+	 * @return array
+	 */
+	public static function datetime_parts($time = null) {
+		if (empty($time)) {
+			// important to call format::now function
+			$time = self::now('unix');
+		}
+		if (!is_numeric($time)) {
+			$time = strtotime($time);
+		}
+		return [
+			'year' => (int) date('Y', $time),
+			'month' => (int) date('m', $time),
+			'day' => (int) date('d', $time),
+			'hour' => (int) date('H', $time),
+			'minute' => (int) date('i', $time),
+			'second' => (int) date('s', $time),
+			'weekday' => (int) date('w', $time)
+		];
 	}
 
 	/**

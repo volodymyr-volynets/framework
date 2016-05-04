@@ -309,7 +309,7 @@ class object_table {
 
 			// saving record to database
 			$db = new db($this->db_link);
-			$result = $db->save($this->name, $save, $this->pk, $options);
+			$result = $db->save($this->name, $save, $options['pk'] ?? $this->pk, $options);
 			if ($result['success'] && $this->cache) {
 				// now we need to reset cache
 				if (empty($data['do_not_reset_cache'])) {

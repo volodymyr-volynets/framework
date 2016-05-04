@@ -278,6 +278,7 @@ class system_dependencies {
 		$result = [
 			'success' => false,
 			'error' => [],
+			'hint' => [],
 			'data' => []
 		];
 		do {
@@ -295,6 +296,7 @@ class system_dependencies {
 				break;
 			}
 
+			$object_import = [];
 			$ddl = new numbers_backend_db_class_ddl();
 			foreach ($dep['data']['model_processed'] as $k => $v) {
 				if ($v == 'object_table') {
@@ -317,6 +319,10 @@ class system_dependencies {
 					if (!$temp_result['success']) {
 						array_merge3($result['error'], $temp_result['error']);
 					}
+				} else if ($v == 'object_import') {
+					$object_import[str_replace('.', '_', $k)] = [
+						'model' => str_replace('.', '_', $k)
+					];
 				}
 			}
 			//print_r($ddl->objects['default']['extension']);
@@ -376,19 +382,22 @@ class system_dependencies {
 				break;
 			}
 
-			// if we are in no commit mode
-			if ($options['mode'] != 'commit') {
-				foreach ($total_per_db_link as $k => $v) {
-					$result['error'][] = "Db link $k requires $v changes!";
-					// printing summary
-					$result['error'][] = ' * Link ' . $k . ': ';
-					foreach ($schema_diff[$k] as $k2 => $v2) {
-						$result['error'][] = '   * ' . $k2 . ': ';
-						foreach ($v2 as $k3 => $v3) {
-							$result['error'][] = '    * ' . $k3 . ' - ' . $v3['type'];
-						}
+			// we need to provide a list of changes
+			foreach ($total_per_db_link as $k => $v) {
+				$result['hint'][] = '';
+				$result['hint'][] = "Db link $k requires $v changes!";
+				// printing summary
+				$result['hint'][] = ' * Link ' . $k . ': ';
+				foreach ($schema_diff[$k] as $k2 => $v2) {
+					$result['hint'][] = '   * ' . $k2 . ': ';
+					foreach ($v2 as $k3 => $v3) {
+						$result['hint'][] = '    * ' . $k3 . ' - ' . $v3['type'];
 					}
 				}
+			}
+
+			// if we are in no commit mode we exit
+			if ($options['mode'] != 'commit') {
 				break;
 			}
 
@@ -430,6 +439,28 @@ class system_dependencies {
 			// if we got here - we are ok
 			$result['success'] = true;
 		} while(0);
+
+		// we need to import data
+		if (!empty($object_import) && $options['mode'] == 'commit') {
+			$result['hint'][] = '';
+			$result['hint'][] = 'Importing data:';
+			foreach ($object_import as $k => $v) {
+				$data_object = new $k();
+				$data = $data_object->get();
+				$model_class = $data_object->import_options['model'];
+				$model_object = new $model_class();
+				$counter = 0;
+				foreach ($data_object->get() as $k2 => $v2) {
+					// todo: use other import methods
+					$result_insert = $model_object->save($v2, ['pk' => $data_object->import_options['pk']]);
+					if (!$result_insert['success']) {
+						Throw new Exception('Could not import ' . $k . '!');
+					}
+					$counter++;
+				}
+				$result['hint'][] = ' * Imported ' . $counter . ' rows into ' . $model_object->name . ', db link: ' .  $model_object->db_link;
+			}
+		}
 error:
 		return $result;
 	}

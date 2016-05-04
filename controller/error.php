@@ -15,10 +15,7 @@ class numbers_framework_controller_error {
 				error_base::error_handler('javascript', $input['data']['message'], $input['data']['file'], $input['data']['line']);
 			}
 		}
-		// we must set content type in application
-		application::set('flag.global.__content_type', 'image/png');
-		header("Content-Type: image/png");
-		echo file_get_contents(__DIR__ . '/error.png');
-		exit;
+		// rendering
+		layout::render_as(file_get_contents(__DIR__ . '/error.png'), 'image/png');
 	}
 }

@@ -168,7 +168,7 @@ class application {
 
 		// check if controller exists
 		if (!file_exists(self::$settings['mvc']['controller_file'])) {
-			Throw new Exception('Controller not found!');
+			Throw new Exception('Controller not found: ' . self::$settings['mvc']['controller_class'] . '!');
 		}
 
 		// initialize the controller
@@ -456,7 +456,8 @@ class application {
 		}
 
 		// rendering layout
-		if (!empty(self::$settings['mvc']['controller_layout'])) {
+		$__skip_layout = application::get('flag.global.__skip_layout');
+		if (!empty(self::$settings['mvc']['controller_layout']) && empty($__skip_layout)) {
 			helper_ob::start();
 			if (file_exists(self::$settings['mvc']['controller_layout_file'])) {
 				$controller = new layout($controller, self::$settings['mvc']['controller_layout_file'], self::$settings['mvc']['controller_layout_extension']);
@@ -530,14 +531,22 @@ class application {
 	 * Process magic variables
 	 */
 	public static function process_magic_variables() {
-		// content type
-		$object = new object_content_types();
-		$data = $object->get();
-		if (isset($_GET['__content_type']) && isset($data[$_GET['__content_type']])) {
-			self::$settings['flag']['global']['__content_type'] = $_GET['__content_type'];
-		}
-		if (isset($_POST['__content_type']) && isset($data[$_POST['__content_type']])) {
-			self::$settings['flag']['global']['__content_type'] = $_POST['__content_type'];
+		$variables_object = new object_magic_variables();
+		$variables = $variables_object->get();
+		$input = request::input(null, true, true);
+		foreach ($variables as $k => $v) {
+			if (!array_key_exists($k, $input)) {
+				continue;
+			}
+			if ($k == '__content_type') {
+				$object = new object_content_types();
+				$data = $object->get();
+				if (isset($data[$input[$k]])) {
+					self::$settings['flag']['global'][$k] = $input[$k];
+				}
+			} else {
+				self::$settings['flag']['global'][$k] = $input[$k];
+			}
 		}
 	}
 

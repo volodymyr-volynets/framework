@@ -33,14 +33,19 @@ try {
 			$result = system_dependencies::process_deps_all(['mode' => $mode]);
 	}
 
+	// hint
+	if (!empty($result['hint'])) {
+		echo implode("\n", $result['hint']) . "\n";
+	}
+
 	// if we did not succede
 	if (!$result['success']) {
 		echo implode("\n", $result['error']) . "\n";
 		exit;
 	}
 } catch(Exception $e) {
-	echo $e->getMessage();
+	echo $e->getMessage() . "\n";
 }
 
 // if we succedded
-echo "Operation \"$type\" with mode \"$mode\" succeeded!\n";
+echo "\nOperation \"$type\" with mode \"$mode\" completed!\n";

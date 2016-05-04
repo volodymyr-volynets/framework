@@ -262,7 +262,10 @@ class layout extends view {
 	 * @param string $content_type
 	 */
 	public static function render_as($data, $content_type) {
+		// clena up output buffer
+		helper_ob::clean_all();
 		application::set('flag.global.__content_type', $content_type);
+		application::set('flag.global.__skip_layout', 1);
 		header("Content-type: " . $content_type);
 		switch ($content_type) {
 			case 'application/json':

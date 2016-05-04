@@ -9,7 +9,8 @@ class object_data_schemas extends object_data {
 		'name' => ['name' => 'Name', 'type' => 'text']
 	];
 	public $data = [
-		'sm' => ['name' => 'System'],
+		'sm' => ['name' => 'System (Common)'],
+		'sc' => ['name' => 'System (Cron)'],
 		'no' => ['name' => 'Numbers Objects'],
 	];
 }

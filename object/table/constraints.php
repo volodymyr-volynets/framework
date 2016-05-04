@@ -5,5 +5,6 @@ class object_table_constraints {
 	public $data = [
 		'pk' => ['name' => 'Primary Key'],
 		'unique' => ['name' => 'Unique'],
+		'fk' => ['name' => 'Foreign Key'],
 	];
 }

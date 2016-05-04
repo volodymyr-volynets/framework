@@ -87,6 +87,17 @@ class object_data extends object_override_data {
 	];
 
 	/**
+	 * Import options
+	 *
+	 * @var array
+	 */
+	public $import_options = [
+		//'pk' => ['columns'],
+		//'model' => '[model]',
+		//'method' => 'save',
+	];
+
+	/**
 	 * Constructor
 	 */
 	public function __construct() {
