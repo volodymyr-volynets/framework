@@ -1,63 +1,15 @@
 <?php
 
-class datasource {
-
-	/**
-	 * Primary key, final result will be remapped using this settings
-	 *
-	 * @var array
-	 */
-	public $pk = [];
-
-	/**
-	 * Whether we have SQL query
-	 *
-	 * @var bool
-	 */
-	public $is_sql = false;
-
-	/**
-	 * Query parts would be kept here
-	 *
-	 * @var array
-	 */
-	public $parts = [];
-
-	/**
-	 * Subparts would be here, used in parts
-	 *
-	 * @var array
-	 */
-	public $subparts = [];
-
-	/**
-	 * All flags related to this datasource would be here
-	 *
-	 * @var array
-	 */
-	public $flags = [];
+class object_datasource {
 
 	/**
 	 * SQL syntax related data
 	 *
 	 * @var array
 	 */
-	public $sql_syntax = [
+	private $sql_syntax = [
 		'operators' => ['AND', 'OR', 'NOT', 'IN', 'EXISTS', 'ANY', 'ALL']
 	];
-
-	/**
-	 * Constructing datasource
-	 *
-	 * @param array $options
-	 */
-	public function __construct($options = []) {
-		// todo we need to merge these three:
-		//	$application[flags][datasource][this class name]
-		//	$session[numbers][flags][datasource][this class name]
-		//	$options
-		$this->flags = $options;
-	}
 
 	/**
 	 * Process value
@@ -450,8 +402,81 @@ class datasource {
 	 * @param string $query
 	 * @return array
 	 */
-	public static function sql_has_datasource($query) {
+	final public function sql_has_datasource($query) {
 		return regex_datasource::parse($query);
+	}
+
+	/**
+	 * Query datasource
+	 *
+	 * @param mixed $query
+	 * @param mixed $key
+	 * @param array $options
+	 * @return array
+	 */
+	final public function query($query, $key = null, $options = []) {
+		$result = [
+			'success' => false,
+			'error' => [],
+			'data' => [],
+			'sql' => null,
+			'db_link' => null
+		];
+		// if we got a sql query
+		if (is_string($query)) {
+			$parts = $this->sql_has_datasource($query);
+			if ($parts['success']) {
+				foreach ($parts['data'] as $k => $v) {
+					if ($v['type'] == 'table') {
+						$table_class = $v['name'];
+						$table_object = new $table_class();
+						$query = str_replace($k, $table_object->name, $query);
+						// grab first db link
+						if (empty($result['db_link'])) {
+							$result['db_link'] = $table_object->db_link;
+						} else if ($result['db_link'] != $table_object->db_link) {
+							Throw new Exception('Multi db_link queries are not supported!');
+						}
+					} else {
+						Throw new Exception($v['type'] . '?');
+					}
+				}
+			}
+			$result['sql'] = $query;
+			// try to determine db link
+			if (empty($result['db_link'])) {
+				$result['db_link'] = application::get('flag.global.db.default_db_link');
+			}
+			if (empty($result['db_link'])) {
+				Throw new Exception('Could not determine db_link!');
+			}
+			// query database
+			$db = new db($result['db_link']);
+			$temp = $db->query($result['sql'], $key, $options);
+			if (!$temp['success']) {
+				Throw new Exception('Could not retrive data from datasource!');
+			} else {
+				return $temp['rows'];
+			}
+		} else {
+			// todo: add array type datasource here
+		}
+		return $result;
+	}
+
+	/**
+	 * Merge options
+	 *
+	 * @param array $options
+	 * @return array
+	 */
+	final public function merge_options($options) {
+		
+		
+		// todo: merge session and application settings   
+		
+		
+		return $options;
 	}
 }
 

@@ -18,6 +18,10 @@ spl_autoload_register(array('application', 'autoloader'));
 // running application
 application::run(['__run_only_bootstrap' => 1]);
 
+// increase in memory and unlimited execution time
+ini_set('memory_limit', '2048M');
+set_time_limit(0);
+
 // wrapping everything into try-catch block for system exceptions
 try {
 	// running proper class

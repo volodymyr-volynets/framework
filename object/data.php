@@ -87,17 +87,6 @@ class object_data extends object_override_data {
 	];
 
 	/**
-	 * Import options
-	 *
-	 * @var array
-	 */
-	public $import_options = [
-		//'pk' => ['columns'],
-		//'model' => '[model]',
-		//'method' => 'save',
-	];
-
-	/**
 	 * Constructor
 	 */
 	public function __construct() {
@@ -106,6 +95,10 @@ class object_data extends object_override_data {
 		// we must have columns
 		if (empty($this->columns)) {
 			Throw new Exception('object_data ' . get_called_class() . ' children must have columns!');
+		}
+		// process domain in columns, we skip domain model
+		if (get_called_class() != 'object_data_domains') {
+			$this->columns = object_data_common::process_domains($this->columns);
 		}
 	}
 
@@ -129,12 +122,11 @@ class object_data extends object_override_data {
 		foreach ($this->data as $k => $v) {
 			foreach ($this->columns as $k2 => $v2) {
 				if ($this->column_key == $k2) {
-					$result[$k][$this->column_prefix . $k2] = $k;
+					$result[$k][$k2] = $k;
 				} else if (!array_key_exists($k2, $v)) {
-					// todo: add domain handling
-					$result[$k][$this->column_prefix . $k2] = $v2['default'] ?? $types[$v2['type']]['no_data_type_default'] ?? null;
+					$result[$k][$k2] = $v2['default'] ?? $types[$v2['type']]['no_data_type_default'] ?? null;
 				} else {
-					$result[$k][$this->column_prefix . $k2] = $v[$k2];
+					$result[$k][$k2] = $v[$k2];
 				}
 			}
 		}
@@ -155,11 +147,11 @@ class object_data extends object_override_data {
 			}
 		}
 		// sorting, if none specified we sort by name if its in columns
-		$orderby = $options['orderby'] ?? (!empty($this->orderby) ? $this->orderby : (isset($this->columns['name']) ? [$this->column_prefix . 'name' => SORT_ASC] : null));
+		$orderby = $options['orderby'] ?? (!empty($this->orderby) ? $this->orderby : (isset($this->columns[$this->column_prefix . 'name']) ? [$this->column_prefix . 'name' => SORT_ASC] : null));
 		if (!empty($orderby)) {
 			$method = [];
 			foreach ($orderby as $k => $v) {
-				$type = $types[$this->columns[str_replace($this->column_prefix, '', $k)]['type']]['php_type'];
+				$type = $types[$this->columns[$k]['type']]['php_type'];
 				if ($type == 'integer' || $type == 'float') {
 					$method[$k] = SORT_NUMERIC;
 				}
@@ -209,10 +201,7 @@ class object_data extends object_override_data {
 	 */
 	public function options($options = []) {
 		$data = $this->get($options);
-		$options_map = !empty($this->options_map) ? $this->options_map : ['name' => 'name'];
-		if ($this->column_prefix !== null) {
-			array_key_prefix_and_suffix($options_map, $this->column_prefix, null);
-		}
+		$options_map = !empty($this->options_map) ? $this->options_map : [$this->column_prefix . 'name' => 'name'];
 		return object_data_common::options($data, $options_map);
 	}
 
@@ -223,13 +212,10 @@ class object_data extends object_override_data {
 	 */
 	public function optgroups($options = []) {
 		$data = $this->get($options);
-		$options_map = !empty($this->options_map) ? $this->options_map : ['name' => 'name'];
-		if ($this->column_prefix !== null) {
-			array_key_prefix_and_suffix($options_map, $this->column_prefix, null);
-		}
+		$options_map = !empty($this->options_map) ? $this->options_map : [$this->column_prefix . 'name' => 'name'];
 		if (!empty($this->optgroups_map)) {
 			$optgroups_map = $this->optgroups_map;
-			$optgroups_map['column'] = $this->column_prefix . $optgroups_map['column'];
+			$optgroups_map['column'] = $optgroups_map['column'];
 			return object_data_common::optgroups($data, $optgroups_map, $options_map);
 		} else {
 			return object_data_common::options($data, $options_map);
@@ -247,9 +233,6 @@ class object_data extends object_override_data {
 		} else {
 			$data = $this->get($options);
 			$optmultis_map = $this->optmultis_map;
-			if ($this->column_prefix !== null) {
-				array_key_prefix_and_suffix($optmultis_map, $this->column_prefix, null);
-			}
 			return object_data_common::optmultis($data, $optmultis_map);
 		}
 	}

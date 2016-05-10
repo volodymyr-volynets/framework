@@ -443,22 +443,13 @@ class system_dependencies {
 		// we need to import data
 		if (!empty($object_import) && $options['mode'] == 'commit') {
 			$result['hint'][] = '';
-			$result['hint'][] = 'Importing data:';
 			foreach ($object_import as $k => $v) {
 				$data_object = new $k();
-				$data = $data_object->get();
-				$model_class = $data_object->import_options['model'];
-				$model_object = new $model_class();
-				$counter = 0;
-				foreach ($data_object->get() as $k2 => $v2) {
-					// todo: use other import methods
-					$result_insert = $model_object->save($v2, ['pk' => $data_object->import_options['pk']]);
-					if (!$result_insert['success']) {
-						Throw new Exception('Could not import ' . $k . '!');
-					}
-					$counter++;
+				$data_result = $data_object->process();
+				if (!$data_result['success']) {
+					Throw new Exception(implode("\n", $data_result['error']));
 				}
-				$result['hint'][] = ' * Imported ' . $counter . ' rows into ' . $model_object->name . ', db link: ' .  $model_object->db_link;
+				$result['hint'] = array_merge($result['hint'], $data_result['hint']);
 			}
 		}
 error:

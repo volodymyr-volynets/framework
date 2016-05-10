@@ -129,11 +129,10 @@ class bootstrap {
 			}
 		}
 
-		// including media files
-		layout::add_js('/numbers/media_submodules/numbers_framework_functions.js', -32200);
-		layout::add_js('/numbers/media_submodules/numbers_framework_base.js', -32100);
-		layout::add_js('/numbers/media_submodules/numbers_framework_element.js', -32050);
-		layout::add_js('/numbers/media_submodules/numbers_framework_format.js', -32045);
+		// check if we need to include system files from frontend
+		if (application::get('dep.submodule.numbers.frontend.system')) {
+			numbers_frontend_system_model_base::start();
+		}
 
 		// generating token to receive data from frontend
 		if ($backend) {

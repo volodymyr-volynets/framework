@@ -1,6 +1,6 @@
 <?php
 
-class object_table {
+class object_table extends object_override_data {
 
 	/**
 	 * Link to database
@@ -163,6 +163,8 @@ class object_table {
 	 * @throws Exception
 	 */
 	public function __construct() {
+		// we need to handle overrrides
+		parent::override_handle($this);
 		// we need to determine db link
 		if (empty($this->db_link)) {
 			// get from flags first
@@ -185,6 +187,9 @@ class object_table {
 		$ddl = factory::get(['db', $this->db_link, 'ddl_object']);
 		$temp = $ddl->is_schema_supported($this->name);
 		$this->name = $temp['full_table_name'];
+
+		// process domain in columns
+		$this->columns = object_data_common::process_domains($this->columns);
 	}
 
 	/**
@@ -215,7 +220,11 @@ class object_table {
 			if ($v['type'] == 'boolean') {
 				$save[$k] = !empty($data[$k]) ? 1 : 0;
 			} else if (in_array($v['type'], array('smallint', 'integer', 'bigint', 'smallserial', 'serial', 'bigserial'))) {
-				$save[$k] = format::read_intval(isset($data[$k]) ? $data[$k] : null);
+				if (!isset($data[$k]) || $data[$k] ===null) {
+					$save[$k] == null;
+				} else {
+					$save[$k] = format::read_intval(isset($data[$k]) ? $data[$k] : null);
+				}
 			} else if ($v['type'] == 'numeric') {
 				$save[$k] = format::read_floatval(isset($data[$k]) ? $data[$k] : null);
 			} else if (in_array($v['type'], ['date', 'time', 'datetime', 'timestamp'])) {
@@ -305,6 +314,15 @@ class object_table {
 
 			if (!empty($result['error'])) {
 				break;
+			}
+
+			// we need to unset pk if other primary key is used
+			if (!empty($options['pk'])) {
+				foreach ($this->pk as $k => $v) {
+					if (empty($save[$v])) {
+						unset($save[$v]);
+					}
+				}
 			}
 
 			// saving record to database

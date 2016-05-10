@@ -1,16 +1,16 @@
 <?php
 
 class object_html_form_row_type extends object_data {
-	public $column_key = 'code';
+	public $column_key = 'no_html_form_row_type_code';
 	public $column_prefix = 'no_html_form_row_type_';
 	public $columns = [
-		'code' => ['name' => 'Row Type', 'type' => 'varchar', 'length' => 30],
-		'name' => ['name' => 'Name', 'type' => 'text']
+		'no_html_form_row_type_code' => ['name' => 'Row Type', 'type' => 'varchar', 'length' => 30],
+		'no_html_form_row_type_name' => ['name' => 'Name', 'type' => 'text']
 	];
 	public $data = [
-		'grid' => ['name' => 'Grid'],
-		'table' => ['name' => 'Table'],
-		'details' => ['name' => 'Details'],
-		'tabs' => ['name' => 'Tabs']
+		'grid' => ['no_html_form_row_type_name' => 'Grid'],
+		'table' => ['no_html_form_row_type_name' => 'Table'],
+		'details' => ['no_html_form_row_type_name' => 'Details'],
+		'tabs' => ['no_html_form_row_type_name' => 'Tabs']
 	];
 }

@@ -15,6 +15,6 @@ class regex_datasource implements regex_interface {
 		//  - [table[name][param_name]]
 		//  - [subpart[name][param_name]]
 		//  - [array[name]]
-		return regex_base::parse($value, ['datasource', 'model', 'table', 'array', 'subpart']);
+		return regex_base::parse($value, ['datasource', 'table', 'data']);
 	}
 }

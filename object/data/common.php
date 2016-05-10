@@ -3,6 +3,41 @@
 class object_data_common {
 
 	/**
+	 * Domains
+	 *
+	 * @var array
+	 */
+	public static $domains;
+
+	/**
+	 * Process domains
+	 *
+	 * @param array $columns
+	 * @return array
+	 */
+	public static function process_domains($columns) {
+		if (empty(self::$domains)) {
+			$object = new object_data_domains();
+			self::$domains = $object->data;
+		}
+		foreach ($columns as $k => $v) {
+			if (isset($v['domain'])) {
+				// check if domain exists
+				if (!isset(self::$domains[$v['domain']])) {
+					Throw new Exception('Domain: ' . $v['domain'] . '?');
+				}
+				// populate domain attributes
+				foreach (['type', 'default', 'length', 'null', 'precision', 'scale'] as $v2) {
+					if (array_key_exists($v2, self::$domains[$v['domain']]) && !array_key_exists($v2, $v)) {
+						$columns[$k][$v2] = self::$domains[$v['domain']][$v2];
+					}
+				}
+			}
+		}
+		return $columns;
+	}
+
+	/**
 	 * Options
 	 *
 	 * @param array $data

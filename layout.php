@@ -293,6 +293,7 @@ class layout extends view {
 		}
 		// we need to fix path for submodules
 		$path_fixed = str_replace('/', '_', $path);
+		$path_js = str_replace('_' . $controller, '', $class) . '_';
 		if (substr($path, 0, 8) == 'numbers/') {
 			$path = '../libraries/vendor/' . $path;
 		}
@@ -311,7 +312,7 @@ class layout extends view {
 			} else {
 				$sort = 2000;
 			}
-			$new = '/numbers/media_generated/application_' . $path_fixed . $temp;
+			$new = '/numbers/media_generated/application_' . $path_js . $temp;
 			if ($extension == 'js') {
 				self::add_js($new, $sort);
 			} else if ($extension == 'css') {
