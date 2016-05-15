@@ -29,6 +29,9 @@ class debug {
 	 * @var array
 	 */
 	public static $data = [
+		'errors' => [], // number of errors
+		'suppressed' => [], // if we need to see suppressed errors
+		'js' => [], // if we have javascript errors
 		'sql' => [], // if we need to see queries
 		'cache' => [], // if we need to see caches
 		'dump' => [], // if we need to dump something
@@ -36,9 +39,6 @@ class debug {
 		'input' => [], // if we need to see input
 		'benchmark' => [], // if we need to know how long it takes
 		'classes' => [], // autoloaded classes
-		'errors' => [], // number of errors
-		'suppressed' => [], // if we need to see suppressed errors
-		'js' => [], // if we have javascript errors
 		'application' => []
 	];
 
@@ -147,9 +147,72 @@ class debug {
 									}
 									$result.= '<td nowrap>&nbsp;' . html::a(['value' => ucwords($k) . ' (' . $count . ')', 'id' => "debuging_toolbar_{$k}_a", 'href' => 'javascript:void(0);', 'onclick' => "$('#debuging_toolbar_{$k}').toggle();"]) . '&nbsp;</td>';
 								}
-								$result.= '<td width="50%" align="right">' . html::a(['href' => '/numbers/framework/controller/dev', 'value' => 'Dev. Portal']) . '</td>';
+								$result.= '<td width="50%" align="right">' . html::a(['href' => '/numbers/frontend/system/controller/dev', 'value' => 'Dev. Portal']) . '</td>';
 							$result.= '</tr>';
 						$result.= '</table>';
+					$result.= '</td>';
+				$result.= '</tr>';
+				
+				// errors
+				$result.= '<tr id="debuging_toolbar_errors" class="debuging_toolbar_class" style="display: none;">';
+					$result.= '<td>';
+						$result.= '<h3>Errors (' . count(error_base::$errors) . ')</h3>';
+						$result.= '<table border="1" cellpadding="2" cellspacing="2" width="100%">';
+							foreach (error_base::$errors as $k => $v) {
+								$result.= '<tr>';
+									$result.= '<td><b>' . error_base::$error_codes[$v['errno']] . ' (' . $v['errno'] . ') - ' . implode('<br/>', $v['error']) . '</b></td>';
+								$result.= '</tr>';
+								$result.= '<tr>';
+									$result.= '<td>File: ' . $v['file'] . ', Line: ' . $v['line'] . '</td>';
+								$result.= '</tr>';
+								$result.= '<tr>';
+									$result.= '<td><pre>' . $v['code'] . '</pre></td>';
+								$result.= '</tr>';
+								$result.= '<tr>';
+									$result.= '<td><pre>' . implode("\n", $v['backtrace']) . '</pre></td>';
+								$result.= '</tr>';
+							}
+						$result.= '</table>';
+					$result.= '</td>';
+				$result.= '</tr>';
+
+				// suppressed
+				$result.= '<tr id="debuging_toolbar_suppressed" class="debuging_toolbar_class" style="display: none;">';
+					$result.= '<td>';
+						$result.= '<h3>Suppressed (' . count(self::$data['suppressed']) . ')</h3>';
+						$result.= '<table border="1" cellpadding="2" cellspacing="2" width="100%">';
+							foreach (self::$data['suppressed'] as $k => $v) {
+								$result.= '<tr>';
+									$result.= '<td><b>' . error_base::$error_codes[$v['errno']] . ' (' . $v['errno'] . ') - ' . implode('<br/>', $v['error']) . '</b></td>';
+								$result.= '</tr>';
+								$result.= '<tr>';
+									$result.= '<td>File: ' . $v['file'] . ', Line: ' . $v['line'] . '</td>';
+								$result.= '</tr>';
+								$result.= '<tr>';
+									$result.= '<td><pre>' . $v['code'] . '</pre></td>';
+								$result.= '</tr>';
+							}
+						$result.= '</table>';
+					$result.= '</td>';
+				$result.= '</tr>';
+
+				// javascript
+				$result.= '<tr id="debuging_toolbar_js" class="debuging_toolbar_class" style="display: none;">';
+					$result.= '<td>';
+						$result.= '<h3>Javascript Errors (' . count(self::$data['js']) . ')</h3>';
+						$result.= '<table border="1" cellpadding="2" cellspacing="2" width="100%">';
+							foreach (self::$data['js'] as $k => $v) {
+								$result.= '<tr>';
+									$result.= '<td><b>' . implode('<br/>', $v['error']) . '</b></td>';
+								$result.= '</tr>';
+								$result.= '<tr>';
+									$result.= '<td>File: ' . $v['file'] . ', Line: ' . $v['line'] . '</td>';
+								$result.= '</tr>';
+							}
+						$result.= '</table>';
+						$result.= '<div id="debuging_toolbar_js_data">';
+							$result.= '&nbsp;';
+						$result.= '</div>';
 					$result.= '</td>';
 				$result.= '</tr>';
 
@@ -304,69 +367,6 @@ class debug {
 								$result.= '</tr>';
 							}
 						$result.= '</table>';
-					$result.= '</td>';
-				$result.= '</tr>';
-
-				// errors
-				$result.= '<tr id="debuging_toolbar_errors" class="debuging_toolbar_class" style="display: none;">';
-					$result.= '<td>';
-						$result.= '<h3>Errors (' . count(error_base::$errors) . ')</h3>';
-						$result.= '<table border="1" cellpadding="2" cellspacing="2" width="100%">';
-							foreach (error_base::$errors as $k => $v) {
-								$result.= '<tr>';
-									$result.= '<td><b>' . error_base::$error_codes[$v['errno']] . ' (' . $v['errno'] . ') - ' . implode('<br/>', $v['error']) . '</b></td>';
-								$result.= '</tr>';
-								$result.= '<tr>';
-									$result.= '<td>File: ' . $v['file'] . ', Line: ' . $v['line'] . '</td>';
-								$result.= '</tr>';
-								$result.= '<tr>';
-									$result.= '<td><pre>' . $v['code'] . '</pre></td>';
-								$result.= '</tr>';
-								$result.= '<tr>';
-									$result.= '<td><pre>' . implode("\n", $v['backtrace']) . '</pre></td>';
-								$result.= '</tr>';
-							}
-						$result.= '</table>';
-					$result.= '</td>';
-				$result.= '</tr>';
-
-				// suppressed
-				$result.= '<tr id="debuging_toolbar_suppressed" class="debuging_toolbar_class" style="display: none;">';
-					$result.= '<td>';
-						$result.= '<h3>Suppressed (' . count(self::$data['suppressed']) . ')</h3>';
-						$result.= '<table border="1" cellpadding="2" cellspacing="2" width="100%">';
-							foreach (self::$data['suppressed'] as $k => $v) {
-								$result.= '<tr>';
-									$result.= '<td><b>' . error_base::$error_codes[$v['errno']] . ' (' . $v['errno'] . ') - ' . implode('<br/>', $v['error']) . '</b></td>';
-								$result.= '</tr>';
-								$result.= '<tr>';
-									$result.= '<td>File: ' . $v['file'] . ', Line: ' . $v['line'] . '</td>';
-								$result.= '</tr>';
-								$result.= '<tr>';
-									$result.= '<td><pre>' . $v['code'] . '</pre></td>';
-								$result.= '</tr>';
-							}
-						$result.= '</table>';
-					$result.= '</td>';
-				$result.= '</tr>';
-
-				// javascript
-				$result.= '<tr id="debuging_toolbar_js" class="debuging_toolbar_class" style="display: none;">';
-					$result.= '<td>';
-						$result.= '<h3>Javascript Errors (' . count(self::$data['js']) . ')</h3>';
-						$result.= '<table border="1" cellpadding="2" cellspacing="2" width="100%">';
-							foreach (self::$data['js'] as $k => $v) {
-								$result.= '<tr>';
-									$result.= '<td><b>' . implode('<br/>', $v['error']) . '</b></td>';
-								$result.= '</tr>';
-								$result.= '<tr>';
-									$result.= '<td>File: ' . $v['file'] . ', Line: ' . $v['line'] . '</td>';
-								$result.= '</tr>';
-							}
-						$result.= '</table>';
-						$result.= '<div id="debuging_toolbar_js_data">';
-							$result.= '&nbsp;';
-						$result.= '</div>';
 					$result.= '</td>';
 				$result.= '</tr>';
 

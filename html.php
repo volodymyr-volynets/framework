@@ -31,6 +31,16 @@ class html /*implements numbers_frontend_html_interface_base*/ {
 	}
 
 	/**
+	 * Hidden element
+	 *
+	 * @param array $options
+	 * @return string
+	 */
+	public static function hidden($options = []) {
+		return factory::delegate('flag.numbers.framework.html', 'hidden', [$options]);
+	}
+	
+	/**
 	 * Mandatory
 	 *
 	 * @param array $options
@@ -188,6 +198,26 @@ class html /*implements numbers_frontend_html_interface_base*/ {
 	}
 
 	/**
+	 * Button
+	 *
+	 * @param array $options
+	 * @return string
+	 */
+	public static function button($options = []) {
+		return factory::delegate('flag.numbers.framework.html', 'button', [$options]);
+	}
+
+	/**
+	 * Button2
+	 *
+	 * @param array $options
+	 * @return string
+	 */
+	public static function button2($options = []) {
+		return factory::delegate('flag.numbers.framework.html', 'button2', [$options]);
+	}
+
+	/**
 	 * List
 	 *
 	 * @param array $options
@@ -306,10 +336,25 @@ class html /*implements numbers_frontend_html_interface_base*/ {
 	 *			success
 	 *			info
 	 *			other
+	 *		options - a list of messages
 	 * @return string
 	 */
 	public static function message($options = []) {
 		return factory::delegate('flag.numbers.framework.html', 'message', [$options]);
+	}
+
+	/**
+	 * Modal
+	 *
+	 * @param array $options
+	 *		id - id of the modal
+	 *		class - class of the modal
+	 *		title - title of the modal
+	 *		body - body of the modal
+	 *		footer - buttons
+	 */
+	public static function modal($options = []) {
+		return factory::delegate('flag.numbers.framework.html', 'modal', [$options]);
 	}
 
 	/**

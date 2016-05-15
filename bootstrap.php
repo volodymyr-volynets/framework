@@ -50,6 +50,7 @@ class bootstrap {
 						$server_values['dbname'] = $wildcard_keys[$db_link]['dbname'];
 					}
 					// connecting
+					$server_values = array_merge2($server_values, $db_settings);
 					$db_status = $db_object->connect($server_values);
 					if ($db_status['success'] && $db_status['status']) {
 						$connected = true;

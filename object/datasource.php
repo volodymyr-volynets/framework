@@ -3,6 +3,34 @@
 class object_datasource {
 
 	/**
+	 * Primary key
+	 *
+	 * @var array
+	 */
+	public $pk;
+
+	/**
+	 * Wherether we need to cache this table
+	 *
+	 * @var bool
+	 */
+	public $cache = false;
+
+	/**
+	 * These tags will be added to caches and then will be used in cache::gc();
+	 *
+	 * @var type
+	 */
+	public $cache_tags = [];
+
+	/**
+	 * Whether we need to cache in memory
+	 *
+	 * @var bool
+	 */
+	public $cache_memory = false;
+
+	/**
 	 * SQL syntax related data
 	 *
 	 * @var array
@@ -414,11 +442,11 @@ class object_datasource {
 	 * @param array $options
 	 * @return array
 	 */
-	final public function query($query, $key = null, $options = []) {
+	final public function process_query($query, $key = null, $options = []) {
 		$result = [
 			'success' => false,
 			'error' => [],
-			'data' => [],
+			'rows' => [],
 			'sql' => null,
 			'db_link' => null
 		];
@@ -452,16 +480,43 @@ class object_datasource {
 			}
 			// query database
 			$db = new db($result['db_link']);
-			$temp = $db->query($result['sql'], $key, $options);
-			if (!$temp['success']) {
-				Throw new Exception('Could not retrive data from datasource!');
-			} else {
-				return $temp['rows'];
-			}
+			// db query options
+			$options_db_query = [
+				'cache' => $this->cache,
+				'cache_tags' => $this->cache_tags
+			];
+			return $db->query($result['sql'], $key, $options_db_query);
 		} else {
 			// todo: add array type datasource here
 		}
 		return $result;
+	}
+
+	/**
+	 * Get data from datasource
+	 *
+	 * @param array $options
+	 * @return array
+	 * @throws Exception
+	 */
+	final public function get($options = []) {
+		// check if we have query method
+		if (!method_exists($this, 'query')) {
+			Throw new Exception('You must specify sql in query method!');
+		}
+		// merge options
+		$options = $this->merge_options($options);
+		// get query
+		$sql = $this->query($options);
+		// process query
+		$result = $this->process_query($sql, $this->pk, $options);
+		if (!$result['success']) {
+			Throw new Exception('Query error in datasource: ' . implode(' ', $result['error']));
+		} else if (method_exists($this, 'process')) { // process data
+			return $this->process($result['rows'], $options);
+		} else {
+			return $result['rows'];
+		}
 	}
 
 	/**

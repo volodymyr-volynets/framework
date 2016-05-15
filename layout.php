@@ -219,6 +219,7 @@ class layout extends view {
 	 * @param string $code
 	 */
 	public static function add_action($code, $action) {
+		$action['orderby'] = $action['orderby'] ?? 0;
 		application::set(array('layout', 'bar_action', $code), $action);
 	}
 
@@ -232,14 +233,15 @@ class layout extends view {
 		$data = application::get(array('layout', 'bar_action'));
 		if (!empty($data)) {
 			// sorting first
-			array_key_sort($data, 'sort', SORT_ASC, 'intval');
+			array_key_sort($data, ['orderby' => SORT_ASC], ['orderby' => SORT_NUMERIC]);
 			// looping through data and building html
 			$temp = array();
 			foreach ($data as $k=>$v) {
-				$icon = !empty($v['icon']) ? $v['icon'] : '';
+				$icon = !empty($v['icon']) ? (html::icon(['type' => $v['icon']]) . ' ') : '';
 				$onclick = !empty($v['onclick']) ? $v['onclick'] : '';
 				$value = !empty($v['value']) ? $v['value'] : '';
-				$temp[] = html::a(array('value' => $icon . $value, 'href' => $v['href'], 'onclick' => $onclick));
+				$href = $v['href'] ?? 'javascript:void(0);';
+				$temp[] = html::a(array('value' => $icon . $value, 'href' => $href, 'onclick' => $onclick));
 			}
 			$result = implode(' ', $temp);
 		}

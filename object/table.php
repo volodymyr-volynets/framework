@@ -130,20 +130,6 @@ class object_table extends object_override_data {
 	public $cache = false;
 
 	/**
-	 * Cache link
-	 *
-	 * @var string 
-	 */
-	public $cache_link;
-
-	/**
-	 * Cache link override
-	 *
-	 * @var string
-	 */
-	public $cache_link_flag;
-
-	/**
 	 * These tags will be added to caches and then will be used in cache::gc();
 	 *
 	 * @var type
@@ -219,16 +205,25 @@ class object_table extends object_override_data {
 			// processing as per different data types
 			if ($v['type'] == 'boolean') {
 				$save[$k] = !empty($data[$k]) ? 1 : 0;
-			} else if (in_array($v['type'], array('smallint', 'integer', 'bigint', 'smallserial', 'serial', 'bigserial'))) {
-				if (!isset($data[$k]) || $data[$k] ===null) {
-					$save[$k] == null;
+			} else if (in_array($v['type'], ['smallserial', 'serial', 'bigserial'])) {
+				if (!empty($data[$k])) {
+					$save[$k] = format::read_intval($data[$k]);
+				}
+			} else if (in_array($v['type'], ['smallint', 'integer', 'bigint'])) {
+				if (!isset($data[$k]) || is_null($data[$k])) {
+					if (!empty($this->columns[$k]['null'])) {
+						$save[$k] = null;
+					} else {
+						$save[$k] = $this->columns[$k]['default'] ?? 0;
+					}
 				} else {
-					$save[$k] = format::read_intval(isset($data[$k]) ? $data[$k] : null);
+					$save[$k] = format::read_intval($data[$k] ?? null);
 				}
 			} else if ($v['type'] == 'numeric') {
-				$save[$k] = format::read_floatval(isset($data[$k]) ? $data[$k] : null);
+				// todo: add the same handling as for integers
+				$save[$k] = format::read_floatval($data[$k] ?? null);
 			} else if (in_array($v['type'], ['date', 'time', 'datetime', 'timestamp'])) {
-				$save[$k] = format::read_date(isset($data[$k]) ? $data[$k] : null, $v['type']);
+				$save[$k] = format::read_date($data[$k] ?? null, $v['type']);
 			} else if ($v['type'] == 'json') {
 				if (!isset($data[$k]) || is_null($data[$k])) {
 					$save[$k] = null;
