@@ -156,7 +156,7 @@ class layout extends view {
 	 */
 	public static function render_title() {
 		$result = '';
-		$data = application::get(array('controller'));
+		$data = application::get('controller');
 		if (!empty(self::$title_override)) {
 			$data['title'] = self::$title_override;
 		}
@@ -164,8 +164,7 @@ class layout extends view {
 			$data['icon'] = self::$icon_override;
 		}
 		if (!empty($data['title'])) {
-			$data['icon'] = !empty($data['icon']) ? icon::render($data['icon']) : '';
-			$result.= (!empty($data['icon']) ? ($data['icon'] . ' ') : '') . $data['title'];
+			$result.= (!empty($data['icon']) ? (html::icon(['type' => $data['icon']]) . ' ') : '') . $data['title'];
 		}
 		return $result;
 	}
@@ -185,8 +184,14 @@ class layout extends view {
 	 * 
 	 * @param string $msg
 	 * @param string $type
+	 *		type one of:
+	 *			danger
+	 *			warning
+	 *			success
+	 *			info
+	 *			other
 	 */
-	public static function add_message($msg, $type = 'error') {
+	public static function add_message($msg, $type = 'danger') {
 		if (is_array($msg)) {
 			foreach ($msg as $k=>$v) {
 				application::set(array('messages', $type), $v, array('append'=>true));
@@ -254,7 +259,10 @@ class layout extends view {
 	 * @return string
 	 */
 	public static function render_breadcrumbs() {
-
+		$data = application::get(['controller', 'breadcrumbs']);
+		if ($data) {
+			return html::breadcrumbs($data);
+		}
 	}
 
 	/**

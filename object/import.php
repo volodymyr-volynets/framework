@@ -36,6 +36,10 @@ class object_import {
 		if (empty($this->import_data)) {
 			Throw new Exception('You must pecify import_data parameter.');
 		}
+		// if we have fixes to the data
+		if (method_exists($this, 'import_data')) {
+			$this->import_data();
+		}
 		// processing one by one
 		foreach ($this->import_data as $k => $v) {
 			$class = $v['options']['model'];
@@ -45,11 +49,11 @@ class object_import {
 				// import methods
 				switch ($v['options']['method'] ?? 'save') {
 					case 'save_insert_new':
-						$result_insert = $object->save($v2, ['pk' => $v['options']['pk'], 'flag_insert_only' => true]);
+						$result_insert = $object->save($v2, ['pk' => $v['options']['pk'], 'flag_insert_only' => true, 'ignore_not_set_fields' => true]);
 						break;
 					case 'save':
 					default:
-						$result_insert = $object->save($v2, ['pk' => $v['options']['pk']]);
+						$result_insert = $object->save($v2, ['pk' => $v['options']['pk'], 'ignore_not_set_fields' => true]);
 				}
 				if (!$result_insert['success']) {
 					$result['error'] = $result_insert['error'];

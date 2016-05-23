@@ -97,6 +97,13 @@ class object_table extends object_override_data {
 	public $audit = false;
 
 	/**
+	 * Optimistic lock
+	 *
+	 * @var boolean 
+	 */
+	public $optimistic_lock = false;
+
+	/**
 	 * Table engine
 	 *
 	 * @var array
@@ -167,8 +174,6 @@ class object_table extends object_override_data {
 			}
 		}
 
-		// we need to determine cache link
-
 		// processing table name
 		$ddl = factory::get(['db', $this->db_link, 'ddl_object']);
 		$temp = $ddl->is_schema_supported($this->name);
@@ -176,6 +181,11 @@ class object_table extends object_override_data {
 
 		// process domain in columns
 		$this->columns = object_data_common::process_domains($this->columns);
+	
+		// optimistic lock
+		if ($this->optimistic_lock) {
+			$this->columns[$this->column_prefix . 'optimistic_lock'] = ['name' => 'Optimistic Lock', 'type' => 'timestamp', 'default' => 'now()'];
+		}
 	}
 
 	/**
@@ -391,6 +401,9 @@ class object_table extends object_override_data {
 			}
 		}
 		$result = $db->query($sql_full, $pk, $options_query);
+		if (!$result['success']) {
+			Throw new Exception(implode(", ", $result['error']));
+		}
 		if ($this->cache_memory) {
 			cache::$memory_storage[$sql_hash] = & $result['rows'];
 		}

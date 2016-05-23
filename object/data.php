@@ -103,10 +103,11 @@ class object_data extends object_override_data {
 	}
 
 	/**
-	 * Get raw data
+	 * Get data
 	 *
 	 * @param array $options
 	 *		where - array of conditions
+	 *		pk - primary key to be used by query
 	 *		orderby - array of columns to sort by
 	 * @return array
 	 */

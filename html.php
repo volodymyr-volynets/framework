@@ -327,11 +327,21 @@ class html /*implements numbers_frontend_html_interface_base*/ {
 	}
 
 	/**
+	 * Breadcrumbs
+	 *
+	 * @param array $options
+	 * @return string
+	 */
+	public static function breadcrumbs($options) {
+		return factory::delegate('flag.numbers.framework.html', 'breadcrumbs', [$options]);
+	}
+
+	/**
 	 * Message
 	 *
 	 * @param array $options
 	 *		type one of:
-	 *			error
+	 *			danger
 	 *			warning
 	 *			success
 	 *			info
@@ -355,6 +365,24 @@ class html /*implements numbers_frontend_html_interface_base*/ {
 	 */
 	public static function modal($options = []) {
 		return factory::delegate('flag.numbers.framework.html', 'modal', [$options]);
+	}
+
+	/**
+	 * Text
+	 *
+	 * @param array $options
+	 *		type one of:
+	 *			error
+	 *			warning
+	 *			success
+	 *			info
+	 *			other
+	 *		value
+	 *		tag - default is <p>
+	 * @return string
+	 */
+	public static function text($options = []) {
+		return factory::delegate('flag.numbers.framework.html', 'text', [$options]);
 	}
 
 	/**

@@ -29,6 +29,10 @@ class object_data_domains extends object_data {
 		'phone' => ['name' => 'Phone', 'type' => 'varchar', 'length' => 50],
 		'personal_name' => ['name' => 'Name (Personal)', 'type' => 'varchar', 'length' => 50],
 		'personal_title' => ['name' => 'Title (Personal)', 'type' => 'varchar', 'length' => 10],
+		'icon' => ['name' => 'Icon', 'type' => 'varchar', 'length' => 50],
+		// login related
+		'login' => ['name' => 'Login', 'type' => 'varchar', 'length' => 30],
+		'password' => ['name' => 'Password', 'type' => 'text'],
 		// system
 		'controller_id' => ['name' => 'Controller #', 'type' => 'integer'],
 		'controller_id_sequence' => ['name' => 'Controller #', 'type' => 'serial'],

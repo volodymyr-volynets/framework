@@ -201,7 +201,7 @@ function array_merge3(& $arr1, $arr2) {
  * 
  * @param array $arr1
  * @param array $arr2
- * @return a
+ * @return array
  */
 function array_merge_hard($arr1, $arr2) {
 	$arrays = func_get_args();

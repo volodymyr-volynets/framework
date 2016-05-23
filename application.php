@@ -168,7 +168,7 @@ class application {
 
 		// check if controller exists
 		if (!file_exists(self::$settings['mvc']['controller_file'])) {
-			Throw new Exception('Controller not found: ' . self::$settings['mvc']['controller_class'] . '!');
+			Throw new Exception('Resource not found!', -1);
 		}
 
 		// initialize the controller
@@ -403,6 +403,17 @@ class application {
 			}
  		}
 
+		// check ACL
+		if ($controller_class != 'controller_error') {
+			helper_acl::merge_data_with_db($controller, self::$settings['mvc']['controller_class']);
+			if (helper_acl::can_be_executed($controller) == false) {
+				Throw new Exception('Permission denied!', -1);
+			}
+		} else {
+			// important to unset controller data
+			application::set('controller', null);
+		}
+
 		// auto populating input property in controller
  		if (!empty(self::$settings['application']['controller']['input'])) {
  			$controller->input = request::input(null, true, true);
@@ -464,26 +475,26 @@ class application {
 			}
 			// buffer output and handling javascript files, chicken and egg problem
 			$from = [
-				'<!-- [numbers: javascript links] -->',
-				'<!-- [numbers: javascript data] -->',
-				'<!-- [numbers: css links] -->',
-				'<!-- [numbers: layout onload] -->',
 				'<!-- [numbers: messages] -->',
 				'<!-- [numbers: title] -->',
 				'<!-- [numbers: document title] -->',
 				'<!-- [numbers: actions] -->',
-				'<!-- [numbers: breadcrumbs] -->'
+				'<!-- [numbers: breadcrumbs] -->',
+				'<!-- [numbers: javascript links] -->',
+				'<!-- [numbers: javascript data] -->',
+				'<!-- [numbers: css links] -->',
+				'<!-- [numbers: layout onload] -->'
 			];
 			$to = [
-				layout::render_js(),
-				layout::render_js_data(),
-				layout::render_css(),
-				layout::render_onload(),
 				layout::render_messages(),
 				layout::render_title(),
 				layout::render_document_title(),
 				layout::render_actions(),
-				layout::render_breadcrumbs()
+				layout::render_breadcrumbs(),
+				layout::render_js(),
+				layout::render_js_data(),
+				layout::render_css(),
+				layout::render_onload()
 			];
 			echo str_replace($from, $to, helper_ob::clean());
 		} else {

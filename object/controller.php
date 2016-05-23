@@ -10,13 +10,28 @@ class object_controller {
 	public $title = '';
 
 	/**
+	 * Icon
+	 *
+	 * @var string 
+	 */
+	public $icon;
+
+	/**
 	 * Acl settings
 	 *
 	 * @var array
 	 */
 	public $acl = [
-		'level' => ['public']
-		//'level' => ['public', 'authorized', 'permission'],
+		'public' => 1
+		//'authorized' => 1,
+		//'permission' => 1
 		//'tokens' => ['token1', 'token2'],
 	];
+
+	/**
+	 * Breadcrumbs
+	 *
+	 * @var string 
+	 */
+	public $breadcrumbs = [];
 }

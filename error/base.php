@@ -29,6 +29,7 @@ class error_base {
 	 * @var array 
 	 */
 	public static $error_codes = [
+		-1 => 'Visible To User',
 		0 => 'EXCEPTION',
 		1 => 'E_ERROR',
 		2 => 'E_WARNING',

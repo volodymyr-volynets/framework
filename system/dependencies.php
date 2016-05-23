@@ -365,7 +365,7 @@ class system_dependencies {
 				// comparing
 				$temp_result = $ddl->compare_schemas(isset($ddl->objects[$k]) ? $ddl->objects[$k] : [], isset($loaded_objects[$k]) ? $loaded_objects[$k] : [], $compare_options);
 				if (!$temp_result['success']) {
-					array_merge3($result['error'], $temp_result['error']);
+					array_merge3($result['hint'], $temp_result['error']);
 				} else {
 					$schema_diff[$k] = $temp_result['data'];
 					if (!isset($total_per_db_link[$k])) {
