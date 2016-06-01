@@ -161,6 +161,9 @@ class html /*implements numbers_frontend_html_interface_base*/ {
 	 * Table
 	 *
 	 * @param array $options
+	 *		header
+	 *		options
+	 *		skip_header
 	 * @return string
 	 */
 	public static function table($options = []) {

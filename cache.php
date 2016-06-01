@@ -125,6 +125,8 @@ class cache {
 	 * Collect garbage
 	 *
 	 * @param string $mode
+	 *		1 - old
+	 *		2 - all
 	 * @param array $tags
 	 * @return bool
 	 */

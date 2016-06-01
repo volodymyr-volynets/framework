@@ -209,46 +209,11 @@ class object_table extends object_override_data {
 	public function process_columns($data, $ignore_not_set_fields = false) {
 		$save = [];
 		foreach ($this->columns as $k => $v) {
-			if ($ignore_not_set_fields && !isset($data[$k]) && !array_key_exists($k, $data)) {
+			if ($ignore_not_set_fields && !array_key_exists($k, $data)) {
 				continue;
 			}
-			// processing as per different data types
-			if ($v['type'] == 'boolean') {
-				$save[$k] = !empty($data[$k]) ? 1 : 0;
-			} else if (in_array($v['type'], ['smallserial', 'serial', 'bigserial'])) {
-				if (!empty($data[$k])) {
-					$save[$k] = format::read_intval($data[$k]);
-				}
-			} else if (in_array($v['type'], ['smallint', 'integer', 'bigint'])) {
-				if (!isset($data[$k]) || is_null($data[$k])) {
-					if (!empty($this->columns[$k]['null'])) {
-						$save[$k] = null;
-					} else {
-						$save[$k] = $this->columns[$k]['default'] ?? 0;
-					}
-				} else {
-					$save[$k] = format::read_intval($data[$k] ?? null);
-				}
-			} else if ($v['type'] == 'numeric') {
-				// todo: add the same handling as for integers
-				$save[$k] = format::read_floatval($data[$k] ?? null);
-			} else if (in_array($v['type'], ['date', 'time', 'datetime', 'timestamp'])) {
-				$save[$k] = format::read_date($data[$k] ?? null, $v['type']);
-			} else if ($v['type'] == 'json') {
-				if (!isset($data[$k]) || is_null($data[$k])) {
-					$save[$k] = null;
-				} else if (is_array($data[$k])) {
-					$save[$k] = json_encode($data[$k]);
-				} else {
-					$save[$k] = $data[$k];
-				}
-			} else {
-				if (!isset($data[$k]) || is_null($data[$k])) {
-					$save[$k] = null;
-				} else {
-					$save[$k] = $data[$k] . '';
-				}
-			}
+			$temp = object_table_columns::process_single_column_type($k, $v, $data[$k] ?? null);
+			$save = array_merge($save, $temp);
 		}
 		return $save;
 	}
@@ -408,5 +373,14 @@ class object_table extends object_override_data {
 			cache::$memory_storage[$sql_hash] = & $result['rows'];
 		}
 		return $result['rows'];
+	}
+
+	/**
+	 * Get db object
+	 *
+	 * @return object
+	 */
+	public function db_object() {
+		return new db($this->db_link);
 	}
 }

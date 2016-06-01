@@ -64,11 +64,6 @@ class bootstrap {
 			}
 		}
 
-		// if we are from command line we exit here
-		if (!empty($options['__run_only_bootstrap'])) {
-			return;
-		}
-
 		// initialize cache
 		$cache = application::get('cache');
 		if (!empty($cache) && $backend) {
@@ -90,6 +85,11 @@ class bootstrap {
 					Throw new Exception('Unable to open cache connection!');
 				}
 			}
+		}
+
+		// if we are from command line we exit here
+		if (!empty($options['__run_only_bootstrap'])) {
+			return;
 		}
 
 		// initialize session
@@ -134,13 +134,18 @@ class bootstrap {
 		if (application::get('dep.submodule.numbers.frontend.system')) {
 			numbers_frontend_system_model_base::start();
 		}
+	}
 
-		// generating token to receive data from frontend
-		if ($backend) {
-			$crypt_class = new crypt();
-			$token = urldecode($crypt_class->token_create('general'));
-			layout::js_data(['token' => $token]);
-		}
+	/**
+	 * Pre render processing
+	 */
+	public static function pre_render() {
+		$crypt_class = new crypt();
+		$token = urldecode($crypt_class->token_create('general'));
+		layout::js_data([
+			'token' => $token, // generating token to receive data from frontend
+			'controller_full' => application::get(['mvc', 'full']) // full controller path
+		]);
 	}
 
 	/**

@@ -371,6 +371,7 @@ class application {
 		self::$settings['mvc'] = $data;
 		self::$settings['mvc']['controller_class'] = $controller_class;
 		self::$settings['mvc']['controller_action'] = 'action_' . $data['action'];
+		self::$settings['mvc']['controller_action_code'] = $data['action'];
 		self::$settings['mvc']['controller_id'] = $data['id'];
 		self::$settings['mvc']['controller_view'] = $data['action'];
 		self::$settings['mvc']['controller_layout'] = self::$settings['application']['layout']['layout'] ?? 'index';
@@ -403,6 +404,12 @@ class application {
 			}
  		}
 
+		// put action into controller
+		$controller->action = [
+			'code' => self::$settings['mvc']['controller_action_code'],
+			'full' => self::$settings['mvc']['controller_action']
+		];
+
 		// check ACL
 		if ($controller_class != 'controller_error') {
 			helper_acl::merge_data_with_db($controller, self::$settings['mvc']['controller_class']);
@@ -425,13 +432,12 @@ class application {
 		}
 
 		// check if action exists
-		$action = self::$settings['mvc']['controller_action'];
-		if (!method_exists($controller, $action)) {
+		if (!method_exists($controller, $controller->action['full'])) {
 			Throw new Exception('Action does not exists!');
 		}
 
 		// calling action
-		echo call_user_func(array($controller, $action));
+		echo call_user_func(array($controller, $controller->action['full']));
 
 		// auto rendering view only if view exists, processing extension order as specified in .ini file
 		$temp_reflection_obj = new ReflectionClass($controller);
@@ -465,6 +471,9 @@ class application {
 		if (debug::$toolbar) {
 			helper_ob::start();
 		}
+
+		// call pre rendering method in bootstrap
+		bootstrap::pre_render();
 
 		// rendering layout
 		$__skip_layout = application::get('flag.global.__skip_layout');

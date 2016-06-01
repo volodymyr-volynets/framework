@@ -100,7 +100,13 @@ class debug {
 				$start = $temp;
 			}
 			$total+= $benchmark;
-			self::$data['benchmark'][] = array('name' => $name, 'time' => format::time_seconds($benchmark) . '', 'total' => format::time_seconds($total), 'start' => format::datetime($start));
+			self::$data['benchmark'][] = [
+				'name' => $name,
+				'time' => format::time_seconds($benchmark) . '',
+				'total' => format::time_seconds($total),
+				'start' => format::datetime($start),
+				'memory' => memory_get_peak_usage(true)
+			];
 		}
 	}
 
@@ -109,7 +115,14 @@ class debug {
 	 */
 	public static function send_errors_to_admin() {
 		// determine if we need to send anything
-		if (!empty(error_base::$errors) || !empty(self::$data['suppressed']) || !empty(self::$data['js'])) {
+		$found = false;
+		foreach (error_base::$errors as $k => $v) {
+			if ($v['errno'] != -1) {
+				$found = true;
+				break;
+			}
+		}
+		if ($found || !empty(self::$data['suppressed']) || !empty(self::$data['js'])) {
 			$message = str_replace('display: none;', '', self::render());
 			return mail::send([
 				'to' => self::$email,
@@ -226,6 +239,7 @@ class debug {
 								$result.= '<th>Time</th>';
 								$result.= '<th>Start</th>';
 								$result.= '<th>Total</th>';
+								$result.= '<th>Memory</th>';
 							$result.= '</tr>';
 							foreach (self::$data['benchmark'] as $k => $v) {
 								$result.= '<tr>';
@@ -233,6 +247,7 @@ class debug {
 									$result.= '<td align="right">' . $v['time'] . '</td>';
 									$result.= '<td align="right">' . $v['start'] . '</td>';
 									$result.= '<td align="right">' . $v['total'] . '</td>';
+									$result.= '<td align="right">' . format::memory($v['memory'], 'm') . '</td>';
 								$result.= '</tr>';
 							}
 						$result.= '</table>';

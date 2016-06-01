@@ -34,7 +34,7 @@ class layout extends view {
 	 * 
 	 * @var string
 	 */
-	private static $onload = '';
+	public static $onload = '';
 
 	/**
 	 * Javascript data would be here
@@ -164,7 +164,7 @@ class layout extends view {
 			$data['icon'] = self::$icon_override;
 		}
 		if (!empty($data['title'])) {
-			$result.= (!empty($data['icon']) ? (html::icon(['type' => $data['icon']]) . ' ') : '') . $data['title'];
+			$result.= (!empty($data['icon']) ? (html::icon(['type' => $data['icon']]) . ' ') : '') . i18n(null, $data['title']);
 		}
 		return $result;
 	}
@@ -280,6 +280,19 @@ class layout extends view {
 		switch ($content_type) {
 			case 'application/json':
 				echo json_encode($data);
+				break;
+			case 'text/html':
+				helper_ob::start();
+				require(application::get(['application', 'path_full']) . 'layout/blank.html');
+				$from = [
+					'<!-- [numbers: document title] -->',
+					'<!-- [numbers: document body] -->'
+				];
+				$to = [
+					layout::render_document_title(),
+					$data
+				];
+				echo str_replace($from, $to, helper_ob::clean());
 				break;
 			default:
 				echo $data;

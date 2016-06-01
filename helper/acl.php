@@ -25,6 +25,8 @@ class helper_acl {
 			}
 			// if we have an ovarride from database
 			if (!empty($found)) {
+				// controller_id & action_id
+				$controller_object->controller_id = $found['sm_controller_id'];
 				// title
 				$controller_object->title = $found['sm_controller_name'];
 				// icon
@@ -47,6 +49,8 @@ class helper_acl {
 					$controller_object->breadcrumbs[] = $found['g' . $i . '_name'];
 				}
 				$controller_object->breadcrumbs[] = $found['sm_controller_name'];
+				// add actions to the controller
+				$controller_object->actions = $found['actions'];
 				// put new controller object back
 				application::set('controller', get_object_vars($controller_object));
 			}
@@ -63,8 +67,40 @@ class helper_acl {
 		$authorized = session::get(['numbers', 'authorized']);
 		// authorized
 		if ($authorized) {
+			// see if controller is for authorized
 			if (empty($controller_object->acl['authorized'])) {
 				return false;
+			}
+			// permissions
+			if (!empty($controller_object->acl['permission'])) {
+				if (self::$permissions == null) {
+					self::handle_permissions();
+				}
+				// admin account can see everything
+				if (self::$flag_admin) {
+					return true;
+				}
+				// see if we have this action code registered
+				if (empty($controller_object->actions['by_code'][$controller_object->action['code']])) {
+					return false;
+				}
+				// check if we have access to the controller
+				if (empty($controller_object->controller_id) || empty(self::$permissions[$controller_object->controller_id])) {
+					return false;
+				}
+				// if we have action
+				$all_actions = [];
+				foreach (self::$permissions[$controller_object->controller_id] as $k => $v) {
+					if ($v == true) {
+						$all_actions[] = $k;
+					}
+				}
+				$merged = array_intersect($all_actions, $controller_object->actions['by_code'][$controller_object->action['code']]);
+				if (empty($merged)) {
+					return false;
+				}
+				// we need to put permission into controller
+				application::set(['controller', 'acl', 'permissions'], self::$permissions[$controller_object->controller_id]);
 			}
 		} else {
 			if (empty($controller_object->acl['public'])) {
@@ -82,15 +118,60 @@ class helper_acl {
 	public static $controllers = null;
 
 	/**
+	 * Storage for permissions
+	 *
+	 * @var array
+	 */
+	public static $permissions = null;
+
+	/**
+	 * Admin account
+	 *
+	 * @var boolean
+	 */
+	public static $flag_admin = false;
+
+	/**
+	 * Handle permission
+	 */
+	public static function handle_permissions() {
+		$model = new object_acl_datasources();
+		self::$permissions = [];
+		$data = $model->get();
+		foreach ($data as $k => $v) {
+			foreach ($v as $k2 => $v2) {
+				// if we have administrative account we allow everything
+				if ($k2 == 'admin' && !empty($v2['*'])) {
+					self::$flag_admin = true;
+				}
+				// build permission array
+				foreach ($v2 as $k3 => $v3) {
+					foreach ($v3 as $k4 => $v4) {
+						if (!isset(self::$permissions[$k3][$k4])) {
+							self::$permissions[$k3][$k4] = $v4;
+						} else if (self::$permissions[$k3][$k4] == true) {
+							self::$permissions[$k3][$k4] = $v4;
+						}
+					}
+				}
+			}
+		}
+	}
+
+	/**
 	 * Check if user can see this controller, used in menu
 	 *
 	 * @param int $controller_id
+	 * @param int $action_id
 	 * @return boolean
 	 */
-	public static function can_see_this_controller($controller_id) {
+	public static function can_see_this_controller($controller_id, $action_id) {
 		$authorized = session::get(['numbers', 'authorized']);
 		if (self::$controllers == null) {
 			self::$controllers = application::get(['storage', 'controllers']);
+		}
+		if (self::$permissions == null) {
+			self::handle_permissions();
 		}
 		if (!empty($controller_id)) {
 			if (!isset(self::$controllers[$controller_id])) {
@@ -100,6 +181,23 @@ class helper_acl {
 			if ($authorized) {
 				if (empty(self::$controllers[$controller_id]['sm_controller_acl_authorized'])) {
 					return false;
+				}
+				// check permission
+				if (!empty(self::$controllers[$controller_id]['sm_controller_acl_permission'])) {
+					// admin account can see everything
+					if (self::$flag_admin) {
+						return true;
+					}
+					// if we have permission to see the controller
+					if (empty(self::$permissions[$controller_id])) {
+						return false;
+					}
+					// if we have action
+					if (!empty($action_id)) {
+						if (empty(self::$permissions[$controller_id][$action_id])) {
+							return false;
+						}
+					}
 				}
 			} else {
 				if (empty(self::$controllers[$controller_id]['sm_controller_acl_public'])) {

@@ -26,7 +26,7 @@ class object_override_data {
 			return false;
 		}
 		unset($object_override_blank_object);
-		require_once($filename);
+		require($filename); // must use require!!!
 		$vars = get_object_vars($object_override_blank_object);
 		if (empty($vars)) {
 			self::$override_data[$class] = false;

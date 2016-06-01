@@ -203,7 +203,15 @@ class object_data extends object_override_data {
 	public function options($options = []) {
 		$data = $this->get($options);
 		$options_map = !empty($this->options_map) ? $this->options_map : [$this->column_prefix . 'name' => 'name'];
-		return object_data_common::options($data, $options_map);
+		if (empty($options['i18n'])) {
+			return object_data_common::options($data, $options_map);
+		} else {
+			$data = object_data_common::options($data, $options_map);
+			foreach ($data as $k => $v) {
+				$data[$k]['name'] = i18n(null, $v['name']);
+			}
+			return $data;
+		}
 	}
 
 	/**

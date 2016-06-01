@@ -18,7 +18,7 @@ class object_collection extends object_override_data {
 	 *
 	 * @var array
 	 */
-	public $details = [
+	public $data = [
 		/*
 		'model' => '[model]',
 		'pk' => [],
@@ -42,6 +42,16 @@ class object_collection extends object_override_data {
 	private $db_object;
 
 	/**
+	 * Constructing object
+	 *
+	 * @throws Exception
+	 */
+	public function __construct() {
+		// we need to handle overrrides
+		parent::override_handle($this);
+	}
+
+	/**
 	 * Get data
 	 *
 	 * @param array $options
@@ -52,10 +62,10 @@ class object_collection extends object_override_data {
 	 */
 	public function get($options = []) {
 		// create primary model
-		$primary_class = $this->details['model'];
+		$primary_class = $this->data['model'];
 		$primary_model = new $primary_class();
 		// grab pk from the model if not set
-		$pk = $this->details['pk'] ?? $primary_model->pk;
+		$pk = $this->data['pk'] ?? $primary_model->pk;
 		$this->db_object = new db($primary_model->db_link);
 		// building SQL
 		$sql = '';
@@ -67,8 +77,8 @@ class object_collection extends object_override_data {
 			Throw new Exception(implode(", ", $result['error']));
 		}
 		// processing details
-		if (!empty($result['rows']) && !empty($this->details['details'])) {
-			$this->process_details($this->details['details'], $result['rows']);
+		if (!empty($result['rows']) && !empty($this->data['details'])) {
+			$this->process_details($this->data['details'], $result['rows']);
 		}
 		// single row
 		if (!empty($options['single_row'])) {
@@ -105,6 +115,13 @@ class object_collection extends object_override_data {
 			foreach ($parent_rows as $k2 => $v2) {
 				if ($key_level == 1) {
 					$keys[] = $v2[$k1];
+				}
+				// create empty arrays for children
+				foreach ($v['map'] as $k3 => $v3) {
+					$key = $parent_keys;
+					$key[] = $k2;
+					$key[] = $k;
+					array_key_set($parent_rows, $key, []);
 				}
 			}
 			// building SQL

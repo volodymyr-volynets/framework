@@ -71,4 +71,14 @@ class factory {
 			return call_user_func_array([self::submodule($flag . '.submodule'), $submodule], $arguments);
 		}
 	}
+
+	/**
+	 * Create model
+	 *
+	 * @param string $class
+	 * @return object
+	 */
+	public static function model($class) {
+		return new $class();
+	}
 }

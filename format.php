@@ -385,4 +385,28 @@ class format {
 	public static function cheque($amount) {
 		return number_format($amount, 2, '.', '');
 	}
+
+	/**
+	 * Format memory
+	 *
+	 * @param int $memory
+	 * @param string $type
+	 * @return string
+	 */
+	public static function memory($memory, $type = 'm') {
+		switch ($type) {
+			case 'm':
+				$suffix = 'Mb';
+				$divider = 1000000;
+				break;
+			case 'k':
+				$suffix = 'Kb';
+				$divider = 1000;
+				break;
+			default:
+				$suffix = 'b';
+				$divider = 1;
+		}
+		return round($memory / $divider, 2) . ' ' . $suffix;
+	}
 }
