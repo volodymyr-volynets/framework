@@ -97,8 +97,13 @@ class object_data extends object_override_data {
 			Throw new Exception('object_data ' . get_called_class() . ' children must have columns!');
 		}
 		// process domain in columns, we skip domain model
-		if (get_called_class() != 'object_data_domains') {
-			$this->columns = object_data_common::process_domains($this->columns);
+		$class = get_called_class();
+		if ($class != 'object_data_domains') {
+			if ($class == 'object_data_types') {
+				$this->columns = object_data_common::process_domains($this->columns, $this->data);
+			} else {
+				$this->columns = object_data_common::process_domains($this->columns);
+			}
 		}
 	}
 

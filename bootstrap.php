@@ -198,6 +198,9 @@ class bootstrap {
 		if (!empty($cache)) {
 			foreach ($cache as $k => $v) {
 				$object = $v['object'];
+				if (!empty(cache::$reset_caches[$k])) {
+					$object->gc(1, cache::$reset_caches[$k]);
+				}
 				$object->close();
 			}
 		}

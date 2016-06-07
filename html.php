@@ -389,6 +389,17 @@ class html /*implements numbers_frontend_html_interface_base*/ {
 	}
 
 	/**
+	 * Process options
+	 *
+	 * @param string $model_and_method
+	 * @param object $existing_object
+	 * @return array
+	 */
+	public static function process_options($model_and_method, $existing_object = null) {
+		return factory::delegate('flag.numbers.framework.html', 'process_options', [$model_and_method, $existing_object]);
+	}
+
+	/**
 	 * Convert array of percentages to grid columns
 	 *
 	 * @param mixed $percentage_array

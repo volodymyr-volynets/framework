@@ -20,6 +20,13 @@ class cache {
 	public static $memory_storage = [];
 
 	/**
+	 * Reset caches
+	 *
+	 * @var array
+	 */
+	public static $reset_caches = [];
+
+	/**
 	 * Constructing cache object
 	 *
 	 * @param string $cache_link

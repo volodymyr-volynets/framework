@@ -90,6 +90,13 @@ class object_table extends object_override_data {
 	public $history = false;
 
 	/**
+	 * History table name
+	 *
+	 * @var string
+	 */
+	public $history_name;
+
+	/**
 	 * Whether we need to keep audit log for this table
 	 *
 	 * @var bool
@@ -102,6 +109,13 @@ class object_table extends object_override_data {
 	 * @var boolean 
 	 */
 	public $optimistic_lock = false;
+
+	/**
+	 * Optimistic lock column
+	 *
+	 * @var string
+	 */
+	public $optimistic_lock_column;
 
 	/**
 	 * Table engine
@@ -173,18 +187,17 @@ class object_table extends object_override_data {
 				Throw new Exception('Could not determine db link in model!');
 			}
 		}
-
 		// processing table name
 		$ddl = factory::get(['db', $this->db_link, 'ddl_object']);
 		$temp = $ddl->is_schema_supported($this->name);
 		$this->name = $temp['full_table_name'];
-
+		$this->history_name = $this->name . '__history';
 		// process domain in columns
 		$this->columns = object_data_common::process_domains($this->columns);
-	
 		// optimistic lock
 		if ($this->optimistic_lock) {
-			$this->columns[$this->column_prefix . 'optimistic_lock'] = ['name' => 'Optimistic Lock', 'type' => 'timestamp', 'default' => 'now()'];
+			$this->optimistic_lock_column = $this->column_prefix . 'optimistic_lock';
+			$this->columns[$this->optimistic_lock_column] = ['name' => 'Optimistic Lock', 'type' => 'timestamp', 'default' => 'now()'];
 		}
 	}
 
@@ -382,5 +395,20 @@ class object_table extends object_override_data {
 	 */
 	public function db_object() {
 		return new db($this->db_link);
+	}
+
+	/**
+	 * Reset caches on exit
+	 */
+	public function reset_cache() {
+		// get cache link
+		$db = $this->db_object();
+		$cache_link = $db->object->connect_options['cache_link'];
+		// create empty cache array
+		if (!isset(cache::$reset_caches[$cache_link])) {
+			cache::$reset_caches[$cache_link] = [];
+		}
+		// create unique caches by adding new
+		cache::$reset_caches[$cache_link] = array_unique(array_merge(cache::$reset_caches[$cache_link], $this->cache_tags, [$this->name]));
 	}
 }

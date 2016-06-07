@@ -3,6 +3,41 @@
 class object_data_common {
 
 	/**
+	 * Cached options
+	 *
+	 * @var array
+	 */
+	public static $cached_options = [];
+
+	/**
+	 * Process options
+	 *
+	 * @param string $model_and_method - model::method
+	 * @return array
+	 */
+	public static function process_options($model_and_method, $existing_object = null) {
+		if (isset(self::$cached_options[$model_and_method])) {
+			return self::$cached_options[$model_and_method];
+		} else {
+			$temp = explode('::', $model_and_method);
+			if (count($temp) == 1) {
+				$model = $temp[0];
+				$method = 'options';
+			} else {
+				$model = $temp[0];
+				$method = $temp[1];
+			}
+			if ($model == 'this' && !empty($existing_object)) {
+				$object = $existing_object;
+			} else {
+				$object = new $model();
+			}
+			self::$cached_options[$model_and_method] = $object->{$method}(['i18n' => true]);
+			return self::$cached_options[$model_and_method];
+		}
+	}
+
+	/**
 	 * Domains
 	 *
 	 * @var array
@@ -10,15 +45,30 @@ class object_data_common {
 	public static $domains;
 
 	/**
+	 * Types
+	 *
+	 * @var array
+	 */
+	public static $types;
+
+	/**
 	 * Process domains
 	 *
 	 * @param array $columns
 	 * @return array
 	 */
-	public static function process_domains($columns) {
+	public static function process_domains($columns, $types = null) {
 		if (empty(self::$domains)) {
 			$object = new object_data_domains();
 			self::$domains = $object->data;
+		}
+		if (empty(self::$types)) {
+			if (!empty($types)) {
+				self::$types = $types;
+			} else {
+				$object = new object_data_types();
+				self::$types = $object->data;
+			}
 		}
 		foreach ($columns as $k => $v) {
 			if (isset($v['domain'])) {
@@ -32,6 +82,13 @@ class object_data_common {
 						$columns[$k][$v2] = self::$domains[$v['domain']][$v2];
 					}
 				}
+			}
+			// populate php type
+			if (isset($columns[$k]['type']) && isset(self::$types[$columns[$k]['type']])) {
+				$columns[$k]['php_type'] = self::$types[$columns[$k]['type']]['php_type'];
+			} else {
+				// we default to string
+				$columns[$k]['php_type'] = 'string';
 			}
 		}
 		return $columns;

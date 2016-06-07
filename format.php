@@ -277,11 +277,11 @@ class format {
 	/**
 	 * Transform integer from locale to php
 	 * 
-	 * @param unknown_type $amount
+	 * @param mixed $amount
 	 * @return number
 	 */
 	public static function read_intval($amount) {
-		return round(self::read_floatval($amount), 0);
+		return intval(self::read_floatval($amount));
 	}
 
 	/**

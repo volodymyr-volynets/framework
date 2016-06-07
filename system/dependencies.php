@@ -483,7 +483,14 @@ error:
 										if (!is_array($v5) && !empty($v5)) {
 											$composer_dirs[$k . '/' . $k2 . '/' . $k3 . '/' . $k4 . '/' . $k5] = '../libraries/vendor/' . $k . '/' . $k2 . '/' . $k3 . '/' . $k4 . '/' . $k5 . '/';
 										} else {
-											// we skip more than 5 part keys for now
+											foreach ($v5 as $k6 => $v6) {
+												if (!is_array($v6) && !empty($v6)) {
+													$composer_dirs[$k . '/' . $k2 . '/' . $k3 . '/' . $k4 . '/' . $k5 . '/' . $k6] = '../libraries/vendor/' . $k . '/' . $k2 . '/' . $k3 . '/' . $k4 . '/' . $k5 . '/' . $k6 . '/';
+												} else {
+													// we skip more than 5 part keys for now
+													Throw new Exception('we skip more than 6 part keys for now');
+												}
+											}
 										}
 									}
 								}

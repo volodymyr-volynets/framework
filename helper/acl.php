@@ -78,6 +78,12 @@ class helper_acl {
 				}
 				// admin account can see everything
 				if (self::$flag_admin) {
+					// we need to put permission into controller
+					$permission_list = [];
+					foreach ($controller_object->actions['by_id'] as $k => $v) {
+						$permission_list[$k] = true;
+					}
+					application::set(['controller', 'acl', 'permissions'], $permission_list);
 					return true;
 				}
 				// see if we have this action code registered

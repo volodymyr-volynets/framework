@@ -137,6 +137,21 @@ function print_r2($data, $return = false) {
 }
 
 /**
+ * Render as var_export
+ *
+ * @param mixed $data
+ * @param string $return
+ * @return string
+ */
+function var_export2($data, $return = false) {
+	if ($return) {
+		return '<pre>' . var_export($data, true) . '</pre>';
+	} else {
+		echo '<pre>' . var_export($data, true) . '</pre>';
+	}
+}
+
+/**
  * Primary key
  * 
  * @param mixed $pk
@@ -150,7 +165,7 @@ function pk($pk, & $data) {
 	if (!is_array($data)) {
 		$data = [];
 	}
-	foreach ($data as $k=>$v) {
+	foreach ($data as $k => $v) {
 		array_key_set_by_key_name($result, $pk, $v);
 	}
 	$data = $result;
