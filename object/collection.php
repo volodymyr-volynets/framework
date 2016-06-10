@@ -117,7 +117,7 @@ class object_collection extends object_override_data {
 	private function process_details(& $details, & $parent_rows, $parent_keys = []) {
 		foreach ($details as $k => $v) {
 			$model = new $k();
-			$details['model_object'] = $model;
+			$details[$k]['model_object'] = new $k();
 			$pk = $v['pk'] ?? $model->pk;
 			// generate keys from parent array
 			$keys = [];
@@ -149,12 +149,19 @@ class object_collection extends object_override_data {
 			$sql.= ' AND ' . $this->db_object->prepare_condition([$column => $keys]);
 			$sql_full = 'SELECT * FROM ' . $model->name . ' WHERE 1=1' . $sql;
 			// quering
-			$result = $this->db_object->query($sql_full, $pk);
+			$result = $this->db_object->query($sql_full, null); // important not to set pk
 			if (!$result['success']) {
 				Throw new Exception(implode(", ", $result['error']));
 			}
 			// if we got rows
 			if (!empty($result['rows'])) {
+				// we need to form pk key
+				$new_pk = [];
+				foreach ($pk as $v0) {
+					if (!in_array($v0, $v['map'])) {
+						$new_pk[$v0] = $v0;
+					}
+				}
 				// loop though child array
 				foreach ($result['rows'] as $k2 => $v2) {
 					foreach ($v['map'] as $k3 => $v3) {
@@ -162,7 +169,12 @@ class object_collection extends object_override_data {
 						$key[] = $v2[$v3];
 						$key[] = $k;
 						if ($v['type'] == '1M') {
-							$key[] = $k2;
+							// we need to form pk key
+							$temp = [];
+							foreach ($new_pk as $v0) {
+								$temp[] = $v2[$v0];
+							}
+							$key[] = implode('::', $temp);
 						}
 						array_key_set($parent_rows, $key, $v2);
 					}
@@ -260,9 +272,9 @@ class object_collection extends object_override_data {
 			$result['success'] = 1;
 			$result['deleted'] = $temp['data']['deleted'];
 			$result['inserted'] = $temp['data']['inserted'];
+			$result['new_pk'] = $temp['new_pk'];
 			$db->commit();
 		} while(0);
-		//print_r2($result);
 		return $result;
 	}
 
@@ -275,7 +287,7 @@ class object_collection extends object_override_data {
 	 * @param array $options
 	 * @return array
 	 */
-	final public function compare_one_row($data_row, $original_row, $collection, $options, $db) {
+	final public function compare_one_row($data_row, $original_row, $collection, $options, $db, $parent_pk = null) {
 		$result = [
 			'success' => false,
 			'error' => [],
@@ -286,11 +298,19 @@ class object_collection extends object_override_data {
 				'deleted' => false,
 				'inserted' => false
 			],
-			'new_pk' => []
+			'new_pk' => null
 		];
 		$model = $collection['model_object'];
+		// important to reset cache
+		$model->reset_cache();
 		// step 1, clenup data
 		$data_row_final = $data_row;
+		// we need to manualy inject parents keys
+		if (!empty($parent_pk)) {
+			foreach ($collection['map'] as $k => $v) {
+				$data_row_final[$v] = $parent_pk[$k];
+			}
+		}
 		foreach ($data_row_final as $k => $v) {
 			if (empty($model->columns[$k])) {
 				unset($data_row_final[$k]);
@@ -298,7 +318,7 @@ class object_collection extends object_override_data {
 		}
 		// step 2 process row
 		$delete = [];
-		if (!empty($options['flag_delete_row'])) {
+		if (!empty($options['flag_delete_row']) || empty($data_row)) {
 			// if we have data
 			if (!empty($original_row)) {
 				$pk = extract_keys($collection['pk'], $original_row);
@@ -309,7 +329,13 @@ class object_collection extends object_override_data {
 				// history
 				if ($model->history) {
 					$original_row[$model->column_prefix . 'updated'] = $this->timestamp;
-					$result['data']['history'][$model->history_name][] = $original_row;
+					$temp = $original_row;
+					foreach ($temp as $k => $v) {
+						if (empty($model->columns[$k])) {
+							unset($temp[$k]);
+						}
+					}
+					$result['data']['history'][$model->history_name][] = $temp;
 				}
 				$result['data']['total']++;
 			}
@@ -325,7 +351,11 @@ class object_collection extends object_override_data {
 			}
 			// insert record
 			// todo: handle auto increment/serial types
-			$temp = $db->insert($model->name, [$data_row_final]);
+			$temp_options = [];
+			if (!empty($options['flag_main_record'])) {
+				$temp_options = ['returning' => $collection['pk']];
+			}
+			$temp = $db->insert($model->name, [$data_row_final], null, $temp_options);
 			if (!$temp['success']) {
 				$result['error'] = $temp['error'];
 				$db->rollback();
@@ -335,7 +365,12 @@ class object_collection extends object_override_data {
 			// flag for main record
 			if (!empty($options['flag_main_record'])) {
 				$result['data']['inserted'] = true;
-				// todo: set new_pk
+				$result['new_pk'] = $temp['last_insert_id'];
+			}
+			// pk
+			$pk = extract_keys($collection['pk'], $data_row_final);
+			if (!empty($result['new_pk'])) {
+				$pk[key($pk)] = $result['new_pk'];
 			}
 		} else {
 			// compare optimistic lock
@@ -372,13 +407,47 @@ class object_collection extends object_override_data {
 				// history
 				if ($model->history) {
 					$original_row[$model->column_prefix . 'updated'] = $this->timestamp;
-					$result['data']['history'][$model->history_name][] = $original_row;
+					$temp = $original_row;
+					foreach ($temp as $k => $v) {
+						if (empty($model->columns[$k])) {
+							unset($temp[$k]);
+						}
+					}
+					$result['data']['history'][$model->history_name][] = $temp;
 				}
 				$result['data']['total']++;
 			}
 		}
 		// step 3 process details
-
+		if (!empty($collection['details'])) {
+			foreach ($collection['details'] as $k => $v) {
+				if ($v['type'] == '11') {
+					Throw new Exception('11 relationship');
+				} else if ($v['type'] == '1M') {
+					$all_keys = [];
+					if (isset($original_row[$k]) && is_array($original_row[$k])) {
+						$keys = array_keys($original_row[$k]);
+					}
+					if (isset($data_row[$k]) && is_array($data_row[$k])) {
+						$keys = array_merge($keys, array_keys($data_row[$k]));
+					}
+					$keys = array_unique($keys);
+					if (!empty($keys)) {
+						foreach ($keys as $v2) {
+							$details_result = $this->compare_one_row($data_row[$k][$v2] ?? [], $original_row[$k][$v2] ?? [], $v, [
+								'flag_delete_row' => !empty($delete)
+							], $db, $pk);
+							if (!empty($details_result['error'])) {
+								$result['error'] = $details_result['error'];
+								return $result;
+							} else {
+								$result['data']['total']+= $details_result['data']['total'];
+							}
+						}
+					}
+				}
+			}
+		}
 		// todo add here
 
 		// step 4 delete record after we deleted all childrens

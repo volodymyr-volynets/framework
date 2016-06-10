@@ -174,4 +174,13 @@ class session {
 		// todo: what if key is an array
 		unset($_SESSION[$key]);
 	}
+
+	/**
+	 * Add expiry dialog
+	 */
+	public static function expiry_dialog() {
+		if (!empty(self::$object) && application::get('flag.global.session.expiry_dialog') && !empty($_SESSION['numbers']['authorized'])) {
+			layout::onhtml(self::$object->expiry_dialog());
+		}
+	}
 }

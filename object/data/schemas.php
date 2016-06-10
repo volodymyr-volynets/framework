@@ -12,6 +12,7 @@ class object_data_schemas extends object_data {
 		'sm' => ['no_data_schema_name' => 'System (Common)'],
 		'sc' => ['no_data_schema_name' => 'System (Cron)'],
 		'no' => ['no_data_schema_name' => 'Numbers Objects'],
-		'em' => ['no_data_schema_name' => 'Entity Management']
+		'em' => ['no_data_schema_name' => 'Entity Management'],
+		'lc' => ['no_data_schema_name' => 'Localization']
 	];
 }

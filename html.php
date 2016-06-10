@@ -1,6 +1,34 @@
 <?php
 
-class html /*implements numbers_frontend_html_interface_base*/ {
+class html {
+
+	/**
+	 * Generate name
+	 *
+	 * @param string $name
+	 * @param string $icon
+	 * @param boolean $no_i18n
+	 */
+	public static function name($name, $icon = null, $no_i18n = false) {
+		if (!$no_i18n) {
+			$name = i18n(null, $name);
+		}
+		if (!empty($icon)) {
+			$name = html::icon(['type' => $icon]) . ' ' . $name;
+		}
+		return $name;
+	}
+
+	/**
+	 * Separator
+	 *
+	 * @param array $options
+	 *		value
+	 *		icon
+	 */
+	public static function separator($options = []) {
+		return factory::delegate('flag.numbers.framework.html', 'separator', [$options]);
+	}
 
 	/**
 	 * Segment
@@ -16,6 +44,18 @@ class html /*implements numbers_frontend_html_interface_base*/ {
 	 */
 	public static function segment($options = []) {
 		return factory::delegate('flag.numbers.framework.html', 'segment', [$options]);
+	}
+
+	/**
+	 * Fieldset
+	 *
+	 * @param array $options
+	 *		legend
+	 *		value
+	 * @return string
+	 */
+	public static function fieldset($options = []) {
+		return factory::delegate('flag.numbers.framework.html', 'fieldset', [$options]);
 	}
 
 	/**
@@ -38,6 +78,16 @@ class html /*implements numbers_frontend_html_interface_base*/ {
 	 */
 	public static function hidden($options = []) {
 		return factory::delegate('flag.numbers.framework.html', 'hidden', [$options]);
+	}
+
+	/**
+	 * Text area
+	 *
+	 * @param array $options
+	 * @return string
+	 */
+	public static function textarea($options = []) {
+		return factory::delegate('flag.numbers.framework.html', 'textarea', [$options]);
 	}
 	
 	/**
@@ -386,6 +436,20 @@ class html /*implements numbers_frontend_html_interface_base*/ {
 	 */
 	public static function text($options = []) {
 		return factory::delegate('flag.numbers.framework.html', 'text', [$options]);
+	}
+
+	/**
+	 * Tabs
+	 *
+	 * @param type $options
+	 *		header
+	 *		options
+	 *		id
+	 *		active_tab
+	 * @return string
+	 */
+	public static function tabs($options = []) {
+		return factory::delegate('flag.numbers.framework.html', 'tabs', [$options]);
 	}
 
 	/**

@@ -223,6 +223,7 @@ class application {
 		// we need to check if we have customization for classes, we only allow 
 		// customizaton for models and controllers
 		$file = str_replace('_', DIRECTORY_SEPARATOR, $class) . '.php';
+		/* todo: refactor later
 		if (strpos($class, 'model_') !== false || strpos($class, 'controller_') !== false) {
 			// todo: refactor code here
 			$company_id = session::get('company_id');
@@ -244,6 +245,7 @@ class application {
 				}
 			}
 		}
+		*/
 		// we need to store class path so we can load js, css and scss files
 		self::$settings['application']['loaded_classes'][$class] = [
 			'class' => $class,
@@ -413,7 +415,7 @@ class application {
 		// check ACL
 		if ($controller_class != 'controller_error') {
 			helper_acl::merge_data_with_db($controller, self::$settings['mvc']['controller_class']);
-			if (helper_acl::can_be_executed($controller) == false) {
+			if (helper_acl::can_be_executed($controller, true) == false) {
 				Throw new Exception('Permission denied!', -1);
 			}
 		} else {
@@ -482,6 +484,8 @@ class application {
 			if (file_exists(self::$settings['mvc']['controller_layout_file'])) {
 				$controller = new layout($controller, self::$settings['mvc']['controller_layout_file'], self::$settings['mvc']['controller_layout_extension']);
 			}
+			// session expiry dialog before replaces
+			session::expiry_dialog();
 			// buffer output and handling javascript files, chicken and egg problem
 			$from = [
 				'<!-- [numbers: messages] -->',
@@ -492,7 +496,8 @@ class application {
 				'<!-- [numbers: javascript links] -->',
 				'<!-- [numbers: javascript data] -->',
 				'<!-- [numbers: css links] -->',
-				'<!-- [numbers: layout onload] -->'
+				'<!-- [numbers: layout onload] -->',
+				'<!-- [numbers: layout onhtml] -->'
 			];
 			$to = [
 				layout::render_messages(),
@@ -503,7 +508,8 @@ class application {
 				layout::render_js(),
 				layout::render_js_data(),
 				layout::render_css(),
-				layout::render_onload()
+				layout::render_onload(),
+				layout::$onhtml
 			];
 			echo str_replace($from, $to, helper_ob::clean());
 		} else {

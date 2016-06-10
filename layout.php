@@ -44,6 +44,13 @@ class layout extends view {
 	private static $js_data = [];
 
 	/**
+	 * HTML to be added last to the page
+	 *
+	 * @var string
+	 */
+	public static $onhtml = '';
+
+	/**
 	 * Get application version
 	 *
 	 * @return int
@@ -120,6 +127,15 @@ class layout extends view {
 	 */
 	public static function onload($js) {
 		self::$onload.= $js;
+	}
+
+	/**
+	 * OnHTML
+	 *
+	 * @param string $html
+	 */
+	public static function onhtml($html) {
+		self::$onhtml.= $html;
 	}
 
 	/**

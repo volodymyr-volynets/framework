@@ -411,4 +411,23 @@ class object_table extends object_override_data {
 		// create unique caches by adding new
 		cache::$reset_caches[$cache_link] = array_unique(array_merge(cache::$reset_caches[$cache_link], $this->cache_tags, [$this->name]));
 	}
+
+	/**
+	 * Options
+	 *
+	 * @see $this->get()
+	 */
+	public function options($options = []) {
+		$data = $this->get($options);
+		$options_map = !empty($this->options_map) ? $this->options_map : [$this->column_prefix . 'name' => 'name'];
+		if (empty($options['i18n'])) {
+			return object_data_common::options($data, $options_map);
+		} else {
+			$data = object_data_common::options($data, $options_map);
+			foreach ($data as $k => $v) {
+				$data[$k]['name'] = i18n(null, $v['name']);
+			}
+			return $data;
+		}
+	}
 }

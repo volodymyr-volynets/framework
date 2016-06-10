@@ -94,7 +94,7 @@ class bootstrap {
 
 		// initialize session
 		$session = application::get('flag.global.session');
-		if (!empty($session['start']) && $backend) {
+		if (!empty($session['start']) && $backend && !application::get('flag.global.__skip_session')) {
 			session::start(isset($session['options']) ? $session['options'] : []);
 		}
 
@@ -203,6 +203,11 @@ class bootstrap {
 				}
 				$object->close();
 			}
+		}
+
+		// destroy i18n
+		if (i18n::$initialized) {
+			i18n::destroy();
 		}
 
 		// close db connections

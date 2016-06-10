@@ -35,6 +35,7 @@ class request {
 	 * 
 	 * @param mixed $key
 	 * @param boolean $xss
+	 * @param boolean $cookie
 	 * @return mixed
 	 */
 	public static function input($key = '', $xss = true, $cookie = false) {
@@ -50,7 +51,9 @@ class request {
 		if ($xss) $result = self::strip_tags($result);
 
 		// we need to get rid of session id from the result
-		unset($result[session_name()]);
+		if (!$cookie) {
+			unset($result[session_name()]);
+		}
 
 		// if we are debugging
 		if (debug::$debug) {

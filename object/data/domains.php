@@ -25,6 +25,7 @@ class object_data_domains extends object_data {
 		'group_id_sequence' => ['name' => 'Group #', 'type' => 'serial'],
 		'group_code' => ['name' => 'Group Code', 'type' => 'varchar', 'length' => 30],
 		'order' => ['name' => 'Order', 'type' => 'integer', 'default' => 0],
+		'counter' => ['name' => 'Counter', 'type' => 'integer', 'default' => 0],
 		'email' => ['name' => 'Email', 'type' => 'varchar', 'length' => 255],
 		'phone' => ['name' => 'Phone', 'type' => 'varchar', 'length' => 50],
 		'personal_name' => ['name' => 'Name (Personal)', 'type' => 'varchar', 'length' => 50],
@@ -37,6 +38,7 @@ class object_data_domains extends object_data {
 		'controller_id' => ['name' => 'Controller #', 'type' => 'integer'],
 		'controller_id_sequence' => ['name' => 'Controller #', 'type' => 'serial'],
 		'action_id' => ['name' => 'Action #', 'type' => 'smallint'],
+		'language_code' => ['name' => 'Language Code', 'type' => 'char', 'length' => 3],
 		// entities
 		'entity_id' => ['name' => 'Entity #', 'type' => 'integer'],
 		'entity_id_sequence' => ['name' => 'Entity #', 'type' => 'serial'],

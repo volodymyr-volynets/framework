@@ -63,7 +63,7 @@ class helper_acl {
 	 * @param object $controller_object
 	 * @return boolean
 	 */
-	public static function can_be_executed(& $controller_object) {
+	public static function can_be_executed(& $controller_object, $redirect = false) {
 		$authorized = session::get(['numbers', 'authorized']);
 		// authorized
 		if ($authorized) {
@@ -109,6 +109,11 @@ class helper_acl {
 				application::set(['controller', 'acl', 'permissions'], self::$permissions[$controller_object->controller_id]);
 			}
 		} else {
+			// we need to redirect to login controller if not authorized
+			if ($redirect && !empty($controller_object->acl['authorized']) && !application::get('flag.global.__skip_session')) {
+				request::redirect(application::get('flag.global.authorization.login.controller'));
+			}
+			// public permission
 			if (empty($controller_object->acl['public'])) {
 				return false;
 			}
