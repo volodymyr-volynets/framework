@@ -91,9 +91,27 @@ class object_collection extends object_override_data {
 		$sql.= !empty($options['where']) ? (' AND ' . $this->db_object->prepare_condition($options['where'])) : '';
 		$sql_full = 'SELECT * FROM ' . $this->primary_model->name . ' WHERE 1=1' . $sql;
 		// quering
-		$result = $this->db_object->query($sql_full, $this->data['pk']);
+		$result = $this->db_object->query($sql_full, null);
 		if (!$result['success']) {
 			Throw new Exception(implode(", ", $result['error']));
+		}
+		// process data, convert key
+		if (!empty($result['rows'])) {
+			$data = [];
+			foreach ($result['rows'] as $k => $v) {
+				if (count($this->data['pk']) == 1) {
+					$temp_pk = $v[$this->data['pk'][0]];
+				} else {
+					$temp_pk = [];
+					foreach ($this->data['pk'] as $v2) {
+						$temp_pk[] = $v[$v2];
+					}
+					$temp_pk = implode('::', $temp_pk);
+				}
+				$data[$temp_pk] = $v;
+			}
+			$result['rows'] = $data;
+			unset($data);
 		}
 		// processing details
 		if (!empty($result['rows']) && !empty($this->data['details'])) {
@@ -369,8 +387,11 @@ class object_collection extends object_override_data {
 			}
 			// pk
 			$pk = extract_keys($collection['pk'], $data_row_final);
-			if (!empty($result['new_pk'])) {
-				$pk[key($pk)] = $result['new_pk'];
+			// we need to put pk back but only for serial columns
+			foreach ($pk as $k0 => $v0) {
+				if (strpos($model->columns[$k0]['type'], 'serial') !== false) {
+					$pk[$k0] = $result['new_pk'];
+				}
 			}
 		} else {
 			// compare optimistic lock
@@ -396,6 +417,10 @@ class object_collection extends object_override_data {
 				// changing optimistic lock column
 				if (!empty($options['optimistic_lock'])) {
 					$diff[$options['optimistic_lock']['column']] = $this->timestamp;
+				}
+				// automatically set auto update timestamp
+				if (array_key_exists($model->column_prefix . 'updated', $original_row)) {
+					$diff[$model->column_prefix . 'updated'] = $this->timestamp;
 				}
 				// update record
 				$temp = $db->update($model->name, $diff, [], ['where' => $pk]);
@@ -424,7 +449,7 @@ class object_collection extends object_override_data {
 				if ($v['type'] == '11') {
 					Throw new Exception('11 relationship');
 				} else if ($v['type'] == '1M') {
-					$all_keys = [];
+					$keys = [];
 					if (isset($original_row[$k]) && is_array($original_row[$k])) {
 						$keys = array_keys($original_row[$k]);
 					}

@@ -135,6 +135,16 @@ class html {
 	}
 
 	/**
+	 * Labels with background
+	 *
+	 * @param array $options
+	 * @return string
+	 */
+	public static function label2($options = []) {
+		return factory::delegate('flag.numbers.framework.html', 'label2', [$options]);
+	}
+
+	/**
 	 * Input
 	 *
 	 * @param array $options

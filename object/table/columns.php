@@ -38,7 +38,6 @@ class object_table_columns extends object_data {
 			$temp = object_data_common::process_domains($temp);
 			$column_options = $temp[$column_name];
 		}
-		//print_r2($column_options);
 		// if we ignoring not set fields
 		if (!empty($options['ignore_not_set_fields']) && !array_key_exists($column_name, $data)) {
 			return $result;
@@ -107,6 +106,10 @@ class object_table_columns extends object_data {
 			}
 		} else if (in_array($column_options['type'], ['date', 'time', 'datetime', 'timestamp'])) {
 			$result[$column_name] = format::read_date($value, $column_options['type']);
+			$result[$column_name . '_strtotime_value'] = 0;
+			if (!empty($value)) {
+				$result[$column_name . '_strtotime_value'] = strtotime($value);
+			}
 		} else if ($column_options['type'] == 'json') {
 			if (is_null($value)) {
 				$result[$column_name] = null;

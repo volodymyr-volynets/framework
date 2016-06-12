@@ -13,6 +13,7 @@ class object_data_schemas extends object_data {
 		'sc' => ['no_data_schema_name' => 'System (Cron)'],
 		'no' => ['no_data_schema_name' => 'Numbers Objects'],
 		'em' => ['no_data_schema_name' => 'Entity Management'],
-		'lc' => ['no_data_schema_name' => 'Localization']
+		'lc' => ['no_data_schema_name' => 'Localization'],
+		'of' => ['no_data_schema_name' => 'Optional Fields']
 	];
 }

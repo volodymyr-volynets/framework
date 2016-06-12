@@ -179,7 +179,13 @@ class session {
 	 * Add expiry dialog
 	 */
 	public static function expiry_dialog() {
-		if (!empty(self::$object) && application::get('flag.global.session.expiry_dialog') && !empty($_SESSION['numbers']['authorized'])) {
+		/**
+		 * Important, we trigger dialog when:
+		 *		1. Session exists and user is authorized
+		 *		2. Controller requires login and not public
+		 */
+		$acl = application::get('controller.acl');
+		if (!empty(self::$object) && application::get('flag.global.session.expiry_dialog') && !empty($_SESSION['numbers']['authorized']) && !empty($acl['authorized']) && empty($acl['public'])) {
 			layout::onhtml(self::$object->expiry_dialog());
 		}
 	}

@@ -110,7 +110,7 @@ class helper_acl {
 			}
 		} else {
 			// we need to redirect to login controller if not authorized
-			if ($redirect && !empty($controller_object->acl['authorized']) && !application::get('flag.global.__skip_session')) {
+			if ($redirect && !empty($controller_object->acl['authorized']) && empty($controller_object->acl['public']) && !application::get('flag.global.__skip_session')) {
 				request::redirect(application::get('flag.global.authorization.login.controller'));
 			}
 			// public permission
