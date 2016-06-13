@@ -122,7 +122,8 @@ class debug {
 				break;
 			}
 		}
-		if ($found || !empty(self::$data['suppressed']) || !empty(self::$data['js'])) {
+		// we do not send suppresed errors to admin for now. !empty(self::$data['suppressed'])
+		if ($found || !empty(self::$data['js'])) {
 			$message = str_replace('display: none;', '', self::render());
 			return mail::send([
 				'to' => self::$email,

@@ -39,6 +39,7 @@ class object_data_domains extends object_data {
 		'controller_id_sequence' => ['name' => 'Controller #', 'type' => 'serial'],
 		'action_id' => ['name' => 'Action #', 'type' => 'smallint'],
 		'language_code' => ['name' => 'Language Code', 'type' => 'char', 'length' => 3],
+		'country_code' => ['name' => 'Country Code', 'type' => 'char', 'length' => 2],
 		// entities
 		'entity_id' => ['name' => 'Entity #', 'type' => 'integer'],
 		'entity_id_sequence' => ['name' => 'Entity #', 'type' => 'serial'],
