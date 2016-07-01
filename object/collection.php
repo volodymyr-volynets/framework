@@ -447,7 +447,15 @@ class object_collection extends object_override_data {
 		if (!empty($collection['details'])) {
 			foreach ($collection['details'] as $k => $v) {
 				if ($v['type'] == '11') {
-					Throw new Exception('11 relationship');
+					$details_result = $this->compare_one_row($data_row[$k] ?? [], $original_row[$k] ?? [], $v, [
+						'flag_delete_row' => !empty($delete)
+					], $db, $pk);
+					if (!empty($details_result['error'])) {
+						$result['error'] = $details_result['error'];
+						return $result;
+					} else {
+						$result['data']['total']+= $details_result['data']['total'];
+					}
 				} else if ($v['type'] == '1M') {
 					$keys = [];
 					if (isset($original_row[$k]) && is_array($original_row[$k])) {

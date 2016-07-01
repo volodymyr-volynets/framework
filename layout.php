@@ -206,14 +206,25 @@ class layout extends view {
 	 *			success
 	 *			info
 	 *			other
+	 * @param boolean $postponed
 	 */
-	public static function add_message($msg, $type = 'danger') {
-		if (is_array($msg)) {
-			foreach ($msg as $k=>$v) {
-				application::set(array('messages', $type), $v, array('append'=>true));
+	public static function add_message($msg, $type = 'danger', $postponed = false) {
+		if (!$postponed) {
+			if (is_array($msg)) {
+				foreach ($msg as $k=>$v) {
+					application::set(['messages', $type], $v, ['append'=>true]);
+				}
+			} else {
+				application::set(['messages', $type], $msg, ['append'=>true]);
 			}
-		} else {
-			application::set(array('messages', $type), $msg, array('append'=>true));
+		} else { // postponed messages go into session
+			if (is_array($msg)) {
+				foreach ($msg as $k=>$v) {
+					session::set(['numbers', 'messages', $type], $v, ['append'=>true]);
+				}
+			} else {
+				session::set(['numbers', 'messages', $type], $msg, ['append'=>true]);
+			}
 		}
 	}
 
@@ -224,6 +235,15 @@ class layout extends view {
 	 */
 	public static function render_messages() {
 		$result = '';
+		// we need to see if we have postponed messages and render them first
+		$postponed = session::get(['numbers', 'messages']);
+		if (!empty($postponed)) {
+			session::set(['numbers', 'messages'], []);
+			foreach ($postponed as $k => $v) {
+				$result.= html::message(['options' => $v, 'type' => $k]);
+			}
+		}
+		// regular messages
 		$messages = application::get(array('messages'));
 		if (!empty($messages)) {
 			foreach ($messages as $k => $v) {

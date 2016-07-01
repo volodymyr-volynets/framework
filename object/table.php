@@ -421,13 +421,48 @@ class object_table extends object_override_data {
 		$data = $this->get($options);
 		$options_map = !empty($this->options_map) ? $this->options_map : [$this->column_prefix . 'name' => 'name'];
 		if (empty($options['i18n'])) {
-			return object_data_common::options($data, $options_map);
+			$data = object_data_common::options($data, $options_map);
 		} else {
 			$data = object_data_common::options($data, $options_map);
 			foreach ($data as $k => $v) {
 				$data[$k]['name'] = i18n(null, $v['name']);
 			}
-			return $data;
 		}
+		// we need to sort
+		array_key_sort($data, ['name' => SORT_ASC], ['name' => SORT_NATURAL]);
+		return $data;
+	}
+
+	/**
+	 * Check unique constraint
+	 *
+	 * @param string $column
+	 * @param mixed $value
+	 * @param mixed $pk
+	 * @return boolean
+	 */
+	public function check_unique_constraint($column, $value, $pk) {
+		$db = $this->db_object();
+		if (is_string($value)) {
+			$value = "'" . $db->escape($value) . "'";
+		}
+		if (!empty($pk)) {
+			if (is_string($pk)) {
+				$pk = "'" . $db->escape($pk) . "'";
+			}
+			$pk = 'AND ' . $this->pk[0] . ' <> ' . $pk;
+		} else {
+			$pk = "";
+		}
+		$sql = <<<TTT
+			SELECT
+				1
+			FROM {$this->name}
+			WHERE 1=1
+				AND {$column} = {$value}
+				{$pk}
+TTT;
+		$result = $db->query($sql);
+		return ($result['num_rows'] <> 0 ? true : false);
 	}
 }

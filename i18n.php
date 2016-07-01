@@ -65,4 +65,21 @@ class i18n implements numbers_backend_i18n_interface_base {
 	public static function set($variable, $value) {
 		return factory::submodule('flag.global.i18n.submodule')->set($variable, $value);
 	}
+
+	/**
+	 * Check if language is rtl or return direction
+	 *
+	 * @param boolean $flag
+	 * @return mixed
+	 */
+	public static function rtl($flag = true) {
+		$languages = factory::submodule('flag.global.i18n.submodule')->languages();
+		//print_r2($languages);
+		$language_code = application::get('flag.global.i18n.language_code');
+		if ($flag) {
+			return $languages[$language_code]['lc_language_rtl'] ? true : false;
+		} else {
+			return $languages[$language_code]['lc_language_rtl'] ? 'dir="rtl"' : '';
+		}
+	}
 }

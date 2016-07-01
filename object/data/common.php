@@ -13,11 +13,14 @@ class object_data_common {
 	 * Process options
 	 *
 	 * @param string $model_and_method - model::method
+	 * @param object $existing_object
+	 * @param array $depends
 	 * @return array
 	 */
-	public static function process_options($model_and_method, $existing_object = null) {
-		if (isset(self::$cached_options[$model_and_method])) {
-			return self::$cached_options[$model_and_method];
+	public static function process_options($model_and_method, $existing_object = null, $depends = []) {
+		$hash = sha1($model_and_method . serialize($depends));
+		if (isset(self::$cached_options[$hash])) {
+			return self::$cached_options[$hash];
 		} else {
 			$temp = explode('::', $model_and_method);
 			if (count($temp) == 1) {
@@ -32,8 +35,8 @@ class object_data_common {
 			} else {
 				$object = new $model();
 			}
-			self::$cached_options[$model_and_method] = $object->{$method}(['i18n' => true]);
-			return self::$cached_options[$model_and_method];
+			self::$cached_options[$hash] = $object->{$method}(['where' => $depends, 'i18n' => true]);
+			return self::$cached_options[$hash];
 		}
 	}
 

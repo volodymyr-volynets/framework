@@ -12,7 +12,8 @@ class object_data_domains extends object_data {
 		'length' => ['name' => 'Length', 'type' => 'smallint'],
 		'null' => ['name' => 'Null', 'type' => 'boolean', 'default' => 0],
 		'precision' => ['name' => 'Precision', 'type' => 'smallint'],
-		'scale' => ['name' => 'Scale', 'type' => 'smallint']
+		'scale' => ['name' => 'Scale', 'type' => 'smallint'],
+		'validator_method' => ['name' => 'Validator Method', 'type' => 'text']
 	];
 	// todo: refactor
 	public $data = [
@@ -26,14 +27,14 @@ class object_data_domains extends object_data {
 		'group_code' => ['name' => 'Group Code', 'type' => 'varchar', 'length' => 30],
 		'order' => ['name' => 'Order', 'type' => 'integer', 'default' => 0],
 		'counter' => ['name' => 'Counter', 'type' => 'integer', 'default' => 0],
-		'email' => ['name' => 'Email', 'type' => 'varchar', 'length' => 255],
-		'phone' => ['name' => 'Phone', 'type' => 'varchar', 'length' => 50],
+		'email' => ['name' => 'Email', 'type' => 'varchar', 'length' => 255, 'validator_method' => 'object_validator_email::validate'],
+		'phone' => ['name' => 'Phone', 'type' => 'varchar', 'length' => 50, 'validator_method' => 'object_validator_phone::validate'],
 		'personal_name' => ['name' => 'Name (Personal)', 'type' => 'varchar', 'length' => 50],
 		'personal_title' => ['name' => 'Title (Personal)', 'type' => 'varchar', 'length' => 10],
 		'icon' => ['name' => 'Icon', 'type' => 'varchar', 'length' => 50],
 		// login related
 		'login' => ['name' => 'Login', 'type' => 'varchar', 'length' => 30],
-		'password' => ['name' => 'Password', 'type' => 'text'],
+		'password' => ['name' => 'Password', 'type' => 'text', 'validator_method' => 'object_validator_password::validate'],
 		// system
 		'controller_id' => ['name' => 'Controller #', 'type' => 'integer'],
 		'controller_id_sequence' => ['name' => 'Controller #', 'type' => 'serial'],

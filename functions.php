@@ -297,7 +297,7 @@ function http_build_query2($arr) {
  * @return array
  */
 function remap(& $data, $map) {
-	$result = array();
+	$result = [];
 	foreach ($data as $k => $v) {
 		foreach ($map as $k2 => $v2) {
 			$k2 = str_replace('*', '', $k2);
