@@ -407,7 +407,12 @@ class system_dependencies {
 				$ddl_object = $db_factory[$k]['ddl_object'];
 				foreach ($schema_diff[$k] as $k2 => $v2) {
 					foreach ($v2 as $k3 => $v3) {
-						$schema_diff[$k][$k2][$k3]['sql'] = $ddl_object->render_sql($v3['type'], $v3);
+						// we need to make fk constraints last to sort MySQL issues
+						if ($k2 == 'new_constraints' && $v3['type'] == 'constraint_new' && $v3['data']['type'] == 'fk') {
+							$schema_diff[$k][$k2 . '_fks'][$k3]['sql'] = $ddl_object->render_sql($v3['type'], $v3);
+						} else {
+							$schema_diff[$k][$k2][$k3]['sql'] = $ddl_object->render_sql($v3['type'], $v3);
+						}
 					}
 				}
 			}
@@ -420,6 +425,9 @@ class system_dependencies {
 				$db_object = new db($k);
 				foreach ($schema_diff[$k] as $k2 => $v2) {
 					foreach ($v2 as $k3 => $v3) {
+						if (empty($v3['sql'])) {
+							continue;
+						}
 						if (is_array($v3['sql'])) {
 							$temp = $v3['sql'];
 						} else {

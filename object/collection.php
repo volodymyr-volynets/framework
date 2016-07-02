@@ -367,13 +367,15 @@ class object_collection extends object_override_data {
 			if (!empty($model->columns[$inserted_column]) && empty($data_row_final[$inserted_column])) {
 				$data_row_final[$inserted_column] = $this->timestamp;
 			}
-			// insert record
-			// todo: handle auto increment/serial types
-			$temp_options = [];
+			// handle serial type for main record
 			if (!empty($options['flag_main_record'])) {
-				$temp_options = ['returning' => $collection['pk']];
+				if (count($model->pk) == 1 && strpos($model->columns[$model->pk[0]]['type'], 'serial') !== false && empty($data_row_final[$model->pk[0]])) {
+					$sequence = $model->name . '_' . $model->pk[0] . '_seq';
+					$temp = $db->sequence($sequence);
+					$result['new_pk'] = $data_row_final[$model->pk[0]] = $temp['rows'][0]['counter'];
+				}
 			}
-			$temp = $db->insert($model->name, [$data_row_final], null, $temp_options);
+			$temp = $db->insert($model->name, [$data_row_final], null);
 			if (!$temp['success']) {
 				$result['error'] = $temp['error'];
 				$db->rollback();
@@ -383,7 +385,6 @@ class object_collection extends object_override_data {
 			// flag for main record
 			if (!empty($options['flag_main_record'])) {
 				$result['data']['inserted'] = true;
-				$result['new_pk'] = $temp['last_insert_id'];
 			}
 			// pk
 			$pk = extract_keys($collection['pk'], $data_row_final);
@@ -447,6 +448,7 @@ class object_collection extends object_override_data {
 		if (!empty($collection['details'])) {
 			foreach ($collection['details'] as $k => $v) {
 				if ($v['type'] == '11') {
+					$v['model_object'] = new $k;
 					$details_result = $this->compare_one_row($data_row[$k] ?? [], $original_row[$k] ?? [], $v, [
 						'flag_delete_row' => !empty($delete)
 					], $db, $pk);

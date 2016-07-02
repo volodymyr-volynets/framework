@@ -308,9 +308,20 @@ class object_table extends object_override_data {
 				}
 			}
 
-			// saving record to database
+			// db object
 			$db = new db($this->db_link);
-			$result = $db->save($this->name, $save, $options['pk'] ?? $this->pk, $options);
+
+			// we need to process serial columns
+			$pk = $options['pk'] ?? $this->pk;
+			if (count($this->pk) == 1 && strpos($this->columns[$this->pk[0]]['type'], 'serial') !== false && empty($save[$this->pk[0]])) {
+				$options['sequence'] = [
+					'sequence_column' => $this->pk[0],
+					'sequence_name' => $this->name . '_' . $this->pk[0] . '_seq'
+				];
+			}
+
+			// saving record to database
+			$result = $db->save($this->name, $save, $pk, $options);
 			if ($result['success'] && $this->cache) {
 				// now we need to reset cache
 				if (empty($data['do_not_reset_cache'])) {
