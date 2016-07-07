@@ -515,6 +515,11 @@ class application {
 		} else {
 			echo $controller->view;
 		}
+
+		// ajax calls that has not been processed by application
+		if (application::get('flag.global.__ajax')) {
+			layout::render_as(['success' => false, 'error' => [i18n(null, 'Could not process ajax call!')]], 'application/json');
+		}
 	}
 
 	/**

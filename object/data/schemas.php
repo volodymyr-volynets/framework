@@ -15,6 +15,7 @@ class object_data_schemas extends object_data {
 		'em' => ['no_data_schema_name' => 'Entity Management'],
 		'lc' => ['no_data_schema_name' => 'Localization'],
 		'of' => ['no_data_schema_name' => 'Optional Fields'],
+		'dc' => ['no_data_schema_name' => 'Documents'],
 		'ms' => ['no_data_schema_name' => 'Miscellaneous']
 	];
 }

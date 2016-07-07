@@ -22,6 +22,7 @@ class object_data_domains extends object_data {
 		'code' => ['name' => 'Code', 'type' => 'varchar', 'length' => 255],
 		'type_id' => ['name' => 'Type #', 'type' => 'smallint'],
 		'type_id_sequence' => ['name' => 'Type #', 'type' => 'smallserial'],
+		'type_code' => ['name' => 'Type Code', 'type' => 'varchar', 'length' => 15],
 		'group_id' => ['name' => 'Group #', 'type' => 'integer'],
 		'group_id_sequence' => ['name' => 'Group #', 'type' => 'serial'],
 		'group_code' => ['name' => 'Group Code', 'type' => 'varchar', 'length' => 30],
@@ -41,6 +42,9 @@ class object_data_domains extends object_data {
 		'action_id' => ['name' => 'Action #', 'type' => 'smallint'],
 		'language_code' => ['name' => 'Language Code', 'type' => 'char', 'length' => 3],
 		'country_code' => ['name' => 'Country Code', 'type' => 'char', 'length' => 2],
+		'document_id' => ['name' => 'Document #', 'type' => 'bigint'],
+		'document_id_sequence' => ['name' => 'Document #', 'type' => 'bigserial'],
+		'document_hash' => ['name' => 'Document Hash', 'type' => 'varchar', 'length' => 80], // double of sha1 return
 		// entities
 		'entity_id' => ['name' => 'Entity #', 'type' => 'integer'],
 		'entity_id_sequence' => ['name' => 'Entity #', 'type' => 'serial'],

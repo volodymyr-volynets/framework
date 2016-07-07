@@ -11,6 +11,7 @@ class object_magic_variables extends object_data {
 		'__content_type' => ['no_magic_variable_description' => 'Content Type'],
 		'__language_code' => ['no_magic_variable_description' => 'Language Code'],
 		'__skip_layout' => ['no_magic_variable_description' => 'Skip Layout'],
-		'__skip_session' => ['no_magic_variable_description' => 'Skip Session']
+		'__skip_session' => ['no_magic_variable_description' => 'Skip Session'],
+		'__ajax' => ['no_magic_variable_description' => 'Ajax Call']
 	];
 }
