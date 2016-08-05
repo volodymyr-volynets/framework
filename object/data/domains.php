@@ -42,9 +42,8 @@ class object_data_domains extends object_data {
 		'action_id' => ['name' => 'Action #', 'type' => 'smallint'],
 		'language_code' => ['name' => 'Language Code', 'type' => 'char', 'length' => 3],
 		'country_code' => ['name' => 'Country Code', 'type' => 'char', 'length' => 2],
-		'document_id' => ['name' => 'Document #', 'type' => 'bigint'],
-		'document_id_sequence' => ['name' => 'Document #', 'type' => 'bigserial'],
-		'document_hash' => ['name' => 'Document Hash', 'type' => 'varchar', 'length' => 80], // double of sha1 return
+		'file_id' => ['name' => 'File #', 'type' => 'bigint'],
+		'file_id_sequence' => ['name' => 'Document #', 'type' => 'bigserial'],
 		// entities
 		'entity_id' => ['name' => 'Entity #', 'type' => 'integer'],
 		'entity_id_sequence' => ['name' => 'Entity #', 'type' => 'serial'],

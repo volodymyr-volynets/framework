@@ -435,17 +435,28 @@ class html {
 	 *
 	 * @param array $options
 	 *		type one of:
-	 *			error
-	 *			warning
+	 *			muted
+	 *			primary
 	 *			success
 	 *			info
-	 *			other
+	 *			warning
+	 *			danger
 	 *		value
 	 *		tag - default is <p>
 	 * @return string
 	 */
 	public static function text($options = []) {
 		return factory::delegate('flag.numbers.framework.html', 'text', [$options]);
+	}
+
+	/**
+	 * File
+	 *
+	 * @param array $options
+	 * @return string
+	 */
+	public static function file($options = []) {
+		return factory::delegate('flag.numbers.framework.html', 'file', [$options]);
 	}
 
 	/**

@@ -445,6 +445,21 @@ class object_table extends object_override_data {
 	}
 
 	/**
+	 * Multi level options
+	 *
+	 * @see $this->get()
+	 */
+	public function optmultis($options = []) {
+		if (empty($this->optmultis_map)) {
+			return [];
+		} else {
+			$data = $this->get($options);
+			$optmultis_map = $this->optmultis_map;
+			return object_data_common::optmultis($data, $optmultis_map, $options);
+		}
+	}
+
+	/**
 	 * Check unique constraint
 	 *
 	 * @param string $column
