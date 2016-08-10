@@ -274,7 +274,7 @@ class debug {
 							foreach (self::$data['sql'] as $k => $v) {
 								$temp = is_array($v['key']) ? implode('<br/>', $v['key']) : $v['key'];
 								$result.= '<tr>';
-									$result.= '<td valign="top"><pre>' . nl2br($v['sql']) . '</pre></td>';
+									$result.= '<td valign="top"><pre style="width: 300px;">' . nl2br($v['sql']) . '</pre></td>';
 									$result.= '<td valign="top">' . implode('<br/>', $v['error']) . '</td>';
 									$result.= '<td valign="top">' . $v['errno'] . '</td>';
 									$result.= '<td valign="top">' . $v['num_rows'] . '</td>';

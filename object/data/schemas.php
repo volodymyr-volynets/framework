@@ -16,6 +16,8 @@ class object_data_schemas extends object_data {
 		'lc' => ['no_data_schema_name' => 'Localization'],
 		'of' => ['no_data_schema_name' => 'Optional Fields'],
 		'dc' => ['no_data_schema_name' => 'Documents'],
-		'ms' => ['no_data_schema_name' => 'Miscellaneous']
+		'dn' => ['no_data_schema_name' => 'Documentation'],
+		'ms' => ['no_data_schema_name' => 'Miscellaneous'],
+		'temp' => ['no_data_schema_name' => 'Temporary Tables']
 	];
 }

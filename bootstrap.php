@@ -153,6 +153,8 @@ class bootstrap {
 	 */
 	public static function destroy() {
 		$__run_only_bootstrap = application::get(['flag', 'global', '__run_only_bootstrap']);
+		// we need to set working directory again
+		chdir(application::get(['application', 'path_full']));
 		// error processing
 		if (empty(error_base::$flag_error_already)) {
 			$last_error = error_get_last();
@@ -168,31 +170,24 @@ class bootstrap {
 					helper_ob::clean_all();
 					print_r(error_base::$errors);
 				} else {
-					// we need to set working directory again
-					chdir(application::get(['application', 'path_full']));
 					// set mvc + process
 					application::set_mvc('/error/_error/500');
 					application::process();
 				}
 			}
 		}
-
 		// write sessions
 		session_write_close();
-
 		// final benchmark
 		if (debug::$debug) {
 			debug::benchmark('application end');
 		}
-
 		// debugging toolbar last
 		if (debug::$toolbar && !$__run_only_bootstrap) {
 			echo str_replace('<!-- [numbers: debug toolbar] -->', debug::render(), helper_ob::clean());
 		}
-
 		// flush data to client
 		flush();
-
 		// closing caches before db
 		$cache = factory::get(['cache']);
 		if (!empty($cache)) {
@@ -204,12 +199,10 @@ class bootstrap {
 				$object->close();
 			}
 		}
-
 		// destroy i18n
 		if (i18n::$initialized) {
 			i18n::destroy();
 		}
-
 		// close db connections
 		$dbs = factory::get(['db']);
 		if (!empty($dbs)) {
@@ -218,7 +211,6 @@ class bootstrap {
 				$object->close();
 			}
 		}
-
 		// emails with erros
 		if (debug::$debug && !empty(debug::$email)) {
 			debug::send_errors_to_admin();
