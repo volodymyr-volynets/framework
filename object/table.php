@@ -188,9 +188,6 @@ class object_table extends object_override_data {
 			}
 		}
 		// processing table name
-		$ddl = factory::get(['db', $this->db_link, 'ddl_object']);
-		$temp = $ddl->is_schema_supported($this->name);
-		$this->name = $temp['full_table_name'];
 		$this->history_name = $this->name . '__history';
 		// process domain in columns
 		$this->columns = object_data_common::process_domains($this->columns);
@@ -429,7 +426,26 @@ class object_table extends object_override_data {
 	 * @see $this->get()
 	 */
 	public function options($options = []) {
+		// if compound key
+		if (count($this->pk) > 1) {
+			$temp = $this->pk;
+			$last = array_pop($temp);
+			foreach ($temp as $v) {
+				if (empty($options['where'][$v])) {
+					return [];
+				}
+			}
+		}
 		$data = $this->get($options);
+		// if compound key
+		if (!empty($temp)) {
+			foreach ($temp as $v) {
+				if (!isset($data[$options['where'][$v]])) {
+					return [];
+				}
+				$data = $data[$options['where'][$v]];
+			}
+		}
 		$options_map = !empty($this->options_map) ? $this->options_map : [$this->column_prefix . 'name' => 'name'];
 		if (empty($options['i18n'])) {
 			$data = object_data_common::options($data, $options_map);
@@ -440,8 +456,22 @@ class object_table extends object_override_data {
 			}
 		}
 		// we need to sort
-		array_key_sort($data, ['name' => SORT_ASC], ['name' => SORT_NATURAL]);
+		if (empty($this->orderby)) {
+			array_key_sort($data, ['name' => SORT_ASC], ['name' => SORT_NATURAL]);
+		}
 		return $data;
+	}
+
+	/**
+	 * Active Options
+	 *
+	 * @param array $options
+	 * @return array
+	 */
+	public function options_active($options = []) {
+		$temp = $this->options_active ? $this->options_active : [$this->column_prefix . 'inactive' => 0];
+		$options['where'] = array_merge_hard($options['where'] ?? [], $temp);
+		return $this->options($options);
 	}
 
 	/**
@@ -490,5 +520,24 @@ class object_table extends object_override_data {
 TTT;
 		$result = $db->query($sql);
 		return ($result['num_rows'] <> 0 ? true : false);
+	}
+
+	/**
+	 * @see $this->get()
+	 * @return boolean
+	 */
+	public function exists($options = []) {
+		$data = $this->get($options);
+		return !empty($data);
+	}
+
+	/**
+	 * @see $this->get()
+	 * @return boolean
+	 */
+	public static function exists_static($options = []) {
+		$class = get_called_class();
+		$object = new $class();
+		return $object->exists($options);
 	}
 }

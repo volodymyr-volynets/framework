@@ -17,11 +17,11 @@ class object_extension {
 	public $db_link_flag;
 
 	/**
-	 * Extension name including schema in format [schema].[name]
+	 * Extension name
 	 *
 	 * @var string
 	 */
-	public $extension_name;
+	public $name;
 
 	/**
 	 * Extension submodule

@@ -3,6 +3,19 @@
 class object_datasource {
 
 	/**
+	 * Db link
+	 * @var string
+	 */
+	public $db_link;
+
+	/**
+	 * Db link flag
+	 *
+	 * @var string
+	 */
+	public $db_link_flag;
+
+	/**
 	 * Primary key
 	 *
 	 * @var array
@@ -38,6 +51,13 @@ class object_datasource {
 	private $sql_syntax = [
 		'operators' => ['AND', 'OR', 'NOT', 'IN', 'EXISTS', 'ANY', 'ALL']
 	];
+
+	/**
+	 * Last query
+	 *
+	 * @var string
+	 */
+	public $sql_last_query;
 
 	/**
 	 * Process value
@@ -447,9 +467,9 @@ class object_datasource {
 			'success' => false,
 			'error' => [],
 			'rows' => [],
-			'sql' => null,
-			'db_link' => null
+			'sql' => null
 		];
+		$flag_db_link_grabbed = false;
 		// if we got a sql query
 		if (is_string($query)) {
 			$parts = $this->sql_has_datasource($query);
@@ -459,11 +479,15 @@ class object_datasource {
 						$table_class = $v['name'];
 						$table_object = new $table_class();
 						$query = str_replace($k, $table_object->name, $query);
-						// grab first db link
-						if (empty($result['db_link'])) {
-							$result['db_link'] = $table_object->db_link;
-						} else if ($result['db_link'] != $table_object->db_link) {
-							Throw new Exception('Multi db_link queries are not supported!');
+						// grab db link from the first table
+						if (!$flag_db_link_grabbed) {
+							if (empty($this->db_link)) {
+								$this->db_link = $table_object->db_link;
+							}
+							if (empty($this->db_link_flag)) {
+								$this->db_link_flag = $table_object->db_link_flag;
+							}
+							$flag_db_link_grabbed = true;
 						}
 					} else {
 						Throw new Exception($v['type'] . '?');
@@ -471,20 +495,29 @@ class object_datasource {
 				}
 			}
 			$result['sql'] = $query;
-			// try to determine db link
-			if (empty($result['db_link'])) {
-				$result['db_link'] = application::get('flag.global.db.default_db_link');
-			}
-			if (empty($result['db_link'])) {
-				Throw new Exception('Could not determine db_link!');
+			// we need to determine db link
+			if (empty($this->db_link)) {
+				// get from flags first
+				if (!empty($this->db_link_flag)) {
+					$this->db_link = application::get($this->db_link_flag);
+				}
+				// get default link
+				if (empty($this->db_link)) {
+					$this->db_link = application::get('flag.global.db.default_db_link');
+				}
+				// if we could not determine the link we throw exception
+				if (empty($this->db_link)) {
+					Throw new Exception('Could not determine db link in model!');
+				}
 			}
 			// query database
-			$db = new db($result['db_link']);
+			$db = new db($this->db_link);
 			// db query options
 			$options_db_query = [
 				'cache' => $this->cache,
 				'cache_tags' => $this->cache_tags
 			];
+			$this->sql_last_query = $result['sql'];
 			return $db->query($result['sql'], $key, $options_db_query);
 		} else {
 			// todo: add array type datasource here

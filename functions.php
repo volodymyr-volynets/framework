@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Concatenate if not empty
+ * Concatenate params if not empty
  * 
  * @param string $delimiter
  * @param mized $arg1
@@ -12,7 +12,24 @@ function concat_ws($delimiter, $arg1) {
 	$delimiter = array_shift($arrays);
 	$temp = [];
 	foreach ($arrays as $v) {
-		if ($v . '' <> '') {
+		if ($v . '' != '') {
+			$temp[] = $v;
+		}
+	}
+	return implode($delimiter, $temp);
+}
+
+/**
+ * Concatenate array if not empty
+ *
+ * @param string $delimiter
+ * @param array $arr
+ * @return string
+ */
+function concat_ws_array($delimiter, $arr) {
+	$temp = [];
+	foreach ($arr as $v) {
+		if ($v . '' != '') {
 			$temp[] = $v;
 		}
 	}

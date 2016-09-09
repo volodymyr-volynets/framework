@@ -25,7 +25,7 @@ class i18n implements numbers_backend_i18n_interface_base {
 			$i18n = array_merge2($i18n, $options);
 		}
 		// determine final language
-		$languages = factory::submodule('flag.global.i18n.submodule')->languages();
+		$languages = factory::model('numbers_backend_i18n_languages_model_languages')->get();
 		$final_language = application::get('flag.global.__language_code') ?? session::get('numbers.i18n.language_code') ?? $i18n['language_code'] ?? 'sys';
 		if (empty($languages[$final_language])) {
 			$final_language = 'sys';
@@ -73,8 +73,7 @@ class i18n implements numbers_backend_i18n_interface_base {
 	 * @return mixed
 	 */
 	public static function rtl($flag = true) {
-		$languages = factory::submodule('flag.global.i18n.submodule')->languages();
-		//print_r2($languages);
+		$languages = factory::model('numbers_backend_i18n_languages_model_languages')->get();
 		$language_code = application::get('flag.global.i18n.language_code');
 		if ($flag) {
 			return $languages[$language_code]['lc_language_rtl'] ? true : false;

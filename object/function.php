@@ -17,11 +17,11 @@ class object_function {
 	public $db_link_flag;
 
 	/**
-	 * Function name including schema in format [schema].[name]
+	 * Function name
 	 *
 	 * @var string
 	 */
-	public $function_name;
+	public $name;
 
 	/**
 	 * SQLs per submodule
@@ -51,9 +51,5 @@ class object_function {
 				Throw new Exception('Could not determine db link in function!');
 			}
 		}
-		// processing function name
-		$ddl = factory::get(['db', $this->db_link, 'ddl_object']);
-		$temp = $ddl->is_schema_supported($this->function_name);
-		$this->function_name = $temp['full_table_name'];
 	}
 }

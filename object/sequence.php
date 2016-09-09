@@ -72,10 +72,6 @@ class object_sequence {
 				Throw new Exception('Could not determine db link in sequnce!');
 			}
 		}
-		// processing sequence name
-		$ddl = factory::get(['db', $this->db_link, 'ddl_object']);
-		$temp = $ddl->is_schema_supported($this->name);
-		$this->name = $temp['full_table_name'];
 	}
 
 	/**

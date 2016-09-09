@@ -30,10 +30,14 @@ class system_dependencies {
 			$data['apache'] = $data['apache'] ?? [];
 			$data['php'] = $data['php'] ?? [];
 			$data['model'] = $data['model'] ?? [];
+			$data['__model_dependencies'] = [];
+			$data['model_import'] = [];
 			$data['override'] = $data['override'] ?? [];
 			$data['media'] = $data['media'] ?? [];
 			$data['model_processed'] = [];
 			$data['unit_tests'] = [];
+			$data['__submodule_dependencies'] = [];
+			$dummy = [];
 
 			// we have small chicken and egg problem with composer
 			$composer_data = [];
@@ -47,10 +51,10 @@ class system_dependencies {
 			if (!empty($data['composer']) || !empty($data['submodules'])) {
 				$composer_data['require'] = [];
 				if (!empty($data['composer'])) {
-					self::process_deps_array($data['composer'], $composer_data['require'], $composer_dirs);
+					self::process_deps_array($data['composer'], $composer_data['require'], $composer_dirs, 'dummy', $dummy);
 				}
 				if (!empty($data['submodule'])) {
-					self::process_deps_array($data['submodule'], $composer_data['require'], $composer_dirs);
+					self::process_deps_array($data['submodule'], $composer_data['require'], $composer_dirs, 'dummy', $dummy);
 				}
 			}
 
@@ -69,11 +73,11 @@ class system_dependencies {
 							$sub_data = system_config::ini($v . 'module.ini', 'dependencies');
 							$sub_data = isset($sub_data['dep']) ? $sub_data['dep'] : [];
 							if (!empty($sub_data['composer'])) {
-								self::process_deps_array($sub_data['composer'], $composer_data['require'], $composer_dirs);
+								self::process_deps_array($sub_data['composer'], $composer_data['require'], $composer_dirs, $k, $dummy);
 								$data['composer'] = array_merge2($data['composer'], $sub_data['composer']);
 							}
 							if (!empty($sub_data['submodule'])) {
-								self::process_deps_array($sub_data['submodule'], $composer_data['require'], $composer_dirs);
+								self::process_deps_array($sub_data['submodule'], $composer_data['require'], $composer_dirs, $k, $data['__submodule_dependencies']);
 								$data['submodule'] = array_merge2($data['submodule'], $sub_data['submodule']);
 							}
 							if (!empty($sub_data['apache'])) {
@@ -84,6 +88,11 @@ class system_dependencies {
 							}
 							if (!empty($sub_data['model'])) {
 								$data['model'] = array_merge2($data['model'], $sub_data['model']);
+								$temp = [];
+								array_keys_to_string($sub_data['model'], $temp);
+								foreach ($temp as $k0 => $v0) {
+									$data['__model_dependencies'][$k][$k0] = $k0;
+								}
 							}
 							if (!empty($sub_data['override'])) {
 								$data['override'] = array_merge2($data['override'], $sub_data['override']);
@@ -186,6 +195,38 @@ class system_dependencies {
 			if (!empty($data['model'])) {
 				array_keys_to_string($data['model'], $data['model_processed']);
 			}
+
+			// processing imports, we need to sort them in order of dependencies
+			$imports = [];
+			foreach ($data['model_processed'] as $k => $v) {
+				if ($v != 'object_import') continue;
+				// find submodule
+				foreach ($data['__model_dependencies'] as $k2 => $v2) {
+					if (!empty($v2[$k])) {
+						$imports[$k2][$k] = $k;
+						break;
+					}
+				}
+			}
+			// we need to go though an array few times to fix dependency issues
+			for ($i = 0; $i < 3; $i++) {
+				foreach ($imports as $k => $v) {
+					if (empty($data['__submodule_dependencies'][$k])) {
+						$data['model_import'][$k] = $v;
+						// we need to remove file from dependency
+						foreach ($data['__submodule_dependencies'] as $k2 => $v2) {
+							unset($data['__submodule_dependencies'][$k2][$k]);
+						}
+					}
+				}
+			}
+			foreach ($data['model_import'] as $k => $v) {
+				foreach ($v as $k2 => $v2) {
+					unset($data['model_processed'][$k2]);
+					$data['model_processed'][$k2] = 'object_import';
+				}
+			}
+			unset($data['__submodule_dependencies'], $data['__model_dependencies'], $data['model_import']);
 
 			// handling overrides, cleanup directory first
 			helper_file::rmdir('./overrides/class', ['only_contents' => true, 'skip_files' => ['.gitkeep']]);
@@ -471,29 +512,49 @@ error:
 	 * @param array $composer_data
 	 * @param array $composer_dirs
 	 */
-	public static function process_deps_array($data, & $composer_data, & $composer_dirs) {
+	public static function process_deps_array($data, & $composer_data, & $composer_dirs, $origin_submodule, & $origin_dependencies) {
 		if (empty($data)) return;
 		foreach ($data as $k => $v) {
 			foreach ($v as $k2 => $v2) {
 				if (!is_array($v2) && !empty($v2)) {
-					$composer_data[$k . '/' . $k2] = $v2;
-					$composer_dirs[$k . '/' . $k2] = '../libraries/vendor/' . $k . '/' . $k2 . '/';
+					$name = $k . '/' . $k2;
+					$composer_data[$name] = $v2;
+					$composer_dirs[$name] = '../libraries/vendor/' . $k . '/' . $k2 . '/';
+					if ($k2 != '__any') {
+						$origin_dependencies[$origin_submodule][$name] = $name;
+					}
 				} else {
 					foreach ($v2 as $k3 => $v3) {
 						if (!is_array($v3) && !empty($v3)) {
-							$composer_dirs[$k . '/' . $k2 . '/' . $k3] = '../libraries/vendor/' . $k . '/' . $k2 . '/' . $k3 . '/';
+							$name = $k . '/' . $k2 . '/' . $k3;
+							$composer_dirs[$name] = '../libraries/vendor/' . $k . '/' . $k2 . '/' . $k3 . '/';
+							if ($k3 != '__any') {
+								$origin_dependencies[$origin_submodule][$name] = $name;
+							}
 						} else {
 							foreach ($v3 as $k4 => $v4) {
 								if (!is_array($v4) && !empty($v4)) {
-									$composer_dirs[$k . '/' . $k2 . '/' . $k3 . '/' . $k4] = '../libraries/vendor/' . $k . '/' . $k2 . '/' . $k3 . '/' . $k4 . '/';
+									$name = $k . '/' . $k2 . '/' . $k3 . '/' . $k4;
+									$composer_dirs[$name] = '../libraries/vendor/' . $k . '/' . $k2 . '/' . $k3 . '/' . $k4 . '/';
+									if ($k4 != '__any') {
+										$origin_dependencies[$origin_submodule][$name] = $name;
+									}
 								} else {
 									foreach ($v4 as $k5 => $v5) {
 										if (!is_array($v5) && !empty($v5)) {
-											$composer_dirs[$k . '/' . $k2 . '/' . $k3 . '/' . $k4 . '/' . $k5] = '../libraries/vendor/' . $k . '/' . $k2 . '/' . $k3 . '/' . $k4 . '/' . $k5 . '/';
+											$name = $k . '/' . $k2 . '/' . $k3 . '/' . $k4 . '/' . $k5;
+											$composer_dirs[$name] = '../libraries/vendor/' . $k . '/' . $k2 . '/' . $k3 . '/' . $k4 . '/' . $k5 . '/';
+											if ($k5 != '__any') {
+												$origin_dependencies[$origin_submodule][$name] = $name;
+											}
 										} else {
 											foreach ($v5 as $k6 => $v6) {
 												if (!is_array($v6) && !empty($v6)) {
-													$composer_dirs[$k . '/' . $k2 . '/' . $k3 . '/' . $k4 . '/' . $k5 . '/' . $k6] = '../libraries/vendor/' . $k . '/' . $k2 . '/' . $k3 . '/' . $k4 . '/' . $k5 . '/' . $k6 . '/';
+													$name = $k . '/' . $k2 . '/' . $k3 . '/' . $k4 . '/' . $k5 . '/' . $k6;
+													$composer_dirs[$name] = '../libraries/vendor/' . $k . '/' . $k2 . '/' . $k3 . '/' . $k4 . '/' . $k5 . '/' . $k6 . '/';
+													if ($k6 != '__any') {
+														$origin_dependencies[$origin_submodule][$name] = $name;
+													}
 												} else {
 													// we skip more than 5 part keys for now
 													Throw new Exception('we skip more than 6 part keys for now');

@@ -26,6 +26,8 @@ class object_data_domains extends object_data {
 		'group_id' => ['name' => 'Group #', 'type' => 'integer'],
 		'group_id_sequence' => ['name' => 'Group #', 'type' => 'serial'],
 		'group_code' => ['name' => 'Group Code', 'type' => 'varchar', 'length' => 30],
+		'big_id' => ['name' => 'File #', 'type' => 'bigint'],
+		'big_id_sequence' => ['name' => 'Document #', 'type' => 'bigserial'],
 		'order' => ['name' => 'Order', 'type' => 'integer', 'default' => 0],
 		'counter' => ['name' => 'Counter', 'type' => 'integer', 'default' => 0],
 		'email' => ['name' => 'Email', 'type' => 'varchar', 'length' => 255, 'validator_method' => 'object_validator_email::validate', 'null' => true],
@@ -42,8 +44,6 @@ class object_data_domains extends object_data {
 		'action_id' => ['name' => 'Action #', 'type' => 'smallint'],
 		'language_code' => ['name' => 'Language Code', 'type' => 'char', 'length' => 3],
 		'country_code' => ['name' => 'Country Code', 'type' => 'char', 'length' => 2],
-		'file_id' => ['name' => 'File #', 'type' => 'bigint'],
-		'file_id_sequence' => ['name' => 'Document #', 'type' => 'bigserial'],
 		// entities
 		'entity_id' => ['name' => 'Entity #', 'type' => 'integer'],
 		'entity_id_sequence' => ['name' => 'Entity #', 'type' => 'serial'],

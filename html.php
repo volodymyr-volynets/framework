@@ -380,6 +380,26 @@ class html {
 	}
 
 	/**
+	 * Autocomplete
+	 *
+	 * @param array $options
+	 *		id
+	 *		name
+	 *		multiple
+	 *		options_model
+	 *		options_params
+	 *		__ajax
+	 *		__ajax_autocomplete->name
+	 *		__ajax_autocomplete->text
+	 *		options_autocomplete_fields
+	 *		options_autocomplete_pk
+	 * @return string
+	 */
+	public static function autocomplete($options = []) {
+		return factory::delegate('flag.numbers.framework.html', 'autocomplete', [$options]);
+	}
+
+	/**
 	 * Menu
 	 *
 	 * @param type $options

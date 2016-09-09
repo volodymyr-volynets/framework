@@ -250,6 +250,4 @@ class object_data extends object_override_data {
 			return object_data_common::optmultis($data, $optmultis_map);
 		}
 	}
-
-	// todo: add options_active()
 }

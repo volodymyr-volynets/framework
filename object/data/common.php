@@ -167,7 +167,7 @@ class object_data_common {
 		// generating all items in one run
 		foreach ($data as $k => $v) {
 			$temp_result = $k2_hash2 = $k2_hash = [];
-			$level = 0;
+			$level = -1; // a must
 			foreach ($keys as $k2 => $v2) {
 				$k2_alias = $optmultis_map[$v2]['alias'] ?? $v2;
 				$k2_hash[$k2_alias] = $v[$v2];

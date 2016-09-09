@@ -147,20 +147,26 @@ class object_collection extends object_override_data {
 				// important to unset keys from pk array
 				unset($pk[array_search($v1, $pk)]);
 			} else {
-				// todo: add implementation
-				Throw new Exception('Level?');
+				$column = "concat_ws('::'[comma] " . implode('[comma] ', $v['map']) . ")";
+				foreach ($v['map'] as $k2 => $v2) {
+					unset($pk[array_search($v2, $pk)]);
+				}
 			}
 			foreach ($parent_rows as $k2 => $v2) {
 				if ($key_level == 1) {
 					$keys[] = $v2[$k1];
+				} else {
+					$temp = [];
+					foreach ($v['map'] as $k3 => $v3) {
+						$temp[] = $v2[$k3];
+					}
+					$keys[] = implode('::', $temp);
 				}
 				// create empty arrays for children
-				foreach ($v['map'] as $k3 => $v3) {
-					$key = $parent_keys;
-					$key[] = $k2;
-					$key[] = $k;
-					array_key_set($parent_rows, $key, []);
-				}
+				$key = $parent_keys;
+				$key[] = $k2;
+				$key[] = $k;
+				array_key_set($parent_rows, $key, []);
 			}
 			// building SQL
 			$sql = '';
@@ -182,20 +188,22 @@ class object_collection extends object_override_data {
 				}
 				// loop though child array
 				foreach ($result['rows'] as $k2 => $v2) {
+					$key = $parent_keys;
+					$temp = [];
 					foreach ($v['map'] as $k3 => $v3) {
-						$key = $parent_keys;
-						$key[] = $v2[$v3];
-						$key[] = $k;
-						if ($v['type'] == '1M') {
-							// we need to form pk key
-							$temp = [];
-							foreach ($new_pk as $v0) {
-								$temp[] = $v2[$v0];
-							}
-							$key[] = implode('::', $temp);
-						}
-						array_key_set($parent_rows, $key, $v2);
+						$temp[] = $v2[$v3];
 					}
+					$key[] = implode('::', $temp);
+					$key[] = $k;
+					if ($v['type'] == '1M') {
+						// we need to form pk key
+						$temp = [];
+						foreach ($new_pk as $v0) {
+							$temp[] = $v2[$v0];
+						}
+						$key[] = implode('::', $temp);
+					}
+					array_key_set($parent_rows, $key, $v2);
 				}
 			}
 			// if we have more details
@@ -447,8 +455,9 @@ class object_collection extends object_override_data {
 		// step 3 process details
 		if (!empty($collection['details'])) {
 			foreach ($collection['details'] as $k => $v) {
+				// create ne object
+				$v['model_object'] = new $k;
 				if ($v['type'] == '11') {
-					$v['model_object'] = new $k;
 					$details_result = $this->compare_one_row($data_row[$k] ?? [], $original_row[$k] ?? [], $v, [
 						'flag_delete_row' => !empty($delete)
 					], $db, $pk);

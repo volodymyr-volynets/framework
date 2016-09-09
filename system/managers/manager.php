@@ -32,11 +32,13 @@ try {
 		case 'schema':
 			$result = system_dependencies::process_models(['mode' => $mode]);
 			// we need to reset all caches
-			$cache = factory::get(['cache']);
-			if (!empty($cache)) {
-				foreach ($cache as $k => $v) {
-					$object = $v['object'];
-					$object->gc(2);
+			if ($mode == 'commit') {
+				$cache = factory::get(['cache']);
+				if (!empty($cache)) {
+					foreach ($cache as $k => $v) {
+						$object = $v['object'];
+						$object->gc(2);
+					}
 				}
 			}
 			break;

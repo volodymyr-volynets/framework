@@ -78,7 +78,7 @@ class object_table_columns extends object_data {
 			}
 		} else if (in_array($column_options['type'], ['smallint', 'integer', 'bigint'])) {
 			// if we got empty string we say its null
-			if (is_string($value) &&  $value == '') {
+			if (is_string($value) &&  $value === '') {
 				$value = null;
 			}
 			if (is_null($value)) {
