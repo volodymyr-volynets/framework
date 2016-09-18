@@ -1,6 +1,6 @@
 <?php
 
-class object_data_php_types {
+class object_data_php_types extends object_data {
 	public $column_key = 'code';
 	public $column_prefix = null; // you must not change it !!!
 	public $columns = [

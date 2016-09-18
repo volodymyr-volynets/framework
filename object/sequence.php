@@ -104,12 +104,9 @@ class object_sequence {
 			'simple' => null,
 			'advanced' => null
 		];
-
-		// todo: move it to model
-
 		$db = new db($this->db_link);
 		$table_model = new numbers_backend_db_class_model_sequences();
-		$temp = $db->sequence($this->name, $table_model->name, $type);
+		$temp = $db->sequence($this->name, $type);
 		if (!$temp['success']) {
 			$result['error'] = $temp['error'];
 		} else if (!empty($temp['rows'][0])) {

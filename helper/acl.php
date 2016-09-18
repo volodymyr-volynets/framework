@@ -152,7 +152,7 @@ class helper_acl {
 		foreach ($data as $k => $v) {
 			foreach ($v as $k2 => $v2) {
 				// if we have administrative account we allow everything
-				if ($k2 == 'admin' && !empty($v2['*'])) {
+				if ($k2 === 999999999 && !empty($v2['*'])) {
 					self::$flag_admin = true;
 				}
 				// build permission array

@@ -47,6 +47,11 @@ class object_data_domains extends object_data {
 		// entities
 		'entity_id' => ['name' => 'Entity #', 'type' => 'integer'],
 		'entity_id_sequence' => ['name' => 'Entity #', 'type' => 'serial'],
+		// relations & models
+		'relation_id' => ['name' => 'Relation #', 'type' => 'integer'],
+		'relation_id_sequence' => ['name' => 'Relation #', 'type' => 'serial'],
+		'attribute_id' => ['name' => 'Attribute #', 'type' => 'integer'],
+		'attribute_id_sequence' => ['name' => 'Attribute #', 'type' => 'serial'],
 		// accounting
 		'currency_code' => ['name' => 'Currency Code', 'type' => 'char', 'length' => 3, 'null' => true],
 		'currency_rate' => ['name' => 'Currency Rate', 'type' => 'numeric', 'precision' => 16, 'scale' => 8, 'default' => 1],

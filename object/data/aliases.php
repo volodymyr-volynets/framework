@@ -10,7 +10,7 @@ class object_data_aliases extends object_data {
 		'no_data_alias_model' => ['name' => 'Model', 'type' => 'text']
 	];
 	public $data = [
-		// a list of aliases would be here from overrides
+		// data would come from overrides
 	];
 
 	/**

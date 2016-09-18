@@ -153,7 +153,14 @@ class object_data extends object_override_data {
 			}
 		}
 		// sorting, if none specified we sort by name if its in columns
-		$orderby = $options['orderby'] ?? (!empty($this->orderby) ? $this->orderby : (isset($this->columns[$this->column_prefix . 'name']) ? [$this->column_prefix . 'name' => SORT_ASC] : null));
+		$orderby = null;
+		if (isset($options['orderby'])) {
+			$orderby = $options['orderby'];
+		} else if (isset($this->orderby)) {
+			$orderby = $this->orderby;
+		} else if (isset($this->columns[$this->column_prefix . 'name'])) {
+			$orderby = [$this->column_prefix . 'name' => SORT_ASC];
+		}
 		if (!empty($orderby)) {
 			$method = [];
 			foreach ($orderby as $k => $v) {

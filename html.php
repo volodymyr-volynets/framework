@@ -494,6 +494,16 @@ class html {
 	}
 
 	/**
+	 * Wysiwyg
+	 *
+	 * @param array $options
+	 * @return string
+	 */
+	public static function wysiwyg($options = []) {
+		return factory::delegate('flag.numbers.framework.html', 'wysiwyg', [$options]);
+	}
+
+	/**
 	 * Process options
 	 *
 	 * @param string $model_and_method

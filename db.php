@@ -10,6 +10,13 @@ class db implements numbers_backend_db_interface_base {
 	public $object;
 
 	/**
+	 * Backend
+	 *
+	 * @var string
+	 */
+	public $backend;
+
+	/**
 	 * Constructing database object
 	 *
 	 * @param string $db_link
@@ -47,16 +54,20 @@ class db implements numbers_backend_db_interface_base {
 			$ddl_class = str_replace('_base_abc123', '_ddl', $class . '_abc123');
 			$ddl_object = new $ddl_class();
 
+			// backend
+			$this->backend = str_replace(['numbers_backend_db_', '_base'], '', $class);
+
 			// putting every thing into factory
 			factory::set(['db', $db_link], [
 				'object' => $this->object,
 				'class' => $class,
-				'backend' => str_replace(['numbers_backend_db_', '_base'], '', $class),
+				'backend' => $this->backend,
 				'ddl_class' => $ddl_class,
 				'ddl_object' => $ddl_object
 			]);
 		} else if (!empty($temp['object'])) {
 			$this->object = $temp['object'];
+			$this->backend = $temp['backend'];
 		} else {
 			Throw new Exception('You must specify database link and/or class!');
 		}

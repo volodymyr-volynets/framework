@@ -134,8 +134,7 @@ class object_collection extends object_override_data {
 	 */
 	private function process_details(& $details, & $parent_rows, $parent_keys = []) {
 		foreach ($details as $k => $v) {
-			$model = new $k();
-			$details[$k]['model_object'] = new $k();
+			$details[$k]['model_object'] = $model = new $k();
 			$pk = $v['pk'] ?? $model->pk;
 			// generate keys from parent array
 			$keys = [];
@@ -172,6 +171,11 @@ class object_collection extends object_override_data {
 			$sql = '';
 			$sql.= ' AND ' . $this->db_object->prepare_condition([$column => $keys]);
 			$sql_full = 'SELECT * FROM ' . $model->name . ' WHERE 1=1' . $sql;
+			// order by
+			$orderby = $options['orderby'] ?? (!empty($model->orderby) ? $model->orderby : null);
+			if (!empty($orderby)) {
+				$sql_full.= ' ORDER BY ' . array_key_sort_prepare_keys($orderby, true);
+			}
 			// quering
 			$result = $this->db_object->query($sql_full, null); // important not to set pk
 			if (!$result['success']) {

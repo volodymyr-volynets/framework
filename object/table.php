@@ -17,11 +17,25 @@ class object_table extends object_override_data {
 	public $db_link_flag;
 
 	/**
-	 * Table name including schema in format [schema].[name]
+	 * Table name including schema in format [schema_name]
 	 *
 	 * @var string
 	 */
 	public $name;
+
+	/**
+	 * Title
+	 *
+	 * @var string
+	 */
+	public $title;
+
+	/**
+	 * Schema extracted from name
+	 *
+	 * @var string
+	 */
+	public $schema;
 
 	/**
 	 * Table primary key in format ['id1'] or ['id1', 'id2', 'id3']
@@ -165,6 +179,16 @@ class object_table extends object_override_data {
 	public $cache_memory = false;
 
 	/**
+	 * Relation
+	 *
+	 * @var array
+	 */
+	public $relation = [
+		//'field' => '[field name]',
+		//'inactive' => 1 or 0
+	];
+
+	/**
 	 * Constructing object
 	 *
 	 * @throws Exception
@@ -189,12 +213,30 @@ class object_table extends object_override_data {
 		}
 		// processing table name
 		$this->history_name = $this->name . '__history';
+		// process relations if we have a module
+		if (!empty($this->relation) && application::get('dep.submodule.numbers.data.relations')) {
+			// add a column if not exists
+			if (empty($this->columns[$this->relation['field']])) {
+				$this->columns[$this->relation['field']] = ['name' => 'Relation #', 'domain' => 'relation_id_sequence'];
+				// add unique constraint
+				$this->constraints[$this->relation['field'] . '_un'] = ['type' => 'unique', 'columns' => [$this->relation['field']]];
+			}
+		}
 		// process domain in columns
 		$this->columns = object_data_common::process_domains($this->columns);
 		// optimistic lock
 		if ($this->optimistic_lock) {
 			$this->optimistic_lock_column = $this->column_prefix . 'optimistic_lock';
 			$this->columns[$this->optimistic_lock_column] = ['name' => 'Optimistic Lock', 'type' => 'timestamp', 'default' => 'now()'];
+		}
+		// schema & title
+		$temp = explode('_', $this->name);
+		if (empty($this->schema)) {
+			$this->schema = $temp[0];
+		}
+		unset($temp[0]);
+		if (empty($this->title)) {
+			$this->title = ucwords(implode(' ', $temp));
 		}
 	}
 
@@ -310,11 +352,14 @@ class object_table extends object_override_data {
 
 			// we need to process serial columns
 			$pk = $options['pk'] ?? $this->pk;
-			if (count($this->pk) == 1 && strpos($this->columns[$this->pk[0]]['type'], 'serial') !== false && empty($save[$this->pk[0]])) {
-				$options['sequence'] = [
-					'sequence_column' => $this->pk[0],
-					'sequence_name' => $this->name . '_' . $this->pk[0] . '_seq'
-				];
+			$options['sequences'] = [];
+			foreach ($this->columns as $k => $v) {
+				if (strpos($v['type'], 'serial') !== false && empty($v['null'])) {
+					$options['sequences'][$k] = [
+						'sequence_column' => $k,
+						'sequence_name' => $this->name . '_' . $k . '_seq'
+					];
+				}
 			}
 
 			// saving record to database

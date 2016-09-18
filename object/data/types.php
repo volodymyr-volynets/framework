@@ -7,7 +7,7 @@ class object_data_types extends object_data {
 		'code' => ['name' => 'Type', 'type' => 'varchar', 'length' => 30],
 		'name' => ['name' => 'Name', 'type' => 'text'],
 		'default' => ['name' => 'Default', 'type' => 'mixed'],
-		'php_type' => ['name' => 'PHP Type', 'type' => 'text']
+		'php_type' => ['name' => 'PHP Type', 'type' => 'text', 'model' => 'object_data_php_types']
 	];
 	public $data = [
 		'boolean' => ['name' => 'Boolean', 'default' => 0, 'php_type' => 'integer'],

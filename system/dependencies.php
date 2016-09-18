@@ -27,6 +27,7 @@ class system_dependencies {
 			$data = $data['dep'] ?? [];
 			$data['composer'] = $data['composer'] ?? [];
 			$data['submodule'] = $data['submodule'] ?? [];
+			$data['submodule_dirs'] = [];
 			$data['apache'] = $data['apache'] ?? [];
 			$data['php'] = $data['php'] ?? [];
 			$data['model'] = $data['model'] ?? [];
@@ -70,6 +71,7 @@ class system_dependencies {
 							$mutex[$k] = 1;
 						}
 						if (file_exists($v . 'module.ini')) {
+							$data['submodule_dirs'][$v] = $v;
 							$sub_data = system_config::ini($v . 'module.ini', 'dependencies');
 							$sub_data = isset($sub_data['dep']) ? $sub_data['dep'] : [];
 							if (!empty($sub_data['composer'])) {
@@ -208,6 +210,18 @@ class system_dependencies {
 					}
 				}
 			}
+			// clean up unused dependencies
+			foreach ($data['__submodule_dependencies'] as $k2 => $v2) {
+				if (empty($imports[$k2])) {
+					$data['__submodule_dependencies'][$k2] = [];
+				} else {
+					foreach ($v2 as $k3 => $v3) {
+						if (empty($imports[$k3])) {
+							unset($data['__submodule_dependencies'][$k2][$k3]);
+						}
+					}
+				}
+			}
 			// we need to go though an array few times to fix dependency issues
 			for ($i = 0; $i < 3; $i++) {
 				foreach ($imports as $k => $v) {
@@ -227,7 +241,6 @@ class system_dependencies {
 				}
 			}
 			unset($data['__submodule_dependencies'], $data['__model_dependencies'], $data['model_import']);
-
 			// handling overrides, cleanup directory first
 			helper_file::rmdir('./overrides/class', ['only_contents' => true, 'skip_files' => ['.gitkeep']]);
 			if (!empty($data['override'])) {
@@ -336,37 +349,56 @@ class system_dependencies {
 				$result['error'][] = 'You do not have models to process!';
 				break;
 			}
-
+			$object_relations = [];
+			$object_forms = [];
+			$flag_relation = application::get('dep.submodule.numbers.data.relations') ? true : false;
+			$object_documentation = [];
 			$object_import = [];
 			$ddl = new numbers_backend_db_class_ddl();
 			foreach ($dep['data']['model_processed'] as $k => $v) {
+				$k2 = str_replace('.', '_', $k);
 				if ($v == 'object_table') {
-					$temp_result = $ddl->process_table_model(str_replace('.', '_', $k));
+					$temp_result = $ddl->process_table_model($k2);
 					if (!$temp_result['success']) {
 						array_merge3($result['error'], $temp_result['error']);
+					}
+					$object_documentation[$v][$k2] = $k2;
+					// relation
+					if ($flag_relation) {
+						$model = new $k2();
+						if (!empty($model->relation)) {
+							$object_relations[$k2] = [
+								'rn_relattr_code' => $model->relation['field'],
+								'rn_relattr_name' => $model->title,
+								'rn_relattr_model' => $k2,
+								'rn_relattr_inactive' => !empty($model->relation['inactive']) ? 1 : 0
+							];
+						}
 					}
 				} else if ($v == 'object_sequence') {
-					$temp_result = $ddl->process_sequence_model(str_replace('.', '_', $k));
+					$temp_result = $ddl->process_sequence_model($k2);
 					if (!$temp_result['success']) {
 						array_merge3($result['error'], $temp_result['error']);
 					}
+					$object_documentation[$v][$k2] = $k2;
 				} else if ($v == 'object_function') {
-					$temp_result = $ddl->process_function_model(str_replace('.', '_', $k));
+					$temp_result = $ddl->process_function_model($k2);
 					if (!$temp_result['success']) {
 						array_merge3($result['error'], $temp_result['error']);
 					}
+					$object_documentation[$v][$k2] = $k2;
 				} else if ($v == 'object_extension') {
-					$temp_result = $ddl->process_function_extension(str_replace('.', '_', $k));
+					$temp_result = $ddl->process_function_extension($k2);
 					if (!$temp_result['success']) {
 						array_merge3($result['error'], $temp_result['error']);
 					}
+					$object_documentation[$v][$k2] = $k2;
 				} else if ($v == 'object_import') {
-					$object_import[str_replace('.', '_', $k)] = [
-						'model' => str_replace('.', '_', $k)
+					$object_import[$k2] = [
+						'model' => $k2
 					];
 				}
 			}
-			//print_r($ddl->objects['default']['extension']);
 
 			// if we have erros
 			if (!empty($result['error'])) {
@@ -395,6 +427,11 @@ class system_dependencies {
 
 			// get a list of all db links
 			$db_link_list = array_unique(array_merge(array_keys($ddl->objects), array_keys($loaded_objects)));
+
+			// if we are dropping schema
+			if ($options['mode'] == 'drop') {
+				$ddl->objects = [];
+			}
 
 			// compare schems per db link
 			$schema_diff = [];
@@ -438,7 +475,7 @@ class system_dependencies {
 			}
 
 			// if we are in no commit mode we exit
-			if ($options['mode'] != 'commit') {
+			if (!in_array($options['mode'], ['commit', 'drop'])) {
 				break;
 			}
 
@@ -457,13 +494,21 @@ class system_dependencies {
 					}
 				}
 			}
-			//print_r($schema_diff);
-			//exit;
+//			print_r($schema_diff);
+//			exit;
 
 			// executing sql
 			foreach ($total_per_db_link as $k => $v) {
 				if ($v == 0) continue;
 				$db_object = new db($k);
+				// if we are dropping we need to disable foregn key checks
+				if ($options['mode'] == 'drop') {
+					if ($db_object->backend == 'mysqli') {
+						$db_object->query('SET foreign_key_checks = 0;');
+					}
+					// we also need to unset sequences
+					unset($schema_diff[$k]['delete_sequences']);
+				}
 				foreach ($schema_diff[$k] as $k2 => $v2) {
 					foreach ($v2 as $k3 => $v3) {
 						if (empty($v3['sql'])) {
@@ -501,6 +546,72 @@ class system_dependencies {
 				$result['hint'] = array_merge($result['hint'], $data_result['hint']);
 			}
 		}
+
+		// relation
+		if ($flag_relation && $options['mode'] == 'commit') {
+			$model2 = factory::model('numbers_data_relations_model_relation_attributes');
+			// insert new models
+			if (!empty($object_relations)) {
+				foreach ($object_relations as $k => $v) {
+					$result_insert = $model2->save($v, ['pk' => ['rn_relattr_code'], 'ignore_not_set_fields' => true]);
+				}
+				$result['hint'][] = ' * Imported relation models!';
+			}
+			// we need to process forms
+			foreach ($dep['data']['submodule_dirs'] as $v) {
+				$dir = $v . 'model/form/';
+				if (!file_exists($dir)) {
+					continue;
+				}
+				$files = helper_file::iterate($dir, ['only_extensions' => ['php']]);
+				foreach ($files as $v2) {
+					$model_name = str_replace(['../libraries/vendor/', '.php'], '', $v2);
+					$model_name = str_replace('/', '_', $model_name);
+					$model = new $model_name();
+					if (empty($model->form_object->misc_settings['option_models'])) {
+						continue;
+					}
+					// loop though fields
+					foreach ($model->form_object->misc_settings['option_models'] as $k3 => $v3) {
+						$object_forms[$model_name . '::' . $k3] = [
+							'rn_relfrmfld_form_code' => $model_name,
+							'rn_relfrmfld_form_name' => $model->title,
+							'rn_relfrmfld_field_code' => $k3,
+							'rn_relfrmfld_field_name' => $v3['field_name'],
+							'rn_relfrmfld_relattr_id' => $v3['model'],
+							'rn_relfrmfld_inactive' => 0
+						];
+					}
+				}
+			}
+			if (!empty($object_forms)) {
+				// load all relation models
+				$data = $model2->get(['pk' => ['rn_relattr_model']]);
+				$model = factory::model('numbers_data_relations_model_relation_formfields');
+				foreach ($object_forms as $k => $v) {
+					if (empty($data[$v['rn_relfrmfld_relattr_id']])) {
+						continue;
+					}
+					$v['rn_relfrmfld_relattr_id'] = $data[$v['rn_relfrmfld_relattr_id']]['rn_relattr_id'];
+					$result_insert = $model->save($v, ['pk' => ['rn_relfrmfld_form_code', 'rn_relfrmfld_field_code'], 'ignore_not_set_fields' => true]);
+				}
+				$result['hint'][] = ' * Imported relation form fields!';
+			}
+		}
+
+		// we need to generate documentation
+		$system_documentation = application::get('system_documentation');
+		if (!empty($system_documentation) && $options['mode'] == 'commit') {
+			$model = factory::model($system_documentation['model']);
+			/*
+			print_r2($object_documentation);
+			$documentation_result = $model->update($object_documentation, $system_documentation);
+			if (!$documentation_result['success']) {
+				$result['error'] = array_merge($result['error'], $documentation_result['error']);
+			}
+			*/
+		}
+
 error:
 		return $result;
 	}
