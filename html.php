@@ -366,6 +366,8 @@ class html {
 	 * @return string
 	 */
 	public static function calendar($options = []) {
+		// we need to set to date by default
+		$options['calendar_type'] = $options['calendar_type'] ?? 'date';
 		return factory::delegate('flag.numbers.framework.html', 'calendar', [$options]);
 	}
 

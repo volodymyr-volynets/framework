@@ -1,6 +1,6 @@
 <?php
 
-class db implements numbers_backend_db_interface_base {
+class db {
 
 	/**
 	 * Database object
@@ -66,7 +66,7 @@ class db implements numbers_backend_db_interface_base {
 				'ddl_object' => $ddl_object
 			]);
 		} else if (!empty($temp['object'])) {
-			$this->object = $temp['object'];
+			$this->object = & $temp['object'];
 			$this->backend = $temp['backend'];
 		} else {
 			Throw new Exception('You must specify database link and/or class!');

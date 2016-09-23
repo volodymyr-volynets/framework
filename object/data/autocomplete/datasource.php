@@ -17,7 +17,8 @@ class object_data_autocomplete_datasource extends object_datasource {
 		$ts = $db->full_text_search_query($options['fields'], $options['search_text'] . '');
 		$fields = $options['fields'];
 		$sql_pk = '';
-		if (!in_array($options['pk'], $options['fields'])) {
+		// we automatically include main pk into a query
+		if (!in_array($options['pk'], $options['fields'])) { // in_array($options['pk'], $model->pk) && 
 			$fields[] = $options['pk'];
 			// we need to include integer types to the query
 			$temp = intval($options['search_text']);

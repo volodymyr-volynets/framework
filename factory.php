@@ -76,9 +76,19 @@ class factory {
 	 * Create model
 	 *
 	 * @param string $class
+	 * @param boolean $cache
 	 * @return object
 	 */
-	public static function model($class) {
-		return new $class();
+	public static function model($class, $cache = false) {
+		if (!$cache) {
+			return new $class();
+		} else {
+			if (isset(self::$class_objects['model'][$class])) {
+				return self::$class_objects['model'][$class];
+			} else {
+				self::$class_objects['model'][$class] = new $class;
+				return self::$class_objects['model'][$class];
+			}
+		}
 	}
 }

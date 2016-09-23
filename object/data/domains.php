@@ -26,8 +26,8 @@ class object_data_domains extends object_data {
 		'group_id' => ['name' => 'Group #', 'type' => 'integer'],
 		'group_id_sequence' => ['name' => 'Group #', 'type' => 'serial'],
 		'group_code' => ['name' => 'Group Code', 'type' => 'varchar', 'length' => 30],
-		'big_id' => ['name' => 'File #', 'type' => 'bigint'],
-		'big_id_sequence' => ['name' => 'Document #', 'type' => 'bigserial'],
+		'big_id' => ['name' => 'Big #', 'type' => 'bigint'],
+		'big_id_sequence' => ['name' => 'Big #', 'type' => 'bigserial'],
 		'order' => ['name' => 'Order', 'type' => 'integer', 'default' => 0],
 		'counter' => ['name' => 'Counter', 'type' => 'integer', 'default' => 0],
 		'email' => ['name' => 'Email', 'type' => 'varchar', 'length' => 255, 'validator_method' => 'object_validator_email::validate', 'null' => true],
@@ -44,14 +44,14 @@ class object_data_domains extends object_data {
 		'action_id' => ['name' => 'Action #', 'type' => 'smallint'],
 		'language_code' => ['name' => 'Language Code', 'type' => 'char', 'length' => 3],
 		'country_code' => ['name' => 'Country Code', 'type' => 'char', 'length' => 2],
+		'postal_code' => ['name' => 'Postal Code', 'type' => 'varchar', 'length' => 15],
+		'geo_coordinate' => ['name' => 'Geo Coordinate', 'type' => 'numeric', 'precision' => 10, 'scale' => 6, 'null' => true],
 		// entities
 		'entity_id' => ['name' => 'Entity #', 'type' => 'integer'],
 		'entity_id_sequence' => ['name' => 'Entity #', 'type' => 'serial'],
 		// relations & models
 		'relation_id' => ['name' => 'Relation #', 'type' => 'integer'],
 		'relation_id_sequence' => ['name' => 'Relation #', 'type' => 'serial'],
-		'attribute_id' => ['name' => 'Attribute #', 'type' => 'integer'],
-		'attribute_id_sequence' => ['name' => 'Attribute #', 'type' => 'serial'],
 		// accounting
 		'currency_code' => ['name' => 'Currency Code', 'type' => 'char', 'length' => 3, 'null' => true],
 		'currency_rate' => ['name' => 'Currency Rate', 'type' => 'numeric', 'precision' => 16, 'scale' => 8, 'default' => 1],

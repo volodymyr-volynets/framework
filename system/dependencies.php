@@ -349,6 +349,7 @@ class system_dependencies {
 				$result['error'][] = 'You do not have models to process!';
 				break;
 			}
+			$object_attributes = [];
 			$object_relations = [];
 			$object_forms = [];
 			$flag_relation = application::get('dep.submodule.numbers.data.relations') ? true : false;
@@ -371,7 +372,15 @@ class system_dependencies {
 								'rn_relattr_code' => $model->relation['field'],
 								'rn_relattr_name' => $model->title,
 								'rn_relattr_model' => $k2,
+								'rn_relattr_php_type' => $model->columns[$model->relation['field']]['php_type'],
 								'rn_relattr_inactive' => !empty($model->relation['inactive']) ? 1 : 0
+							];
+						}
+						if (!empty($model->attributes)) {
+							$object_attributes[$k2] = [
+								'rn_attrmdl_code' => $k2,
+								'rn_attrmdl_name' => $model->title,
+								'rn_attrmdl_inactive' => 0
 							];
 						}
 					}
@@ -549,6 +558,7 @@ class system_dependencies {
 
 		// relation
 		if ($flag_relation && $options['mode'] == 'commit') {
+			$result['hint'][] = '';
 			$model2 = factory::model('numbers_data_relations_model_relation_attributes');
 			// insert new models
 			if (!empty($object_relations)) {
@@ -596,6 +606,15 @@ class system_dependencies {
 					$result_insert = $model->save($v, ['pk' => ['rn_relfrmfld_form_code', 'rn_relfrmfld_field_code'], 'ignore_not_set_fields' => true]);
 				}
 				$result['hint'][] = ' * Imported relation form fields!';
+			}
+			// todo: import models   
+			//print_r2($object_attributes);
+			if (!empty($object_attributes)) {
+				$model = factory::model('numbers_data_relations_model_attribute_models');
+				foreach ($object_attributes as $k => $v) {
+					$result_insert = $model->save($v, ['pk' => ['rn_attrmdl_code'], 'ignore_not_set_fields' => true]);
+				}
+				$result['hint'][] = ' * Imported attribute models!';
 			}
 		}
 

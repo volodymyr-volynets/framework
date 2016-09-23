@@ -17,6 +17,13 @@ class object_table extends object_override_data {
 	public $db_link_flag;
 
 	/**
+	 * Db object
+	 *
+	 * @var object
+	 */
+	public $db_object;
+
+	/**
 	 * Table name including schema in format [schema_name]
 	 *
 	 * @var string
@@ -189,6 +196,13 @@ class object_table extends object_override_data {
 	];
 
 	/**
+	 * Attributes
+	 *
+	 * @var boolean
+	 */
+	public $attributes;
+
+	/**
 	 * Constructing object
 	 *
 	 * @throws Exception
@@ -238,6 +252,8 @@ class object_table extends object_override_data {
 		if (empty($this->title)) {
 			$this->title = ucwords(implode(' ', $temp));
 		}
+		// initialize db object
+		$this->db_object = new db($this->db_link);
 	}
 
 	/**
@@ -247,8 +263,7 @@ class object_table extends object_override_data {
 	 * @return array
 	 */
 	public function insert($data) {
-		$db = new db($this->db_link);
-		return $db->insert($this->name, [$data], null, ['returning' => $this->pk]);
+		return $this->db_object->insert($this->name, [$data], null, ['returning' => $this->pk]);
 	}
 
 	/**
@@ -347,9 +362,6 @@ class object_table extends object_override_data {
 				}
 			}
 
-			// db object
-			$db = new db($this->db_link);
-
 			// we need to process serial columns
 			$pk = $options['pk'] ?? $this->pk;
 			$options['sequences'] = [];
@@ -363,7 +375,7 @@ class object_table extends object_override_data {
 			}
 
 			// saving record to database
-			$result = $db->save($this->name, $save, $pk, $options);
+			$result = $this->db_object->save($this->name, $save, $pk, $options);
 			if ($result['success'] && $this->cache) {
 				// now we need to reset cache
 				if (empty($data['do_not_reset_cache'])) {
@@ -395,12 +407,10 @@ class object_table extends object_override_data {
 		}
 		$options_query['cache_tags'] = !empty($this->cache_tags) ? array_values($this->cache_tags) : [];
 		$options_query['cache_tags'][] = $this->name;
-		// db object
-		$db = new db($this->db_link);
 		// where
 		$sql = '';
-		$sql.= !empty($options['where']) ? (' AND ' . $db->prepare_condition($options['where'])) : '';
-		$sql.= !empty($options['search']) ? (' AND (' . $db->prepare_condition($options['search'], 'OR') . ')') : '';
+		$sql.= !empty($options['where']) ? (' AND ' . $this->db_object->prepare_condition($options['where'])) : '';
+		$sql.= !empty($options['search']) ? (' AND (' . $this->db_object->prepare_condition($options['search'], 'OR') . ')') : '';
 		// order by
 		$orderby = $options['orderby'] ?? (!empty($this->orderby) ? $this->orderby : null);
 		if (!empty($orderby)) {
@@ -416,7 +426,7 @@ class object_table extends object_override_data {
 		$pk = array_key_exists('pk', $options) ? $options['pk'] : $this->pk;
 		// columns
 		if (!empty($options['columns'])) {
-			$columns = $db->prepare_expression($options['columns']);
+			$columns = $this->db_object->prepare_expression($options['columns']);
 		} else {
 			$columns = '*';
 		}
@@ -431,14 +441,19 @@ class object_table extends object_override_data {
 				return cache::$memory_storage[$sql_hash];
 			}
 		}
-		$result = $db->query($sql_full, $pk, $options_query);
+		$result = $this->db_object->query($sql_full, $pk, $options_query);
 		if (!$result['success']) {
 			Throw new Exception(implode(", ", $result['error']));
 		}
 		if ($this->cache_memory) {
 			cache::$memory_storage[$sql_hash] = & $result['rows'];
 		}
-		return $result['rows'];
+		// single row
+		if (!empty($options['single_row'])) {
+			return current($result['rows']);
+		} else {
+			return $result['rows'];
+		}
 	}
 
 	/**
@@ -447,7 +462,7 @@ class object_table extends object_override_data {
 	 * @return object
 	 */
 	public function db_object() {
-		return new db($this->db_link);
+		return $this->db_object;
 	}
 
 	/**
@@ -455,8 +470,7 @@ class object_table extends object_override_data {
 	 */
 	public function reset_cache() {
 		// get cache link
-		$db = $this->db_object();
-		$cache_link = $db->object->connect_options['cache_link'];
+		$cache_link = $this->db_object->object->connect_options['cache_link'];
 		// create empty cache array
 		if (!isset(cache::$reset_caches[$cache_link])) {
 			cache::$reset_caches[$cache_link] = [];
@@ -492,19 +506,8 @@ class object_table extends object_override_data {
 			}
 		}
 		$options_map = !empty($this->options_map) ? $this->options_map : [$this->column_prefix . 'name' => 'name'];
-		if (empty($options['i18n'])) {
-			$data = object_data_common::options($data, $options_map);
-		} else {
-			$data = object_data_common::options($data, $options_map);
-			foreach ($data as $k => $v) {
-				$data[$k]['name'] = i18n(null, $v['name']);
-			}
-		}
-		// we need to sort
-		if (empty($this->orderby)) {
-			array_key_sort($data, ['name' => SORT_ASC], ['name' => SORT_NATURAL]);
-		}
-		return $data;
+		// build options
+		return object_data_common::build_options($data, $options_map, $this->orderby, $options['i18n'] ?? false);
 	}
 
 	/**
@@ -584,5 +587,66 @@ TTT;
 		$class = get_called_class();
 		$object = new $class();
 		return $object->exists($options);
+	}
+
+	/**
+	 * Validate multiple options/autocompletes at the same time
+	 *
+	 * @param array $options
+	 * @return array
+	 */
+	public function validate_options_multiple($options = []) {
+		$result = [
+			'success' => false,
+			'error' => [],
+			'discrepancies' => []
+		];
+		$mass_sql = [];
+		foreach ($options as $k => $v) {
+			$model = factory::model($v['model'], true);
+			$temp = [
+				$v['field'] => $v['values']
+			];
+			$where = $this->db_object->prepare_condition(array_merge_hard($v['params'] ?? [], $temp), 'AND');
+			$fields = "concat_ws('', " . implode(', ', array_keys($temp)) . ")";
+			$mass_sql[] = <<<TTT
+				SELECT
+					'{$k}' validate_name,
+					{$fields} validate_value
+				FROM {$model->name}
+				WHERE 1=1
+					AND {$where}
+TTT;
+		}
+		$mass_sql = implode("\n\nUNION ALL\n\n", $mass_sql);
+		$temp = $this->db_object->query($mass_sql);
+		if ($temp['success']) {
+			// generate array of unique values
+			$unique = [];
+			foreach ($temp['rows'] as $k => $v) {
+				if (!isset($unique[$v['validate_name']])) {
+					$unique[$v['validate_name']] = [];
+				}
+				$unique[$v['validate_name']][] = $v['validate_value'];
+			}
+			// find differencies
+			foreach ($options as $k => $v) {
+				// see if we found values
+				if (!isset($unique[$k])) {
+					$result['discrepancies'][$k] = count($v['values']);
+				} else {
+					foreach ($v['values'] as $v2) {
+						if (!in_array($v2 . '', $unique[$k])) {
+							if (!isset($result['discrepancies'][$k])) {
+								$result['discrepancies'][$k] = 0;
+							}
+							$result['discrepancies'][$k]++;
+						}
+					}
+				}
+			}
+			$result['success'] = true;
+		}
+		return $result;
 	}
 }

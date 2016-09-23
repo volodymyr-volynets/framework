@@ -167,10 +167,11 @@ class object_collection extends object_override_data {
 				$key[] = $k;
 				array_key_set($parent_rows, $key, []);
 			}
+			// sql extensions
+			$v['sql']['where'] = $v['sql']['where'] ?? null;
 			// building SQL
-			$sql = '';
-			$sql.= ' AND ' . $this->db_object->prepare_condition([$column => $keys]);
-			$sql_full = 'SELECT * FROM ' . $model->name . ' WHERE 1=1' . $sql;
+			$sql = ' AND ' . $this->db_object->prepare_condition([$column => $keys]);
+			$sql_full = 'SELECT * FROM ' . $model->name . ' WHERE 1=1' . $sql . ($v['sql']['where'] ? (' AND ' . $v['sql']['where']) : '');
 			// order by
 			$orderby = $options['orderby'] ?? (!empty($model->orderby) ? $model->orderby : null);
 			if (!empty($orderby)) {

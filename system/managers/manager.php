@@ -1,5 +1,8 @@
 <?php
 
+// benchmark
+$benchmark = microtime(true);
+
 // parameters
 $type = $argv[1];
 $mode = $argv[2];
@@ -61,5 +64,8 @@ try {
 	echo $e->getMessage() . "\n";
 }
 
+// benchmark
+$seconds = format::time_seconds(microtime(true) - $benchmark);
+
 // if we succedded
-echo "\nOperation \"$type\" with mode \"$mode\" completed!\n";
+echo "\nOperation \"$type\" with mode \"$mode\" completed in {$seconds} seconds!\n";

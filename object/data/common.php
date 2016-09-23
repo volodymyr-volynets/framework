@@ -109,6 +109,68 @@ class object_data_common {
 	}
 
 	/**
+	 * Build options based on parameters, this must be used to have
+	 * consistencies in selects
+	 *
+	 * @param array $data
+	 * @param array $options_map
+	 * @param array $orderby
+	 * @param boolean $i18n
+	 * @return array
+	 */
+	public static function build_options($data, $options_map, $orderby, $i18n) {
+		$data = object_data_common::options($data, $options_map);
+		if ($i18n) {
+			foreach ($data as $k => $v) {
+				$data[$k]['name'] = i18n(null, $v['name']);
+			}
+			// mandatory sorting
+			array_key_sort($data, ['name' => SORT_ASC], ['name' => SORT_NATURAL]);
+		} else if (empty($orderby)) {
+			array_key_sort($data, ['name' => SORT_ASC], ['name' => SORT_NATURAL]);
+		}
+		return $data;
+	}
+
+	/**
+	 * Filter active options
+	 *
+	 * @param array $data
+	 * @param array $options_active
+	 * @param array $existing_values
+	 * @param array $skip_values
+	 * @return array
+	 */
+	public static function filter_active_options($data, $options_active, $existing_values = [], $skip_values = []) {
+		if (!empty($existing_values) && !is_array($existing_values)) {
+			$existing_values = [$existing_values];
+		}
+		if (!empty($options_active)) {
+			foreach ($data as $k => $v) {
+				// existing values
+				if (!empty($existing_values) && in_array($k, $existing_values)) {
+					continue;
+				}
+				// skip values
+				if (!empty($skip_values) && in_array($k, $skip_values)) {
+					unset($data[$k]);
+					continue;
+				}
+				// options active
+				if (!empty($options_active)) {
+					foreach ($options_active as $k2 => $v2) {
+						if ($v[$k2] !== $v2) {
+							unset($data[$k]);
+							break;
+						}
+					}
+				}
+			}
+		}
+		return $data;
+	}
+
+	/**
 	 * Optgroups
 	 *
 	 * @param array $data
