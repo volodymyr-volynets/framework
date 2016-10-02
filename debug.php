@@ -39,7 +39,8 @@ class debug {
 		'input' => [], // if we need to see input
 		'benchmark' => [], // if we need to know how long it takes
 		'classes' => [], // autoloaded classes
-		'application' => []
+		'application' => [],
+		'phpinfo' => ''
 	];
 
 	/**
@@ -159,6 +160,8 @@ class debug {
 										$count = count($loaded_classes);
 									} else if ($k == 'application') {
 										$count = count($application);
+									} else if ($k == 'phpinfo') {
+										$count = 1;
 									} else {
 										$count = count($v);
 									}
@@ -394,6 +397,28 @@ class debug {
 					$result.= '<td>';
 						$result.= '<h3>Application (' . count($application) . ')</h3>';
 						$result.= print_r2($application, true);
+					$result.= '</td>';
+				$result.= '</tr>';
+
+				// phpinfo
+				$result.= '<tr id="debuging_toolbar_phpinfo" class="debuging_toolbar_class" style="display: none;">';
+					$result.= '<td>';
+						$result.= '<h3>PHPInfo</h3>';
+						helper_ob::start();
+						phpinfo();
+						$str = helper_ob::clean();
+						$str = preg_replace( '%^.*<body>(.*)</body>.*$%ms', '$1', $str);
+						$str.= <<<TTT
+							<style type="text/css">
+								#phpinfo table {
+									border: 1px solid #000;
+								}
+								#phpinfo table tr {
+									border-bottom: 1px solid #000;
+								}
+							</style>
+TTT;
+						$result.= '<div id="phpinfo">' . $str . '</div>';
 					$result.= '</td>';
 				$result.= '</tr>';
 

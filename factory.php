@@ -91,4 +91,23 @@ class factory {
 			}
 		}
 	}
+
+	/**
+	 * Convert method string to an array for future execution
+	 *
+	 * @param string $method
+	 * @param string $base_class
+	 * @return array
+	 */
+	public static function method($method, $base_class = null) {
+		$temp = explode('::', $method);
+		if (count($temp) > 1) {
+			$temp_model = $temp[0];
+			$temp_method = $temp[1];
+		} else {
+			$temp_model = $base_class;
+			$temp_method = $temp[0];
+		}
+		return [$temp_model, $temp_method];
+	}
 }

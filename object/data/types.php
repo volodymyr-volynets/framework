@@ -16,6 +16,7 @@ class object_data_types extends object_data {
 		'integer' => ['name' => 'Integer', 'default' => 0, 'php_type' => 'integer'],
 		'bigint' => ['name' => 'Big Integer', 'default' => 0, 'php_type' => 'integer'],
 		'numeric' => ['name' => 'Numeric', 'default' => 0, 'php_type' => 'float'],
+		'bcnumeric' => ['name' => 'BC Numeric', 'default' => '0', 'php_type' => 'bcnumeric'],
 		// numbers with sequences, will be converted to autoincrement for some databases
 		'smallserial' => ['name' => 'Serial Smallint', 'php_type' => 'integer'],
 		'serial' => ['name' => 'Serial Integer', 'php_type' => 'integer'],

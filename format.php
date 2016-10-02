@@ -259,9 +259,12 @@ class format {
 	 * Transform float from locale to php
 	 * 
 	 * @param string/float $amount
+	 * @param array $options
+	 *		boolean - bcnumeric
+	 *		boolean - valid_check
 	 * @return number
 	 */
-	public static function read_floatval($amount) {
+	public static function read_floatval($amount, $options = []) {
 		$locale = localeconv();
 		if (!self::use_locale()) {
 			$locale['thousands_sep'] = ',';
@@ -270,7 +273,21 @@ class format {
 		// remove currency symbol and name, thousands separator
 		$amount = str_replace(array($locale['int_curr_symbol'], $locale['currency_symbol'], $locale['mon_thousands_sep'], $locale['thousands_sep']), '', $amount . '');
 		// handle decimal separator
-		if ($locale['decimal_point'] != '.') $amount = str_replace($locale['decimal_point'], '.', $amount);
+		if ($locale['decimal_point'] != '.') {
+			$amount = str_replace($locale['decimal_point'], '.', $amount);
+		}
+		// if we are processing bc numeric data type
+		if (!empty($options['bcnumeric'])) {
+			$temp = filter_var($amount, FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
+			if ($temp === false || $temp === '') {
+				$temp = '0';
+			}
+			return $temp;
+		}
+		// sanitize only check
+		if (!empty($options['valid_check'])) {
+			return (filter_var($amount, FILTER_VALIDATE_FLOAT) !== false);
+		}
 		return floatval($amount);
 	}
 
@@ -391,6 +408,9 @@ class format {
 	 *
 	 * @param int $memory
 	 * @param string $type
+	 *		m - Mb
+	 *		k - Kb
+	 *		b - Bytes
 	 * @return string
 	 */
 	public static function memory($memory, $type = 'm') {

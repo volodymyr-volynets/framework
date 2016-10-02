@@ -203,6 +203,13 @@ class object_table extends object_override_data {
 	public $attributes;
 
 	/**
+	 * Intiator class
+	 *
+	 * @var string
+	 */
+	public $initiator_class = 'object_table';
+
+	/**
 	 * Constructing object
 	 *
 	 * @throws Exception
@@ -485,9 +492,27 @@ class object_table extends object_override_data {
 	 * @see $this->get()
 	 */
 	public function options($options = []) {
+		$data = $this->options_query_data($options);
+		$options_map = !empty($this->options_map) ? $this->options_map : [$this->column_prefix . 'name' => 'name'];
+		// build
+		return object_data_common::build_options($data, $options_map, $this->orderby, $options['i18n'] ?? false);
+	}
+
+	/**
+	 * Query data for options
+	 *
+	 * @param array $options
+	 * @return array
+	 */
+	private function options_query_data($options) {
+		// handle pk
+		if (!array_key_exists('pk', $options)) {
+			$options['pk'] = $this->pk;
+		}
+		$pk = $options['pk'];
 		// if compound key
-		if (count($this->pk) > 1) {
-			$temp = $this->pk;
+		if (count($pk) > 1) {
+			$temp = $pk;
 			$last = array_pop($temp);
 			foreach ($temp as $v) {
 				if (empty($options['where'][$v])) {
@@ -505,9 +530,7 @@ class object_table extends object_override_data {
 				$data = $data[$options['where'][$v]];
 			}
 		}
-		$options_map = !empty($this->options_map) ? $this->options_map : [$this->column_prefix . 'name' => 'name'];
-		// build options
-		return object_data_common::build_options($data, $options_map, $this->orderby, $options['i18n'] ?? false);
+		return $data;
 	}
 
 	/**
@@ -517,9 +540,13 @@ class object_table extends object_override_data {
 	 * @return array
 	 */
 	public function options_active($options = []) {
-		$temp = $this->options_active ? $this->options_active : [$this->column_prefix . 'inactive' => 0];
-		$options['where'] = array_merge_hard($options['where'] ?? [], $temp);
-		return $this->options($options);
+		$data = $this->options_query_data($options);
+		$options_map = !empty($this->options_map) ? $this->options_map : [$this->column_prefix . 'name' => 'name'];
+		$options_active = $this->options_active ? $this->options_active : [$this->column_prefix . 'inactive' => 0];
+		// filter
+		$data = object_data_common::filter_active_options($data, $options_active, $options['existing_values'] ?? [], $options['skip_values'] ?? []);
+		// build
+		return object_data_common::build_options($data, $options_map, $this->orderby, $options['i18n'] ?? false);
 	}
 
 	/**
@@ -587,66 +614,5 @@ TTT;
 		$class = get_called_class();
 		$object = new $class();
 		return $object->exists($options);
-	}
-
-	/**
-	 * Validate multiple options/autocompletes at the same time
-	 *
-	 * @param array $options
-	 * @return array
-	 */
-	public function validate_options_multiple($options = []) {
-		$result = [
-			'success' => false,
-			'error' => [],
-			'discrepancies' => []
-		];
-		$mass_sql = [];
-		foreach ($options as $k => $v) {
-			$model = factory::model($v['model'], true);
-			$temp = [
-				$v['field'] => $v['values']
-			];
-			$where = $this->db_object->prepare_condition(array_merge_hard($v['params'] ?? [], $temp), 'AND');
-			$fields = "concat_ws('', " . implode(', ', array_keys($temp)) . ")";
-			$mass_sql[] = <<<TTT
-				SELECT
-					'{$k}' validate_name,
-					{$fields} validate_value
-				FROM {$model->name}
-				WHERE 1=1
-					AND {$where}
-TTT;
-		}
-		$mass_sql = implode("\n\nUNION ALL\n\n", $mass_sql);
-		$temp = $this->db_object->query($mass_sql);
-		if ($temp['success']) {
-			// generate array of unique values
-			$unique = [];
-			foreach ($temp['rows'] as $k => $v) {
-				if (!isset($unique[$v['validate_name']])) {
-					$unique[$v['validate_name']] = [];
-				}
-				$unique[$v['validate_name']][] = $v['validate_value'];
-			}
-			// find differencies
-			foreach ($options as $k => $v) {
-				// see if we found values
-				if (!isset($unique[$k])) {
-					$result['discrepancies'][$k] = count($v['values']);
-				} else {
-					foreach ($v['values'] as $v2) {
-						if (!in_array($v2 . '', $unique[$k])) {
-							if (!isset($result['discrepancies'][$k])) {
-								$result['discrepancies'][$k] = 0;
-							}
-							$result['discrepancies'][$k]++;
-						}
-					}
-				}
-			}
-			$result['success'] = true;
-		}
-		return $result;
 	}
 }

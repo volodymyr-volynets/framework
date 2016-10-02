@@ -248,7 +248,8 @@ class object_collection extends object_override_data {
 			'warning' => [],
 			'deleted' => false,
 			'inserted' => false,
-			'new_pk' => []
+			'new_pk' => [],
+			'options_model' => []
 		];
 		do {
 			// start transaction
@@ -269,6 +270,91 @@ class object_collection extends object_override_data {
 			// load data
 			if (!empty($pk) && $full_pk) {
 				$original = $this->get(['where' => $pk, 'single_row' => true]);
+			}
+			// we need to validate options_model
+			if (!empty($options['options_model'])) {
+				// get existing values
+				foreach ($options['options_model'] as $k => $v) {
+					// current values
+					$value = array_key_get($data, $v['key']);
+					if ($value !== null) {
+						if (is_array($value)) {
+							$value = array_keys($value);
+						} else {
+							$value = [$value];
+						}
+						$options['options_model'][$k]['current_values'] = $value;
+					} else {
+						$options['options_model'][$k]['current_values'] = null;
+					}
+					// we skip if we have no values
+					if (empty($options['options_model'][$k]['current_values'])) {
+						unset($options['options_model'][$k]);
+						continue;
+					}
+					// existing values
+					$value = array_key_get($original, $v['key']);
+					if ($value !== null) {
+						if (is_array($value)) {
+							$value = array_keys($value);
+						} else {
+							$value = [$value];
+						}
+						$options['options_model'][$k]['existing_values'] = $value;
+					} else {
+						$options['options_model'][$k]['existing_values'] = null;
+					}
+				}
+				// validate object_data
+				$sql_options = [];
+				foreach ($options['options_model'] as $k => $v) {
+					// we skip inactive model validations
+					if ($v['options_model'] == 'object_data_model_inactive') continue;
+					// process models
+					$temp = explode('::', $v['options_model']);
+					$model = factory::model($temp[0], true);
+					if (empty($temp[1])) $temp[1] = 'options';
+					if ($model->initiator_class == 'object_data' || ($model->initiator_class == 'object_table' && !in_array($temp[1], ['options', 'options_active']))) {
+						$temp_options = array_keys(object_data_common::process_options($v['options_model'], null, $v['options_params'], $v['existing_values']));
+						// difference between arrays
+						$diff = array_diff($v['current_values'], $temp_options);
+						if (!empty($diff)) {
+							$result['options_model'][$k] = 1;
+						}
+					} else if ($model->initiator_class == 'object_table' && in_array($temp[1], ['options', 'options_active'])) {
+						// last element in the pk is a field
+						$pk = $model->pk;
+						$last = array_pop($pk);
+						// handling inactive
+						$options_active = [];
+						if ($temp[1] == 'options_active') {
+							$options_active = $model->options_active ? $model->options_active : [$model->column_prefix . 'inactive' => 0];
+						}
+						$sql_options[$k] = [
+							'model' => $temp[0],
+							'field' => $last,
+							'params' => $v['options_params'],
+							'values' => $v['current_values'],
+							'existing_values' => $v['existing_values'],
+							'options_active' => $options_active
+						];
+					}
+				}
+				// validating options
+				if (!empty($sql_options)) {
+					$sql_model = new object_table_validator();
+					$sql_result = $sql_model->validate_options_multiple($sql_options);
+					if (!empty($sql_result['discrepancies'])) {
+						foreach ($sql_result['discrepancies'] as $k => $v) {
+							$result['options_model'][$k] = 1;
+						}
+					}
+				}
+				// we roll back if we have errors
+				if (!empty($result['options_model'])) {
+					$db->rollback();
+					break;
+				}
 			}
 			// comapare main row
 			$this->timestamp = format::now('timestamp');

@@ -87,6 +87,13 @@ class object_data extends object_override_data {
 	];
 
 	/**
+	 * Intiator class
+	 *
+	 * @var string
+	 */
+	public $initiator_class = 'object_data';
+
+	/**
 	 * Constructor
 	 */
 	public function __construct() {
@@ -215,15 +222,8 @@ class object_data extends object_override_data {
 	public function options($options = []) {
 		$data = $this->get($options);
 		$options_map = !empty($this->options_map) ? $this->options_map : [$this->column_prefix . 'name' => 'name'];
-		if (empty($options['i18n'])) {
-			return object_data_common::options($data, $options_map);
-		} else {
-			$data = object_data_common::options($data, $options_map);
-			foreach ($data as $k => $v) {
-				$data[$k]['name'] = i18n(null, $v['name']);
-			}
-			return $data;
-		}
+		// build options
+		return object_data_common::build_options($data, $options_map, $this->orderby, $options['i18n'] ?? false);
 	}
 
 	/**

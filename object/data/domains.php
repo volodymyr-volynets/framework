@@ -53,8 +53,9 @@ class object_data_domains extends object_data {
 		'relation_id' => ['name' => 'Relation #', 'type' => 'integer'],
 		'relation_id_sequence' => ['name' => 'Relation #', 'type' => 'serial'],
 		// accounting
-		'currency_code' => ['name' => 'Currency Code', 'type' => 'char', 'length' => 3, 'null' => true],
-		'currency_rate' => ['name' => 'Currency Rate', 'type' => 'numeric', 'precision' => 16, 'scale' => 8, 'default' => 1],
+		'currency_code' => ['name' => 'Currency Code', 'type' => 'char', 'length' => 3],
+		'currency_type' => ['name' => 'Currency Type', 'type' => 'varchar', 'length' => 6],
+		'currency_rate' => ['name' => 'Currency Rate', 'type' => 'bcnumeric', 'precision' => 16, 'scale' => 8, 'default' => '1'],
 		'html_color_code' => ['name' => 'HTML Color Code', 'type' => 'char', 'length' => 6, 'null' => true],
 		'html_color_group' => ['name' => 'HTML Color Group', 'type' => 'varchar', 'length' => 30, 'null' => true]
 	];

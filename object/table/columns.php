@@ -70,13 +70,13 @@ class object_table_columns extends object_data {
 	public static function process_single_column_type($column_name, $column_options, $value, $options = []) {
 		$result = [];
 		// processing as per different data types
-		if ($column_options['type'] == 'boolean') {
+		if ($column_options['type'] == 'boolean') { // booleans
 			$result[$column_name] = !empty($value) ? 1 : 0;
 		} else if (in_array($column_options['type'], ['smallserial', 'serial', 'bigserial'])) {
 			if (!empty($value) && is_numeric($value)) {
 				$result[$column_name] = format::read_intval($value);
 			}
-		} else if (in_array($column_options['type'], ['smallint', 'integer', 'bigint'])) {
+		} else if (in_array($column_options['type'], ['smallint', 'integer', 'bigint'])) { // integers
 			// if we got empty string we say its null
 			if (is_string($value) &&  $value === '') {
 				$value = null;
@@ -90,7 +90,7 @@ class object_table_columns extends object_data {
 			} else {
 				$result[$column_name] = format::read_intval($value);
 			}
-		} else if ($column_options['type'] == 'numeric') {
+		} else if (in_array($column_options['type'], ['numeric', 'bcnumeric'])) { // numerics as floats or strings
 			// if we got empty string we say its null
 			if (is_string($value) &&  $value == '') {
 				$value = null;
@@ -99,10 +99,10 @@ class object_table_columns extends object_data {
 				if (!empty($column_options['null']) || !empty($options['ignore_defaults'])) {
 					$result[$column_name] = null;
 				} else {
-					$result[$column_name] = $column_options['default'] ?? 0;
+					$result[$column_name] = $column_options['default'] ?? ($column_options['type'] == 'bcnumeric' ? '0' : 0);
 				}
 			} else {
-				$result[$column_name] = format::read_floatval($value);
+				$result[$column_name] = format::read_floatval($value, ['bcnumeric' => $column_options['type'] == 'bcnumeric']);
 			}
 		} else if (in_array($column_options['type'], ['date', 'time', 'datetime', 'timestamp'])) {
 			$result[$column_name] = format::read_date($value, $column_options['type']);

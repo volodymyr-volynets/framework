@@ -76,15 +76,18 @@ class request {
 	 */
 	private static function strip_tags($arr) {
 		if (is_array($arr)) {
-			$result = array();
+			$result = [];
 			foreach ($arr as $k=>$v) {
-				$k = strip_tags($k);
+				if (is_string($k)) {
+					$k = strip_tags($k);
+				}
 				$result[$k] = self::strip_tags($v);
 			}
-		} else {
-			$result = strip_tags($arr);
+			return $result;
+		} else if (is_string($arr)) {
+			return strip_tags($arr);
 		}
-		return $result;
+		return $arr;
 	}
 
 	/**

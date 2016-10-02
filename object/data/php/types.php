@@ -10,6 +10,7 @@ class object_data_php_types extends object_data {
 	public $data = [
 		'integer' => ['name' => 'Integer'],
 		'float' => ['name' => 'Float'],
+		'bcnumeric' => ['name' => 'BC Numeric'], // floats represented as strings
 		'string' => ['name' => 'String'],
 		'array' => ['name' => 'Array'],
 		'mixed' => ['name' => 'Mixed']

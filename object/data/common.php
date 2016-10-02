@@ -14,11 +14,13 @@ class object_data_common {
 	 *
 	 * @param string $model_and_method - model::method
 	 * @param object $existing_object
-	 * @param array $depends
+	 * @param array $where
+	 * @param array $existing_values
+	 * @param array $skip_values
 	 * @return array
 	 */
-	public static function process_options($model_and_method, $existing_object = null, $depends = []) {
-		$hash = sha1($model_and_method . serialize($depends));
+	public static function process_options($model_and_method, $existing_object = null, $where = [], $existing_values = [], $skip_values = []) {
+		$hash = sha1($model_and_method . serialize($where) . serialize($existing_values));
 		if (isset(self::$cached_options[$hash])) {
 			return self::$cached_options[$hash];
 		} else {
@@ -33,9 +35,9 @@ class object_data_common {
 			if ($model == 'this' && !empty($existing_object)) {
 				$object = $existing_object;
 			} else {
-				$object = new $model();
+				$object = factory::model($model, true);
 			}
-			self::$cached_options[$hash] = $object->{$method}(['where' => $depends, 'i18n' => true]);
+			self::$cached_options[$hash] = $object->{$method}(['where' => $where, 'existing_values' => $existing_values, 'skip_values' => $skip_values, 'i18n' => true]);
 			return self::$cached_options[$hash];
 		}
 	}

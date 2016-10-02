@@ -9,16 +9,23 @@ class object_data_schemas extends object_data {
 		'no_data_schema_name' => ['name' => 'Name', 'type' => 'text']
 	];
 	public $data = [
-		'sm' => ['no_data_schema_name' => 'System (Common)'],
-		'sc' => ['no_data_schema_name' => 'System (Cron)'],
-		'no' => ['no_data_schema_name' => 'Numbers Objects'],
+		// entities
 		'em' => ['no_data_schema_name' => 'Entity Management'],
-		'rn' => ['no_data_schema_name' => 'Relations'],
+		// accounting modules
+		'cs' => ['no_data_schema_name' => 'Common Services'],
+		'gl' => ['no_data_schema_name' => 'General Ledger'],
+		'ap' => ['no_data_schema_name' => 'Accounts Payable'],
+		'ar' => ['no_data_schema_name' => 'Accounts Receivable'],
+		'pr' => ['no_data_schema_name' => 'Payroll'],
+		// other misc modules
+		'rn' => ['no_data_schema_name' => 'Relations & Rules'],
 		'lc' => ['no_data_schema_name' => 'Localization'],
-		'of' => ['no_data_schema_name' => 'Optional Fields'],
 		'dc' => ['no_data_schema_name' => 'Documents'],
 		'dn' => ['no_data_schema_name' => 'Documentation'],
 		'ms' => ['no_data_schema_name' => 'Miscellaneous'],
+		'no' => ['no_data_schema_name' => 'Numbers Objects'],
+		'sm' => ['no_data_schema_name' => 'System (Common)'],
+		'sc' => ['no_data_schema_name' => 'System (Cron)'],
 		'temp' => ['no_data_schema_name' => 'Temporary Tables']
 	];
 }
