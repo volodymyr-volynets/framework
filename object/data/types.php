@@ -7,7 +7,10 @@ class object_data_types extends object_data {
 		'code' => ['name' => 'Type', 'type' => 'varchar', 'length' => 30],
 		'name' => ['name' => 'Name', 'type' => 'text'],
 		'default' => ['name' => 'Default', 'type' => 'mixed'],
-		'php_type' => ['name' => 'PHP Type', 'type' => 'text', 'model' => 'object_data_php_types']
+		'php_type' => ['name' => 'PHP Type', 'type' => 'text', 'model' => 'object_data_php_types'],
+		// format
+		'format' => ['name' => 'Format', 'type' => 'text'],
+		'format_params' => ['name' => 'Format Params', 'type' => 'mixed'],
 	];
 	public $data = [
 		'boolean' => ['name' => 'Boolean', 'default' => 0, 'php_type' => 'integer'],
@@ -28,9 +31,9 @@ class object_data_types extends object_data {
 		// json types
 		'json' => ['name' => 'JSON', 'php_type' => 'array'],
 		// date types
-		'date' => ['name' => 'Date', 'php_type' => 'string'],
-		'time' => ['name' => 'Time', 'php_type' => 'string'],
-		'datetime' => ['name' => 'Date & time', 'php_type' => 'string'],
+		'date' => ['name' => 'Date', 'php_type' => 'string', 'format' => 'date'],
+		'time' => ['name' => 'Time', 'php_type' => 'string', 'format' => 'time'],
+		'datetime' => ['name' => 'Date & time', 'php_type' => 'string', 'format' => 'datetime'],
 		'timestamp' => ['name' => 'Timestamp', 'php_type' => 'string'],
 		// mixed data type
 		'mixed' => ['name' => 'Mixed', 'php_type' => 'mixed']

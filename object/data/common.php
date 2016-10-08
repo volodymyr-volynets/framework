@@ -20,7 +20,7 @@ class object_data_common {
 	 * @return array
 	 */
 	public static function process_options($model_and_method, $existing_object = null, $where = [], $existing_values = [], $skip_values = []) {
-		$hash = sha1($model_and_method . serialize($where) . serialize($existing_values));
+		$hash = sha1($model_and_method . serialize($where) . serialize($existing_values) . serialize($skip_values));
 		if (isset(self::$cached_options[$hash])) {
 			return self::$cached_options[$hash];
 		} else {
@@ -82,15 +82,19 @@ class object_data_common {
 					Throw new Exception('Domain: ' . $v['domain'] . '?');
 				}
 				// populate domain attributes
-				foreach (['type', 'default', 'length', 'null', 'precision', 'scale'] as $v2) {
+				foreach (['type', 'default', 'length', 'null', 'precision', 'scale', 'format', 'format_params'] as $v2) {
 					if (array_key_exists($v2, self::$domains[$v['domain']]) && !array_key_exists($v2, $v)) {
 						$columns[$k][$v2] = self::$domains[$v['domain']][$v2];
 					}
 				}
 			}
-			// populate php type
+			// populate type attributes
 			if (isset($columns[$k]['type']) && isset(self::$types[$columns[$k]['type']])) {
-				$columns[$k]['php_type'] = self::$types[$columns[$k]['type']]['php_type'];
+				foreach (['php_type', 'format', 'format_params'] as $v2) {
+					if (array_key_exists($v2, self::$types[$columns[$k]['type']]) && !array_key_exists($v2, $v)) {
+						$columns[$k][$v2] = self::$types[$columns[$k]['type']][$v2];
+					}
+				}
 			} else {
 				// we default to string
 				$columns[$k]['php_type'] = 'string';

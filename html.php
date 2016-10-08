@@ -489,10 +489,25 @@ class html {
 	 *		options
 	 *		id
 	 *		active_tab
+	 *		class
+	 *		tab_options
 	 * @return string
 	 */
 	public static function tabs($options = []) {
 		return factory::delegate('flag.numbers.framework.html', 'tabs', [$options]);
+	}
+
+	/**
+	 * Pills
+	 *
+	 * @param array $options
+	 *		array options
+	 *		string id
+	 *		string active_pill
+	 * @return string
+	 */
+	public static function pills($options = []) {
+		return factory::delegate('flag.numbers.framework.html', 'pills', [$options]);
 	}
 
 	/**

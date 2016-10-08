@@ -131,8 +131,9 @@ class object_collection extends object_override_data {
 	 * @param array $details
 	 * @param array $parent_rows
 	 * @param array $parent_keys
+	 * @param array $parent_settings
 	 */
-	private function process_details(& $details, & $parent_rows, $parent_keys = []) {
+	private function process_details(& $details, & $parent_rows, $parent_keys = [], $parent_settings = []) {
 		foreach ($details as $k => $v) {
 			$details[$k]['model_object'] = $model = new $k();
 			$pk = $v['pk'] ?? $model->pk;
@@ -151,21 +152,46 @@ class object_collection extends object_override_data {
 					unset($pk[array_search($v2, $pk)]);
 				}
 			}
-			foreach ($parent_rows as $k2 => $v2) {
-				if ($key_level == 1) {
-					$keys[] = $v2[$k1];
-				} else {
-					$temp = [];
-					foreach ($v['map'] as $k3 => $v3) {
-						$temp[] = $v2[$k3];
+			// create an empty arrays
+			if (empty($parent_keys)) {
+				foreach ($parent_rows as $k2 => $v2) {
+					if ($key_level == 1) {
+						$keys[] = $v2[$k1];
+					} else {
+						$temp = [];
+						foreach ($v['map'] as $k3 => $v3) {
+							$temp[] = $v2[$k3];
+						}
+						$keys[] = implode('::', $temp);
 					}
-					$keys[] = implode('::', $temp);
+					// create empty arrays for children
+					$key = [];
+					$key[] = $k2;
+					$key[] = $k;
+					array_key_set($parent_rows, $key, []);
 				}
-				// create empty arrays for children
-				$key = $parent_keys;
-				$key[] = $k2;
-				$key[] = $k;
-				array_key_set($parent_rows, $key, []);
+			} else { // subdetails
+				$parent_key = current($parent_keys);
+				foreach ($parent_rows as $k2 => $v2) {
+					foreach ($v2[$parent_key] as $k4 => $v4) {
+						if ($key_level == 1) {
+							$keys[] = $v2[$k1];
+						} else {
+							$temp = [];
+							foreach ($v['map'] as $k3 => $v3) {
+								$temp[] = $v4[$k3];
+							}
+							$keys[] = implode('::', $temp);
+						}
+						// create empty arrays for children
+						$key = [];
+						$key[] = $k2;
+						$key[] = $parent_key;
+						$key[] = $k4;
+						$key[] = $k;
+						array_key_set($parent_rows, $key, []);
+					}
+				}
 			}
 			// sql extensions
 			$v['sql']['where'] = $v['sql']['where'] ?? null;
@@ -192,28 +218,65 @@ class object_collection extends object_override_data {
 					}
 				}
 				// loop though child array
-				foreach ($result['rows'] as $k2 => $v2) {
-					$key = $parent_keys;
-					$temp = [];
-					foreach ($v['map'] as $k3 => $v3) {
-						$temp[] = $v2[$v3];
-					}
-					$key[] = implode('::', $temp);
-					$key[] = $k;
-					if ($v['type'] == '1M') {
-						// we need to form pk key
+				if (empty($parent_keys)) {
+					foreach ($result['rows'] as $k2 => $v2) {
+						$key = [];
 						$temp = [];
-						foreach ($new_pk as $v0) {
-							$temp[] = $v2[$v0];
+						foreach ($v['map'] as $k3 => $v3) {
+							$temp[] = $v2[$v3];
 						}
 						$key[] = implode('::', $temp);
+						$key[] = $k;
+						if ($v['type'] == '1M') {
+							// we need to form pk key
+							$temp = [];
+							foreach ($new_pk as $v0) {
+								$temp[] = $v2[$v0];
+							}
+							$key[] = implode('::', $temp);
+						}
+						array_key_set($parent_rows, $key, $v2);
 					}
-					array_key_set($parent_rows, $key, $v2);
+				} else { // subdetails
+					// we need to convert parents map
+					$parent_settings_map = [];
+					foreach ($parent_settings['map'] as $k10 => $v10) {
+						$parent_settings_map[$v10] = $k10;
+					}
+					foreach ($result['rows'] as $k2 => $v2) {
+						$key = [];
+						$temp = [];
+						$temp_parent = [];
+						foreach ($v['map'] as $k3 => $v3) {
+							// need to find parents keys
+							if (!empty($parent_settings_map[$k3])) {
+								$temp_parent[] = $v2[$v3];
+							} else {
+								$temp[] = $v2[$v3];
+							}
+						}
+						$key[] = implode('::', $temp_parent);
+						$key[] = $parent_key;
+						$key[] = implode('::', $temp);
+						$key[] = $k;
+						if ($v['type'] == '1M') {
+							// we need to form pk key
+							$temp = [];
+							foreach ($new_pk as $v0) {
+								$temp[] = $v2[$v0];
+							}
+							$key[] = implode('::', $temp);
+						}
+						array_key_set($parent_rows, $key, $v2);
+					}
 				}
-			}
-			// if we have more details
-			if (!empty($v['details'])) {
-				Throw new Exception('Details?');
+				// if we have more details
+				if (!empty($v['details']) && empty($parent_keys)) {
+					$parent_keys[] = $k;
+					$this->process_details($v['details'], $parent_rows, $parent_keys, $v);
+				} else if (!empty($v['details']) && !empty($parent_keys)) {
+					Throw new Exception('Details?');
+				}
 			}
 		}
 	}
@@ -277,7 +340,7 @@ class object_collection extends object_override_data {
 				foreach ($options['options_model'] as $k => $v) {
 					// current values
 					$value = array_key_get($data, $v['key']);
-					if ($value !== null) {
+					if ($value !== null && (is_string($value) && $value !== '')) {
 						if (is_array($value)) {
 							$value = array_keys($value);
 						} else {

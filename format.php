@@ -331,7 +331,6 @@ class format {
 	 * @return string
 	 */
 	public static function amount($amount, $options = array()) {
-		$amount = self::read_floatval($amount);
 		// formatting
 		if (self::use_locale()) {
 			$format = '%';

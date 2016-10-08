@@ -505,12 +505,20 @@ function array_key_set(& $arr, $keys = null, $value, $options = []) {
  * @param array $options 
  */
 function array_key_set_by_key_name(& $arr, $keys = null, $value, $options = array()) {
-	if (!is_array($keys)) $keys = explode(',', $keys . '');
 	// transform keys
-	$temp = array();
-	foreach ($keys as $k) $temp[] = $value[$k];
+	if (!is_array($keys)) {
+		$keys = explode(',', $keys . '');
+	}
+	$temp = [];
+	foreach ($keys as $k) {
+		$temp[] = $value[$k];
+	}
 	// unsetting keys
-	if (!empty($options['unset_keys'])) foreach ($temp as $k2) unset($value[$k2]);
+	if (!empty($options['unset_keys'])) {
+		foreach ($temp as $k2) {
+			unset($value[$k2]);
+		}
+	}
 	array_key_set($arr, $temp, $value, $options);
 }
 

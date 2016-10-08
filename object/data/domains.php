@@ -13,7 +13,10 @@ class object_data_domains extends object_data {
 		'null' => ['name' => 'Null', 'type' => 'boolean', 'default' => 0],
 		'precision' => ['name' => 'Precision', 'type' => 'smallint'],
 		'scale' => ['name' => 'Scale', 'type' => 'smallint'],
-		'validator_method' => ['name' => 'Validator Method', 'type' => 'text']
+		'validator_method' => ['name' => 'Validator Method', 'type' => 'text'],
+		// format
+		'format' => ['name' => 'Format', 'type' => 'text'],
+		'format_params' => ['name' => 'Format Params', 'type' => 'mixed'],
 	];
 	// todo: refactor
 	public $data = [
@@ -54,8 +57,15 @@ class object_data_domains extends object_data {
 		'relation_id_sequence' => ['name' => 'Relation #', 'type' => 'serial'],
 		// accounting
 		'currency_code' => ['name' => 'Currency Code', 'type' => 'char', 'length' => 3],
-		'currency_type' => ['name' => 'Currency Type', 'type' => 'varchar', 'length' => 6],
+		'currency_type' => ['name' => 'Currency Type', 'type' => 'varchar', 'length' => 12],
 		'currency_rate' => ['name' => 'Currency Rate', 'type' => 'bcnumeric', 'precision' => 16, 'scale' => 8, 'default' => '1'],
+		'term_code' => ['name' => 'Term Code', 'type' => 'varchar', 'length' => 12],
+		'payment_code' => ['name' => 'Payment Code', 'type' => 'varchar', 'length' => 12],
+		'ledger_code' => ['name' => 'Ledger Code', 'type' => 'char', 'length' => 2],
+		'amount' => ['name' => 'Amount', 'type' => 'bcnumeric', 'precision' => 22, 'scale' => 2, 'default' => '0'],
+		'year' => ['name' => 'Year', 'type' => 'smallint', 'validator_method' => 'object_validator_year::validate'],
+		'period' => ['name' => 'Period', 'type' => 'smallint'],
+		// html
 		'html_color_code' => ['name' => 'HTML Color Code', 'type' => 'char', 'length' => 6, 'null' => true],
 		'html_color_group' => ['name' => 'HTML Color Group', 'type' => 'varchar', 'length' => 30, 'null' => true]
 	];
