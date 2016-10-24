@@ -80,16 +80,26 @@ class factory {
 	 * @return object
 	 */
 	public static function model($class, $cache = false) {
-		if (!$cache) {
-			return new $class();
-		} else {
-			if (isset(self::$class_objects['model'][$class])) {
-				return self::$class_objects['model'][$class];
-			} else {
-				self::$class_objects['model'][$class] = new $class;
-				return self::$class_objects['model'][$class];
-			}
+		// if we need to override classes
+		if (isset(overrides_factory::$data[$class])) {
+			$class = overrides_factory::$data[$class];
 		}
+		// if we are not caching
+		if (!$cache) goto no_cache;
+		// try to find objects in the cache
+		if (isset(self::$class_objects['model'][$class])) {
+			$object = & self::$class_objects['model'][$class];
+		} else {
+			// process virtual models
+			if (strpos($class, '__virtual__') !== false) {
+				self::$class_objects['model'][$class] = object_virtual_models::model($class);
+			} else {
+no_cache:
+				self::$class_objects['model'][$class] = new $class;
+			}
+			$object = & self::$class_objects['model'][$class];
+		}
+		return $object;
 	}
 
 	/**

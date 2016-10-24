@@ -356,17 +356,42 @@ class system_dependencies {
 			$object_documentation = [];
 			$object_import = [];
 			$ddl = new numbers_backend_db_class_ddl();
+			// run 1 to deterine virtual tables
+			$first = true;
+			$virtual_models = $dep['data']['model_processed'];
+run_again:
+			foreach ($virtual_models as $k => $v) {
+				$k2 = str_replace('.', '_', $k);
+				if ($v == 'object_table') {
+					$model = factory::model($k2, true);
+					if ($model->attributes) {
+						$virtual_models[str_replace('_', '.', $model->attributes_model)] = 'object_table';
+					}
+					if ($model->audit) {
+						$virtual_models[str_replace('_', '.', $model->audit_model)] = 'object_table';
+					}
+					if ($model->addresses) {
+						$virtual_models[str_replace('_', '.', $model->addresses_model)] = 'object_table';
+					}
+				}
+			}
+			if ($first) {
+				$first = false;
+				goto run_again; // some widgets have attributes
+			}
+			$dep['data']['model_processed'] = array_merge_hard($dep['data']['model_processed'], $virtual_models);
+			// run 2
 			foreach ($dep['data']['model_processed'] as $k => $v) {
 				$k2 = str_replace('.', '_', $k);
 				if ($v == 'object_table') {
-					$temp_result = $ddl->process_table_model($k2);
+					$model = factory::model($k2, true);
+					$temp_result = $ddl->process_table_model($model);
 					if (!$temp_result['success']) {
 						array_merge3($result['error'], $temp_result['error']);
 					}
 					$object_documentation[$v][$k2] = $k2;
 					// relation
 					if ($flag_relation) {
-						$model = new $k2();
 						if (!empty($model->relation)) {
 							$object_relations[$k2] = [
 								'rn_relattr_code' => $model->relation['field'],

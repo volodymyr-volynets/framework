@@ -58,6 +58,8 @@ class format {
 			$format = $global_format['time'] ?? 'H:i:s';
 		} else if ($type == 'datetime') {
 			$format = $global_format['datetime'] ?? 'Y-m-d H:i:s';
+		} else if ($type == 'timestamp') {
+			$format = $global_format['timestamp'] ?? 'Y-m-d H:i:s.u';
 		} else {
 			$format = $global_format['date'] ?? 'Y-m-d';
 		}
@@ -79,6 +81,7 @@ class format {
 		$format = str_replace('s', 'SS', $format);
 		$format = str_replace('g', 'HH', $format);
 		$format = str_replace('a', 'am', $format);
+		$format = str_replace('u', '000000', $format);
 		return $format;
 	}
 
@@ -90,22 +93,23 @@ class format {
 	 *		date
 	 *		datetime
 	 *		time
+	 *		timestamp
 	 * @param array $options
-	 *		format for date function
+	 *		format  - for date function
 	 * @return string
 	 */
 	public static function date_format($value, $type = 'date', $options = []) {
 		if (empty($value)) {
 			return null;
 		}
-		$value = is_numeric($value) ? $value : strtotime($value);
-		// processing format
-		if (isset($options['format'])) {
-			$format = $options['format'];
-		} else {
-			$format = self::get_date_format($type);
+		$format = $options['format'] ?? self::get_date_format($type);
+		// additional handling for timestamp
+		if (is_float($value)) {
+			$temp = explode('.', $value . '');
+			$value = date('Y-m-d H:i:s', $temp[0]) . '.' . $temp[1];
 		}
-		return date($format, $value);
+		$object = new DateTime($value);
+		return $object->format($format);
 	}
 
 	/**
@@ -142,6 +146,17 @@ class format {
 	}
 
 	/**
+	 * Format timestamp
+	 *
+	 * @param mixed $value
+	 * @param array $options
+	 * @return string
+	 */
+	public static function timestamp($value, $options = []) {
+		return self::date_format($value, 'timestamp', $options);
+	}
+
+	/**
 	 * Time in seconds
 	 *
 	 * @param mixed $time
@@ -166,23 +181,27 @@ class format {
 			$time+= $options['add_seconds'];
 		}
 		// todo: handle timezone here!!!
+		// if we need to format
+		if (!empty($options['format'])) {
+			return self::{$type}($time);
+		}
 		// rendering
 		switch ($type) {
 			case 'unix':
 				return $time;
 				break;
 			case 'timestamp':
-				return date('Y-m-d H:i:s', $time) . '.' . round($msec * 1000000, 0);
+				return date('Y-m-d H:i:s', $time) . '.' . str_pad(round($msec * 1000000, 0), 6, '0', STR_PAD_LEFT);
 				break;
 			case 'time':
 				return date('H:i:s', $time);
 				break;
-			case 'datetime':
-				return date('Y-m-d H:i:s', $time);
-				break;
 			case 'date':
-			default:
 				return date('Y-m-d', $time);
+				break;
+			case 'datetime':
+			default:
+				return date('Y-m-d H:i:s', $time);
 		}
 	}
 
@@ -276,6 +295,10 @@ class format {
 		if ($locale['decimal_point'] != '.') {
 			$amount = str_replace($locale['decimal_point'], '.', $amount);
 		}
+		// sanitize only check
+		if (!empty($options['valid_check'])) {
+			return (filter_var($amount, $options['valid_check_type'] ?? FILTER_VALIDATE_FLOAT) !== false);
+		}
 		// if we are processing bc numeric data type
 		if (!empty($options['bcnumeric'])) {
 			$temp = filter_var($amount, FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
@@ -284,10 +307,6 @@ class format {
 			}
 			return $temp;
 		}
-		// sanitize only check
-		if (!empty($options['valid_check'])) {
-			return (filter_var($amount, FILTER_VALIDATE_FLOAT) !== false);
-		}
 		return floatval($amount);
 	}
 
@@ -295,10 +314,14 @@ class format {
 	 * Transform integer from locale to php
 	 * 
 	 * @param mixed $amount
+	 * @param array $options
+	 *		boolean - bcnumeric
+	 *		boolean - valid_check
 	 * @return number
 	 */
-	public static function read_intval($amount) {
-		return intval(self::read_floatval($amount));
+	public static function read_intval($amount, $options = []) {
+		$options['valid_check_type'] = FILTER_VALIDATE_INT;
+		return intval(self::read_floatval($amount, $options));
 	}
 
 	/**
@@ -359,7 +382,7 @@ class format {
 	 * @return string
 	 */
 	public static function currency_rate($amount, $options = array()) {
-		$options['decimals'] = 8;
+		$options['decimals'] = $options['decimals'] ?? 8;
 		return self::amount($amount, $options);
 	}
 

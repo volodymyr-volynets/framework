@@ -73,9 +73,17 @@ class object_table_columns extends object_data {
 		if ($column_options['type'] == 'boolean') { // booleans
 			$result[$column_name] = !empty($value) ? 1 : 0;
 		} else if (in_array($column_options['type'], ['smallserial', 'serial', 'bigserial'])) {
-			if (!empty($value) && is_numeric($value)) {
-				$result[$column_name] = format::read_intval($value);
+			if (format::read_intval($value, ['valid_check' => 1])) {
+				$temp = format::read_intval($value);
+				if ($temp !== 0) {
+					$result[$column_name] = $temp;
+				} else {
+					$result[$column_name . '_is_serial_error'] = true;
+				}
+			} else {
+				$result[$column_name . '_is_serial_error'] = true;
 			}
+			$result[$column_name . '_is_serial'] = true;
 		} else if (in_array($column_options['type'], ['smallint', 'integer', 'bigint'])) { // integers
 			// if we got empty string we say its null
 			if (is_string($value) &&  $value === '') {

@@ -2,7 +2,7 @@
 
 class object_data_model_order extends object_data {
 	public $column_key = 'no_data_model_order_id';
-	public $column_prefix = null; // you must not change it !!!
+	public $column_prefix = 'no_data_model_order_';
 	public $columns = [
 		'no_data_model_order_id' => ['name' => '#', 'type' => 'smallint', 'default' => 0],
 		'no_data_model_order_name' => ['name' => 'Name', 'type' => 'text'],

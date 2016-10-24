@@ -3,6 +3,47 @@
 class object_datasource extends object_table {
 
 	/**
+	 * Db link
+	 * @var string
+	 */
+	public $db_link;
+
+	/**
+	 * Db link flag
+	 *
+	 * @var string
+	 */
+	public $db_link_flag;
+
+	/**
+	 * Primary key
+	 *
+	 * @var array
+	 */
+	public $pk;
+
+	/**
+	 * Wherether we need to cache this table
+	 *
+	 * @var bool
+	 */
+	public $cache = false;
+
+	/**
+	 * These tags will be added to caches and then will be used in cache::gc();
+	 *
+	 * @var type
+	 */
+	public $cache_tags = [];
+
+	/**
+	 * Whether we need to cache in memory
+	 *
+	 * @var bool
+	 */
+	public $cache_memory = false;
+
+	/**
 	 * SQL syntax related data
 	 *
 	 * @var array
@@ -395,6 +436,7 @@ class object_datasource extends object_table {
 			foreach ($this->parts as $k => $v) {
 				$main = array_merge_recursive($main, $v);
 			}
+
 			$result = $this->array_to_query($main, false, 0);
 		} while(0);
 		return $result;
@@ -495,6 +537,8 @@ class object_datasource extends object_table {
 		if (!method_exists($this, 'query')) {
 			Throw new Exception('You must specify sql in query method!');
 		}
+		// merge options
+		$options = $this->merge_options($options);
 		// get query
 		$sql = $this->query($options);
 		// process query
@@ -507,4 +551,100 @@ class object_datasource extends object_table {
 			return $result['rows'];
 		}
 	}
+
+	/**
+	 * Query data for options
+	 *
+	 * @param array $options
+	 * @return array
+	 */
+	protected function options_query_data($options) {
+		// handle pk
+		if (!array_key_exists('pk', $options)) {
+			$options['pk'] = $this->pk;
+		}
+		$pk = $options['pk'];
+		// if compound key
+		if (count($pk) > 1) {
+			$temp = $pk;
+			$last = array_pop($temp);
+			foreach ($temp as $v) {
+				if (empty($options['where'][$v])) {
+					return [];
+				}
+			}
+		}
+		$data = $this->get($options);
+		// if compound key
+		if (!empty($temp)) {
+			foreach ($temp as $v) {
+				if (!isset($data[$options['where'][$v]])) {
+					return [];
+				}
+				$data = $data[$options['where'][$v]];
+			}
+		}
+		return $data;
+	}
+
+	/**
+	 * Merge options
+	 *
+	 * @param array $options
+	 * @return array
+	 */
+	final public function merge_options($options) {
+		
+		
+		// todo: merge session and application settings   
+		
+		
+		return $options;
+	}
 }
+
+/*
+$sql = <<<TTT
+	SELECT
+		a.*
+	FROM [datasource[name][param_name]] AS a
+	INNER JOIN [table[name]] AS e ON ...
+	LEFT JOIN [model[name][param_name]] AS b ON ...
+	LEFT JOIN [array[name]] AS d ON ...
+	WHERE 1=1
+		AND EXISTS (SELECT 1 FROM [datasource[name][param_name]] AS c)
+	LIMIT 1
+TTT;
+
+$result = datasource::sql_has_datasource($sql);
+echo '<pre>' . print_r($result, true) . '</pre>';
+*/
+
+
+/*
+$result = dbs::is_datasource($json);
+print_r($result);
+
+$result = dbs::is_datasource('model::datasource_co_entities_permissions');
+print_r($result);
+*/
+
+/*
+$array = array(
+	array('id' => 1, 'name' => 2),
+	array('id' => 2, 'name' => 3),
+	array('id' => 4, 'name' => 5)
+);
+
+$result = dbs::query($array, 'id');
+print_r($result);
+
+/*
+SELECT * FROM (
+	SELECT * FROM (VALUES (3,2),(2,3),(1,4)) AS names(id1, id2)
+) a
+LEFT JOIN (
+	SELECT * FROM (VALUES (1,2),(2,3),(3,4)) AS names(id1, id2)
+) b ON a.id1 = b.id1
+ORDER BY a.id1
+*/

@@ -73,7 +73,7 @@ class helper_tree {
 				continue;
 			}
 			// assemble variable
-			$value = [];
+			$value = $v;
 			$value['name'] = !empty($options['i18n']) ? i18n(null, $v[$options['name_field']]) : $v[$options['name_field']];
 			$value['level'] = $level;
 			if (!empty($options['icon_field'])) {

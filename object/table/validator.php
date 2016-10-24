@@ -27,7 +27,7 @@ class object_table_validator {
 			if (!empty($v['options_active'])) {
 				$temp2[] = $model->db_object->prepare_condition($v['options_active'], 'AND');
 			}
-			$where2[] = '(' . implode(' AND ', $temp2) . ')';
+			$where2[] = '(' . implode(' OR ', $temp2) . ')';
 			// processing existing values
 			if (!empty($v['existing_values'])) {
 				$existing_values = [
@@ -35,6 +35,7 @@ class object_table_validator {
 				];
 				$where2[] = $model->db_object->prepare_condition($existing_values, 'AND');
 			}
+			//print_r2($where2);
 			// params must be there
 			$where3 = $model->db_object->prepare_condition($v['params'], 'AND');
 			if (empty($where3)) $where3 = '1=1';

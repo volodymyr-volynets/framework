@@ -320,7 +320,9 @@ function remap(& $data, $map) {
 			$k2 = str_replace('*', '', $k2);
 			if (isset($result[$k][$v2])) {
 				if (isset($v[$k2])) {
-					$result[$k][$v2].= ', ' . $v[$k2];
+					if ($v[$k2] . '' != '') {
+						$result[$k][$v2].= ', ' . $v[$k2];
+					}
 				}
 			} else {
 				$result[$k][$v2] = $v[$k2] ?? null;
@@ -439,9 +441,11 @@ function array_key_math(& $arr, $key, $type = 'add') {
  * 
  * @param array $arr
  * @param mixed $keys - keys can be in this format: "1,2,3", "a", 1, array(1,2,3)
+ * @param array $options
+ *		unset
  * @return mixed
  */
-function array_key_get(& $arr, $keys = null) {
+function array_key_get(& $arr, $keys = null, $options = []) {
 	if ($keys === null) {
 		return $arr;
 	} else {
@@ -456,7 +460,16 @@ function array_key_get(& $arr, $keys = null) {
 			if (!isset($pointer[$k2])) return null;
 			$pointer = & $pointer[$k2];
 		}
-		return isset($pointer[$last]) ? $pointer[$last] : null;
+		if (isset($pointer[$last])) {
+			if (empty($options['unset'])) {
+				return $pointer[$last];
+			} else { // if we need to unset
+				$temp = $pointer[$last];
+				unset($pointer[$last]);
+				return $temp;
+			}
+		}
+		return null;
 	}
 }
 
@@ -470,7 +483,9 @@ function array_key_get(& $arr, $keys = null) {
  *		boolean append - whether to append value to array
  */
 function array_key_set(& $arr, $keys = null, $value, $options = []) {
-	if (!isset($arr)) $arr = array();
+	if (!isset($arr)) {
+		$arr = [];
+	}
 	if ($keys === null) {
 		$arr = $value;
 	} else {
@@ -482,7 +497,9 @@ function array_key_set(& $arr, $keys = null, $value, $options = []) {
 		$key = $keys;
 		$pointer = & $arr;
 		foreach ($key as $k2) {
-			if (!isset($pointer[$k2])) $pointer[$k2] = array();
+			if (!isset($pointer[$k2])) {
+				$pointer[$k2] = [];
+			}
 			$pointer = & $pointer[$k2];
 		}
 		if (!empty($options['append'])) {
@@ -659,6 +676,13 @@ function array_key_unset(& $arr, $keys, $options = []) {
  */
 function i18n($i18n, $text, $options = []) {
 	return i18n::get($i18n, $text, $options);
+}
+
+/**
+ * Short alias to i18n class
+ */
+function i18n_if($text, $translate) {
+	return i18n::get(null, $text);
 }
 
 /**

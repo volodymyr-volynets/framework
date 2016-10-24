@@ -22,24 +22,19 @@ class object_collection extends object_override_data {
 		/*
 		'model' => '[model]',
 		'pk' => [],
-		'optimistic_lock_column' => '[column]',
 		'details' => [
 			'[model]' => [
 				'pk' => [],
 				'type' => '1M',
-				'map' => ['[parent key]' => '[child key]']
-				'details' => []
+				'map' => ['[parent key]' => '[child key]'],
+				'details' => [],
+				// widgets
+				'attributes' => [boolean],
+				'addresses' => [boolean]
 			]
 		]
 		*/
 	];
-
-	/**
-	 * Db object
-	 *
-	 * @var object 
-	 */
-	private $db_object;
 
 	/**
 	 * Primary model
@@ -70,8 +65,15 @@ class object_collection extends object_override_data {
 		// primary model & pk
 		$this->primary_model = factory::model($this->data['model']);
 		$this->data['model_object'] = & $this->primary_model;
+		$this->data['serial'] = false;
 		if (empty($this->data['pk'])) {
 			$this->data['pk'] = $this->primary_model->pk;
+		}
+		// if we have serial type in pk
+		foreach ($this->data['pk'] as $v) {
+			if (strpos($this->primary_model->columns[$v]['type'], 'serial') !== false) {
+				$this->data['serial'] = true;
+			}
 		}
 	}
 
@@ -85,13 +87,16 @@ class object_collection extends object_override_data {
 	 * @return array
 	 */
 	public function get($options = []) {
-		$this->db_object = new db($this->primary_model->db_link);
 		// building SQL
 		$sql = '';
-		$sql.= !empty($options['where']) ? (' AND ' . $this->db_object->prepare_condition($options['where'])) : '';
-		$sql_full = 'SELECT * FROM ' . $this->primary_model->name . ' WHERE 1=1' . $sql;
+		$sql.= !empty($options['where']) ? (' AND ' . $this->primary_model->db_object->prepare_condition($options['where'])) : '';
+		$sql_full = 'SELECT * FROM ' . $this->primary_model->name . ' a WHERE 1=1' . $sql;
+		// if we need to lock rows
+		if (!empty($options['for_update'])) {
+			$sql_full.= ' FOR UPDATE';
+		}
 		// quering
-		$result = $this->db_object->query($sql_full, null);
+		$result = $this->primary_model->db_object->query($sql_full, null);
 		if (!$result['success']) {
 			Throw new Exception(implode(", ", $result['error']));
 		}
@@ -115,8 +120,9 @@ class object_collection extends object_override_data {
 		}
 		// processing details
 		if (!empty($result['rows']) && !empty($this->data['details'])) {
-			$this->process_details($this->data['details'], $result['rows']);
+			$this->process_details($this->data['details'], $result['rows'], $options);
 		}
+		// clear out for update flag
 		// single row
 		if (!empty($options['single_row'])) {
 			return current($result['rows']);
@@ -126,16 +132,69 @@ class object_collection extends object_override_data {
 	}
 
 	/**
+	 * Get all child keys
+	 *
+	 * @param array $data
+	 * @param array $maps
+	 * @param array $parent_keys
+	 * @param array $parent_types
+	 * @param array $result
+	 * @param array $keys
+	 * @param array $current_key
+	 * @param string $current_type
+	 */
+	private function get_all_child_keys($data, $maps, $parent_keys, $parent_types, & $result, & $keys, $current_key = [], $current_type = null) {
+		if ($current_type == '11') {
+			$data = ['__11__' => $data];
+		}
+		foreach ($data as $k => $v) {
+			$new_key = $current_key;
+			if ($current_type != '11') {
+				$new_key[] = $k;
+			}
+			if (count($parent_keys) == 1) {
+				$new_key[] = $parent_keys[0];
+				// put values into result
+				$result[] = $new_key;
+				// generate keys
+				$temp = [];
+				foreach ($maps[0] as $k3 => $v3) {
+					$temp[] = $v[$k3];
+				}
+				// we need to preserve a data type if its just one column key
+				if (count($temp) == 1) {
+					$keys[] = $temp[0];
+				} else {
+					$keys[] = implode('::', $temp);
+				}
+			} else {
+				// remove extra level
+				$parent_keys_temp = $parent_keys;
+				$v2 = array_shift($parent_keys_temp);
+				$parent_types_temp = $parent_types;
+				array_shift($parent_types_temp);
+				$maps_temp = $maps;
+				array_shift($maps_temp);
+				// generate key
+				$new_key[] = $v2;
+				$this->get_all_child_keys($v[$v2], $maps_temp, $parent_keys_temp, $parent_types_temp, $result, $keys, $new_key, $parent_types[0]);
+			}
+		}
+	}
+
+	/**
 	 * Process details
 	 *
 	 * @param array $details
 	 * @param array $parent_rows
+	 * @param array $options
 	 * @param array $parent_keys
+	 * @param array $parent_types
 	 * @param array $parent_settings
 	 */
-	private function process_details(& $details, & $parent_rows, $parent_keys = [], $parent_settings = []) {
+	private function process_details(& $details, & $parent_rows, $options, $parent_keys = [], $parent_types = [], $parent_maps = [], $parent_settings = []) {
 		foreach ($details as $k => $v) {
-			$details[$k]['model_object'] = $model = new $k();
+			$details[$k]['model_object'] = $model = factory::model($k, true);
 			$pk = $v['pk'] ?? $model->pk;
 			// generate keys from parent array
 			$keys = [];
@@ -152,59 +211,35 @@ class object_collection extends object_override_data {
 					unset($pk[array_search($v2, $pk)]);
 				}
 			}
-			// create an empty arrays
-			if (empty($parent_keys)) {
-				foreach ($parent_rows as $k2 => $v2) {
-					if ($key_level == 1) {
-						$keys[] = $v2[$k1];
-					} else {
-						$temp = [];
-						foreach ($v['map'] as $k3 => $v3) {
-							$temp[] = $v2[$k3];
-						}
-						$keys[] = implode('::', $temp);
-					}
-					// create empty arrays for children
-					$key = [];
-					$key[] = $k2;
-					$key[] = $k;
-					array_key_set($parent_rows, $key, []);
-				}
-			} else { // subdetails
-				$parent_key = current($parent_keys);
-				foreach ($parent_rows as $k2 => $v2) {
-					foreach ($v2[$parent_key] as $k4 => $v4) {
-						if ($key_level == 1) {
-							$keys[] = $v2[$k1];
-						} else {
-							$temp = [];
-							foreach ($v['map'] as $k3 => $v3) {
-								$temp[] = $v4[$k3];
-							}
-							$keys[] = implode('::', $temp);
-						}
-						// create empty arrays for children
-						$key = [];
-						$key[] = $k2;
-						$key[] = $parent_key;
-						$key[] = $k4;
-						$key[] = $k;
-						array_key_set($parent_rows, $key, []);
-					}
-				}
+			// special array for keys
+			$parent_keys2 = $parent_keys;
+			$parent_keys2[] = $k;
+			$parent_types2 = $parent_types;
+			$parent_types2[] = $v['type'];
+			$parent_maps2 = $parent_maps;
+			$parent_maps2[] = $v['map'];
+			// create empty arrays
+			$result_keys = [];
+			$this->get_all_child_keys($parent_rows, $parent_maps2, $parent_keys2, $parent_types2, $result_keys, $keys);
+			foreach ($result_keys as $k0 => $v0) {
+				array_key_set($parent_rows, $v0, []);
 			}
 			// sql extensions
 			$v['sql']['where'] = $v['sql']['where'] ?? null;
 			// building SQL
-			$sql = ' AND ' . $this->db_object->prepare_condition([$column => $keys]);
+			$sql = ' AND ' . $this->primary_model->db_object->prepare_condition([$column => $keys]);
 			$sql_full = 'SELECT * FROM ' . $model->name . ' WHERE 1=1' . $sql . ($v['sql']['where'] ? (' AND ' . $v['sql']['where']) : '');
 			// order by
 			$orderby = $options['orderby'] ?? (!empty($model->orderby) ? $model->orderby : null);
 			if (!empty($orderby)) {
 				$sql_full.= ' ORDER BY ' . array_key_sort_prepare_keys($orderby, true);
 			}
+			// if we need to lock rows
+			if (!empty($options['for_update'])) {
+				$sql_full.= ' FOR UPDATE';
+			}
 			// quering
-			$result = $this->db_object->query($sql_full, null); // important not to set pk
+			$result = $this->primary_model->db_object->query($sql_full, null); // important not to set pk
 			if (!$result['success']) {
 				Throw new Exception(implode(", ", $result['error']));
 			}
@@ -217,65 +252,33 @@ class object_collection extends object_override_data {
 						$new_pk[$v0] = $v0;
 					}
 				}
-				// loop though child array
-				if (empty($parent_keys)) {
-					foreach ($result['rows'] as $k2 => $v2) {
-						$key = [];
+				$reverse_map = array_reverse($parent_maps2, true);
+				foreach ($result['rows'] as $k2 => $v2) {
+					$master_key = [];
+					// entry itself
+					if ($v['type'] == '1M') {
 						$temp = [];
-						foreach ($v['map'] as $k3 => $v3) {
-							$temp[] = $v2[$v3];
+						foreach ($new_pk as $v0) {
+							$temp[] = $v2[$v0];
 						}
-						$key[] = implode('::', $temp);
-						$key[] = $k;
-						if ($v['type'] == '1M') {
-							// we need to form pk key
-							$temp = [];
-							foreach ($new_pk as $v0) {
-								$temp[] = $v2[$v0];
-							}
-							$key[] = implode('::', $temp);
-						}
-						array_key_set($parent_rows, $key, $v2);
+						$master_key[] = implode('::', $temp);
 					}
-				} else { // subdetails
-					// we need to convert parents map
-					$parent_settings_map = [];
-					foreach ($parent_settings['map'] as $k10 => $v10) {
-						$parent_settings_map[$v10] = $k10;
-					}
-					foreach ($result['rows'] as $k2 => $v2) {
-						$key = [];
+					foreach ($reverse_map as $k3 => $v3) {
 						$temp = [];
-						$temp_parent = [];
-						foreach ($v['map'] as $k3 => $v3) {
-							// need to find parents keys
-							if (!empty($parent_settings_map[$k3])) {
-								$temp_parent[] = $v2[$v3];
-							} else {
-								$temp[] = $v2[$v3];
-							}
+						foreach ($v3 as $k4 => $v4) {
+							$v2[$k4] = $v2[$v4];
+							$temp[] = $previous[$v4] ?? $v2[$v4];
 						}
-						$key[] = implode('::', $temp_parent);
-						$key[] = $parent_key;
-						$key[] = implode('::', $temp);
-						$key[] = $k;
-						if ($v['type'] == '1M') {
-							// we need to form pk key
-							$temp = [];
-							foreach ($new_pk as $v0) {
-								$temp[] = $v2[$v0];
-							}
-							$key[] = implode('::', $temp);
+						array_unshift($master_key, $parent_keys2[$k3]);
+						if (($parent_types2[$k3 - 1] ?? '') != '11') {
+							array_unshift($master_key, implode('::', $temp));
 						}
-						array_key_set($parent_rows, $key, $v2);
 					}
+					array_key_set($parent_rows, $master_key, $v2);
 				}
 				// if we have more details
-				if (!empty($v['details']) && empty($parent_keys)) {
-					$parent_keys[] = $k;
-					$this->process_details($v['details'], $parent_rows, $parent_keys, $v);
-				} else if (!empty($v['details']) && !empty($parent_keys)) {
-					Throw new Exception('Details?');
+				if (!empty($v['details'])) {
+					$this->process_details($v['details'], $parent_rows, $options, $parent_keys2, $parent_types2, $parent_maps2, $v);
 				}
 			}
 		}
@@ -302,37 +305,48 @@ class object_collection extends object_override_data {
 	 *
 	 * @param array $data
 	 * @param array $options
+	 * @param object $form
 	 * @return array
 	 */
-	public function merge($data, $options = []) {
+	public function merge($data, $options = [], & $form = null) {
 		$result = [
 			'success' => false,
 			'error' => [],
 			'warning' => [],
 			'deleted' => false,
 			'inserted' => false,
-			'new_pk' => [],
+			'new_serials' => [],
 			'options_model' => []
 		];
 		do {
 			// start transaction
-			$db = $this->data['model_object']->db_object();
-			$db->begin();
+			$this->primary_model->db_object->begin();
 			// load data from database
 			$original = [];
-			// assemble primary key
-			$pk = [];
-			$full_pk = true;
-			foreach ($this->data['pk'] as $v) {
-				if (isset($data[$v])) {
-					$pk[$v] = $data[$v];
-				} else {
-					$full_pk = false;
+			if (array_key_exists('original', $options)) {
+				$original = $options['original'];
+			} else { // load data from database
+				// assemble primary key
+				$pk = [];
+				$full_pk = true;
+				foreach ($this->data['pk'] as $v) {
+					if (isset($data[$v])) {
+						$pk[$v] = $data[$v];
+					} else {
+						$full_pk = false;
+					}
+				}
+				// load data
+				if (!empty($pk) && $full_pk) {
+					$original = $this->get(['where' => $pk, 'single_row' => true]);
 				}
 			}
-			// load data
-			if (!empty($pk) && $full_pk) {
-				$original = $this->get(['where' => $pk, 'single_row' => true]);
+			// validate optimistic lock
+			if ($this->primary_model->optimistic_lock && !empty($original)) {
+				if (($data[$this->primary_model->optimistic_lock_column] ?? '') !== $original[$this->primary_model->optimistic_lock_column]) {
+					$result['error'][] = object_content_messages::optimistic_lock;
+					break;
+				}
 			}
 			// we need to validate options_model
 			if (!empty($options['options_model'])) {
@@ -415,7 +429,6 @@ class object_collection extends object_override_data {
 				}
 				// we roll back if we have errors
 				if (!empty($result['options_model'])) {
-					$db->rollback();
 					break;
 				}
 			}
@@ -423,9 +436,8 @@ class object_collection extends object_override_data {
 			$this->timestamp = format::now('timestamp');
 			$temp = $this->compare_one_row($data, $original, $this->data, [
 				'flag_delete_row' => $options['flag_delete_row'] ?? false,
-				'optimistic_lock' => $options['optimistic_lock'] ?? false,
 				'flag_main_record' => true
-			], $db);
+			]);
 			// if we goe an error
 			if (!empty($temp['error'])) {
 				$result['error'] = $temp['error'];
@@ -433,28 +445,40 @@ class object_collection extends object_override_data {
 			}
 			// we display warning if form has not been changed
 			if (empty($temp['data']['total'])) {
-				$result['warning'][] = 'The form has not been changed, nothing to save!';
-				$db->rollback();
+				$result['warning'][] = object_content_messages::no_changes;
 				break;
 			}
 			// insert history
 			if (!empty($temp['data']['history'])) {
 				foreach ($temp['data']['history'] as $k => $v) {
-					$temp2 = $db->insert($k, $v);
+					$temp2 = $this->primary_model->db_object->insert($k, $v);
 					if (!$temp2['success']) {
 						$result['error'] = $temp2['error'];
-						$db->rollback();
-						break;
+						goto error;
 					}
 				}
 			}
+			// audit
+			if (!empty($temp['data']['audit'])) {
+				$temp2 = factory::model($this->primary_model->audit_model, true)->merge($temp['data']['audit'], ['changes' => $temp['data']['total']]);
+				if (!$temp2['success']) {
+					$result['error'] = $temp2['error'];
+					break;
+				}
+			}
 			// if we got here we can commit
-			$result['success'] = 1;
+			$result['success'] = true;
 			$result['deleted'] = $temp['data']['deleted'];
 			$result['inserted'] = $temp['data']['inserted'];
-			$result['new_pk'] = $temp['new_pk'];
-			$db->commit();
+			$result['updated'] = $temp['data']['updated'];
+			$result['new_serials'] = $temp['new_serials'];
+			// commit transaction
+			$this->primary_model->db_object->commit();
+			return $result;
 		} while(0);
+		// we roll back on error
+error:
+		$this->primary_model->db_object->rollback();
 		return $result;
 	}
 
@@ -465,20 +489,23 @@ class object_collection extends object_override_data {
 	 * @param array $original_row
 	 * @param array $collection
 	 * @param array $options
+	 * @param array $parent_pk
+	 * @param array $parent_row
 	 * @return array
 	 */
-	final public function compare_one_row($data_row, $original_row, $collection, $options, $db, $parent_pk = null) {
+	final public function compare_one_row($data_row, $original_row, $collection, $options, $parent_pk = null, $parent_row = []) {
 		$result = [
 			'success' => false,
 			'error' => [],
 			'data' => [
 				'history' => [],
-				'delete' => [],
+				'audit' => [],
 				'total' => 0,
+				'updated' => false,
 				'deleted' => false,
 				'inserted' => false
 			],
-			'new_pk' => null
+			'new_serials' => []
 		];
 		$model = $collection['model_object'];
 		// important to reset cache
@@ -488,17 +515,19 @@ class object_collection extends object_override_data {
 		// we need to manualy inject parents keys
 		if (!empty($parent_pk)) {
 			foreach ($collection['map'] as $k => $v) {
-				$data_row_final[$v] = $parent_pk[$k];
+				// if we are dealing with relations
+				if (strpos($k, 'relation_id') !== false) {
+					$data_row_final[$v] = $parent_row[$k];
+				} else {
+					$data_row_final[$v] = $parent_pk[$k];
+				}
 			}
 		}
-		foreach ($data_row_final as $k => $v) {
-			if (empty($model->columns[$k])) {
-				unset($data_row_final[$k]);
-			}
-		}
+		$model->process_columns($data_row_final, ['ignore_not_set_fields' => true, 'skip_type_validation' => true]);
 		// step 2 process row
-		$delete = [];
-		if (!empty($options['flag_delete_row']) || empty($data_row)) {
+		$delete = $update = $audit = $audit_details = $pk = [];
+		$action = null;
+		if (!empty($options['flag_delete_row']) || empty($data_row)) { // if we delete
 			// if we have data
 			if (!empty($original_row)) {
 				$pk = extract_keys($collection['pk'], $original_row);
@@ -506,41 +535,24 @@ class object_collection extends object_override_data {
 					'table' => $model->name,
 					'pk' => $pk
 				];
-				// history
-				if ($model->history) {
-					$original_row[$model->column_prefix . 'updated'] = $this->timestamp;
-					$temp = $original_row;
-					foreach ($temp as $k => $v) {
-						if (empty($model->columns[$k])) {
-							unset($temp[$k]);
-						}
-					}
-					$result['data']['history'][$model->history_name][] = $temp;
-				}
-				$result['data']['total']++;
+				// audit
+				$action = 'delete';
+				$audit = $original_row;
 			}
-		} else if (empty($original_row)) { // compare with original
-			// adding optimistic lock if not set
-			if (!empty($options['optimistic_lock'])) {
-				$data_row_final[$options['optimistic_lock']['column']] = $this->timestamp;
-			}
-			// adding inserted column
-			$inserted_column = $model->column_prefix . 'inserted';
-			if (!empty($model->columns[$inserted_column]) && empty($data_row_final[$inserted_column])) {
-				$data_row_final[$inserted_column] = $this->timestamp;
-			}
-			// handle serial type for main record
-			if (!empty($options['flag_main_record'])) {
-				if (count($model->pk) == 1 && strpos($model->columns[$model->pk[0]]['type'], 'serial') !== false && empty($data_row_final[$model->pk[0]])) {
-					$sequence = $model->name . '_' . $model->pk[0] . '_seq';
-					$temp = $db->sequence($sequence);
-					$result['new_pk'] = $data_row_final[$model->pk[0]] = $temp['rows'][0]['counter'];
+		} else if (empty($original_row)) { // if we insert
+			// process who columns
+			$model->process_who_columns(['inserted', 'optimistic_lock'], $data_row_final, $this->timestamp);
+			// handle serial types
+			foreach ($model->columns as $k => $v) {
+				if (strpos($v['type'], 'serial') !== false && empty($v['null'])) {
+					$temp = $this->primary_model->db_object->sequence($model->name . '_' . $k . '_seq');
+					$result['new_serials'][$k] = $data_row_final[$k] = $temp['rows'][0]['counter'];
 				}
 			}
-			$temp = $db->insert($model->name, [$data_row_final], null);
+			$temp = $this->primary_model->db_object->insert($model->name, [$data_row_final], null);
 			if (!$temp['success']) {
 				$result['error'] = $temp['error'];
-				$db->rollback();
+				$this->primary_model->db_object->rollback();
 				return $result;
 			}
 			$result['data']['total']++;
@@ -550,76 +562,40 @@ class object_collection extends object_override_data {
 			}
 			// pk
 			$pk = extract_keys($collection['pk'], $data_row_final);
-			// we need to put pk back but only for serial columns
-			foreach ($pk as $k0 => $v0) {
-				if (strpos($model->columns[$k0]['type'], 'serial') !== false) {
-					$pk[$k0] = $result['new_pk'];
-				}
-			}
-		} else {
-			// compare optimistic lock
-			if (!empty($options['optimistic_lock'])) {
-				if ($data_row_final[$options['optimistic_lock']['column']] != $original_row[$options['optimistic_lock']['column']]) {
-					$result['error'][] = 'Someone has update the record while you were editing, please refresh!';
-					return $result;
-				}
-			}
-			$diff = [];
-			$pk = [];
+			// audit
+			$action = 'insert';
+			$audit = $data_row_final;
+		} else { // if we update
 			foreach ($data_row_final as $k => $v) {
 				// hard comparison
 				if ($v !== $original_row[$k]) {
-					$diff[$k] = $v;
+					$update[$k] = $v;
 				}
 				if (in_array($k, $collection['pk'])) {
 					$pk[$k] = $v;
 				}
 			}
-			// if we have changes
-			if (!empty($diff)) {
-				// changing optimistic lock column
-				if (!empty($options['optimistic_lock'])) {
-					$diff[$options['optimistic_lock']['column']] = $this->timestamp;
-				}
-				// automatically set auto update timestamp
-				if (array_key_exists($model->column_prefix . 'updated', $original_row)) {
-					$diff[$model->column_prefix . 'updated'] = $this->timestamp;
-				}
-				// update record
-				$temp = $db->update($model->name, $diff, [], ['where' => $pk]);
-				if (!$temp['success']) {
-					$result['error'] = $temp['error'];
-					$db->rollback();
-					return $result;
-				}
-				// history
-				if ($model->history) {
-					$original_row[$model->column_prefix . 'updated'] = $this->timestamp;
-					$temp = $original_row;
-					foreach ($temp as $k => $v) {
-						if (empty($model->columns[$k])) {
-							unset($temp[$k]);
-						}
-					}
-					$result['data']['history'][$model->history_name][] = $temp;
-				}
-				$result['data']['total']++;
-			}
+			// audit
+			$action = 'update';
 		}
 		// step 3 process details
 		if (!empty($collection['details'])) {
 			foreach ($collection['details'] as $k => $v) {
-				// create ne object
-				$v['model_object'] = new $k;
+				// create new object
+				$v['model_object'] = factory::model($k, true);
 				if ($v['type'] == '11') {
 					$details_result = $this->compare_one_row($data_row[$k] ?? [], $original_row[$k] ?? [], $v, [
 						'flag_delete_row' => !empty($delete)
-					], $db, $pk);
+					], $pk, $data_row_final);
 					if (!empty($details_result['error'])) {
 						$result['error'] = $details_result['error'];
 						return $result;
 					} else {
 						$result['data']['total']+= $details_result['data']['total'];
+					}
+					// audit
+					if (!empty($details_result['data']['audit'])) {
+						$audit_details[$k] = $details_result['data']['audit'];
 					}
 				} else if ($v['type'] == '1M') {
 					$keys = [];
@@ -634,31 +610,78 @@ class object_collection extends object_override_data {
 						foreach ($keys as $v2) {
 							$details_result = $this->compare_one_row($data_row[$k][$v2] ?? [], $original_row[$k][$v2] ?? [], $v, [
 								'flag_delete_row' => !empty($delete)
-							], $db, $pk);
+							], $pk, $data_row_final);
 							if (!empty($details_result['error'])) {
 								$result['error'] = $details_result['error'];
 								return $result;
 							} else {
 								$result['data']['total']+= $details_result['data']['total'];
 							}
+							// audit
+							if (!empty($details_result['data']['audit'])) {
+								$audit_details[$k][$v2] = $details_result['data']['audit'];
+							}
 						}
 					}
 				}
 			}
 		}
-		// todo add here
-
-		// step 4 delete record after we deleted all childrens
-		if (!empty($delete)) {
-			$temp = $db->delete($delete['table'], [], [], ['where' => $delete['pk']]);
+		// step 4 update record
+		if (!empty($update) || ($action == 'update' && $result['data']['total'] > 0)) {
+			// process who columns
+			$model->process_who_columns(['updated', 'optimistic_lock'], $update, $this->timestamp);
+			// update record
+			$temp = $this->primary_model->db_object->update($model->name, $update, [], ['where' => $pk]);
 			if (!$temp['success']) {
 				$result['error'] = $temp['error'];
-				$db->rollback();
+				$this->primary_model->db_object->rollback();
 				return $result;
 			}
+			$result['data']['total']++;
+			// flag for main record
+			if (!empty($options['flag_main_record'])) {
+				$result['data']['updated'] = true;
+			}
+			// audit
+			$audit = $update;
+		}
+		// step 5 delete record after we deleted all childrens
+		if (!empty($delete)) {
+			$temp = $this->primary_model->db_object->delete($delete['table'], [], [], ['where' => $delete['pk']]);
+			if (!$temp['success']) {
+				$result['error'] = $temp['error'];
+				$this->primary_model->db_object->rollback();
+				return $result;
+			}
+			$result['data']['total']++;
 			// flag for main record
 			if (!empty($options['flag_main_record'])) {
 				$result['data']['deleted'] = true;
+			}
+		}
+		// step 6 history only if we updated or deleted
+		if ($model->history && (!empty($delete) || !empty($update))) {
+			$temp = $original_row;
+			$model->process_who_columns(['updated'], $temp, $this->timestamp);
+			$result['data']['history'][$model->history_name][] = $temp;
+		}
+		// step 7 audit
+		if ($this->primary_model->audit && !empty($audit)) {
+			$result['data']['audit'] = [
+				'action' => $action,
+				'pk' => $pk,
+				'columns' => []
+			];
+			foreach ($audit as $k => $v) {
+				$old = $original_row[$k] ?? null;
+				if ($v !== $old) {
+					if (($model->columns[$k]['domain'] ?? '') == 'password') $v = '*** *** ***';
+					$result['data']['audit']['columns'][$k] = [$v, $old];
+				}
+			}
+			// details
+			if (!empty($audit_details)) {
+				$result['data']['audit']['details'] = $audit_details;
 			}
 		}
 		// success

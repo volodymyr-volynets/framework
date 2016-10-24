@@ -19,13 +19,14 @@ class object_data_schemas extends object_data {
 		'pr' => ['no_data_schema_name' => 'Payroll'],
 		// other misc modules
 		'rn' => ['no_data_schema_name' => 'Relations & Rules'],
+		'wg' => ['no_data_schema_name' => 'Widgets'],
 		'lc' => ['no_data_schema_name' => 'Localization'],
-		'dc' => ['no_data_schema_name' => 'Documents'],
+		//'dc' => ['no_data_schema_name' => 'Documents'],
 		'dn' => ['no_data_schema_name' => 'Documentation'],
 		'ms' => ['no_data_schema_name' => 'Miscellaneous'],
 		'no' => ['no_data_schema_name' => 'Numbers Objects'],
-		'sm' => ['no_data_schema_name' => 'System (Common)'],
-		'sc' => ['no_data_schema_name' => 'System (Cron)'],
+		'sm' => ['no_data_schema_name' => 'System'],
+		'sc' => ['no_data_schema_name' => 'Cron'],
 		'temp' => ['no_data_schema_name' => 'Temporary Tables']
 	];
 }

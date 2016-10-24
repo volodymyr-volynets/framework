@@ -467,7 +467,7 @@ class application {
 		layout::include_media($controller_dir, $controller_file, $view, $controller_class);
 
 		// appending view after controllers output
-		$controller->view = (isset($controller->view) ? $controller->view : '') . helper_ob::clean();
+		$controller->view = ($controller->view ?? '') . helper_ob::clean();
 
 		// if we have to render debug toolbar
 		if (debug::$toolbar) {

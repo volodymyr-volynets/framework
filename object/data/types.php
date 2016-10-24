@@ -8,9 +8,13 @@ class object_data_types extends object_data {
 		'name' => ['name' => 'Name', 'type' => 'text'],
 		'default' => ['name' => 'Default', 'type' => 'mixed'],
 		'php_type' => ['name' => 'PHP Type', 'type' => 'text', 'model' => 'object_data_php_types'],
-		// format
+		// format & align
 		'format' => ['name' => 'Format', 'type' => 'text'],
 		'format_params' => ['name' => 'Format Params', 'type' => 'mixed'],
+		'validator_method' => ['name' => 'Validator Method', 'type' => 'text'],
+		'validator_params' => ['name' => 'Validator Params', 'type' => 'mixed'],
+		'align' => ['name' => 'Align', 'type' => 'text'],
+		'placeholder' => ['name' => 'Placeholder', 'type' => 'text']
 	];
 	public $data = [
 		'boolean' => ['name' => 'Boolean', 'default' => 0, 'php_type' => 'integer'],
@@ -31,10 +35,10 @@ class object_data_types extends object_data {
 		// json types
 		'json' => ['name' => 'JSON', 'php_type' => 'array'],
 		// date types
-		'date' => ['name' => 'Date', 'php_type' => 'string', 'format' => 'date'],
-		'time' => ['name' => 'Time', 'php_type' => 'string', 'format' => 'time'],
-		'datetime' => ['name' => 'Date & time', 'php_type' => 'string', 'format' => 'datetime'],
-		'timestamp' => ['name' => 'Timestamp', 'php_type' => 'string'],
+		'date' => ['name' => 'Date', 'php_type' => 'string', 'format' => 'date', 'placeholder' => 'format::get_date_placeholder'],
+		'time' => ['name' => 'Time', 'php_type' => 'string', 'format' => 'time', 'placeholder' => 'format::get_date_placeholder'],
+		'datetime' => ['name' => 'Date & time', 'php_type' => 'string', 'format' => 'datetime', 'placeholder' => 'format::get_date_placeholder'],
+		'timestamp' => ['name' => 'Timestamp', 'php_type' => 'string', 'format' => 'timestamp', 'placeholder' => 'format::get_date_placeholder'],
 		// mixed data type
 		'mixed' => ['name' => 'Mixed', 'php_type' => 'mixed']
 	];

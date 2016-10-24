@@ -1,24 +1,14 @@
 <?php
 
-class object_validator_password extends object_validator_base implements object_validator_interface {
+class object_validator_password extends object_validator_base {
 
 	/**
-	 * Validate password
-	 *
-	 * @param string $value
-	 * @return array
+	 * @see object_validator_base::validate()
 	 */
-	public function validate($value) {
+	public function validate($value, $options = []) {
 		$value = $value . '';
-		// handle overrides first
-		if (!empty($this->override)) {
-			return $this->override->validate($value);
-		}
-		$result = [
-			'success' => false,
-			'error' => [],
-			'data' => null
-		];
+		$result = $this->result;
+		$result['placeholder'] = '8 characters, 1 number, 1 letter';
 		if (strlen($value) < 8) {
 			$result['error'][] = 'Password too short, should be atleast 8 characters!';
 		}

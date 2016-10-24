@@ -303,6 +303,9 @@ class html {
 		if (!empty($options['searchable'])) {
 			$options['searchable'] = 'searchable';
 		}
+		if (!empty($options['preset'])) {
+			$options['preset'] = 'preset';
+		}
 		if (!empty($options['tree'])) {
 			$options['tree'] = 'tree';
 		}
@@ -361,13 +364,12 @@ class html {
 	 *		calendar_date_disable_week_days - array of week days to be disabled
 	 *		calendar_master_id - id of master calendar
 	 *		calendar_slave_id - id of slave element
-	 *		calendar_placeholder - whether to display plaseholder based on calendar_type
 	 *		calendar_icon - left, right
 	 * @return string
 	 */
 	public static function calendar($options = []) {
 		// we need to set to date by default
-		$options['calendar_type'] = $options['calendar_type'] ?? 'date';
+		$options['calendar_type'] = $options['calendar_type'] ?? $options['type'] ?? 'date';
 		return factory::delegate('flag.numbers.framework.html', 'calendar', [$options]);
 	}
 

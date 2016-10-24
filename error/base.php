@@ -10,6 +10,13 @@ class error_base {
 	public static $errors = [];
 
 	/**
+	 * Intercepted
+	 *
+	 * @var array
+	 */
+	public static $error_hashes_intersepted = [];
+
+	/**
 	 * If we have an exception
 	 *
 	 * @var boolean 
@@ -62,16 +69,16 @@ class error_base {
 	 * Error handler function
 	 *
 	 * @param int $errno
-	 * @param string $errmsg
+	 * @param string $error
 	 * @param string $file
 	 * @param int $line
 	 */
-	public static function error_handler($errno, $errmsg, $file, $line) {
+	public static function error_handler($errno, $error, $file, $line) {
 		// if its a javascript error submitted to backend
 		if ($errno == 'javascript') {
 			debug::$data['js'][] = [
 				'errno' => $errno,
-				'error' => [$errmsg],
+				'error' => [$error],
 				'file' => $file,
 				'line' => $line,
 				'code' => '',
@@ -80,7 +87,7 @@ class error_base {
 		} else if (error_reporting() !== 0) { // important: we do not process suppressed errors
 			self::$errors[] = [
 				'errno' => $errno,
-				'error' => [$errmsg],
+				'error' => [$error],
 				'file' => $file,
 				'line' => $line,
 				'code' => self::get_code($file, $line),
@@ -89,12 +96,19 @@ class error_base {
 		} else if (debug::$debug) {
 			debug::$data['suppressed'][] = [
 				'errno' => $errno,
-				'error' => [$errmsg],
+				'error' => [$error],
 				'file' => $file,
 				'line' => $line,
 				'code' => self::get_code($file, $line),
 				'backtrace' => self::debug_backtrace_string()
 			];
+		}
+		// hashing errors
+		if ($errno != 'javascript') {
+			if (!isseT(self::$error_hashes_intersepted[$file][$line])) {
+				self::$error_hashes_intersepted[$file][$line] = [];
+			}
+			self::$error_hashes_intersepted[$file][$line][] = ['errno' => $errno, 'error' => $error];
 		}
 	}
 

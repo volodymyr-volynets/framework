@@ -272,24 +272,35 @@ class debug {
 								$result.= '<th>Errno</th>';
 								$result.= '<th>Num Rows</th>';
 								$result.= '<th>Affected Rows</th>';
-								$result.= '<th>Rows</th>';
+								//$result.= '<th>Rows</th>';
 								$result.= '<th>Key</th>';
 								$result.= '<th>Structure</th>';
 								$result.= '<th>Time</th>';
 							$result.= '</tr>';
 							foreach (self::$data['sql'] as $k => $v) {
 								$temp = is_array($v['key']) ? implode('<br/>', $v['key']) : $v['key'];
+								// header first
 								$result.= '<tr>';
 									$result.= '<td valign="top"><pre style="width: 500px;">' . nl2br($v['sql']) . '</pre></td>';
 									$result.= '<td valign="top">' . implode('<br/>', $v['error']) . '</td>';
 									$result.= '<td valign="top">' . $v['errno'] . '</td>';
 									$result.= '<td valign="top">' . $v['num_rows'] . '</td>';
 									$result.= '<td valign="top">' . $v['affected_rows'] . '</td>';
-									$result.= '<td valign="top">' . html::table(['options' => $v['rows']]) . '</td>';
+									//$result.= '<td valign="top">' . html::table(['options' => $v['rows']]) . '</td>';
 									$result.= '<td valign="top">' . $temp . '</td>';
 									$result.= '<td valign="top">' . html::table(['options' => $v['structure']]) . '</td>';
 									$result.= '<td valign="top">' . $v['time'] . '</td>';
 								$result.= '</tr>';
+								// results second
+								if (!empty($v['rows'])) {
+									$temp = array_keys(current($v['rows']));
+									$header = array_combine($temp, $temp);
+									if (!empty($header)) {
+										$result.= '<tr>';
+											$result.= '<td valign="top" colspan="8" style="max-width: 1000px; overflow: scroll;">' . html::table(['header' => $header, 'options' => $v['rows']]) . '</td>';
+										$result.= '</tr>';
+									}
+								}
 							}
 						$result.= '</table>';
 					$result.= '</td>';

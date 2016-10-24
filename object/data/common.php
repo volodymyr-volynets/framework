@@ -17,10 +17,16 @@ class object_data_common {
 	 * @param array $where
 	 * @param array $existing_values
 	 * @param array $skip_values
+	 * @param array $options
 	 * @return array
 	 */
-	public static function process_options($model_and_method, $existing_object = null, $where = [], $existing_values = [], $skip_values = []) {
-		$hash = sha1($model_and_method . serialize($where) . serialize($existing_values) . serialize($skip_values));
+	public static function process_options($model_and_method, $existing_object = null, $where = [], $existing_values = [], $skip_values = [], $options = []) {
+		// put changes into options
+		$options['where'] = array_merge_hard($options['where'] ?? [], $where);
+		$options['existing_values'] = $existing_values;
+		$options['skip_values'] = $skip_values;
+		// see if we have cached version
+		$hash = sha1($model_and_method . serialize($options));
 		if (isset(self::$cached_options[$hash])) {
 			return self::$cached_options[$hash];
 		} else {
@@ -37,7 +43,7 @@ class object_data_common {
 			} else {
 				$object = factory::model($model, true);
 			}
-			self::$cached_options[$hash] = $object->{$method}(['where' => $where, 'existing_values' => $existing_values, 'skip_values' => $skip_values, 'i18n' => true]);
+			self::$cached_options[$hash] = $object->{$method}($options);
 			return self::$cached_options[$hash];
 		}
 	}
@@ -82,16 +88,16 @@ class object_data_common {
 					Throw new Exception('Domain: ' . $v['domain'] . '?');
 				}
 				// populate domain attributes
-				foreach (['type', 'default', 'length', 'null', 'precision', 'scale', 'format', 'format_params'] as $v2) {
-					if (array_key_exists($v2, self::$domains[$v['domain']]) && !array_key_exists($v2, $v)) {
+				foreach (['type', 'default', 'length', 'null', 'precision', 'scale', 'format', 'format_params', 'align', 'validator_method', 'validator_params', 'placeholder'] as $v2) {
+					if (array_key_exists($v2, self::$domains[$v['domain']]) && !array_key_exists($v2, $columns[$k])) {
 						$columns[$k][$v2] = self::$domains[$v['domain']][$v2];
 					}
 				}
 			}
 			// populate type attributes
 			if (isset($columns[$k]['type']) && isset(self::$types[$columns[$k]['type']])) {
-				foreach (['php_type', 'format', 'format_params'] as $v2) {
-					if (array_key_exists($v2, self::$types[$columns[$k]['type']]) && !array_key_exists($v2, $v)) {
+				foreach (['default', 'php_type', 'format', 'format_params', 'align', 'validator_method', 'validator_params', 'placeholder'] as $v2) {
+					if (array_key_exists($v2, self::$types[$columns[$k]['type']]) && !array_key_exists($v2, $columns[$k])) {
 						$columns[$k][$v2] = self::$types[$columns[$k]['type']][$v2];
 					}
 				}
@@ -108,10 +114,59 @@ class object_data_common {
 	 *
 	 * @param array $data
 	 * @param array $options_map
+	 * @param array $options
 	 * @return array
 	 */
-	public static function options($data, $options_map) {
-		return remap($data, $options_map);
+	public static function options($data, $options_map, $options = []) {
+		$i18n = [];
+		$i18n_inactive = !empty($options['i18n']) ? i18n(null, '[Inactive]') : '[Inactive]';
+		$format = [];
+		$options_map_new = [];
+		$format_methods = [];
+		foreach ($options_map as $k => $v) {
+			if (is_array($v)) {
+				$options_map_new[$k] = $v['field'];
+				if (!empty($options['i18n']) && !empty($v['i18n']) && !array_key_exists('i18n', $v)) {
+					$i18n[$k] = !empty($options['i18n']);
+				}
+				if (!empty($v['format'])) {
+					$format[$k] = $v;
+					$format_methods[$k] = factory::method($v['format'], 'format');
+				}
+			} else {
+				$options_map_new[$k] = $v;
+				if (!empty($options['i18n'])) {
+					$i18n[$k] = true;
+				}
+			}
+		}
+		// we need to i18n and process formats
+		if (!empty($i18n) || !empty($format)) {
+			foreach ($data as $k => $v) {
+				// localize
+				if (!empty($i18n)) {
+					foreach ($i18n as $k2 => $v2) {
+						// we need to skip few things
+						if (!isset($data[$k][$k2])) continue;
+						if (is_integer($data[$k][$k2])) continue;
+						$data[$k][$k2] = i18n(null, $data[$k][$k2]);
+					}
+				}
+				// inactive
+				if (!empty($options['column_prefix']) && !empty($v[$options['column_prefix'] . 'inactive'])) {
+					$options_map_new[$options['column_prefix'] . 'inactive'] = 'inactive';
+					$options_map_new['__prepend'] = 'name';
+					$data[$k]['__prepend'] = $i18n_inactive;
+				}
+				// format
+				if (!empty($format)) {
+					foreach ($format as $k2 => $v2) {
+						$data[$k][$k2] = call_user_func_array([$format_methods[$k2][0], $format_methods[$k2][1]], [$data[$k][$k2], $v2['format_options'] ?? []]);
+					}
+				}
+			}
+		}
+		return remap($data, $options_map_new);
 	}
 
 	/**
@@ -121,16 +176,14 @@ class object_data_common {
 	 * @param array $data
 	 * @param array $options_map
 	 * @param array $orderby
-	 * @param boolean $i18n
+	 * @param array $options
 	 * @return array
 	 */
-	public static function build_options($data, $options_map, $orderby, $i18n) {
-		$data = object_data_common::options($data, $options_map);
-		if ($i18n) {
-			foreach ($data as $k => $v) {
-				$data[$k]['name'] = i18n(null, $v['name']);
-			}
-			// mandatory sorting
+	public static function build_options($data, $options_map, $orderby, $options) {
+		$data = object_data_common::options($data, $options_map, $options);
+		// sorting
+		if (!empty($options['i18n'])) {
+			// mandatory sorting if localized
 			array_key_sort($data, ['name' => SORT_ASC], ['name' => SORT_NATURAL]);
 		} else if (empty($orderby)) {
 			array_key_sort($data, ['name' => SORT_ASC], ['name' => SORT_NATURAL]);

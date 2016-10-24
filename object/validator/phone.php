@@ -1,23 +1,13 @@
 <?php
 
-class object_validator_phone extends object_validator_base implements object_validator_interface {
+class object_validator_phone extends object_validator_base {
 
 	/**
-	 * Validate phone number with extension
-	 *
-	 * @param string $value
-	 * @return array
+	 * @see object_validator_base::validate()
 	 */
-	public function validate($value) {
-		// handle overrides first
-		if (!empty($this->override)) {
-			return $this->override->validate($value);
-		}
-		$result = [
-			'success' => false,
-			'error' => [],
-			'data' => null
-		];
+	public function validate($value, $options = []) {
+		$result = $this->result;
+		$result['placeholder'] = '# (###) ###-#### ext ####';
 		if (!preg_match('/^[0-9+\(\)#\.\s\/ext-]+$/', $value)) {
 			$result['error'][] = 'Invalid phone number!';
 		} else {

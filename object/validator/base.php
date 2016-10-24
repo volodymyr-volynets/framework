@@ -1,24 +1,43 @@
 <?php
 
-class object_validator_base {
+abstract class object_validator_base {
 
 	/**
-	 * Override object
+	 * Result
 	 *
-	 * @var object
+	 * @var array
 	 */
-	public $override;
+	protected $result = [
+		'success' => false,
+		'error' => [],
+		'data' => null,
+		'placeholder' => null,
+		'placeholder_select' => null
+	];
 
 	/**
-	 * Constructor
+	 * Validate
+	 *
+	 * @param string $value
+	 * @param array $options
+	 * @return array
 	 */
-	public function __construct() {
-		$called_class = get_called_class();
-		$called_class = str_replace('object_validator_', 'overrides_validator_', $called_class);
-		// check if override exists
-		$path = application::get(['application', 'path']) . str_replace('_', DIRECTORY_SEPARATOR, $called_class);
-		if (file_exists($path)) {
-			$this->override = factory::model($called_class);
-		}
+	abstract public function validate($value, $options = []);
+
+	/**
+	 * Call validator method
+	 *
+	 * @param string $method
+	 * @param array $params
+	 * @param array $options
+	 * @param array $neighbouring_values
+	 * @return array
+	 */
+	public static function method($method, $value, $params = [], $options = [], $neighbouring_values = []) {
+		$method = factory::method($method);
+		$params = $params ?? [];
+		$params['options'] = $options;
+		$params['neighbouring_values'] = $neighbouring_values;
+		return factory::model($method[0], true)->{$method[1]}($value, $params);
 	}
 }

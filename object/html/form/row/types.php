@@ -1,6 +1,6 @@
 <?php
 
-class object_html_form_row_type extends object_data {
+class object_html_form_row_types extends object_data {
 	public $column_key = 'no_html_form_row_type_code';
 	public $column_prefix = 'no_html_form_row_type_';
 	public $columns = [

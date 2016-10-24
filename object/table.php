@@ -125,6 +125,13 @@ class object_table extends object_override_data {
 	public $audit = false;
 
 	/**
+	 * Audit class
+	 *
+	 * @var string
+	 */
+	public $audit_model;
+
+	/**
 	 * Optimistic lock
 	 *
 	 * @var boolean 
@@ -146,7 +153,7 @@ class object_table extends object_override_data {
 	public $engine = [];
 
 	/**
-	 * Mapping for crud::options(),
+	 * Mapping for options(),
 	 * Note if you need to map the same field to multiple array keys we could prepend one or more "*" (asterisks)
 	 *
 	 * @var array
@@ -156,7 +163,7 @@ class object_table extends object_override_data {
 	];
 
 	/**
-	 * Condition for crud::options_active()
+	 * Condition for options_active()
 	 *
 	 * @var type
 	 */
@@ -203,11 +210,57 @@ class object_table extends object_override_data {
 	public $attributes;
 
 	/**
-	 * Intiator class
+	 * Attribute class
+	 *
+	 * @var string
+	 */
+	public $attributes_model;
+
+	/**
+	 * Addresses
+	 *
+	 * @var boolean
+	 */
+	public $addresses;
+
+	/**
+	 * Addresses class
+	 *
+	 * @var string
+	 */
+	public $addresses_model;
+
+	/**
+	 * Map with parent table, used in widgets
+	 *
+	 * @var array
+	 */
+	public $map = [];
+
+	/**
+	 * Virtual class name
+	 *
+	 * @var string
+	 */
+	public $virtual_class_name;
+
+	/**
+	 * Initiator class
 	 *
 	 * @var string
 	 */
 	public $initiator_class = 'object_table';
+
+	/**
+	 * Who inserted/updated/posted the record
+	 *
+	 * @var array
+	 */
+	public $who = [
+		//'inserted' => true,
+		//'updated' => true,
+		//'posted' => true
+	];
 
 	/**
 	 * Constructing object
@@ -243,13 +296,21 @@ class object_table extends object_override_data {
 				$this->constraints[$this->relation['field'] . '_un'] = ['type' => 'unique', 'columns' => [$this->relation['field']]];
 			}
 		}
-		// process domain in columns
-		$this->columns = object_data_common::process_domains($this->columns);
 		// optimistic lock
 		if ($this->optimistic_lock) {
 			$this->optimistic_lock_column = $this->column_prefix . 'optimistic_lock';
-			$this->columns[$this->optimistic_lock_column] = ['name' => 'Optimistic Lock', 'type' => 'timestamp', 'default' => 'now()'];
+			$this->columns[$this->optimistic_lock_column] = ['name' => 'Optimistic Lock', 'domain' => 'optimistic_lock'];
 		}
+		// who
+		if (!empty($this->who)) {
+			foreach ($this->who as $k => $v) {
+				$k = strtolower($k);
+				$this->columns[$this->column_prefix . $k . '_timestamp'] = ['name' => ucwords($k) . ' Datetime', 'type' => 'timestamp', 'null' => ($k != 'inserted')];
+				$this->columns[$this->column_prefix . $k . '_entity_id'] = ['name' => ucwords($k) . ' Entity #', 'domain' => 'entity_id', 'null' => true];
+			}
+		}
+		// process domain in columns
+		$this->columns = object_data_common::process_domains($this->columns);
 		// schema & title
 		$temp = explode('_', $this->name);
 		if (empty($this->schema)) {
@@ -261,6 +322,106 @@ class object_table extends object_override_data {
 		}
 		// initialize db object
 		$this->db_object = new db($this->db_link);
+		// attributes only if submodule is enabled
+		if (!application::get('dep.submodule.numbers.data.relations')) {
+			$this->attributes = false;
+		} else if ($this->attributes) {
+			$this->attributes_model = get_class($this) . '__virtual__attributes';
+		}
+		// audit only if we have submodule
+		if (!application::get('flag.global.widgets.audit.submodule')) {
+			$this->audit = false;
+		} else if ($this->audit) {
+			$this->audit_model = get_class($this) . '__virtual__audit';
+		}
+		// addresses only if we have submodule
+		if (!application::get('flag.global.widgets.addresses.submodule')) {
+			$this->addresses = false;
+		} else if ($this->addresses) {
+			$this->addresses_model = get_class($this) . '__virtual__addresses';
+		}
+	}
+
+	/**
+	 * Process who columns
+	 *
+	 * @param mixed $types
+	 * @param array $row
+	 */
+	public function process_who_columns($types, & $row, $timestamp = null) {
+		if ($types === 'all') $types = array_keys($this->who);
+		if (!is_array($types)) $types = [$types];
+		if (empty($timestamp)) $timestamp = format::now('timestamp');
+		foreach ($types as $type) {
+			if (!empty($this->who[$type])) {
+				// timestamp
+				$row[$this->column_prefix . $type . '_timestamp'] = $timestamp;
+				// entity #
+				$row[$this->column_prefix . $type . '_entity_id'] = entity::id();
+			} else if ($type == 'optimistic_lock') {
+				if ($this->optimistic_lock) {
+					$row[$this->optimistic_lock_column] = $timestamp;
+				}
+			}
+		}
+	}
+
+	/**
+	 * Determine model map
+	 *
+	 * @param string $class
+	 * @param string $widget_name
+	 * @return boolean
+	 * @throws Exception
+	 */
+	final public function determine_model_map($class, $widget_name) {
+		$this->virtual_class_name = $class . '__virtual__' . $widget_name;
+		$model = factory::model($class, true);
+		$this->name = $model->name . '__' . $widget_name;
+		// determine pk
+		$counter = 1;
+		$all_int = true;
+		$columns = [];
+		$this->map = [];
+		foreach ($model->pk as $v) {
+			if ($model->columns[$v]['php_type'] == 'integer') {
+				if ($v == $model->column_prefix . 'id') {
+					$temp = explode('_', $v);
+					unset($temp[0]);
+					$new = $this->column_prefix . implode('_', $temp);
+				} else {
+					$new = str_replace($model->column_prefix, $this->column_prefix, $v);
+				}
+				$columns[$new] = $model->columns[$v]; // copy the same settings
+				if (!empty($columns[$new]['domain'])) {
+					$columns[$new]['domain'] = str_replace('_sequence', '', $columns[$new]['domain']);
+					unset($columns[$new]['type'], $columns[$new]['php_type']);
+				}
+				$this->map[$v] = $new;
+			} else {
+				$all_int = false;
+			}
+			$counter++;
+		}
+		// if we have no integer pk
+		if (!$all_int) {
+			if (!empty($model->relation['field'])) {
+				$new = str_replace($model->column_prefix, $this->column_prefix, $model->relation['field']);
+				$columns = [];
+				$columns[$new] = $model->columns[$model->relation['field']]; // copy the same settings
+				if (!empty($columns[$new]['domain'])) {
+					$columns[$new]['domain'] = str_replace('_sequence', '', $columns[$new]['domain']);
+					unset($columns[$new]['type'], $columns[$new]['php_type']);
+				}
+				$this->map = [
+					$model->relation['field'] => $new
+				];
+			} else {
+				Throw new Exception('Unable to create widget model!');
+			}
+		}
+		$this->columns = array_merge_hard($this->columns, $columns);
+		return true;
 	}
 
 	/**
@@ -277,49 +438,27 @@ class object_table extends object_override_data {
 	 * Convert input into array
 	 *
 	 * @param array $data
-	 * @param boolean $ignore_not_set_fields
+	 * @param array $options
+	 *		boolean ignore_not_set_fields
+	 *		boolean skip_type_validation
 	 * @return array
 	 */
-	public function process_columns($data, $ignore_not_set_fields = false) {
+	public function process_columns(& $data, $options = []) {
 		$save = [];
 		foreach ($this->columns as $k => $v) {
-			if ($ignore_not_set_fields && !array_key_exists($k, $data)) {
+			if (!empty($options['ignore_not_set_fields']) && !array_key_exists($k, $data)) {
 				continue;
 			}
-			$temp = object_table_columns::process_single_column_type($k, $v, $data[$k] ?? null);
-			$save = array_merge($save, $temp);
-		}
-		return $save;
-	}
-
-	/**
-	 * Verify fields
-	 *
-	 * @param array $save
-	 * @param array $columns
-	 * @param array $result
-	 */
-	public function verify_fields(& $save, & $columns, & $result) {
-		foreach ($columns as $k => $v) {
-			// running value through a function first
-			if (!empty($v['function'])) {
-				if (strpos($v['function'], '::') !== false) {
-					$save[$k] = call_user_func($v['function'], $save[$k]);
-				} else {
-					$save[$k] = function2($v['function'], $save[$k]);
+			if (empty($options['skip_type_validation'])) {
+				$temp = object_table_columns::process_single_column_type($k, $v, $data[$k] ?? null);
+				if (array_key_exists($k, $temp)) {
+					$save[$k] = $temp[$k];
 				}
-			}
-			// checking if value is empty
-			if (empty($v['empty']) && empty($save[$k])) {
-				$result['error'][] = $v['name'] . ' cannot be empty!';
-			}
-			// checking if value is too long
-			if (!empty($v['maxlength'])) {
-				if (strlen($save[$k]) > $v['maxlength']) {
-					$result['error'][] = $v['name'] . ' is too long, max length = ' . $v['maxlength'] . '!';
-				}
+			} else {
+				$save[$k] = $data[$k];
 			}
 		}
+		$data = $save;
 	}
 
 	/**
@@ -335,31 +474,14 @@ class object_table extends object_override_data {
 			'rows' => [],
 			'inserted' => false
 		];
-
-		// populating fields
-		$save = $this->process_columns($data, isset($options['ignore_not_set_fields']) ? $options['ignore_not_set_fields'] : false);
-
+		// process columns
+		$save = $data;
+		$this->process_columns($save, ['ignore_not_set_fields' => true]);
 		// verifying
 		do {
 			if (empty($save)) {
 				$result['error'][] = 'You must specify atleast one field!';
 			}
-
-			// verification against columns
-			if (!empty($this->save_columns)) {
-				// verification
-				$this->verify_fields($save, $this->save_columns, $result);
-
-				// additional verification
-				if (method_exists($this, 'save_verify')) {
-					array_merge3($result['error'], $this->save_verify($save, $this->save_columns));
-				}
-			}
-
-			if (!empty($result['error'])) {
-				break;
-			}
-
 			// we need to unset pk if other primary key is used
 			if (!empty($options['pk'])) {
 				foreach ($this->pk as $k => $v) {
@@ -368,7 +490,6 @@ class object_table extends object_override_data {
 					}
 				}
 			}
-
 			// we need to process serial columns
 			$pk = $options['pk'] ?? $this->pk;
 			$options['sequences'] = [];
@@ -380,12 +501,13 @@ class object_table extends object_override_data {
 					];
 				}
 			}
-
+			// process who columns
+			$this->process_who_columns('all', $save);
 			// saving record to database
 			$result = $this->db_object->save($this->name, $save, $pk, $options);
 			if ($result['success'] && $this->cache) {
 				// now we need to reset cache
-				if (empty($data['do_not_reset_cache'])) {
+				if (empty($options['do_not_reset_cache'])) {
 					$this->reset_cache();
 				}
 			}
@@ -407,15 +529,34 @@ class object_table extends object_override_data {
 	 * @return array
 	 */
 	public function get($options = []) {
-		$options_query = array();
+		$options_query = [];
 		// if we are caching
 		if (!empty($this->cache) && empty($options['no_cache'])) {
 			$options_query['cache'] = true;
 		}
 		$options_query['cache_tags'] = !empty($this->cache_tags) ? array_values($this->cache_tags) : [];
 		$options_query['cache_tags'][] = $this->name;
-		// where
 		$sql = '';
+		// pk
+		$pk = array_key_exists('pk', $options) ? $options['pk'] : $this->pk;
+		// preset columns
+		if (!empty($options['__preset'])) {
+			$columns = 'DISTINCT ';
+			if (!empty($pk) && count($pk) > 1) {
+				$temp = $pk;
+				unset($temp[array_search('preset_value', $temp)]);
+				$columns.= $this->db_object->prepare_expression($temp) . ', ';
+			}
+			$columns.= "concat_ws(' ', " . $this->db_object->prepare_expression($options['columns']) . ") preset_value";
+			$sql.= 'AND coalesce(' . $this->db_object->prepare_expression($options['columns']) . ') IS NOT NULL';
+		} else { // regular columns
+			if (!empty($options['columns'])) {
+				$columns = $this->db_object->prepare_expression($options['columns']);
+			} else {
+				$columns = '*';
+			}
+		}
+		// where
 		$sql.= !empty($options['where']) ? (' AND ' . $this->db_object->prepare_condition($options['where'])) : '';
 		$sql.= !empty($options['search']) ? (' AND (' . $this->db_object->prepare_condition($options['search'], 'OR') . ')') : '';
 		// order by
@@ -429,16 +570,8 @@ class object_table extends object_override_data {
 		} else if (!empty($this->limit)) {
 			$sql.= ' LIMIT ' . $this->limit;
 		}
-		// pk
-		$pk = array_key_exists('pk', $options) ? $options['pk'] : $this->pk;
-		// columns
-		if (!empty($options['columns'])) {
-			$columns = $this->db_object->prepare_expression($options['columns']);
-		} else {
-			$columns = '*';
-		}
 		// querying
-		$sql_full = 'SELECT ' . $columns . ' FROM ' . $this->name . ' WHERE 1=1' . $sql;
+		$sql_full = 'SELECT ' . $columns . ' FROM ' . $this->name . ' a WHERE 1=1' . $sql;
 		// memory caching
 		if ($this->cache_memory) {
 			// hash is query + primary key
@@ -473,6 +606,17 @@ class object_table extends object_override_data {
 	}
 
 	/**
+	 * Generate a sequence
+	 *
+	 * @param string $column
+	 * @return int
+	 */
+	public function sequence($column) {
+		$temp = $this->db_object->sequence($this->name . '_' . $column . '_seq');
+		return $temp['rows'][0]['counter'];
+	}
+
+	/**
 	 * Reset caches on exit
 	 */
 	public function reset_cache() {
@@ -493,9 +637,102 @@ class object_table extends object_override_data {
 	 */
 	public function options($options = []) {
 		$data = $this->options_query_data($options);
-		$options_map = !empty($this->options_map) ? $this->options_map : [$this->column_prefix . 'name' => 'name'];
-		// build
-		return object_data_common::build_options($data, $options_map, $this->orderby, $options['i18n'] ?? false);
+		// process options_map
+		if (isset($options['options_map'])) {
+			$options_map = $options['options_map'];
+		} else if (!empty($this->options_map)) {
+			$options_map = $this->options_map;
+		} else {
+			$options_map = [$this->column_prefix . 'name' => 'name'];
+		}
+		// if we need to filter options_active
+		if (!empty($options['__options_active'])) {
+			$options_active = $this->options_active ? $this->options_active : [$this->column_prefix . 'inactive' => 0];
+			$data = object_data_common::filter_active_options($data, $options_active, $options['existing_values'] ?? [], $options['skip_values'] ?? []);
+		}
+		// if we need to prepend values based on pk
+		if (!empty($options['__prepend_if_key'])) {
+			foreach ($options['__prepend_if_key'] as $k => $v) {
+				if (!empty($data[$k])) {
+					$data[$k]['__prepend_if_key'] = !empty($options['i18n']) ? i18n(null, $v) : $v;
+					$options_map['__prepend_if_key'] = 'name';
+				}
+			}
+		}
+		// build options
+		$options['column_prefix'] = $this->column_prefix;
+		return object_data_common::build_options($data, $options_map, $this->orderby, $options);
+	}
+
+	/**
+	 * Active Options
+	 *
+	 * @param array $options
+	 * @return array
+	 */
+	public function options_active($options = []) {
+		$options['__options_active'] = true;
+		return $this->options($options);
+	}
+
+	/**
+	 * Presets
+	 *
+	 * @see $this->get()
+	 */
+	public function presets($options = []) {
+		$options['__preset'] = true;
+		if (empty($options['columns'])) {
+			$options['columns'] = [$this->column_prefix . 'name'];
+		} else if (!is_array($options['columns'])) {
+			$options['columns'] = [$options['columns']];
+		}
+		$options['options_map'] = [
+			'preset_value' => 'name'
+		];
+		$options['orderby'] = [
+			'preset_value' => SORT_ASC
+		];
+		$options['pk'] = [];
+		if (!empty($options['where'])) {
+			$options['pk'] = array_keys($options['where']);
+		}
+		$options['pk'][] = 'preset_value';
+		$values_found = $this->options($options);
+		foreach ($values_found as $k => $v) {
+			$values_found[$k]['__parent'] = '__values_found_all__';
+		}
+		$values_found['__values_found_all__'] = ['name' => i18n_if('Previously Set Value(s):', $options['i18n'] ?? false), '__parent' => null, 'disabled' => true];
+		// eixsting values
+		if (!empty($options['existing_values'])) {
+			$existing_values = is_array($options['existing_values']) ? $options['existing_values'] : [$options['existing_values']];
+			$found = false;
+			foreach ($existing_values as $v) {
+				if (empty($values_found[$v])) {
+					$found = true;
+					$values_found[$v] = ['name' => i18n_if($v, $options['i18n'] ?? false), '__parent' => '__values_existing__'];
+				}
+			}
+			if ($found) {
+				$values_found['__values_existing__'] = ['name' => i18n_if('Existing Value(s)', $options['i18n'] ?? false), '__parent' => null];
+			}
+		}
+		// convert to tree
+		$values_found = helper_tree::convert_by_parent($values_found, '__parent');
+		$result = [];
+		helper_tree::convert_tree_to_options_multi($values_found, 0, ['name_field' => 'name'], $result);
+		return $result;
+	}
+
+	/**
+	 * Active Presets
+	 *
+	 * @param array $options
+	 * @return array
+	 */
+	public function presets_active($options = []) {
+		$options['__options_active'] = true;
+		return $this->presets($options);
 	}
 
 	/**
@@ -504,7 +741,7 @@ class object_table extends object_override_data {
 	 * @param array $options
 	 * @return array
 	 */
-	private function options_query_data($options) {
+	protected function options_query_data($options) {
 		// handle pk
 		if (!array_key_exists('pk', $options)) {
 			$options['pk'] = $this->pk;
@@ -531,22 +768,6 @@ class object_table extends object_override_data {
 			}
 		}
 		return $data;
-	}
-
-	/**
-	 * Active Options
-	 *
-	 * @param array $options
-	 * @return array
-	 */
-	public function options_active($options = []) {
-		$data = $this->options_query_data($options);
-		$options_map = !empty($this->options_map) ? $this->options_map : [$this->column_prefix . 'name' => 'name'];
-		$options_active = $this->options_active ? $this->options_active : [$this->column_prefix . 'inactive' => 0];
-		// filter
-		$data = object_data_common::filter_active_options($data, $options_active, $options['existing_values'] ?? [], $options['skip_values'] ?? []);
-		// build
-		return object_data_common::build_options($data, $options_map, $this->orderby, $options['i18n'] ?? false);
 	}
 
 	/**
