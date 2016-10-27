@@ -37,7 +37,7 @@ class object_data_types extends object_data {
 		// date types
 		'date' => ['name' => 'Date', 'php_type' => 'string', 'format' => 'date', 'placeholder' => 'format::get_date_placeholder'],
 		'time' => ['name' => 'Time', 'php_type' => 'string', 'format' => 'time', 'placeholder' => 'format::get_date_placeholder'],
-		'datetime' => ['name' => 'Date & time', 'php_type' => 'string', 'format' => 'datetime', 'placeholder' => 'format::get_date_placeholder'],
+		'datetime' => ['name' => 'Date & Time', 'php_type' => 'string', 'format' => 'datetime', 'placeholder' => 'format::get_date_placeholder'],
 		'timestamp' => ['name' => 'Timestamp', 'php_type' => 'string', 'format' => 'timestamp', 'placeholder' => 'format::get_date_placeholder'],
 		// mixed data type
 		'mixed' => ['name' => 'Mixed', 'php_type' => 'mixed']

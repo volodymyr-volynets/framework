@@ -108,8 +108,13 @@ class format {
 			$temp = explode('.', $value . '');
 			$value = date('Y-m-d H:i:s', $temp[0]) . '.' . $temp[1];
 		}
-		$object = new DateTime($value);
-		return $object->format($format);
+		try {
+			$object = new DateTime($value);
+			return $object->format($format);
+		} catch (Exception $e) {
+			// on exception we return as is
+			return $value;
+		}
 	}
 
 	/**

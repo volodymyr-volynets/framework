@@ -295,6 +295,8 @@ class object_table extends object_override_data {
 				// add unique constraint
 				$this->constraints[$this->relation['field'] . '_un'] = ['type' => 'unique', 'columns' => [$this->relation['field']]];
 			}
+		} else {
+			$this->relation = false;
 		}
 		// optimistic lock
 		if ($this->optimistic_lock) {
@@ -322,23 +324,14 @@ class object_table extends object_override_data {
 		}
 		// initialize db object
 		$this->db_object = new db($this->db_link);
-		// attributes only if submodule is enabled
-		if (!application::get('dep.submodule.numbers.data.relations')) {
-			$this->attributes = false;
-		} else if ($this->attributes) {
-			$this->attributes_model = get_class($this) . '__virtual__attributes';
-		}
-		// audit only if we have submodule
-		if (!application::get('flag.global.widgets.audit.submodule')) {
-			$this->audit = false;
-		} else if ($this->audit) {
-			$this->audit_model = get_class($this) . '__virtual__audit';
-		}
-		// addresses only if we have submodule
-		if (!application::get('flag.global.widgets.addresses.submodule')) {
-			$this->addresses = false;
-		} else if ($this->addresses) {
-			$this->addresses_model = get_class($this) . '__virtual__addresses';
+		// process widgets
+		foreach (object_widgets::widget_models as $widget) {
+			if (!object_widgets::enabled($widget)) {
+				$this->{$widget} = false;
+			} else if ($this->{$widget}) {
+				$temp = $widget . '_model';
+				$this->{$temp} = get_class($this) . '__virtual__' . $widget;
+			}
 		}
 	}
 

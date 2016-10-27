@@ -203,13 +203,8 @@ class object_collection extends object_override_data {
 				$k1 = key($v['map']);
 				$v1 = $v['map'][$k1];
 				$column = $v1;
-				// important to unset keys from pk array
-				unset($pk[array_search($v1, $pk)]);
 			} else {
 				$column = "concat_ws('::'[comma] " . implode('[comma] ', $v['map']) . ")";
-				foreach ($v['map'] as $k2 => $v2) {
-					unset($pk[array_search($v2, $pk)]);
-				}
 			}
 			// special array for keys
 			$parent_keys2 = $parent_keys;
@@ -245,29 +240,23 @@ class object_collection extends object_override_data {
 			}
 			// if we got rows
 			if (!empty($result['rows'])) {
-				// we need to form pk key
-				$new_pk = [];
-				foreach ($pk as $v0) {
-					if (!in_array($v0, $v['map'])) {
-						$new_pk[$v0] = $v0;
-					}
-				}
 				$reverse_map = array_reverse($parent_maps2, true);
 				foreach ($result['rows'] as $k2 => $v2) {
 					$master_key = [];
 					// entry itself
 					if ($v['type'] == '1M') {
 						$temp = [];
-						foreach ($new_pk as $v0) {
+						foreach ($pk as $v0) {
 							$temp[] = $v2[$v0];
 						}
 						$master_key[] = implode('::', $temp);
 					}
+					$previous = $v2;
 					foreach ($reverse_map as $k3 => $v3) {
 						$temp = [];
 						foreach ($v3 as $k4 => $v4) {
-							$v2[$k4] = $v2[$v4];
-							$temp[] = $previous[$v4] ?? $v2[$v4];
+							$previous[$k4] = $previous[$v4];
+							$temp[] = $previous[$v4];
 						}
 						array_unshift($master_key, $parent_keys2[$k3]);
 						if (($parent_types2[$k3 - 1] ?? '') != '11') {
@@ -630,14 +619,16 @@ error:
 		if (!empty($update) || ($action == 'update' && $result['data']['total'] > 0)) {
 			// process who columns
 			$model->process_who_columns(['updated', 'optimistic_lock'], $update, $this->timestamp);
-			// update record
-			$temp = $this->primary_model->db_object->update($model->name, $update, [], ['where' => $pk]);
-			if (!$temp['success']) {
-				$result['error'] = $temp['error'];
-				$this->primary_model->db_object->rollback();
-				return $result;
+			if (!empty($update)) {
+				// update record
+				$temp = $this->primary_model->db_object->update($model->name, $update, [], ['where' => $pk]);
+				if (!$temp['success']) {
+					$result['error'] = $temp['error'];
+					$this->primary_model->db_object->rollback();
+					return $result;
+				}
+				$result['data']['total']++;
 			}
-			$result['data']['total']++;
 			// flag for main record
 			if (!empty($options['flag_main_record'])) {
 				$result['data']['updated'] = true;

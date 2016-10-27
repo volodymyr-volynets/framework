@@ -109,7 +109,7 @@ no_cache:
 	 * @param string $base_class
 	 * @return array
 	 */
-	public static function method($method, $base_class = null) {
+	public static function method($method, $base_class = null, $model = false) {
 		$temp = explode('::', $method);
 		if (count($temp) > 1) {
 			$temp_model = $temp[0];
@@ -118,6 +118,9 @@ no_cache:
 			$temp_model = $base_class;
 			$temp_method = $temp[0];
 		}
-		return [$temp_model, $temp_method];
+		if ($model) {
+			$temp_model = factory::model($temp_model, true);
+		}
+		return [& $temp_model, $temp_method];
 	}
 }

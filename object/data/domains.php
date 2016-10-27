@@ -5,7 +5,7 @@ class object_data_domains extends object_data {
 	public $column_prefix = null; // you must not change it !!!
 	public $orderby = ['name' => SORT_ASC];
 	public $columns = [
-		'code' => ['name' => 'Code', 'type' => 'varchar', 'length' => 30],
+		'code' => ['name' => 'Code', 'domain' => 'group_code'],
 		'name' => ['name' => 'Name', 'type' => 'text'],
 		'type' => ['name' => 'Type', 'type' => 'text'],
 		'default' => ['name' => 'Default', 'type' => 'mixed'],
@@ -65,7 +65,7 @@ class object_data_domains extends object_data {
 		'amount' => ['name' => 'Amount', 'type' => 'bcnumeric', 'precision' => 24, 'scale' => 2, 'default' => '0.00', 'format' => 'amount', 'format_params' => ['decimals' => 2], 'align' => 'right'],
 		'quantity' => ['name' => 'Quantity', 'type' => 'bcnumeric', 'precision' => 24, 'scale' => 4, 'default' => '0.0000', 'format' => 'amount', 'format_params' => ['decimals' => 4], 'align' => 'right'],
 		'currency_rate' => ['name' => 'Currency Rate', 'type' => 'bcnumeric', 'precision' => 16, 'scale' => 8, 'default' => '1.00000000', 'format' => 'currency_rate', 'format_params' => ['decimals' => 8], 'align' => 'right'],
-		'bigamount' => ['name' => 'Amount', 'type' => 'bcnumeric', 'precision' => 32, 'scale' => 8, 'default' => '0.00000000', 'format' => 'amount', 'format_params' => ['decimals' => 8], 'align' => 'right'],
+		'bigamount' => ['name' => 'Amount (Big)', 'type' => 'bcnumeric', 'precision' => 32, 'scale' => 8, 'default' => '0.00000000', 'format' => 'amount', 'format_params' => ['decimals' => 8], 'align' => 'right'],
 		// accounting
 		'currency_code' => ['name' => 'Currency Code', 'type' => 'char', 'length' => 3, 'validator_method' => 'object_validator_uppercase::validate'],
 		'currency_type' => ['name' => 'Currency Type', 'type' => 'varchar', 'length' => 12, 'validator_method' => 'object_validator_uppercase::validate'],
@@ -85,4 +85,20 @@ class object_data_domains extends object_data {
 		'html_color_code' => ['name' => 'HTML Color Code', 'type' => 'char', 'length' => 6, 'null' => true],
 		'html_color_group' => ['name' => 'HTML Color Group', 'type' => 'varchar', 'length' => 30, 'null' => true]
 	];
+
+	/**
+	 * Options without sequences
+	 *
+	 * @param array $options
+	 * @return array
+	 */
+	public function options_no_sequences($options = []) {
+		$data = $this->options($options);
+		foreach ($data as $k => $v) {
+			if (strpos($k, '_sequence') !== false) {
+				unset($data[$k]);
+			}
+		}
+		return $data;
+	}
 }

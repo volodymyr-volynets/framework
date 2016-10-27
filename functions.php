@@ -245,7 +245,7 @@ function array_merge_hard($arr1, $arr2) {
 		}
 		foreach ($array as $k => $v) {
 			if (is_array($v) && array_key_exists($k, $merged) && is_array($merged[$k])) {
-				$merged[$k] = array_merge2($merged[$k], $v);
+				$merged[$k] = array_merge_hard($merged[$k], $v);
 			} else {
 				$merged[$k] = $v;
 			}

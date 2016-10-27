@@ -77,8 +77,6 @@ class object_table_columns extends object_data {
 				$temp = format::read_intval($value);
 				if ($temp !== 0) {
 					$result[$column_name] = $temp;
-				} else {
-					$result[$column_name . '_is_serial_error'] = true;
 				}
 			} else {
 				$result[$column_name . '_is_serial_error'] = true;

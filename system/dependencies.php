@@ -364,14 +364,11 @@ run_again:
 				$k2 = str_replace('.', '_', $k);
 				if ($v == 'object_table') {
 					$model = factory::model($k2, true);
-					if ($model->attributes) {
-						$virtual_models[str_replace('_', '.', $model->attributes_model)] = 'object_table';
-					}
-					if ($model->audit) {
-						$virtual_models[str_replace('_', '.', $model->audit_model)] = 'object_table';
-					}
-					if ($model->addresses) {
-						$virtual_models[str_replace('_', '.', $model->addresses_model)] = 'object_table';
+					foreach (['attributes', 'audit', 'addresses'] as $v0) {
+						if ($model->{$v0}) {
+							$v01 = $v0 . '_model';
+							$virtual_models[str_replace('_', '.', $model->{$v01})] = 'object_table';
+						}
 					}
 				}
 			}
@@ -380,6 +377,7 @@ run_again:
 				goto run_again; // some widgets have attributes
 			}
 			$dep['data']['model_processed'] = array_merge_hard($dep['data']['model_processed'], $virtual_models);
+			$domains = object_data_domains::get_static();
 			// run 2
 			foreach ($dep['data']['model_processed'] as $k => $v) {
 				$k2 = str_replace('.', '_', $k);
@@ -393,11 +391,19 @@ run_again:
 					// relation
 					if ($flag_relation) {
 						if (!empty($model->relation)) {
+							$domain = $model->columns[$model->relation['field']]['domain'] ?? null;
+							if (!empty($domain)) {
+								$domain = str_replace('_sequence', '', $domain);
+								$type = $domains[$domain]['type'];
+							} else {
+								$type = $model->columns[$model->relation['field']]['type'];
+							}
 							$object_relations[$k2] = [
 								'rn_relattr_code' => $model->relation['field'],
 								'rn_relattr_name' => $model->title,
 								'rn_relattr_model' => $k2,
-								'rn_relattr_php_type' => $model->columns[$model->relation['field']]['php_type'],
+								'rn_relattr_domain' => $domain,
+								'rn_relattr_type' => $type,
 								'rn_relattr_inactive' => !empty($model->relation['inactive']) ? 1 : 0
 							];
 						}
