@@ -88,7 +88,7 @@ class object_data_common {
 					Throw new Exception('Domain: ' . $v['domain'] . '?');
 				}
 				// populate domain attributes
-				foreach (['type', 'default', 'length', 'null', 'precision', 'scale', 'format', 'format_params', 'align', 'validator_method', 'validator_params', 'placeholder'] as $v2) {
+				foreach (['type', 'default', 'length', 'null', 'precision', 'scale', 'format', 'format_params', 'align', 'validator_method', 'validator_params', 'placeholder', 'searchable'] as $v2) {
 					if (array_key_exists($v2, self::$domains[$v['domain']]) && !array_key_exists($v2, $columns[$k])) {
 						$columns[$k][$v2] = self::$domains[$v['domain']][$v2];
 					}
@@ -96,7 +96,7 @@ class object_data_common {
 			}
 			// populate type attributes
 			if (isset($columns[$k]['type']) && isset(self::$types[$columns[$k]['type']])) {
-				foreach (['default', 'php_type', 'format', 'format_params', 'align', 'validator_method', 'validator_params', 'placeholder'] as $v2) {
+				foreach (['default', 'php_type', 'format', 'format_params', 'align', 'validator_method', 'validator_params', 'placeholder', 'searchable'] as $v2) {
 					if (array_key_exists($v2, self::$types[$columns[$k]['type']]) && !array_key_exists($v2, $columns[$k])) {
 						$columns[$k][$v2] = self::$types[$columns[$k]['type']][$v2];
 					}

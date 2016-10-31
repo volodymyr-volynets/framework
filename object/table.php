@@ -263,6 +263,13 @@ class object_table extends object_override_data {
 	];
 
 	/**
+	 * Acl options returned from get, used in options and presets
+	 *
+	 * @var array
+	 */
+	public $acl_get_options = [];
+
+	/**
 	 * Constructing object
 	 *
 	 * @throws Exception
@@ -376,6 +383,7 @@ class object_table extends object_override_data {
 		$all_int = true;
 		$columns = [];
 		$this->map = [];
+		$this->__relation_pk = [];
 		foreach ($model->pk as $v) {
 			if ($model->columns[$v]['php_type'] == 'integer') {
 				if ($v == $model->column_prefix . 'id') {
@@ -409,6 +417,7 @@ class object_table extends object_override_data {
 				$this->map = [
 					$model->relation['field'] => $new
 				];
+				$this->__relation_pk = $model->pk;
 			} else {
 				Throw new Exception('Unable to create widget model!');
 			}
@@ -522,6 +531,16 @@ class object_table extends object_override_data {
 	 * @return array
 	 */
 	public function get($options = []) {
+		$data = [];
+		$this->acl_get_options = $options;
+		// handle acl init
+		if (!empty($options['acl'])) {
+			$acl_key = get_called_class();
+			if (factory::model('object_acl_class', true)->acl_init($acl_key, $data, $this->acl_get_options) === false) {
+				return $data;
+			}
+			$options = $this->acl_get_options;
+		}
 		$options_query = [];
 		// if we are caching
 		if (!empty($this->cache) && empty($options['no_cache'])) {
@@ -583,10 +602,17 @@ class object_table extends object_override_data {
 		}
 		// single row
 		if (!empty($options['single_row'])) {
-			return current($result['rows']);
+			$data = current($result['rows']);
 		} else {
-			return $result['rows'];
+			$data = $result['rows'];
 		}
+		// handle acl init
+		if (!empty($options['acl'])) {
+			if (factory::model('object_acl_class', true)->acl_finish($acl_key, $data, $this->acl_get_options) === false) {
+				return $data;
+			}
+		}
+		return $data;
 	}
 
 	/**
@@ -734,7 +760,7 @@ class object_table extends object_override_data {
 	 * @param array $options
 	 * @return array
 	 */
-	protected function options_query_data($options) {
+	protected function options_query_data(& $options) {
 		// handle pk
 		if (!array_key_exists('pk', $options)) {
 			$options['pk'] = $this->pk;
@@ -751,6 +777,8 @@ class object_table extends object_override_data {
 			}
 		}
 		$data = $this->get($options);
+		// merge acl returned from get
+		$options = $this->acl_get_options;
 		// if compound key
 		if (!empty($temp)) {
 			foreach ($temp as $v) {

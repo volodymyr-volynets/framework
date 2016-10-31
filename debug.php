@@ -24,7 +24,7 @@ class debug {
 	public static $toolbar = false;
 
 	/**
-	 * All variables will be sotred in here
+	 * All variables will be stored in here
 	 *
 	 * @var array
 	 */
@@ -39,8 +39,9 @@ class debug {
 		'input' => [], // if we need to see input
 		'benchmark' => [], // if we need to know how long it takes
 		'classes' => [], // autoloaded classes
-		'application' => [],
-		'phpinfo' => ''
+		'application' => [], // variables set in application
+		'phpinfo' => '', // phpinfo
+		'acls' => [] // executed acls
 	];
 
 	/**
@@ -430,6 +431,14 @@ class debug {
 							</style>
 TTT;
 						$result.= '<div id="phpinfo">' . $str . '</div>';
+					$result.= '</td>';
+				$result.= '</tr>';
+
+				// acls
+				$result.= '<tr id="debuging_toolbar_acls" class="debuging_toolbar_class" style="display: none;">';
+					$result.= '<td>';
+						$result.= '<h3>Acls (' . count(debug::$data['acls']) . ')</h3>';
+						$result.= print_r2(debug::$data['acls'], true);
 					$result.= '</td>';
 				$result.= '</tr>';
 

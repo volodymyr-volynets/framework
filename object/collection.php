@@ -219,11 +219,22 @@ class object_collection extends object_override_data {
 			foreach ($result_keys as $k0 => $v0) {
 				array_key_set($parent_rows, $v0, []);
 			}
+			// if we have relation
+			$sql_relation_join = '';
+			$sql_relation_columns = '';
+			if (!empty($v['__relation_pk'])) {
+				$temp3 = [];
+				foreach ($v['map'] as $k3 => $v3) {
+					$temp3[] = "b2.{$k3} = b.{$v3}";
+				}
+				$sql_relation_join = ' INNER JOIN ' . $this->primary_model->name . ' b2 ON ' . implode(' AND ', $temp3);
+				$sql_relation_columns = ', ' . implode(',', $v['__relation_pk']);
+			}
 			// sql extensions
 			$v['sql']['where'] = $v['sql']['where'] ?? null;
 			// building SQL
 			$sql = ' AND ' . $this->primary_model->db_object->prepare_condition([$column => $keys]);
-			$sql_full = 'SELECT * FROM ' . $model->name . ' WHERE 1=1' . $sql . ($v['sql']['where'] ? (' AND ' . $v['sql']['where']) : '');
+			$sql_full = 'SELECT b.*' . $sql_relation_columns . ' FROM ' . $model->name . ' b ' . $sql_relation_join . ' WHERE 1=1' . $sql . ($v['sql']['where'] ? (' AND ' . $v['sql']['where']) : '');
 			// order by
 			$orderby = $options['orderby'] ?? (!empty($model->orderby) ? $model->orderby : null);
 			if (!empty($orderby)) {
@@ -254,9 +265,15 @@ class object_collection extends object_override_data {
 					$previous = $v2;
 					foreach ($reverse_map as $k3 => $v3) {
 						$temp = [];
-						foreach ($v3 as $k4 => $v4) {
-							$previous[$k4] = $previous[$v4];
-							$temp[] = $previous[$v4];
+						if (empty($v['__relation_pk'])) {
+							foreach ($v3 as $k4 => $v4) {
+								$previous[$k4] = $previous[$v4];
+								$temp[] = $previous[$v4];
+							}
+						} else {
+							foreach ($v['__relation_pk'] as $k4 => $v4) {
+								$temp[] = $previous[$v4];
+							}
 						}
 						array_unshift($master_key, $parent_keys2[$k3]);
 						if (($parent_types2[$k3 - 1] ?? '') != '11') {
@@ -449,6 +466,11 @@ class object_collection extends object_override_data {
 			}
 			// audit
 			if (!empty($temp['data']['audit'])) {
+				// we need to put relation into pk
+				if (!empty($this->primary_model->relation['field'])) {
+					$temp['data']['audit']['pk'][$this->primary_model->relation['field']] = $temp['new_serials'][$this->primary_model->relation['field']] ?? $data[$this->primary_model->relation['field']] ?? $original[$this->primary_model->relation['field']];
+				}
+				// merge
 				$temp2 = factory::model($this->primary_model->audit_model, true)->merge($temp['data']['audit'], ['changes' => $temp['data']['total']]);
 				if (!$temp2['success']) {
 					$result['error'] = $temp2['error'];
@@ -541,7 +563,6 @@ error:
 			$temp = $this->primary_model->db_object->insert($model->name, [$data_row_final], null);
 			if (!$temp['success']) {
 				$result['error'] = $temp['error'];
-				$this->primary_model->db_object->rollback();
 				return $result;
 			}
 			$result['data']['total']++;
@@ -624,7 +645,6 @@ error:
 				$temp = $this->primary_model->db_object->update($model->name, $update, [], ['where' => $pk]);
 				if (!$temp['success']) {
 					$result['error'] = $temp['error'];
-					$this->primary_model->db_object->rollback();
 					return $result;
 				}
 				$result['data']['total']++;
@@ -641,7 +661,6 @@ error:
 			$temp = $this->primary_model->db_object->delete($delete['table'], [], [], ['where' => $delete['pk']]);
 			if (!$temp['success']) {
 				$result['error'] = $temp['error'];
-				$this->primary_model->db_object->rollback();
 				return $result;
 			}
 			$result['data']['total']++;

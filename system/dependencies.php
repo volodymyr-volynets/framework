@@ -34,6 +34,7 @@ class system_dependencies {
 			$data['__model_dependencies'] = [];
 			$data['model_import'] = [];
 			$data['override'] = $data['override'] ?? [];
+			$data['acl'] = $data['acl'] ?? [];
 			$data['media'] = $data['media'] ?? [];
 			$data['model_processed'] = [];
 			$data['unit_tests'] = [];
@@ -98,6 +99,9 @@ class system_dependencies {
 							}
 							if (!empty($sub_data['override'])) {
 								$data['override'] = array_merge2($data['override'], $sub_data['override']);
+							}
+							if (!empty($sub_data['acl'])) {
+								$data['acl'] = array_merge2($data['acl'], $sub_data['acl']);
 							}
 							if (!empty($sub_data['media'])) {
 								$data['media'] = array_merge2($data['media'], $sub_data['media']);
@@ -243,6 +247,7 @@ class system_dependencies {
 			unset($data['__submodule_dependencies'], $data['__model_dependencies'], $data['model_import']);
 			// handling overrides, cleanup directory first
 			helper_file::rmdir('./overrides/class', ['only_contents' => true, 'skip_files' => ['.gitkeep']]);
+			$data['override'] = array_merge_hard($data['override'], $data['acl']);
 			if (!empty($data['override'])) {
 				array_keys_to_string($data['override'], $data['override_processed']);
 				$override_classes = [];
@@ -473,7 +478,7 @@ run_again:
 				$ddl->objects = [];
 			}
 
-			// compare schems per db link
+			// compare schemas per db link
 			$schema_diff = [];
 			$total_per_db_link = [];
 			$total = 0;
@@ -494,9 +499,13 @@ run_again:
 				}
 			}
 
-			// if there's no schame changes
+			// if there's no schema changes
 			if ($total == 0) {
-				$result['success'] = true;
+				if ($options['mode'] == 'commit') {
+					goto import_data;
+				} else {
+					$result['success'] = true;
+				}
 				break;
 			}
 
@@ -529,7 +538,7 @@ run_again:
 						if ($k2 == 'new_constraints' && $v3['type'] == 'constraint_new' && $v3['data']['type'] == 'fk') {
 							$schema_diff[$k][$k2 . '_fks'][$k3]['sql'] = $ddl_object->render_sql($v3['type'], $v3);
 						} else {
-							$schema_diff[$k][$k2][$k3]['sql'] = $ddl_object->render_sql($v3['type'], $v3);
+							$schema_diff[$k][$k2][$k3]['sql'] = $ddl_object->render_sql($v3['type'], $v3, ['mode' => $options['mode']]);
 						}
 					}
 				}
@@ -545,9 +554,9 @@ run_again:
 				if ($options['mode'] == 'drop') {
 					if ($db_object->backend == 'mysqli') {
 						$db_object->query('SET foreign_key_checks = 0;');
+						// we also need to unset sequences
+						unset($schema_diff[$k]['delete_sequences']);
 					}
-					// we also need to unset sequences
-					unset($schema_diff[$k]['delete_sequences']);
 				}
 				foreach ($schema_diff[$k] as $k2 => $v2) {
 					foreach ($v2 as $k3 => $v3) {
@@ -573,7 +582,7 @@ run_again:
 			// if we got here - we are ok
 			$result['success'] = true;
 		} while(0);
-
+import_data:
 		// we need to import data
 		if (!empty($object_import) && $options['mode'] == 'commit') {
 			$result['hint'][] = '';
@@ -586,7 +595,6 @@ run_again:
 				$result['hint'] = array_merge($result['hint'], $data_result['hint']);
 			}
 		}
-
 		// relation
 		if ($flag_relation && $options['mode'] == 'commit') {
 			$result['hint'][] = '';
@@ -608,7 +616,7 @@ run_again:
 				foreach ($files as $v2) {
 					$model_name = str_replace(['../libraries/vendor/', '.php'], '', $v2);
 					$model_name = str_replace('/', '_', $model_name);
-					$model = new $model_name();
+					$model = new $model_name(['skip_processing' => true]);
 					if (empty($model->form_object->misc_settings['option_models'])) {
 						continue;
 					}
@@ -648,7 +656,6 @@ run_again:
 				$result['hint'][] = ' * Imported attribute models!';
 			}
 		}
-
 		// we need to generate documentation
 		$system_documentation = application::get('system_documentation');
 		if (!empty($system_documentation) && $options['mode'] == 'commit') {
@@ -661,7 +668,6 @@ run_again:
 			}
 			*/
 		}
-
 error:
 		return $result;
 	}

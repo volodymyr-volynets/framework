@@ -67,9 +67,13 @@ class helper_tree {
 	 * @param array $result
 	 */
 	public static function convert_tree_to_options_multi($data, $level = 0, $options = [], & $result) {
+		// convert to array
+		if (!empty($options['skip_keys']) && !is_array($options['skip_keys'])) {
+			$options['skip_keys'] = [$options['skip_keys']];
+		}
 		foreach ($data as $k => $v) {
 			// if we are skipping certain keys
-			if (!empty($options['skip_key']) && $k == $options['skip_key']) {
+			if (!empty($options['skip_keys']) && in_array($k, $options['skip_keys'])) {
 				continue;
 			}
 			// assemble variable
