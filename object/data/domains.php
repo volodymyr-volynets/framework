@@ -77,7 +77,7 @@ class object_data_domains extends object_data {
 		'year' => ['name' => 'Year', 'type' => 'smallint', 'validator_method' => 'object_validator_year::validate'],
 		'period' => ['name' => 'Period', 'type' => 'smallint', 'validator_method' => 'object_validator_period::validate'],
 		'segment_delimiter' => ['name' => 'Segment Delimiter', 'type' => 'varchar', 'length' => 1],
-		'gl_account' => ['name' => 'G/L Account', 'type' => 'varchar', 'length' => 109, 'placeholder' => 'G/L Account', 'searchable' => true],
+		'gl_account' => ['name' => 'G/L Account', 'type' => 'varchar', 'length' => 109, 'placeholder' => 'G/L Account', 'searchable' => true, 'tree' => true],
 		'uom' => ['name' => 'UOM', 'type' => 'varchar', 'length' => 12],
 		'status' => ['name' => 'Status', 'type' => 'char', 'length' => 1],
 		'reference' => ['name' => 'Reference', 'type' => 'varchar', 'length' => 255],
