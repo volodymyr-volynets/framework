@@ -18,17 +18,15 @@ class system_media {
 			$filename = str_replace('/numbers/media_generated/application_', '', $filename);
 			$filename = $application_path . str_replace('_', '/', $filename);
 		} else if (strpos($filename, '/numbers/media_submodules/') === 0) {
-			$temp2 = str_replace('/numbers/media_submodules/', '', $filename);
-			$temp = explode('.', $temp2);
-			$extension = $temp[1];
-			$temp = explode('_', $temp[0]);
-			// we unset last key, possible can of worms in the future
-			end($temp);
-			$key = key($temp);
-			unset($temp[$key]);
-			$filename = './../libraries/vendor/' . implode('/', $temp) . '/media/' . $extension . '/' . $temp2;
+			$temp = str_replace('/numbers/media_submodules/', '', $filename);
+			$temp = str_replace('_', '/', $temp);
+			$filename = './../libraries/vendor/' . $temp;
 		} else {
 			// we must return, do not exit !!!
+			return;
+		}
+		// check if file exists on file system
+		if (!file_exists($filename)) {
 			return;
 		}
 		// we need to know extension of a file

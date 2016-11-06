@@ -116,7 +116,7 @@ class object_table_columns extends object_data {
 			if (!empty($options['process_datetime'])) {
 				$result[$column_name . '_strtotime_value'] = 0;
 				if (!empty($value)) {
-					$result[$column_name . '_strtotime_value'] = strtotime($value);
+					$result[$column_name . '_strtotime_value'] = strtotime($result[$column_name]);
 				}
 			}
 		} else if ($column_options['type'] == 'json') {

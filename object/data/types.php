@@ -10,7 +10,7 @@ class object_data_types extends object_data {
 		'php_type' => ['name' => 'PHP Type', 'type' => 'text', 'model' => 'object_data_php_types'],
 		// format & align
 		'format' => ['name' => 'Format', 'type' => 'text'],
-		'format_params' => ['name' => 'Format Params', 'type' => 'mixed'],
+		'format_options' => ['name' => 'Format Params', 'type' => 'mixed'],
 		'validator_method' => ['name' => 'Validator Method', 'type' => 'text'],
 		'validator_params' => ['name' => 'Validator Params', 'type' => 'mixed'],
 		'align' => ['name' => 'Align', 'type' => 'text'],

@@ -655,6 +655,7 @@ class object_table extends object_override_data {
 	 * @see $this->get()
 	 */
 	public function options($options = []) {
+		$options['__options'] = true;
 		$data = $this->options_query_data($options);
 		// process options_map
 		if (isset($options['options_map'])) {
@@ -760,7 +761,11 @@ class object_table extends object_override_data {
 	 * @param array $options
 	 * @return array
 	 */
-	protected function options_query_data(& $options) {
+	public function options_query_data(& $options) {
+		// column prefix
+		if (empty($options['column_prefix'])) {
+			$options['column_prefix'] = $this->column_prefix;
+		}
 		// handle pk
 		if (!array_key_exists('pk', $options)) {
 			$options['pk'] = $this->pk;

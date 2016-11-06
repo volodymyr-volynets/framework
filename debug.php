@@ -283,7 +283,7 @@ class debug {
 								// header first
 								$result.= '<tr>';
 									$result.= '<td valign="top"><pre style="width: 500px;">' . nl2br($v['sql']) . '</pre></td>';
-									$result.= '<td valign="top">' . implode('<br/>', $v['error']) . '</td>';
+									$result.= '<td valign="top">' . implode('<br/>', $v['error']) . ' - ' . implode('<br/>', $v['error_original'] ?? []) . '</td>';
 									$result.= '<td valign="top">' . $v['errno'] . '</td>';
 									$result.= '<td valign="top">' . $v['num_rows'] . '</td>';
 									$result.= '<td valign="top">' . $v['affected_rows'] . '</td>';

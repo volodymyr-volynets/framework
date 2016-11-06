@@ -15,7 +15,7 @@ class object_data_domains extends object_data {
 		'scale' => ['name' => 'Scale', 'type' => 'smallint'],
 		// misc settings
 		'format' => ['name' => 'Format', 'type' => 'text'],
-		'format_params' => ['name' => 'Format Params', 'type' => 'mixed'],
+		'format_options' => ['name' => 'Format Params', 'type' => 'mixed'],
 		'validator_method' => ['name' => 'Validator Method', 'type' => 'text'],
 		'validator_params' => ['name' => 'Validator Params', 'type' => 'mixed'],
 		'align' => ['name' => 'Align', 'type' => 'text'],
@@ -62,10 +62,10 @@ class object_data_domains extends object_data {
 		'relation_id' => ['name' => 'Relation #', 'type' => 'bigint'],
 		'relation_id_sequence' => ['name' => 'Relation #', 'type' => 'bigserial', 'placeholder' => 'Sequence'],
 		// amounts
-		'amount' => ['name' => 'Amount', 'type' => 'bcnumeric', 'precision' => 24, 'scale' => 2, 'default' => '0.00', 'format' => 'amount', 'format_params' => ['decimals' => 2], 'align' => 'right'],
-		'quantity' => ['name' => 'Quantity', 'type' => 'bcnumeric', 'precision' => 24, 'scale' => 4, 'default' => '0.0000', 'format' => 'amount', 'format_params' => ['decimals' => 4], 'align' => 'right'],
-		'currency_rate' => ['name' => 'Currency Rate', 'type' => 'bcnumeric', 'precision' => 16, 'scale' => 8, 'default' => '1.00000000', 'format' => 'currency_rate', 'format_params' => ['decimals' => 8], 'align' => 'right'],
-		'bigamount' => ['name' => 'Amount (Big)', 'type' => 'bcnumeric', 'precision' => 32, 'scale' => 8, 'default' => '0.00000000', 'format' => 'amount', 'format_params' => ['decimals' => 8], 'align' => 'right'],
+		'amount' => ['name' => 'Amount', 'type' => 'bcnumeric', 'precision' => 24, 'scale' => 2, 'default' => '0.00', 'format' => 'amount', 'format_options' => ['decimals' => 2], 'align' => 'right'],
+		'quantity' => ['name' => 'Quantity', 'type' => 'bcnumeric', 'precision' => 24, 'scale' => 4, 'default' => '0.0000', 'format' => 'amount', 'format_options' => ['decimals' => 4], 'align' => 'right'],
+		'currency_rate' => ['name' => 'Currency Rate', 'type' => 'bcnumeric', 'precision' => 16, 'scale' => 8, 'default' => '1.00000000', 'format' => 'currency_rate', 'format_options' => ['decimals' => 8], 'align' => 'right'],
+		'bigamount' => ['name' => 'Amount (Big)', 'type' => 'bcnumeric', 'precision' => 32, 'scale' => 8, 'default' => '0.00000000', 'format' => 'amount', 'format_options' => ['decimals' => 8], 'align' => 'right'],
 		// accounting
 		'currency_code' => ['name' => 'Currency Code', 'type' => 'char', 'length' => 3, 'validator_method' => 'numbers_data_accounting_cs_model_currency_validator_codes::validate', 'searchable' => true],
 		'currency_type' => ['name' => 'Currency Type', 'type' => 'varchar', 'length' => 12, 'validator_method' => 'object_validator_uppercase::validate', 'searchable' => true],

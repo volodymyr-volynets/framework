@@ -682,7 +682,11 @@ function i18n($i18n, $text, $options = []) {
  * Short alias to i18n class
  */
 function i18n_if($text, $translate) {
-	return i18n::get(null, $text);
+	if ($translate) {
+		return i18n::get(null, $text);
+	} else {
+		return $text;
+	}
 }
 
 /**

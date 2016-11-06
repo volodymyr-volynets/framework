@@ -30,14 +30,14 @@ class layout extends view {
 	public static $version;
 
 	/**
-	 * Onload javascript
+	 * Onload JavaScript
 	 * 
 	 * @var string
 	 */
 	public static $onload = '';
 
 	/**
-	 * Javascript data would be here
+	 * JavaScript data would be here
 	 *
 	 * @var array
 	 */

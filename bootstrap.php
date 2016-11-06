@@ -12,11 +12,9 @@ class bootstrap {
 	 * Initialize db connections, cache and session
 	 */
 	public static function init($options = []) {
-
 		// get flags & dependencies
 		$flags = application::get('flag');
 		$backend = application::get('numbers.backend', ['backend_exists' => true]);
-
 		// processing wildcard first
 		$wildcard = application::get('wildcard');
 		$wildcard_keys = null;
@@ -24,7 +22,6 @@ class bootstrap {
 			$wildcard_keys = call_user_func($wildcard['model']);
 			application::set(['wildcard', 'keys'], $wildcard_keys);
 		}
-
 		// initialize cryptography
 		$crypt = application::get('crypt');
 		if (!empty($crypt) && $backend) {
@@ -34,7 +31,6 @@ class bootstrap {
 				}
 			}
 		}
-
 		// create database connections
 		$db = application::get('db');
 		if (!empty($db) && $backend) {
@@ -63,7 +59,6 @@ class bootstrap {
 				}
 			}
 		}
-
 		// initialize cache
 		$cache = application::get('cache');
 		if (!empty($cache) && $backend) {
@@ -86,22 +81,18 @@ class bootstrap {
 				}
 			}
 		}
-
 		// if we are from command line we exit here
 		if (!empty($options['__run_only_bootstrap'])) {
 			return;
 		}
-
 		// initialize session
 		$session = application::get('flag.global.session');
 		if (!empty($session['start']) && $backend && !application::get('flag.global.__skip_session')) {
 			session::start(isset($session['options']) ? $session['options'] : []);
 		}
-
 		// we need to get overrides from session and put them back to flag array
 		$flags = array_merge_hard($flags, session::get('numbers.flag'));
 		application::set('flag', $flags);
-
 		// initialize i18n
 		if ($backend) {
 			$temp_result = i18n::init();
@@ -109,15 +100,8 @@ class bootstrap {
 				Throw new Exception('Could not initialize i18n.');
 			}
 		}
-
-		// format: locale and timezone after database and cache
-		/* todo: fix here
-		$format = application::get(array('format'));
-		if (!empty($format)) {
-			format::init($format);
-		}
-		*/
-
+		// format
+		format::init();
 		// including libraries that we need to auto include
 		if (!empty($flags['global']['library'])) {
 			foreach ($flags['global']['library'] as $k => $v) {
@@ -129,7 +113,6 @@ class bootstrap {
 				}
 			}
 		}
-
 		// check if we need to include system files from frontend
 		if (application::get('dep.submodule.numbers.frontend.system')) {
 			numbers_frontend_system_model_base::start();
@@ -144,7 +127,13 @@ class bootstrap {
 		$token = urldecode($crypt_class->token_create('general'));
 		layout::js_data([
 			'token' => $token, // generating token to receive data from frontend
-			'controller_full' => application::get(['mvc', 'full']) // full controller path
+			'controller_full' => application::get(['mvc', 'full']), // full controller path
+			// flags set in configuration files
+			'flag' => [
+				'global' => [
+					'format' => format::$options // format options
+				]
+			]
 		]);
 	}
 

@@ -20,7 +20,7 @@ class math {
 	}
 
 	/**
-	 * Compare two numbers
+	 * Compare
 	 *
 	 * @param mixed $arg1
 	 * @param mixed $arg2
@@ -37,7 +37,6 @@ class math {
 	 * @param mixed $arg1
 	 * @param mixed $arg2
 	 * @param int $scale
-	 * @param boolean $first
 	 * @return string
 	 */
 	public static function add($arg1, $arg2, $scale = null) {
@@ -54,6 +53,31 @@ class math {
 	 */
 	public static function add2(& $arg1, $arg2, $scale = null) {
 		$arg1 = self::add($arg1, $arg2, $scale);
+		return $arg1;
+	}
+
+	/**
+	 * Subtract
+	 *
+	 * @param mixed $arg1
+	 * @param mixed $arg2
+	 * @param int $scale
+	 * @return string
+	 */
+	public static function subtract($arg1, $arg2, $scale = null) {
+		return self::__operator('bcsub', $arg1, $arg2, $scale ?? self::$scale);
+	}
+
+	/**
+	 * Subtract with reference
+	 *
+	 * @param string $arg1
+	 * @param string $arg2
+	 * @param int $scale
+	 * @return string
+	 */
+	public static function subtract2(& $arg1, $arg2, $scale = null) {
+		$arg1 = self::subtract($arg1, $arg2, $scale);
 		return $arg1;
 	}
 
@@ -140,7 +164,7 @@ class math {
 		if ($arg1[0] != '-') {
 			return bcadd($arg1, '1', 0);
 		} else {
-			return bcsub($number, '0', 0);
+			return bcsub($arg1, '0', 0);
 		}
 	}
 
@@ -161,6 +185,6 @@ class math {
 	 * @return string
 	 */
 	public static function zero($scale = null) {
-		return self::add('0', '0.00000000', $scale ?? self::$scale);
+		return self::add('0', '0.0000000000000', $scale ?? self::$scale);
 	}
 }

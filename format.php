@@ -7,42 +7,52 @@ class format {
 	 * 
 	 * @var array
 	 */
-	public static $options = null;
+	public static $options;
 
 	/**
-	 * Initialize locales
+	 * Default options
+	 *
+	 * @var array
+	 */
+	public static $defaut_options;
+
+	/**
+	 * Initialize
 	 * 
 	 * @param array $options
 	 */
-	public static function init($options) {
-		// processing locale
-		if (empty($options['locale'])) $options['locale'] = 'en_CA.utf8';
-		$short_locale = explode('.', $options['locale']);
-		setlocale(LC_ALL, $options['locale'], $short_locale[0]);
-		// processing time zone
-		if (empty($options['timezone'])) $options['timezone'] = 'America/Toronto';
-		date_default_timezone_set($options['timezone']);
-		// storing settings
-		/*
-		if (empty(self::$locales) && !empty($options['model_locales'])) {
-			list($model, $method) = explode('::', $options['model_locales']);
-			$locales_model = new $model();
-			self::$locales = call_user_func(array($locales_model, $method));
-			$options['locale_name'] = self::$locales[$options['locale']]['ss_locale_name'];
-		}
-		*/
-		self::$options = $options;
+	public static function init($options = []) {
+		self::$defaut_options = [
+			'locale' => 'en_CA.utf8',
+			'timezone' => 'America/Toronto',
+			'server_timezone' => application::get('php.date.timezone'),
+			'date' => 'Y-m-d',
+			'time' => 'H:i:s',
+			'datetime' => 'Y-m-d H:i:s',
+			'timestamp' => 'Y-m-d H:i:s.u'
+		];
+		// settings from config files
+		$config = application::get('flag.global.format');
+		// settings from user account
+		$entity = entity::groupped('format');
+		// merge all of them together
+		self::$options = array_merge_hard(self::$defaut_options, $config, $entity, $options);
+		// set locale
+		$short_locale = explode('.', self::$options['locale']);
+		self::$options['locale_set_name'] = setlocale(LC_ALL, self::$options['locale'], $short_locale[0]);
+		self::$options['locale_options'] = localeconv();
+		// fix locale values
+		self::$options['locale_options']['mon_thousands_sep'] = self::$options['locale_options']['mon_thousands_sep'] ?? ',';
+		self::$options['locale_options']['mon_decimal_point'] = self::$options['locale_options']['mon_decimal_point'] ?? '.';
 	}
 
 	/**
-	 * Determine if we can use locales, windows system is not supported
+	 * Determine if we can use locales
 	 * 
 	 * @return boolean
 	 */
 	public static function use_locale() {
-		// we disable locale for now, it causes issues with dates and amounts, need additional testing on linux environment
-		return false;
-		//return (PHP_OS == 'Linux') ? true : false;
+		return !empty(self::$options['locale_set_name']);
 	}
 
 	/**
@@ -52,18 +62,7 @@ class format {
 	 * @return string
 	 */
 	public static function get_date_format($type) {
-		// we load format from global flags
-		$global_format = application::get('flag.global.format');
-		if ($type == 'time') {
-			$format = $global_format['time'] ?? 'H:i:s';
-		} else if ($type == 'datetime') {
-			$format = $global_format['datetime'] ?? 'Y-m-d H:i:s';
-		} else if ($type == 'timestamp') {
-			$format = $global_format['timestamp'] ?? 'Y-m-d H:i:s.u';
-		} else {
-			$format = $global_format['date'] ?? 'Y-m-d';
-		}
-		return $format;
+		return self::$options[$type];
 	}
 
 	/**
@@ -105,14 +104,14 @@ class format {
 		$format = $options['format'] ?? self::get_date_format($type);
 		// additional handling for timestamp
 		if (is_float($value)) {
-			$temp = explode('.', $value . '');
-			$value = date('Y-m-d H:i:s', $temp[0]) . '.' . $temp[1];
+			$temp = explode(self::$options['locale_options']['mon_decimal_point'] ?? '.', $value . '');
+			$value = date('Y-m-d H:i:s', (int) $temp[0]) . '.' . $temp[1];
 		}
 		try {
-			$object = new DateTime($value);
+			$object = new DateTime($value, new DateTimeZone(self::$options['server_timezone']));
+			$object->setTimezone(new DateTimeZone(self::$options['timezone']));
 			return $object->format($format);
-		} catch (Exception $e) {
-			// on exception we return as is
+		} catch (Exception $e) { // on exception we return as is
 			return $value;
 		}
 	}
@@ -185,7 +184,6 @@ class format {
 		if (!empty($options['add_seconds'])) {
 			$time+= $options['add_seconds'];
 		}
-		// todo: handle timezone here!!!
 		// if we need to format
 		if (!empty($options['format'])) {
 			return self::{$type}($time);
@@ -236,7 +234,7 @@ class format {
 	}
 
 	/**
-	 * Transform date from locale into php
+	 * Read date
 	 * 
 	 * @param string $date
 	 * @param string $type
@@ -246,21 +244,28 @@ class format {
 		if (empty($date)) {
 			return null;
 		}
-		$time = is_numeric($date) ? $date : strtotime($date);
-		switch ($type) {
-			case 'timestamp':
-				return $date; // as is for now, this type can only be set by application in the code
-				break;
-			case 'time':
-				return date('H:i:s', $time);
-				break;
-			case 'datetime':
-				return date('Y-m-d H:i:s', $time);
-				break;
-			case 'date':
-			default:
-				return date('Y-m-d', $time);
+		// initialize options
+		if (!isset(self::$options)) {
+			self::init();
 		}
+		// dates are accepted as is
+		if ($type == 'date') {
+			$timezone = new DateTimeZone(self::$options['server_timezone']);
+		} else {
+			$timezone = new DateTimeZone(self::$options['timezone']);
+		}
+		// try to get a date from user format
+		$object = DateTime::createFromFormat(self::$options[$type], $date, $timezone);
+		if ($object === false) { // system format
+			$object = DateTime::createFromFormat(self::$defaut_options[$type], $date, $timezone);
+		}
+		if ($object === false) { // strtotime
+			$date = date('Y-m-d H:i:s', strtotime($date));
+			$object = new DateTime($date, $timezone);
+		}
+		// convert between timezones
+		$object->setTimezone(new DateTimeZone(self::$options['server_timezone']));
+		return $object->format(self::$defaut_options[$type]);
 	}
 
 	/**
@@ -280,25 +285,24 @@ class format {
 	}
 
 	/**
-	 * Transform float from locale to php
+	 * Read float
 	 * 
 	 * @param string/float $amount
 	 * @param array $options
 	 *		boolean - bcnumeric
 	 *		boolean - valid_check
-	 * @return number
+	 * @return mixed
 	 */
 	public static function read_floatval($amount, $options = []) {
-		$locale = localeconv();
-		if (!self::use_locale()) {
-			$locale['thousands_sep'] = ',';
-			$locale['decimal_point'] = '.';
-		}
 		// remove currency symbol and name, thousands separator
-		$amount = str_replace(array($locale['int_curr_symbol'], $locale['currency_symbol'], $locale['mon_thousands_sep'], $locale['thousands_sep']), '', $amount . '');
+		$amount = str_replace([
+			self::$options['locale_options']['int_curr_symbol'],
+			self::$options['locale_options']['currency_symbol'],
+			self::$options['locale_options']['mon_thousands_sep']
+		], '', $amount . '');
 		// handle decimal separator
-		if ($locale['decimal_point'] != '.') {
-			$amount = str_replace($locale['decimal_point'], '.', $amount);
+		if (self::$options['locale_options']['mon_decimal_point'] !== '.') {
+			$amount = str_replace(self::$options['locale_options']['mon_decimal_point'], '.', $amount);
 		}
 		// sanitize only check
 		if (!empty($options['valid_check'])) {
@@ -312,21 +316,37 @@ class format {
 			}
 			return $temp;
 		}
-		return floatval($amount);
+		// process based on type
+		if (($options['valid_check_type'] ?? '') === FILTER_VALIDATE_INT) {
+			return intval($amount);
+		} else {
+			return floatval($amount);
+		}
 	}
 
 	/**
-	 * Transform integer from locale to php
+	 * Read bcnumeric
+	 *
+	 * @param string $amount
+	 * @param array $options
+	 * @return mixed
+	 */
+	public static function read_bcnumeric($amount, $options = []) {
+		$options['bcnumeric'] = true;
+		return self::read_floatval($amount, $options);
+	}
+
+	/**
+	 * Read integer
 	 * 
 	 * @param mixed $amount
 	 * @param array $options
-	 *		boolean - bcnumeric
 	 *		boolean - valid_check
 	 * @return number
 	 */
 	public static function read_intval($amount, $options = []) {
 		$options['valid_check_type'] = FILTER_VALIDATE_INT;
-		return intval(self::read_floatval($amount, $options));
+		return self::read_floatval($amount, $options);
 	}
 
 	/**

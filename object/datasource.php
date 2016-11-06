@@ -495,16 +495,31 @@ class object_datasource extends object_table {
 		if (!method_exists($this, 'query')) {
 			Throw new Exception('You must specify sql in query method!');
 		}
+		$data = [];
+		$this->acl_get_options = $options;
+		// handle acl init
+		if (!empty($options['acl'])) {
+			$acl_key = get_called_class();
+			if (factory::model('object_acl_class', true)->acl_init($acl_key, $data, $this->acl_get_options) === false) {
+				return $data;
+			}
+			$options = $this->acl_get_options;
+		}
 		// get query
 		$sql = $this->query($options);
 		// process query
 		$result = $this->process_query($sql, $this->pk, $options);
-		if (!$result['success']) {
-			Throw new Exception('Query error in datasource: ' . implode(' ', $result['error']));
-		} else if (method_exists($this, 'process')) { // process data
-			return $this->process($result['rows'], $options);
+		if (method_exists($this, 'process')) { // process data
+			$data = $this->process($result['rows'], $options);
 		} else {
-			return $result['rows'];
+			$data = $result['rows'];
 		}
+		// handle acl init
+		if (!empty($options['acl'])) {
+			if (factory::model('object_acl_class', true)->acl_finish($acl_key, $data, $this->acl_get_options) === false) {
+				return $data;
+			}
+		}
+		return $data;
 	}
 }
