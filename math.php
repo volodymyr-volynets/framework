@@ -133,6 +133,10 @@ class math {
 	 * @return string
 	 */
 	public static function round($arg1, $scale = 0) {
+		if (!is_int($scale)) {
+			print_r2($scale);
+			exit;
+		}
 		if ($arg1[0] != '-') {
 			return bcadd($arg1, '0.' . str_repeat('0', $scale) . '5', $scale);
 		} else {

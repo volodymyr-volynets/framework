@@ -37,7 +37,7 @@ function concat_ws_array($delimiter, $arr) {
 }
 
 /**
- * Compane and swap two variables if needed, order can be different
+ * Compare and swap two variables if needed, order can be different
  * 
  * @param mixed $a
  * @param mixed $b
@@ -672,14 +672,23 @@ function array_key_unset(& $arr, $keys, $options = []) {
 }
 
 /**
- * Short alias to i18n class
+ * i18n, alias
+ *
+ * @param mixed $i18n
+ * @param mixed $text
+ * @param array $options
+ * @return string
  */
 function i18n($i18n, $text, $options = []) {
 	return i18n::get($i18n, $text, $options);
 }
 
 /**
- * Short alias to i18n class
+ * i18n if
+ *
+ * @param type $text
+ * @param type $translate
+ * @return string
  */
 function i18n_if($text, $translate) {
 	if ($translate) {
@@ -690,7 +699,7 @@ function i18n_if($text, $translate) {
 }
 
 /**
- * Merge vars into object
+ * Merge variables into object
  *
  * @param object $object
  * @param array $vars
@@ -721,4 +730,30 @@ function object_merge_values(& $object, $vars) {
  */
 function chance($percent) {
 	return (mt_rand(0, 99) < $percent);
+}
+
+/**
+ * Split multi-byte strings
+ *
+ * @param string $string
+ * @param int $limit
+ * @param string $pattern
+ * @return array
+ */
+function mb_str_split($string, $limit = -1, $pattern = null) {
+	if (isset($pattern)) {
+		return mb_split($pattern, $string, $limit);
+	} else {
+		$result = [];
+		$counter = 0;
+		$strlen = mb_strlen($string);
+		while ($strlen) {
+			$counter++;
+			if ($limit != -1 && $counter > $limit) break;
+			$result[] = mb_substr($string, 0, 1, 'UTF-8');
+			$string = mb_substr($string, 1, $strlen, 'UTF-8');
+			$strlen = mb_strlen($string);
+		}
+		return $result;
+	}
 }

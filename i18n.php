@@ -13,26 +13,41 @@ class i18n implements numbers_backend_i18n_interface_base {
 	public static $initialized = false;
 
 	/**
+	 * Options
+	 *
+	 * @var array
+	 */
+	public static $options = [];
+
+	/**
 	 * Initializing i18n
 	 *
 	 * @param array $options
 	 */
 	public static function init($options = []) {
-		self::$initialized = true;
-		$i18n = application::get('flag.global.i18n');
-		// merge options into settings
-		if (!empty($options)) {
-			$i18n = array_merge2($i18n, $options);
-		}
+		$i18n = application::get('flag.global.i18n') ?? [];
+		$i18n = array_merge_hard($i18n, $options ?? []);
 		// determine final language
 		$languages = factory::model('numbers_backend_i18n_languages_model_languages')->get();
-		$final_language = application::get('flag.global.__language_code') ?? session::get('numbers.i18n.language_code') ?? $i18n['language_code'] ?? 'sys';
+		$final_language = application::get('flag.global.__language_code') ?? session::get('numbers.entity.format.language_code') ?? $i18n['language_code'] ?? 'sys';
 		if (empty($languages[$final_language])) {
 			$final_language = 'sys';
+			$i18n['rtl'] = 0;
+		}
+		// put settings into system
+		if (!empty($languages[$final_language])) {
+			foreach ($languages[$final_language] as $k => $v) {
+				$k = str_replace('lc_language_', '', $k);
+				if (in_array($k, ['code', 'inactive'])) continue;
+				if (empty($v)) continue;
+				$i18n[$k] = $v;
+			}
 		}
 		$i18n['language_code'] = $final_language;
-		session::set('numbers.i18n.language_code', $final_language);
+		self::$options = $i18n;
+		session::set('numbers.entity.format.language_code', $final_language);
 		application::set('flag.global.i18n', $i18n);
+		self::$initialized = true;
 		// initialize the module
 		return factory::submodule('flag.global.i18n.submodule')->init($i18n);
 	}
@@ -53,7 +68,16 @@ class i18n implements numbers_backend_i18n_interface_base {
 	 * @return string
 	 */
 	public static function get($i18n, $text, $options = []) {
-		return factory::submodule('flag.global.i18n.submodule')->get($i18n, $text, $options);
+		$text = factory::submodule('flag.global.i18n.submodule')->get($i18n, $text, $options);
+		// if we need to handle replaces, for example:
+		//		"Error occured on line [line_number]"
+		// important: replaces must be translated/formatted separatly
+		if (!empty($options['replace'])) {
+			foreach ($options['replace'] as $k => $v) {
+				$text = str_replace($k, $v, $text);
+			}
+		}
+		return $text;
 	}
 
 	/**
@@ -73,12 +97,10 @@ class i18n implements numbers_backend_i18n_interface_base {
 	 * @return mixed
 	 */
 	public static function rtl($flag = true) {
-		$languages = factory::model('numbers_backend_i18n_languages_model_languages')->get();
-		$language_code = application::get('flag.global.i18n.language_code');
 		if ($flag) {
-			return $languages[$language_code]['lc_language_rtl'] ? true : false;
+			return !empty(self::$options['rtl']);
 		} else {
-			return $languages[$language_code]['lc_language_rtl'] ? 'dir="rtl"' : '';
+			return !empty(self::$options['rtl']) ? ' dir="rtl" ' : ' dir="ltr" ';
 		}
 	}
 }

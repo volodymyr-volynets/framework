@@ -12,6 +12,9 @@ class bootstrap {
 	 * Initialize db connections, cache and session
 	 */
 	public static function init($options = []) {
+		// initialize mbstring
+		mb_internal_encoding('UTF-8');
+		mb_regex_encoding('UTF-8');
 		// get flags & dependencies
 		$flags = application::get('flag');
 		$backend = application::get('numbers.backend', ['backend_exists' => true]);

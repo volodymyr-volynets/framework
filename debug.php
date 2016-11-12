@@ -147,7 +147,7 @@ class debug {
 			self::$data['session'] = [$_SESSION];
 		}
 		$application = application::get();
-		$result = '<div class="container">';
+		$result = '<div class="container" dir="ltr">';
 			$result.= '<table cellpadding="2" cellspacing="2" width="100%">';
 				$result.= '<tr>';
 					$result.= '<td>';

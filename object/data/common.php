@@ -119,7 +119,6 @@ class object_data_common {
 	 */
 	public static function options($data, $options_map, $options = []) {
 		$i18n = [];
-		$i18n_inactive = !empty($options['i18n']) ? i18n(null, '[Inactive]') : '[Inactive]';
 		$format = [];
 		$options_map_new = [];
 		$format_methods = [];
@@ -148,15 +147,8 @@ class object_data_common {
 					foreach ($i18n as $k2 => $v2) {
 						// we need to skip few things
 						if (!isset($data[$k][$k2])) continue;
-						if (is_integer($data[$k][$k2])) continue;
 						$data[$k][$k2] = i18n(null, $data[$k][$k2]);
 					}
-				}
-				// inactive
-				if (!empty($options['column_prefix']) && !empty($v[$options['column_prefix'] . 'inactive'])) {
-					$options_map_new[$options['column_prefix'] . 'inactive'] = 'inactive';
-					$options_map_new['__prepend'] = 'name';
-					$data[$k]['__prepend'] = $i18n_inactive;
 				}
 				// format
 				if (!empty($format)) {
@@ -164,6 +156,16 @@ class object_data_common {
 						$data[$k][$k2] = call_user_func_array([$format_methods[$k2][0], $format_methods[$k2][1]], [$data[$k][$k2], $v2['format_options'] ?? []]);
 					}
 				}
+			}
+		}
+		// inactive
+		$inactive_message = '*Inactive';
+		$i18n_inactive = !empty($options['i18n']) ? i18n(null, $inactive_message) : $inactive_message;
+		foreach ($data as $k => $v) {
+			if (!empty($options['column_prefix']) && !empty($v[$options['column_prefix'] . 'inactive'])) {
+				$options_map_new[$options['column_prefix'] . 'inactive'] = 'inactive';
+				$options_map_new['__prepend'] = 'name';
+				$data[$k]['__prepend'] = $i18n_inactive;
 			}
 		}
 		return remap($data, $options_map_new);
@@ -182,7 +184,7 @@ class object_data_common {
 	public static function build_options($data, $options_map, $orderby, $options) {
 		$data = object_data_common::options($data, $options_map, $options);
 		// sorting
-		if (!empty($options['i18n'])) {
+		if (!empty($options['i18n']) && $options['i18n'] !== 'skip_sorting') {
 			// mandatory sorting if localized
 			array_key_sort($data, ['name' => SORT_ASC], ['name' => SORT_NATURAL]);
 		} else if (empty($orderby)) {

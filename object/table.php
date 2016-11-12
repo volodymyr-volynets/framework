@@ -560,7 +560,9 @@ class object_table extends object_override_data {
 				$columns.= $this->db_object->prepare_expression($temp) . ', ';
 			}
 			$columns.= "concat_ws(' ', " . $this->db_object->prepare_expression($options['columns']) . ") preset_value";
-			$sql.= 'AND coalesce(' . $this->db_object->prepare_expression($options['columns']) . ') IS NOT NULL';
+			$sql.= ' AND coalesce(' . $this->db_object->prepare_expression($options['columns']) . ') IS NOT NULL';
+			// if its a preset we cache
+			$options_query['cache'] = true;
 		} else { // regular columns
 			if (!empty($options['columns'])) {
 				$columns = $this->db_object->prepare_expression($options['columns']);
@@ -722,7 +724,7 @@ class object_table extends object_override_data {
 		foreach ($values_found as $k => $v) {
 			$values_found[$k]['__parent'] = '__values_found_all__';
 		}
-		$values_found['__values_found_all__'] = ['name' => i18n_if('Previously Set Value(s):', $options['i18n'] ?? false), '__parent' => null, 'disabled' => true];
+		$values_found['__values_found_all__'] = ['name' => i18n_if('Previously Set Values:', $options['i18n'] ?? false), '__parent' => null, 'disabled' => true];
 		// eixsting values
 		if (!empty($options['existing_values'])) {
 			$existing_values = is_array($options['existing_values']) ? $options['existing_values'] : [$options['existing_values']];

@@ -95,10 +95,12 @@ class crypt implements numbers_backend_crypt_interface_base {
 	 * Validate token
 	 *
 	 * @param string $token - urldecoded
+	 * @param array $options
+	 *		boolean skip_time_validation
 	 * @return array or false on error
 	 */
-	public function token_validate($token) {
-		return $this->object->token_validate($token);
+	public function token_validate($token, $options = []) {
+		return $this->object->token_validate($token, $options = []);
 	}
 
 	/**
