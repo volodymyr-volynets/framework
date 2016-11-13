@@ -150,7 +150,7 @@ class layout extends view {
 	}
 
 	/**
-	 * Add array to js data
+	 * Add array to JavaScript data
 	 *
 	 * @param array $data
 	 */
@@ -159,10 +159,10 @@ class layout extends view {
 	}
 
 	/**
-	 * Render js data
+	 * Render JavaScript data
 	 */
 	public static function render_js_data() {
-		return html::script(['value' => 'var numbers_js_data = ' . json_encode(self::$js_data) . '; $.extend(numbers, numbers_js_data); numbers_js_data = null;']);
+		return html::script(['value' => 'var numbers_js_data = ' . json_encode(self::$js_data) . '; $.extend(true, numbers, numbers_js_data); numbers_js_data = null;']);
 	}
 
 	/**

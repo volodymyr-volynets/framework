@@ -446,7 +446,7 @@ function array_key_math(& $arr, $key, $type = 'add') {
  * @return mixed
  */
 function array_key_get(& $arr, $keys = null, $options = []) {
-	if ($keys === null) {
+	if ($keys === null || (is_array($keys) && empty($keys))) {
 		return $arr;
 	} else {
 		if (!is_array($keys)) {

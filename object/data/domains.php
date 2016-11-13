@@ -64,9 +64,9 @@ class object_data_domains extends object_data {
 		'relation_id' => ['name' => 'Relation #', 'type' => 'bigint', 'format' => 'id'],
 		'relation_id_sequence' => ['name' => 'Relation #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id', 'format' => 'id'],
 		// amounts
-		'amount' => ['name' => 'Amount', 'type' => 'bcnumeric', 'precision' => 24, 'scale' => 2, 'default' => '0.00', 'format' => 'amount', 'format_options' => ['decimals' => 2], 'align' => 'right'],
+		'amount' => ['name' => 'Amount', 'type' => 'bcnumeric', 'precision' => 24, 'scale' => 2, 'default' => '0.00', 'format' => 'amount', 'align' => 'right'],
 		'quantity' => ['name' => 'Quantity', 'type' => 'bcnumeric', 'precision' => 24, 'scale' => 4, 'default' => '0.0000', 'format' => 'quantity', 'align' => 'right'],
-		'currency_rate' => ['name' => 'Currency Rate', 'type' => 'bcnumeric', 'precision' => 16, 'scale' => 8, 'default' => '1.00000000', 'format' => 'currency_rate', 'format_options' => ['decimals' => 8], 'align' => 'right'],
+		'currency_rate' => ['name' => 'Currency Rate', 'type' => 'bcnumeric', 'precision' => 16, 'scale' => 8, 'default' => '1.00000000', 'format' => 'currency_rate', 'align' => 'right'],
 		'bigamount' => ['name' => 'Amount (Big)', 'type' => 'bcnumeric', 'precision' => 32, 'scale' => 8, 'default' => '0.00000000', 'format' => 'amount', 'format_options' => ['decimals' => 8], 'align' => 'right'],
 		// accounting
 		'currency_code' => ['name' => 'Currency Code', 'type' => 'char', 'length' => 3, 'validator_method' => 'numbers_data_accounting_cs_model_currency_validator_codes::validate', 'searchable' => true],

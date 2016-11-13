@@ -87,7 +87,7 @@ class object_data extends object_override_data {
 	];
 
 	/**
-	 * Intiator class
+	 * Initiator class
 	 *
 	 * @var string
 	 */
@@ -184,6 +184,25 @@ class object_data extends object_override_data {
 			pk($pk, $result);
 		}
 		return $result;
+	}
+
+	/**
+	 * Get setting
+	 *
+	 * @param string $setting
+	 * @param string $property
+	 * @return mixed
+	 */
+	public static function get_setting($setting = null, $property = null) {
+		$data = self::get_static();
+		$keys = [];
+		if (isset($setting)) {
+			$keys[] = $setting;
+			if (isset($property)) {
+				$keys[] = $property;
+			}
+		}
+		return array_key_get($data, $keys);
 	}
 
 	/**

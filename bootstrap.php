@@ -136,6 +136,10 @@ class bootstrap {
 				'global' => [
 					'format' => format::$options // format options
 				]
+			],
+			// domains
+			'object_data_domains' => [
+				'data' => object_data_domains::get_static()
 			]
 		]);
 	}

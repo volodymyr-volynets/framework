@@ -464,6 +464,10 @@ class format {
 		if (!empty($options['currency_code'])) {
 			$options['symbol'] = self::$options['settings']['currency_codes'][$options['currency_code']]['symbol'] ?? null;
 		}
+		// decimals
+		if (!isset($options['decimals'])) {
+			$options['decimals'] = object_data_domains::get_setting('amount', 'scale');
+		}
 		// user defined monetary options
 		if (empty($options['skip_user_settings'])) {
 			// if type is not set then grab it from settings
@@ -495,9 +499,9 @@ class format {
 			$amount = self::money_format($amount, $options);
 		} else { // if we are not using locale
 			if (!empty($options['accounting']) && $amount < 0) {
-				$amount = '(' . number_format(abs($amount), $options['decimals'] ?? 2, self::$options['locale_options']['mon_decimal_point'], self::$options['locale_options']['mon_thousands_sep']) . ')';
+				$amount = '(' . number_format(abs($amount), $options['decimals'], self::$options['locale_options']['mon_decimal_point'], self::$options['locale_options']['mon_thousands_sep']) . ')';
 			} else {
-				$amount = number_format($amount, $options['decimals'] ?? 2, self::$options['locale_options']['mon_decimal_point'], self::$options['locale_options']['mon_thousands_sep']);
+				$amount = number_format($amount, $options['decimals'], self::$options['locale_options']['mon_decimal_point'], self::$options['locale_options']['mon_thousands_sep']);
 			}
 		}
 		return $amount;
@@ -514,13 +518,25 @@ class format {
 	}
 
 	/**
+	 * Currency Rate
+	 *
+	 * @param float $amount
+	 * @param array $options
+	 * @return string
+	 */
+	public static function currency_rate($amount, $options = []) {
+		$options['decimals'] = object_data_domains::get_setting('currency_rate', 'scale');
+		return self::amount($amount, $options);
+	}
+
+	/**
 	 * Quantity
 	 *
 	 * @see format::amount()
 	 */
 	public static function quantity($amount, $options = []) {
 		$options['symbol'] = false;
-		$options['decimals'] = $options['decimals'] ?? 4;
+		$options['decimals'] = object_data_domains::get_setting('quantity', 'scale');
 		return self::amount($amount, $options);
 	}
 
@@ -702,48 +718,6 @@ class format {
 			40 => ['name' => 'Accounting (Locale, Without Currency Symbol)', 'title' => '(123,456.00)'],
 			99 => ['name' => 'Plain Amount', 'title' => '-123456.00']
 		];
-	}
-
-	/**
-	 * Currency Rate
-	 * 
-	 * @param float $amount
-	 * @param array $options
-	 * @return string
-	 */
-	public static function currency_rate($amount, $options = []) {
-		$options['decimals'] = $options['decimals'] ?? 8;
-		return self::amount($amount, $options);
-	}
-
-	/**
-	 * Format hourly rate
-	 * 
-	 * @param float $amount
-	 * @param array $options
-	 * @return string
-	 */
-	public static function hourly_rate($amount, $options = []) {
-		$options['decimals'] = 4;
-		return self::amount($amount, $options);
-	}
-
-	/**
-	 * Format Fiscal Year/Period
-	 * 
-	 * @param int $year
-	 * @param int $period
-	 * @param boolean $flag_year_only
-	 * @return string
-	 */
-	public static function fiscal_year_period($year, $period, $flag_year_only = false) {
-		if ($flag_year_only) {
-			if (empty($year)) return '';
-			return substr($year, 0, 4) . '-' . substr($year, 4, 2);
-		} else {
-			if (empty($year) && empty($period)) return '';
-			return $year . '-' . $period;
-		}
 	}
 
 	/**
