@@ -17,6 +17,30 @@ class format {
 	public static $defaut_options;
 
 	/**
+	 * Symbols
+	 *
+	 * For overrides to work you must define it in $symbol_defaults as well
+	 */
+	public static $symbol_comma = ',';
+	public static $symbol_dash = '-';
+	public static $symbol_dot = '.';
+	public static $symbol_question_mark = '?';
+	public static $symbol_semicolon = ';';
+
+	/**
+	 * Default symbols
+	 *
+	 * @var array
+	 */
+	public static $symbol_defaults = [
+		'comma' => ',',
+		'dash' => '-',
+		'dot' => '.',
+		'question_mark' => '?',
+		'semicolon' => ';'
+	];
+
+	/**
 	 * Initialize
 	 * 
 	 * @param array $options
@@ -43,6 +67,8 @@ class format {
 			'locale_set_name' => null, // set locale
 			'locale_options' => [], // localeconv() output would be stored here
 			'locale_override_class' => null, // override class
+			// symbols
+			'symbols' => []
 		];
 		// settings from config files
 		$config = application::get('flag.global.format');
@@ -71,10 +97,22 @@ class format {
 			}
 			unset(self::$options['model']);
 		}
-		// push js format version to frontend
+		// handle overrides
 		if (!empty(self::$options['locale_override_class'])) {
+			// push js format version to frontend
 			$locale_override_class = self::$options['locale_override_class'];
 			$locale_override_class::js();
+			// preset symbols
+			if (!empty($locale_override_class::$symbol_defaults)) {
+				foreach ($locale_override_class::$symbol_defaults as $k => $v) {
+					if (empty(self::$symbol_defaults[$k])) continue;
+					self::${'symbol_' . $k} = $v;
+				}
+			}
+		}
+		// symbols
+		foreach (self::$symbol_defaults as $k => $v) {
+			self::$options['symbols'][$k] = self::${'symbol_' . $k};
 		}
 	}
 
@@ -194,7 +232,7 @@ class format {
 		// additional handling for timestamp
 		if (is_float($value)) {
 			$temp = explode('.', $value . '');
-			$value = date('Y-m-d H:i:s', (int) $temp[0]) . '.' . $temp[1];
+			$value = date('Y-m-d H:i:s', (int) $temp[0]) . (isset($temp[1]) ? '.' . $temp[1] : '');
 		}
 		try {
 			$object = new DateTime($value, new DateTimeZone(self::$options['server_timezone']));
@@ -702,22 +740,6 @@ class format {
 			}
 		}
 		return $number;
-	}
-
-	/**
-	 * Amount format options
-	 *
-	 * @param array $options
-	 * @return array
-	 */
-	public function amount_format_options($options = []) {
-		return [
-			10 => ['name' => 'Amount (Locale, With Currency Symbol)', 'title' => '$ -123,456.00'],
-			20 => ['name' => 'Amount (Locale, Without Currency Symbol)', 'title' => '-123,456.00'],
-			30 => ['name' => 'Accounting (Locale, With Currency Symbol)', 'title' => '$(123,456.00)'],
-			40 => ['name' => 'Accounting (Locale, Without Currency Symbol)', 'title' => '(123,456.00)'],
-			99 => ['name' => 'Plain Amount', 'title' => '-123456.00']
-		];
 	}
 
 	/**

@@ -44,7 +44,7 @@ class object_widgets {
 	/**
 	 * Widgets that can be attached to the models
 	 */
-	const widget_models = ['attributes', 'addresses', 'audit'];
+	const widget_models = ['attributes', 'addresses', 'audit', 'registrations'];
 
 	/**
 	 * Indicator whether widgets are enabled

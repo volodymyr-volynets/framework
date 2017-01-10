@@ -77,9 +77,12 @@ class factory {
 	 *
 	 * @param string $class
 	 * @param boolean $cache
+	 * @param array $options
 	 * @return object
 	 */
-	public static function model($class, $cache = false) {
+	public static function model($class, $cache = false, $options = null) {
+		// fix dot notation
+		$class = str_replace('.', '_', $class);
 		// if we need to override classes
 		if (isset(overrides_factory::$data[$class])) {
 			$class = overrides_factory::$data[$class];
@@ -95,7 +98,12 @@ class factory {
 				self::$class_objects['model'][$class] = object_virtual_models::model($class);
 			} else {
 no_cache:
-				self::$class_objects['model'][$class] = new $class;
+				// if we need to pass options to an object
+				if (isset($options)) {
+					self::$class_objects['model'][$class] = new $class($options);
+				} else {
+					self::$class_objects['model'][$class] = new $class();
+				}
 			}
 			$object = & self::$class_objects['model'][$class];
 		}

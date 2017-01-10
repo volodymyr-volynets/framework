@@ -20,6 +20,16 @@ class math {
 	}
 
 	/**
+	 * Double the scale
+	 *
+	 * @param mixed scale
+	 * @returns integer
+	 */
+	public static function double($scale) {
+		return (intval($scale) * 2) + 1;
+	}
+
+	/**
 	 * Compare
 	 *
 	 * @param mixed $arg1

@@ -8,6 +8,7 @@ class object_validator_year extends object_validator_base {
 	public function validate($value, $options = []) {
 		$result = $this->result;
 		$result['placeholder'] = 'YYYY';
+		$result['placeholder_select'] = 'Year';
 		$value = (int) $value;
 		if ($value < 1000 || $value > 9999) {
 			$result['error'][] = 'Invalid year!';

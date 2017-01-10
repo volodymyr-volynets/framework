@@ -9,6 +9,11 @@ class helper_acl {
 	 * @param string $controller_class
 	 */
 	public static function merge_data_with_db(& $controller_object, $controller_class) {
+		
+		return;
+		
+		// todo fix here
+		
 		$temp = application::get('dep.submodule.numbers.backend.system.controller');
 		if ($temp) {
 			$object = new numbers_backend_system_controller_model_datasource_controllers();

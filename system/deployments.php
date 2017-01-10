@@ -20,7 +20,7 @@ class system_deployments {
 
 			$temp = rtrim(getcwd(), '/');
 			$deployed_dir = $temp . '/../../deployed';
-			$code_dir = $temp . '/../../code';
+			$code_dir = $temp . '/../../application';
 
 			// for development we handle deployment differently, just symlink to the code
 			if ($options['mode'] == 'code_dev') {
@@ -28,6 +28,7 @@ class system_deployments {
 					shell_exec("rm -r $deployed_dir");
 				}
 				symlink($code_dir, $deployed_dir);
+				print_r(555555);
 				$result['success'] = true;
 				break;
 			}

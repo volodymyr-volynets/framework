@@ -35,7 +35,7 @@ class object_table_columns extends object_data {
 		// process domain
 		if (!empty($options['process_domains'])) {
 			$temp = [$column_name => $column_options];
-			$temp = object_data_common::process_domains($temp);
+			$temp = object_data_common::process_domains_and_types($temp);
 			$column_options = $temp[$column_name];
 		}
 		// if we ignoring not set fields
@@ -68,6 +68,15 @@ class object_table_columns extends object_data {
 	 * @return array
 	 */
 	public static function process_single_column_type($column_name, $column_options, $value, $options = []) {
+		// we need to fix default
+		if (isset($column_options['default'])) {
+			foreach (['dependent::', 'parent::', 'master_object::', 'static::'] as $v) {
+				if (strpos($column_options['default'] . '', $v) !== false) {
+					unset($column_options['default']);
+					break;
+				}
+			}
+		}
 		$result = [];
 		// processing as per different data types
 		if ($column_options['type'] == 'boolean') { // booleans
@@ -131,7 +140,12 @@ class object_table_columns extends object_data {
 			if (is_null($value)) {
 				$result[$column_name] = null;
 			} else {
-				$result[$column_name] = (string) $value;
+				// we need to convert numeric strings
+				if (($column_options['format'] ?? '') == 'id') {
+					$result[$column_name] = format::number_to_from_native_language($value, [], true);
+				} else {
+					$result[$column_name] = (string) $value;
+				}
 			}
 		}
 		return $result;

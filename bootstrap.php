@@ -18,13 +18,6 @@ class bootstrap {
 		// get flags & dependencies
 		$flags = application::get('flag');
 		$backend = application::get('numbers.backend', ['backend_exists' => true]);
-		// processing wildcard first
-		$wildcard = application::get('wildcard');
-		$wildcard_keys = null;
-		if (!empty($wildcard['enabled']) && !empty($wildcard['model'])) {
-			$wildcard_keys = call_user_func($wildcard['model']);
-			application::set(['wildcard', 'keys'], $wildcard_keys);
-		}
 		// initialize cryptography
 		$crypt = application::get('crypt');
 		if (!empty($crypt) && $backend) {
@@ -33,6 +26,16 @@ class bootstrap {
 					$crypt_object = new crypt($crypt_link, $crypt_settings['submodule'], $crypt_settings);
 				}
 			}
+		}
+		// if we are from command line we exit here
+		if (!empty($options['__run_only_bootstrap'])) {
+			return;
+		}
+		// application structure
+		$application_structure_model = application::get('application.structure.model');
+		$application_structure_settings = [];
+		if (!empty($application_structure_model)) {
+			$application_structure_settings = factory::model($application_structure_model, true)->settings();
 		}
 		// create database connections
 		$db = application::get('db');
@@ -44,9 +47,9 @@ class bootstrap {
 				$connected = false;
 				foreach ($db_settings['servers'] as $server_key => $server_values) {
 					$db_object = new db($db_link, $db_settings['submodule']);
-					// wildcards replaces
-					if (isset($wildcard_keys[$db_link])) {
-						$server_values['dbname'] = $wildcard_keys[$db_link]['dbname'];
+					// application structure
+					if (isset($application_structure_settings['db'][$db_link])) {
+						$server_values = array_merge_hard($server_values, $application_structure_settings['db'][$db_link]);
 					}
 					// connecting
 					$server_values = array_merge2($server_values, $db_settings);
@@ -83,10 +86,6 @@ class bootstrap {
 					Throw new Exception('Unable to open cache connection!');
 				}
 			}
-		}
-		// if we are from command line we exit here
-		if (!empty($options['__run_only_bootstrap'])) {
-			return;
 		}
 		// initialize session
 		$session = application::get('flag.global.session');

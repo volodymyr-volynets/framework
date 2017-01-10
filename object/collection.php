@@ -311,10 +311,9 @@ class object_collection extends object_override_data {
 	 *
 	 * @param array $data
 	 * @param array $options
-	 * @param object $form
 	 * @return array
 	 */
-	public function merge($data, $options = [], & $form = null) {
+	public function merge($data, $options = []) {
 		$result = [
 			'success' => false,
 			'error' => [],

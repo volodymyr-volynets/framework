@@ -3,6 +3,86 @@
 class object_data_common {
 
 	/**
+	 * Attributes
+	 *
+	 * @var array
+	 */
+	public static $attributes = [
+		'global' => ['domain', 'type'],
+		'schema' => ['default', 'length', 'null', 'precision', 'scale', 'sequence'],
+		'php' => ['php_type'],
+		'misc' => ['format', 'format_options', 'align', 'validator_method', 'validator_params', 'placeholder', 'searchable', 'tree']
+	];
+
+	/**
+	 * Domains
+	 *
+	 * @var array
+	 */
+	public static $domains;
+
+	/**
+	 * Types
+	 *
+	 * @var array
+	 */
+	public static $types;
+
+	/**
+	 * Process domains and types
+	 *
+	 * @param array $columns
+	 * @param array $types
+	 * @return array
+	 */
+	public static function process_domains_and_types($columns, $types = null) {
+		// cache domains and types
+		if (empty(self::$domains)) {
+			$object = new object_data_domains();
+			// use unprocessed data - a must
+			self::$domains = $object->data;
+		}
+		if (empty(self::$types)) {
+			if (!empty($types)) {
+				self::$types = $types;
+			} else {
+				$object = new object_data_types();
+				// use unprocessed data - a must
+				self::$types = $object->data;
+			}
+		}
+		$domain_attributes = array_merge(['type'], self::$attributes['schema'], self::$attributes['php'], self::$attributes['misc']);
+		$type_attributes = array_merge(self::$attributes['schema'], self::$attributes['php'], self::$attributes['misc']);
+		foreach ($columns as $k => $v) {
+			if (isset($v['domain'])) {
+				// check if domain exists
+				if (!isset(self::$domains[$v['domain']])) {
+					Throw new Exception('Domain: ' . $v['domain'] . '?');
+				}
+				// populate domain attributes
+				foreach ($domain_attributes as $v2) {
+					if (array_key_exists($v2, self::$domains[$v['domain']]) && !array_key_exists($v2, $columns[$k])) {
+						$columns[$k][$v2] = self::$domains[$v['domain']][$v2];
+					}
+				}
+			}
+			// populate type attributes
+			if (isset($columns[$k]['type']) && isset(self::$types[$columns[$k]['type']])) {
+				foreach ($type_attributes as $v2) {
+					if (array_key_exists($v2, self::$types[$columns[$k]['type']]) && !array_key_exists($v2, $columns[$k])) {
+						$columns[$k][$v2] = self::$types[$columns[$k]['type']][$v2];
+					}
+				}
+			}
+			// we default to string
+			if (empty($columns[$k]['php_type'])) {
+				$columns[$k]['php_type'] = 'string';
+			}
+		}
+		return $columns;
+	}
+
+	/**
 	 * Cached options
 	 *
 	 * @var array
@@ -46,67 +126,6 @@ class object_data_common {
 			self::$cached_options[$hash] = $object->{$method}($options);
 			return self::$cached_options[$hash];
 		}
-	}
-
-	/**
-	 * Domains
-	 *
-	 * @var array
-	 */
-	public static $domains;
-
-	/**
-	 * Types
-	 *
-	 * @var array
-	 */
-	public static $types;
-
-	/**
-	 * Process domains
-	 *
-	 * @param array $columns
-	 * @return array
-	 */
-	public static function process_domains($columns, $types = null) {
-		if (empty(self::$domains)) {
-			$object = new object_data_domains();
-			self::$domains = $object->data;
-		}
-		if (empty(self::$types)) {
-			if (!empty($types)) {
-				self::$types = $types;
-			} else {
-				$object = new object_data_types();
-				self::$types = $object->data;
-			}
-		}
-		foreach ($columns as $k => $v) {
-			if (isset($v['domain'])) {
-				// check if domain exists
-				if (!isset(self::$domains[$v['domain']])) {
-					Throw new Exception('Domain: ' . $v['domain'] . '?');
-				}
-				// populate domain attributes
-				foreach (['type', 'default', 'length', 'null', 'precision', 'scale', 'format', 'format_options', 'align', 'validator_method', 'validator_params', 'placeholder', 'searchable', 'tree'] as $v2) {
-					if (array_key_exists($v2, self::$domains[$v['domain']]) && !array_key_exists($v2, $columns[$k])) {
-						$columns[$k][$v2] = self::$domains[$v['domain']][$v2];
-					}
-				}
-			}
-			// populate type attributes
-			if (isset($columns[$k]['type']) && isset(self::$types[$columns[$k]['type']])) {
-				foreach (['default', 'php_type', 'format', 'format_options', 'align', 'validator_method', 'validator_params', 'placeholder', 'searchable', 'tree'] as $v2) {
-					if (array_key_exists($v2, self::$types[$columns[$k]['type']]) && !array_key_exists($v2, $columns[$k])) {
-						$columns[$k][$v2] = self::$types[$columns[$k]['type']][$v2];
-					}
-				}
-			} else {
-				// we default to string
-				$columns[$k]['php_type'] = 'string';
-			}
-		}
-		return $columns;
 	}
 
 	/**
@@ -159,8 +178,7 @@ class object_data_common {
 			}
 		}
 		// inactive
-		$inactive_message = '*Inactive';
-		$i18n_inactive = !empty($options['i18n']) ? i18n(null, $inactive_message) : $inactive_message;
+		$i18n_inactive = !empty($options['i18n']) ? i18n(null, object_content_messages::info_inactive) : object_content_messages::info_inactive;
 		foreach ($data as $k => $v) {
 			if (!empty($options['column_prefix']) && !empty($v[$options['column_prefix'] . 'inactive'])) {
 				$options_map_new[$options['column_prefix'] . 'inactive'] = 'inactive';
@@ -185,7 +203,6 @@ class object_data_common {
 		$data = object_data_common::options($data, $options_map, $options);
 		// sorting
 		if (!empty($options['i18n']) && $options['i18n'] !== 'skip_sorting') {
-			// mandatory sorting if localized
 			array_key_sort($data, ['name' => SORT_ASC], ['name' => SORT_NATURAL]);
 		} else if (empty($orderby)) {
 			array_key_sort($data, ['name' => SORT_ASC], ['name' => SORT_NATURAL]);

@@ -56,9 +56,8 @@ class object_import {
 			if (count($this->import_data[$k]['data']) == 0) {
 				continue;
 			}
-			// class and object
-			$class = $this->import_data[$k]['options']['model'];
-			$object = new $class();
+			// object
+			$object = factory::model($this->import_data[$k]['options']['model'], true);
 			// a short cut to skip updating large datasets
 			if (!empty($this->import_data[$k]['options']['quick_pk_comparison'])) {
 				// data from an array
@@ -260,6 +259,12 @@ class object_import {
 				}
 			}
 			$result['hint'][] = ' * Imported ' . $counter . ' rows into ' . $object->name . ', db link: ' .  $object->db_link;
+			// after we are done importing we need to reset sequences
+			foreach ($object->columns as $k45 => $v45) {
+				if (strpos($v45['type'], 'serial') !== false) {
+					$object->synchronize_sequence($k45);
+				}
+			}
 		}
 		$result['success'] = true;
 		return $result;

@@ -17,12 +17,23 @@ class object_content_messages {
 	const string_uppercase = 'The string must be uppercase!';
 	const string_lowercase = 'The string must be lowercase!';
 	const string_function = 'The string did not pass validation function!';
+	const error_500 = 'Internal Server Error!';
+	// warnings
+	const amount_recalculated = 'The amount has been recalculated!';
 	// good messages
 	const record_deleted = 'Record has been successfully deleted!';
 	const record_inserted = 'Record has been successfully created!';
 	const recort_updated = 'Record has been successfully updated!';
+	const record_posted = 'Record has been successfully posted!';
+	const record_ready_to_post = 'Record has been marked as ready to post!';
+	const record_mark_deleted = 'Record has been marked as deleted!';
+	const record_opened = 'Record has been successfully opened!';
 	// confirmation
 	const confirm_delete = 'Are you sure you want to delete this record?';
 	const confirm_reset = 'Are you sure you want to reset?';
 	const confirm_blank = 'The changes you made would be lost, proceed?';
+	// information
+	const info_closed = '[Closed]';
+	const info_inactive = '[Inactive]';
+	const info_functional_currency = '[FC]';
 }

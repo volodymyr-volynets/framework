@@ -639,4 +639,22 @@ class html {
 		];
 		return $words[$number] ?? '';
 	}
+
+	/**
+	 * Align
+	 *
+	 * @param string $align
+	 * @return string
+	 */
+	public static function align($align) {
+		if (empty($align)) $align = 'left';
+		if (i18n::rtl()) {
+			if ($align == 'left') {
+				$align = 'right';
+			} else if ($align == 'right') {
+				$align = 'left';
+			}
+		}
+		return $align;
+	}
 }

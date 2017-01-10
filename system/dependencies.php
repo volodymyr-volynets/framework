@@ -64,7 +64,7 @@ class system_dependencies {
 			$mutex = [];
 			$__any = [];
 			if (!empty($composer_dirs)) {
-				for ($i = 0; $i < 3; $i++) {
+				for ($i = 0; $i < 12; $i++) { // twelve runs to get all dependencies
 					foreach ($composer_dirs as $k => $v) {
 						if (isset($mutex[$k])) {
 							continue;
@@ -226,16 +226,24 @@ class system_dependencies {
 					}
 				}
 			}
+			
 			// we need to go though an array few times to fix dependency issues
-			for ($i = 0; $i < 3; $i++) {
+			for ($i = 0; $i < 12; $i++) {
 				foreach ($imports as $k => $v) {
 					if (empty($data['__submodule_dependencies'][$k])) {
 						$data['model_import'][$k] = $v;
+						unset($imports[$k]);
 						// we need to remove file from dependency
 						foreach ($data['__submodule_dependencies'] as $k2 => $v2) {
 							unset($data['__submodule_dependencies'][$k2][$k]);
 						}
 					}
+				}
+			}
+			// undependent import object go last
+			if (!empty($imports)) {
+				foreach ($imports as $k => $v) {
+					$data['model_import'][$k] = $v;
 				}
 			}
 			foreach ($data['model_import'] as $k => $v) {
@@ -338,7 +346,8 @@ class system_dependencies {
 			'success' => false,
 			'error' => [],
 			'hint' => [],
-			'data' => []
+			'data' => [],
+			'changes' => 0
 		];
 		do {
 			// we need to process all dependencies first
@@ -357,7 +366,7 @@ class system_dependencies {
 			$object_attributes = [];
 			$object_relations = [];
 			$object_forms = [];
-			$flag_relation = application::get('dep.submodule.numbers.data.relations') ? true : false;
+			$flag_relation = true;
 			$object_documentation = [];
 			$object_import = [];
 			$ddl = new numbers_backend_db_class_ddl();
@@ -369,8 +378,8 @@ run_again:
 				$k2 = str_replace('.', '_', $k);
 				if ($v == 'object_table') {
 					$model = factory::model($k2, true);
-					foreach (['attributes', 'audit', 'addresses'] as $v0) {
-						if ($model->{$v0}) {
+					foreach (object_widgets::widget_models as $v0) {
+						if (!empty($model->{$v0})) {
 							$v01 = $v0 . '_model';
 							$virtual_models[str_replace('_', '.', $model->{$v01})] = 'object_table';
 						}
@@ -388,6 +397,7 @@ run_again:
 				$k2 = str_replace('.', '_', $k);
 				if ($v == 'object_table') {
 					$model = factory::model($k2, true);
+					// todo: disable non default db links
 					$temp_result = $ddl->process_table_model($model);
 					if (!$temp_result['success']) {
 						array_merge3($result['error'], $temp_result['error']);
@@ -511,14 +521,14 @@ run_again:
 
 			// we need to provide a list of changes
 			foreach ($total_per_db_link as $k => $v) {
-				$result['hint'][] = '';
-				$result['hint'][] = "Db link $k requires $v changes!";
+				// total changes
+				$result['changes']+= $v;
 				// printing summary
-				$result['hint'][] = ' * Link ' . $k . ': ';
+				$result['hint'][] = '    * Link ' . $k . ': ';
 				foreach ($schema_diff[$k] as $k2 => $v2) {
-					$result['hint'][] = '   * ' . $k2 . ': ';
+					$result['hint'][] = '       * ' . $k2 . ': ';
 					foreach ($v2 as $k3 => $v3) {
-						$result['hint'][] = '    * ' . $k3 . ' - ' . $v3['type'];
+						$result['hint'][] = '        * ' . $k3 . ' - ' . $v3['type'];
 					}
 				}
 			}
@@ -582,6 +592,9 @@ run_again:
 			// if we got here - we are ok
 			$result['success'] = true;
 		} while(0);
+error:
+		return $result;
+		// import data
 import_data:
 		// we need to import data
 		if (!empty($object_import) && $options['mode'] == 'commit') {
@@ -668,7 +681,6 @@ import_data:
 			}
 			*/
 		}
-error:
 		return $result;
 	}
 
@@ -723,8 +735,18 @@ error:
 														$origin_dependencies[$origin_submodule][$name] = $name;
 													}
 												} else {
-													// we skip more than 5 part keys for now
-													Throw new Exception('we skip more than 6 part keys for now');
+													foreach ($v6 as $k7 => $v7) {
+														if (!is_array($v7) && !empty($v7)) {
+															$name = $k . '/' . $k2 . '/' . $k3 . '/' . $k4 . '/' . $k5 . '/' . $k6 . '/' . $k7;
+															$composer_dirs[$name] = '../libraries/vendor/' . $k . '/' . $k2 . '/' . $k3 . '/' . $k4 . '/' . $k5 . '/' . $k6 . '/' . $k7 . '/';
+															if ($k7 != '__any') {
+																$origin_dependencies[$origin_submodule][$name] = $name;
+															}
+														} else {
+															// we skip more than 5 part keys for now
+															Throw new Exception('we skip more than 7 part keys for now');
+														}
+													}
 												}
 											}
 										}

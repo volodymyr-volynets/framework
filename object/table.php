@@ -24,11 +24,25 @@ class object_table extends object_override_data {
 	public $db_object;
 
 	/**
-	 * Table name including schema in format [schema_name]
+	 * Schema name
+	 *
+	 * @var string
+	 */
+	public $schema = '';
+
+	/**
+	 * Table name
 	 *
 	 * @var string
 	 */
 	public $name;
+
+	/**
+	 * Full table name
+	 *
+	 * @var string
+	 */
+	public $full_table_name;
 
 	/**
 	 * Title
@@ -36,13 +50,6 @@ class object_table extends object_override_data {
 	 * @var string
 	 */
 	public $title;
-
-	/**
-	 * Schema extracted from name
-	 *
-	 * @var string
-	 */
-	public $schema;
 
 	/**
 	 * Table primary key in format ['id1'] or ['id1', 'id2', 'id3']
@@ -172,7 +179,7 @@ class object_table extends object_override_data {
 	];
 
 	/**
-	 * Wherether we need to cache this table
+	 * Whether we need to cache this table
 	 *
 	 * @var bool
 	 */
@@ -292,10 +299,17 @@ class object_table extends object_override_data {
 				Throw new Exception('Could not determine db link in model!');
 			}
 		}
+		// process table name and schema
+		if (!empty($this->schema)) {
+			$this->full_table_name = $this->schema . '.' . $this->name;
+		} else {
+			$this->full_table_name = $this->name;
+			$this->schema = '';
+		}
 		// processing table name
 		$this->history_name = $this->name . '__history';
-		// process relations if we have a module
-		if (!empty($this->relation) && application::get('dep.submodule.numbers.data.relations')) {
+		// process relations
+		if (!empty($this->relation)) {
 			// add a column if not exists
 			if (empty($this->columns[$this->relation['field']])) {
 				$this->columns[$this->relation['field']] = ['name' => 'Relation #', 'domain' => 'relation_id_sequence'];
@@ -319,23 +333,14 @@ class object_table extends object_override_data {
 			}
 		}
 		// process domain in columns
-		$this->columns = object_data_common::process_domains($this->columns);
-		// schema & title
-		$temp = explode('_', $this->name);
-		if (empty($this->schema)) {
-			$this->schema = $temp[0];
-		}
-		unset($temp[0]);
-		if (empty($this->title)) {
-			$this->title = ucwords(implode(' ', $temp));
-		}
+		$this->columns = object_data_common::process_domains_and_types($this->columns);
 		// initialize db object
 		$this->db_object = new db($this->db_link);
 		// process widgets
 		foreach (object_widgets::widget_models as $widget) {
 			if (!object_widgets::enabled($widget)) {
 				$this->{$widget} = false;
-			} else if ($this->{$widget}) {
+			} else if (!empty($this->{$widget})) {
 				$temp = $widget . '_model';
 				$this->{$temp} = get_class($this) . '__virtual__' . $widget;
 			}
@@ -377,52 +382,26 @@ class object_table extends object_override_data {
 	final public function determine_model_map($class, $widget_name) {
 		$this->virtual_class_name = $class . '__virtual__' . $widget_name;
 		$model = factory::model($class, true);
+		if (empty($model->{$widget_name}) || empty($model->{$widget_name}['map'])) {
+			Throw new Exception("You must indicate {$widget_name} for {$class} map!");
+		}
+		// title & name
+		$this->title = $model->title . ' ' . ucwords($widget_name);
 		$this->name = $model->name . '__' . $widget_name;
 		// determine pk
-		$counter = 1;
-		$all_int = true;
 		$columns = [];
-		$this->map = [];
-		$this->__relation_pk = [];
-		foreach ($model->pk as $v) {
-			if ($model->columns[$v]['php_type'] == 'integer') {
-				if ($v == $model->column_prefix . 'id') {
-					$temp = explode('_', $v);
-					unset($temp[0]);
-					$new = $this->column_prefix . implode('_', $temp);
-				} else {
-					$new = str_replace($model->column_prefix, $this->column_prefix, $v);
-				}
-				$columns[$new] = $model->columns[$v]; // copy the same settings
-				if (!empty($columns[$new]['domain'])) {
-					$columns[$new]['domain'] = str_replace('_sequence', '', $columns[$new]['domain']);
-					unset($columns[$new]['type'], $columns[$new]['php_type']);
-				}
-				$this->map[$v] = $new;
-			} else {
-				$all_int = false;
+		$this->map = $model->{$widget_name}['map'];
+		foreach ($model->{$widget_name}['map'] as $k => $v) {
+			$columns[$v] = $model->columns[$k];
+			if (isset($columns[$v]['domain'])) {
+				$columns[$v]['domain'] = str_replace('_sequence', '', $columns[$v]['domain']);
+				unset($columns[$v]['type']);
 			}
-			$counter++;
-		}
-		// if we have no integer pk
-		if (!$all_int) {
-			if (!empty($model->relation['field'])) {
-				$new = str_replace($model->column_prefix, $this->column_prefix, $model->relation['field']);
-				$columns = [];
-				$columns[$new] = $model->columns[$model->relation['field']]; // copy the same settings
-				if (!empty($columns[$new]['domain'])) {
-					$columns[$new]['domain'] = str_replace('_sequence', '', $columns[$new]['domain']);
-					unset($columns[$new]['type'], $columns[$new]['php_type']);
-				}
-				$this->map = [
-					$model->relation['field'] => $new
-				];
+			if (!empty($model->relation['field']) && $k == $model->relation['field']) {
 				$this->__relation_pk = $model->pk;
-			} else {
-				Throw new Exception('Unable to create widget model!');
 			}
 		}
-		$this->columns = array_merge_hard($this->columns, $columns);
+		$this->columns = array_merge_hard($columns, $this->columns);
 		return true;
 	}
 
@@ -432,9 +411,12 @@ class object_table extends object_override_data {
 	 * @param array $data
 	 * @return array
 	 */
+	/*
+	 * todo - remove in favour of object collections
 	public function insert($data) {
 		return $this->db_object->insert($this->name, [$data], null, ['returning' => $this->pk]);
 	}
+	*/
 
 	/**
 	 * Convert input into array
@@ -469,6 +451,8 @@ class object_table extends object_override_data {
 	 * @param array $data
 	 * @return array
 	 */
+	/*
+	 * todo - remove in favour of object collections
 	public function save($data, $options = []) {
 		$result = [
 			'success' => false,
@@ -516,6 +500,7 @@ class object_table extends object_override_data {
 		} while(0);
 		return $result;
 	}
+	*/
 
 	/**
 	 * Get data as an array of rows
@@ -618,15 +603,6 @@ class object_table extends object_override_data {
 	}
 
 	/**
-	 * Get db object
-	 *
-	 * @return object
-	 */
-	public function db_object() {
-		return $this->db_object;
-	}
-
-	/**
 	 * Generate a sequence
 	 *
 	 * @param string $column
@@ -635,6 +611,18 @@ class object_table extends object_override_data {
 	public function sequence($column) {
 		$temp = $this->db_object->sequence($this->name . '_' . $column . '_seq');
 		return $temp['rows'][0]['counter'];
+	}
+
+	/**
+	 * Synchronize sequence
+	 *
+	 * @param string $column
+	 */
+	public function synchronize_sequence($column) {
+		$result = $this->db_object->query("SELECT max({$column}) max_sequence FROM {$this->name}");
+		if (empty($result['num_rows']) || empty($result['rows'][0]['max_sequence'])) return;
+		$sequence = $this->name . '_' . $column . '_seq';
+		$this->db_object->query("SELECT setval('{$sequence}', {$result['rows'][0]['max_sequence']});");
 	}
 
 	/**
@@ -648,6 +636,7 @@ class object_table extends object_override_data {
 			cache::$reset_caches[$cache_link] = [];
 		}
 		// create unique caches by adding new
+		// todo - add miltitenancy cache
 		cache::$reset_caches[$cache_link] = array_unique(array_merge(cache::$reset_caches[$cache_link], $this->cache_tags, [$this->name]));
 	}
 
@@ -687,10 +676,9 @@ class object_table extends object_override_data {
 	}
 
 	/**
-	 * Active Options
+	 * Options active
 	 *
-	 * @param array $options
-	 * @return array
+	 * @see $this->get()
 	 */
 	public function options_active($options = []) {
 		$options['__options_active'] = true;
@@ -747,10 +735,9 @@ class object_table extends object_override_data {
 	}
 
 	/**
-	 * Active Presets
+	 * Presets active
 	 *
-	 * @param array $options
-	 * @return array
+	 * @see $this->get()
 	 */
 	public function presets_active($options = []) {
 		$options['__options_active'] = true;
@@ -803,7 +790,10 @@ class object_table extends object_override_data {
 	 *
 	 * @see $this->get()
 	 */
+	/*
+	 * todo retire
 	public function optmultis($options = []) {
+		// todo - retire in favour of tree
 		if (empty($this->optmultis_map)) {
 			return [];
 		} else {
@@ -812,6 +802,7 @@ class object_table extends object_override_data {
 			return object_data_common::optmultis($data, $optmultis_map, $options);
 		}
 	}
+	*/
 
 	/**
 	 * Check unique constraint
@@ -821,14 +812,18 @@ class object_table extends object_override_data {
 	 * @param mixed $pk
 	 * @return boolean
 	 */
+	/*
+	 * todo - add multi tenancy
 	public function check_unique_constraint($column, $value, $pk) {
-		$db = $this->db_object();
+
+		// todo refactor to allow multiple criterias
+
 		if (is_string($value)) {
-			$value = "'" . $db->escape($value) . "'";
+			$value = "'" . $this->db_object->escape($value) . "'";
 		}
 		if (!empty($pk)) {
 			if (is_string($pk)) {
-				$pk = "'" . $db->escape($pk) . "'";
+				$pk = "'" . $this->db_object->escape($pk) . "'";
 			}
 			$pk = 'AND ' . $this->pk[0] . ' <> ' . $pk;
 		} else {
@@ -842,11 +837,14 @@ class object_table extends object_override_data {
 				AND {$column} = {$value}
 				{$pk}
 TTT;
-		$result = $db->query($sql);
+		$result = $this->db_object->query($sql);
 		return ($result['num_rows'] <> 0 ? true : false);
 	}
+	*/
 
 	/**
+	 * Exists
+	 *
 	 * @see $this->get()
 	 * @return boolean
 	 */
@@ -856,6 +854,8 @@ TTT;
 	}
 
 	/**
+	 * Exists (static)
+	 *
 	 * @see $this->get()
 	 * @return boolean
 	 */
@@ -863,5 +863,16 @@ TTT;
 		$class = get_called_class();
 		$object = new $class();
 		return $object->exists($options);
+	}
+
+	/**
+	 * Create collection object
+	 *
+	 * @return object
+	 */
+	public static function collection() {
+		return object_collection::collection_to_model([
+			'model' => get_called_class()
+		]);
 	}
 }

@@ -3,7 +3,7 @@
 /**
  * Internalization class
  */
-class i18n implements numbers_backend_i18n_interface_base {
+class i18n {
 
 	/**
 	 * Initialized
@@ -25,6 +25,10 @@ class i18n implements numbers_backend_i18n_interface_base {
 	 * @param array $options
 	 */
 	public static function init($options = []) {
+		
+		// todo   
+		return ['success' => true];
+		
 		$i18n = application::get('flag.global.i18n') ?? [];
 		$i18n = array_merge_hard($i18n, $options ?? []);
 		// determine final language
@@ -56,6 +60,7 @@ class i18n implements numbers_backend_i18n_interface_base {
 	 * Destroy
 	 */
 	public static function destroy() {
+		return;
 		factory::submodule('flag.global.i18n.submodule')->destroy();
 	}
 
@@ -68,6 +73,8 @@ class i18n implements numbers_backend_i18n_interface_base {
 	 * @return string
 	 */
 	public static function get($i18n, $text, $options = []) {
+		return $text;
+		
 		$text = factory::submodule('flag.global.i18n.submodule')->get($i18n, $text, $options);
 		// if we need to handle replaces, for example:
 		//		"Error occured on line [line_number]"
@@ -78,16 +85,6 @@ class i18n implements numbers_backend_i18n_interface_base {
 			}
 		}
 		return $text;
-	}
-
-	/**
-	 * Set variable into i18n
-	 *
-	 * @param string $variable
-	 * @param mixed $value
-	 */
-	public static function set($variable, $value) {
-		return factory::submodule('flag.global.i18n.submodule')->set($variable, $value);
 	}
 
 	/**

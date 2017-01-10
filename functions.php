@@ -149,7 +149,7 @@ function print_r2($data, $return = false) {
 	if ($return) {
 		return '<pre>' . print_r($data, true) . '</pre>';
 	} else {
-		echo '<pre>' . print_r($data, true) . '</pre>';
+		echo '<pre>' . print_r($data, true) . '</pre>' . "\n";
 	}
 }
 
@@ -320,8 +320,8 @@ function remap(& $data, $map) {
 			$k2 = str_replace('*', '', $k2);
 			if (isset($result[$k][$v2])) {
 				if (isset($v[$k2])) {
-					if ($v[$k2] . '' != '') {
-						$result[$k][$v2].= ', ' . $v[$k2];
+					if ($v[$k2] . '' !== '') {
+						$result[$k][$v2].= format::$symbol_semicolon . ' ' . $v[$k2];
 					}
 				}
 			} else {
@@ -343,6 +343,7 @@ function remap(& $data, $map) {
  *		['id' => SORT_NUMERIC, 'name' => SORT_NATURAL]
  */
 function array_key_sort(& $arr, $keys, $methods = []) {
+	// prepare keys
 	$keys = array_key_sort_prepare_keys($keys, false);
 	// prepare a single array of parameters for multisort function
 	$params = [];
@@ -370,6 +371,39 @@ function array_key_sort(& $arr, $keys, $methods = []) {
 }
 
 /**
+ * Prepare sort keys
+ *
+ * @param array $keys
+ *		['id' => SORT_ASC, 'name' => SORT_DESC]
+ *		['id' => 'asc', 'name' => 'desc']
+ * @param boolean $flag_string
+ *		set this and you can use result in order by clauses
+ * @return mixed
+ */
+function array_key_sort_prepare_keys($keys, $flag_string = false) {
+	// after this loop we would have proper keys
+	foreach ($keys as $k => $v) {
+		if (in_array($v, [SORT_ASC, SORT_DESC])) {
+			// we accept those as is
+		} else if (strtolower($v) == 'desc') {
+			$keys[$k] = SORT_DESC;
+		} else {
+			$keys[$k] = SORT_ASC;
+		}
+	}
+	// if we need to generate string for ORDER BY clause
+	if ($flag_string) {
+		$str = [];
+		foreach ($keys as $k => $v) {
+			$str[] = $k . ' ' . ($v == SORT_ASC ? 'ASC' : 'DESC');
+		}
+		return implode(', ', $str);
+	} else {
+		return $keys;
+	}
+}
+
+/**
  * Prefix and suffix string to keys in array
  *
  * @param array $arr
@@ -382,33 +416,6 @@ function array_key_prefix_and_suffix(& $arr, $prefix, $suffix) {
 			$arr[$prefix . $k . $suffix] = $v;
 			unset($arr[$k]);
 		}
-	}
-}
-
-/**
- * Prepare sort keys
- *
- * @param array $keys
- * @param boolean $flag_string
- * @return miced
- */
-function array_key_sort_prepare_keys($keys, $flag_string = false) {
-	foreach ($keys as $k => $v) {
-		if (strtolower($v) == 'asc' || empty($v)) {
-			$keys[$k] = SORT_ASC;
-		} else if (strtolower($v) == 'desc') {
-			$keys[$k] = SORT_DESC;
-		}
-	}
-	// if we need to generate string for ORDER BY clause
-	if ($flag_string) {
-		$str = [];
-		foreach ($keys as $k => $v) {
-			$str[] = $k . ' ' . ($v == SORT_ASC ? 'ASC' : 'DESC');
-		}
-		return implode(', ', $str);
-	} else {
-		return $keys;
 	}
 }
 
@@ -672,6 +679,20 @@ function array_key_unset(& $arr, $keys, $options = []) {
 }
 
 /**
+ * Mixed to lowercase
+ *
+ * @param mixed $mixed
+ * @return mixed
+ */
+function mixedtolower($mixed) {
+	if (is_array($mixed)) {
+		return array_map('strtolower', $mixed);
+	} else {
+		return strtolower($mixed . '');
+	}
+}
+
+/**
  * i18n, alias
  *
  * @param mixed $i18n
@@ -756,4 +777,37 @@ function mb_str_split($string, $limit = -1, $pattern = null) {
 		}
 		return $result;
 	}
+}
+
+/**
+ * Pad multi-byte string
+ *
+ * @param string $input
+ * @param int $length
+ * @param string $string
+ * @param const $type
+ * @return string
+ */
+function mb_str_pad($input, $length, $string = ' ', $type = STR_PAD_LEFT, $encoding = 'UTF-8') {
+	if ($type == STR_PAD_RIGHT) {
+		while (mb_strlen($input, $encoding) < $length) {
+			$input.= $string;
+		}
+	} else if ($type == STR_PAD_LEFT) {
+		while (mb_strlen($input, $encoding) < $length) {
+			$input = $string . $input;
+		}
+	} else if ($type == STR_PAD_BOTH) {
+		// if not an even number, the right side gets the extra padding
+		$counter = 1;
+		while (mb_strlen($input, $encoding) < $length) {
+			if ($counter % 2) {
+				$input.= $string;
+			} else {
+				$input = $string . $input;
+			}
+			$counter++;
+		}
+	}
+	return $input;
 }

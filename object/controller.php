@@ -50,7 +50,7 @@ class object_controller {
 	 */
 	public static function can($action_code_or_id) {
 		if (self::$cache_actions === null) {
-			self::$cache_actions = factory::model('numbers_backend_system_controller_model_actions')->get();
+			self::$cache_actions = factory::model('numbers_backend_system_model_controller_actions')->get();
 		}
 		if (is_string($action_code_or_id)) {
 			foreach (self::$cache_actions as $k => $v) {
@@ -63,6 +63,12 @@ class object_controller {
 		if (!isset(self::$cache_actions[$action_code_or_id])) {
 			Throw new Exception('Unknown action!');
 		}
+		// public controllers have access to all actions
+		$temp = application::get(['controller', 'acl']);
+		if (!empty($temp['public'])) {
+			return true;
+		}
+		// process permissions
 		$permissions = application::get(['controller', 'acl', 'permissions']);
 		$start = $action_code_or_id;
 		do {

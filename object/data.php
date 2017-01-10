@@ -107,9 +107,9 @@ class object_data extends object_override_data {
 		$class = get_called_class();
 		if ($class != 'object_data_domains') {
 			if ($class == 'object_data_types') {
-				$this->columns = object_data_common::process_domains($this->columns, $this->data);
+				$this->columns = object_data_common::process_domains_and_types($this->columns, $this->data);
 			} else {
-				$this->columns = object_data_common::process_domains($this->columns);
+				$this->columns = object_data_common::process_domains_and_types($this->columns);
 			}
 		}
 	}

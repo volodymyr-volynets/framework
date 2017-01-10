@@ -30,15 +30,12 @@ class db {
 				Throw new Exception('You must specify database link and/or class!');
 			}
 		}
-
 		// get object from factory
 		$temp = factory::get(['db', $db_link]);
-
 		// if we have class
 		if (!empty($class) && !empty($db_link)) {
 			// replaces in case we have it as submodule
 			$class = str_replace('.', '_', trim($class));
-
 			// if we are replacing database connection with the same link we
 			// need to manually close database connection
 			if (!empty($temp['object']) && $temp['class'] != $class) {
@@ -46,17 +43,13 @@ class db {
 				$object->close();
 				unset($this->object);
 			}
-
 			// creating new class
 			$this->object = new $class($db_link);
-
 			// determining ddl class & object
 			$ddl_class = str_replace('_base_abc123', '_ddl', $class . '_abc123');
 			$ddl_object = new $ddl_class();
-
 			// backend
 			$this->backend = str_replace(['numbers_backend_db_', '_base'], '', $class);
-
 			// putting every thing into factory
 			factory::set(['db', $db_link], [
 				'object' => $this->object,
@@ -74,7 +67,7 @@ class db {
 	}
 
 	/**
-	 * Open datbase connecton
+	 * Open database connection
 	 *
 	 * @param array $options
 	 * @return array
@@ -218,6 +211,6 @@ class db {
 	 * @return mixed
 	 */
 	public function __call($name, $arguments) {
-		return call_user_func_array(array($this->object, $name), $arguments);
+		return call_user_func_array([$this->object, $name], $arguments);
 	}
 }

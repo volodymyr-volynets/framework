@@ -2,6 +2,12 @@
 
 class object_format_locales_ar_sa_utf8 extends object_format_locales_locale {
 
+	public static $symbol_defaults = [
+		'comma' => '،',
+		'question_mark' => '؟',
+		'semicolon' => '؛'
+	];
+
 	public static function localeconv($options) {
 		$options['decimal_point'] = $options['mon_decimal_point'] = '٫';
 		$options['thousands_sep'] = $options['mon_thousands_sep'] = '٬';
