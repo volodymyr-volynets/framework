@@ -82,53 +82,70 @@ class object_collection extends object_override_data {
 	 *
 	 * @param array $options
 	 *		where - array of conditions
-	 *		lock_rows - whether we need to lock rows
+	 *		for_update - whether we need to lock rows
 	 *		single_row - whether we need to return single row
 	 * @return array
 	 */
 	public function get($options = []) {
-		// building SQL
-		$sql = '';
-		$sql.= !empty($options['where']) ? (' AND ' . $this->primary_model->db_object->prepare_condition($options['where'])) : '';
-		$sql_full = 'SELECT * FROM ' . $this->primary_model->name . ' a WHERE 1=1' . $sql;
-		// if we need to lock rows
-		if (!empty($options['for_update'])) {
-			$sql_full.= ' FOR UPDATE';
-		}
-		// quering
-		$result = $this->primary_model->db_object->query($sql_full, null);
-		if (!$result['success']) {
-			Throw new Exception(implode(", ", $result['error']));
-		}
-		// process data, convert key
-		if (!empty($result['rows'])) {
-			$data = [];
-			foreach ($result['rows'] as $k => $v) {
-				if (count($this->data['pk']) == 1) {
-					$temp_pk = $v[$this->data['pk'][0]];
-				} else {
-					$temp_pk = [];
-					foreach ($this->data['pk'] as $v2) {
-						$temp_pk[] = $v[$v2];
-					}
-					$temp_pk = implode('::', $temp_pk);
-				}
-				$data[$temp_pk] = $v;
+		$result = [
+			'success' => false,
+			'error' => [],
+			'data' => []
+		];
+		do {
+			$this->primary_model->db_object->begin();
+			// building SQL
+			$sql = '';
+			$sql.= !empty($options['where']) ? (' AND ' . $this->primary_model->db_object->prepare_condition($options['where'])) : '';
+			$sql_full = 'SELECT * FROM ' . $this->primary_model->full_table_name . ' a WHERE 1=1' . $sql;
+			// if we need to lock rows
+			if (!empty($options['for_update'])) {
+				$sql_full.= ' FOR UPDATE';
 			}
-			$result['rows'] = $data;
-			unset($data);
-		}
-		// processing details
-		if (!empty($result['rows']) && !empty($this->data['details'])) {
-			$this->process_details($this->data['details'], $result['rows'], $options);
-		}
-		// clear out for update flag
-		// single row
-		if (!empty($options['single_row'])) {
-			return current($result['rows']);
-		} else {
-			return $result['rows'];
-		}
+			// quering
+			$query_result = $this->primary_model->db_object->query($sql_full, null);
+			if (!$query_result['success']) {
+				$this->primary_model->db_object->rollback();
+				$result['error'] = array_merge($result['error'], $query_result['error']);
+				break;
+			}
+			// process data, convert keys
+			if (!empty($query_result['rows'])) {
+				$data = [];
+				foreach ($query_result['rows'] as $k => $v) {
+					if (count($this->data['pk']) == 1) {
+						$temp_pk = $v[$this->data['pk'][0]];
+					} else {
+						$temp_pk = [];
+						foreach ($this->data['pk'] as $v2) {
+							$temp_pk[] = $v[$v2];
+						}
+						$temp_pk = implode('::', $temp_pk);
+					}
+					$data[$temp_pk] = $v;
+				}
+				$query_result['rows'] = $data;
+				unset($data);
+			}
+			// processing details
+			if (!empty($query_result['rows']) && !empty($this->data['details'])) {
+				$detail_result = $this->process_details($this->data['details'], $query_result['rows'], $options);
+				if (!$detail_result['success']) {
+					$result['error'] = array_merge($result['error'], $detail_result['error']);
+					break;
+				}
+			}
+			// single row
+			if (!empty($options['single_row'])) {
+				$result['data'] = current($query_result['rows']);
+			} else {
+				$result['data'] = $query_result['rows'];
+			}
+			// commit
+			$this->primary_model->db_object->commit();
+			$result['success'] = true;
+		} while(0);
+		return $result;
 	}
 
 	/**
@@ -191,8 +208,13 @@ class object_collection extends object_override_data {
 	 * @param array $parent_keys
 	 * @param array $parent_types
 	 * @param array $parent_settings
+	 * @return array
 	 */
 	private function process_details(& $details, & $parent_rows, $options, $parent_keys = [], $parent_types = [], $parent_maps = [], $parent_settings = []) {
+		$result = [
+			'success' => false,
+			'error' => []
+		];
 		foreach ($details as $k => $v) {
 			$details[$k]['model_object'] = $model = factory::model($k, true);
 			$pk = $v['pk'] ?? $model->pk;
@@ -227,14 +249,14 @@ class object_collection extends object_override_data {
 				foreach ($v['map'] as $k3 => $v3) {
 					$temp3[] = "b2.{$k3} = b.{$v3}";
 				}
-				$sql_relation_join = ' INNER JOIN ' . $this->primary_model->name . ' b2 ON ' . implode(' AND ', $temp3);
+				$sql_relation_join = ' INNER JOIN ' . $this->primary_model->full_table_name . ' b2 ON ' . implode(' AND ', $temp3);
 				$sql_relation_columns = ', ' . implode(',', $v['__relation_pk']);
 			}
 			// sql extensions
 			$v['sql']['where'] = $v['sql']['where'] ?? null;
 			// building SQL
 			$sql = ' AND ' . $this->primary_model->db_object->prepare_condition([$column => $keys]);
-			$sql_full = 'SELECT b.*' . $sql_relation_columns . ' FROM ' . $model->name . ' b ' . $sql_relation_join . ' WHERE 1=1' . $sql . ($v['sql']['where'] ? (' AND ' . $v['sql']['where']) : '');
+			$sql_full = 'SELECT b.*' . $sql_relation_columns . ' FROM ' . $model->full_table_name . ' b ' . $sql_relation_join . ' WHERE 1=1' . $sql . ($v['sql']['where'] ? (' AND ' . $v['sql']['where']) : '');
 			// order by
 			$orderby = $options['orderby'] ?? (!empty($model->orderby) ? $model->orderby : null);
 			if (!empty($orderby)) {
@@ -245,14 +267,16 @@ class object_collection extends object_override_data {
 				$sql_full.= ' FOR UPDATE';
 			}
 			// quering
-			$result = $this->primary_model->db_object->query($sql_full, null); // important not to set pk
-			if (!$result['success']) {
-				Throw new Exception(implode(", ", $result['error']));
+			$query_result = $this->primary_model->db_object->query($sql_full, null); // important not to set pk
+			if (!$query_result['success']) {
+				$this->primary_model->db_object->rollback();
+				$result['error'] = array_merge($result['error'], $query_result['error']);
+				return $result;
 			}
 			// if we got rows
-			if (!empty($result['rows'])) {
+			if (!empty($query_result['rows'])) {
 				$reverse_map = array_reverse($parent_maps2, true);
-				foreach ($result['rows'] as $k2 => $v2) {
+				foreach ($query_result['rows'] as $k2 => $v2) {
 					$master_key = [];
 					// entry itself
 					if ($v['type'] == '1M') {
@@ -284,10 +308,16 @@ class object_collection extends object_override_data {
 				}
 				// if we have more details
 				if (!empty($v['details'])) {
-					$this->process_details($v['details'], $parent_rows, $options, $parent_keys2, $parent_types2, $parent_maps2, $v);
+					$detail_result = $this->process_details($v['details'], $parent_rows, $options, $parent_keys2, $parent_types2, $parent_maps2, $v);
+					if (!$detail_result['success']) {
+						$result['error'] = array_merge($result['error'], $detail_result['error']);
+						return $result;
+					}
 				}
 			}
 		}
+		$result['success'] = true;
+		return $result;
 	}
 
 	/**
@@ -311,6 +341,9 @@ class object_collection extends object_override_data {
 	 *
 	 * @param array $data
 	 * @param array $options
+	 *		original - original row from database, if not set it would be loaded from database
+	 *		options_model - whether we need to validate provided options
+	 *		flag_delete_row - if we are deleting
 	 * @return array
 	 */
 	public function merge($data, $options = []) {
@@ -324,6 +357,10 @@ class object_collection extends object_override_data {
 			'options_model' => []
 		];
 		do {
+			if (empty($data)) {
+				$result['error'][] = 'No data!';
+				break;
+			}
 			// start transaction
 			$this->primary_model->db_object->begin();
 			// load data from database
@@ -343,12 +380,19 @@ class object_collection extends object_override_data {
 				}
 				// load data
 				if (!empty($pk) && $full_pk) {
-					$original = $this->get(['where' => $pk, 'single_row' => true]);
+					$original_result = $this->get(['where' => $pk, 'for_update' => true, 'single_row' => true]);
+					if (!$original_result['success']) {
+						$this->primary_model->db_object->rollback();
+						$result['error'] = array_merge($result['error'], $original_result['error']);
+						break;
+					}
+					$original = & $original_result['data'];
 				}
 			}
 			// validate optimistic lock
 			if ($this->primary_model->optimistic_lock && !empty($original)) {
 				if (($data[$this->primary_model->optimistic_lock_column] ?? '') !== $original[$this->primary_model->optimistic_lock_column]) {
+					$this->primary_model->db_object->rollback();
 					$result['error'][] = object_content_messages::optimistic_lock;
 					break;
 				}
@@ -434,10 +478,12 @@ class object_collection extends object_override_data {
 				}
 				// we roll back if we have errors
 				if (!empty($result['options_model'])) {
+					$this->primary_model->db_object->rollback();
+					$result['error'][] = 'Could not validate options_model!';
 					break;
 				}
 			}
-			// comapare main row
+			// compare main row
 			$this->timestamp = format::now('timestamp');
 			$temp = $this->compare_one_row($data, $original, $this->data, [
 				'flag_delete_row' => $options['flag_delete_row'] ?? false,
@@ -445,11 +491,13 @@ class object_collection extends object_override_data {
 			]);
 			// if we goe an error
 			if (!empty($temp['error'])) {
-				$result['error'] = $temp['error'];
+				$this->primary_model->db_object->rollback();
+				$result['error'] = array_merge($result['error'], $temp['error']);
 				break;
 			}
 			// we display warning if form has not been changed
 			if (empty($temp['data']['total'])) {
+				$this->primary_model->db_object->rollback();
 				$result['warning'][] = object_content_messages::no_changes;
 				break;
 			}
@@ -458,7 +506,8 @@ class object_collection extends object_override_data {
 				foreach ($temp['data']['history'] as $k => $v) {
 					$temp2 = $this->primary_model->db_object->insert($k, $v);
 					if (!$temp2['success']) {
-						$result['error'] = $temp2['error'];
+						$this->primary_model->db_object->rollback();
+						$result['error'] = array_merge($result['error'], $temp2['error']);
 						goto error;
 					}
 				}
@@ -470,25 +519,102 @@ class object_collection extends object_override_data {
 					$temp['data']['audit']['pk'][$this->primary_model->relation['field']] = $temp['new_serials'][$this->primary_model->relation['field']] ?? $data[$this->primary_model->relation['field']] ?? $original[$this->primary_model->relation['field']];
 				}
 				// merge
+				// todo
 				$temp2 = factory::model($this->primary_model->audit_model, true)->merge($temp['data']['audit'], ['changes' => $temp['data']['total']]);
 				if (!$temp2['success']) {
-					$result['error'] = $temp2['error'];
+					$this->primary_model->db_object->rollback();
+					$result['error'] = array_merge($result['error'], $temp2['error']);
 					break;
 				}
 			}
 			// if we got here we can commit
+			$this->primary_model->db_object->commit();
 			$result['success'] = true;
 			$result['deleted'] = $temp['data']['deleted'];
 			$result['inserted'] = $temp['data']['inserted'];
 			$result['updated'] = $temp['data']['updated'];
 			$result['new_serials'] = $temp['new_serials'];
-			// commit transaction
-			$this->primary_model->db_object->commit();
-			return $result;
 		} while(0);
 		// we roll back on error
 error:
-		$this->primary_model->db_object->rollback();
+		return $result;
+	}
+
+	/**
+	 * Merge multiple
+	 *
+	 * @see object_collection::merge()
+	 */
+	public function merge_multiple($data, $options = []) {
+		$result = [
+			'success' => false,
+			'error' => []
+		];
+		do {
+			if (empty($data)) {
+				$result['error'][] = 'No data to merge!';
+				break;
+			}
+			// start transaction
+			$this->primary_model->db_object->begin();
+			// generate a list of primary keys to fetch data
+			$data_pks = [];
+			foreach ($data as $k0 => $v0) {
+				// assemble primary key
+				$pk = [];
+				$full_pk = true;
+				foreach ($this->data['pk'] as $v) {
+					if (isset($v0[$v])) {
+						$pk[$v] = $v0[$v];
+					} else {
+						$full_pk = false;
+					}
+				}
+				if (!empty($pk) && $full_pk) {
+					$data_pks[$k0] = implode('::', $pk);
+				}
+			}
+			// fetch data if we have pks
+			if (!empty($data_pks)) {
+				if (count($this->data['pk']) == 1) {
+					$column = current($this->data['pk']);
+				} else {
+					$column = "concat_ws('::'[comma] " . implode('[comma] ', $this->data['pk']) . ")";
+				}
+				// fetch
+				$original_result = $this->get([
+					'where' => [
+						$column => $data_pks
+					],
+					'for_update' => true
+				]);
+				if (!$original_result['success']) {
+					$this->primary_model->db_object->rollback();
+					$result['error'] = array_merge($result['error'], $original_result['error']);
+					break;
+				}
+			} else {
+				$original_result['data'] = [];
+			}
+			// merge one by one
+			foreach ($data as $k0 => $v0) {
+				$options2 = $options;
+				if (isset($data_pks[$k0]) && !empty($original_result['data'][$data_pks[$k0]])) {
+					$options2['original'] = $original_result['data'][$data_pks[$k0]];
+				} else {
+					unset($options2['original']);
+				}
+				$merge_result = $this->merge($v0, $options2);
+				if (!$merge_result['success']) {
+					$result['error'] = array_merge($result['error'], $merge_result['error']);
+					return $result;
+				}
+			}
+			// commit transaction
+			$this->primary_model->db_object->commit();
+			$result['success'] = true;
+			return $result;
+		} while(0);
 		return $result;
 	}
 
@@ -499,6 +625,8 @@ error:
 	 * @param array $original_row
 	 * @param array $collection
 	 * @param array $options
+	 *		flag_delete_row
+	 *		flag_main_record
 	 * @param array $parent_pk
 	 * @param array $parent_row
 	 * @return array
@@ -519,6 +647,7 @@ error:
 		];
 		$model = $collection['model_object'];
 		// important to reset cache
+		// todo - reset only if there's a change
 		$model->reset_cache();
 		// step 1, clenup data
 		$data_row_final = $data_row;
@@ -533,7 +662,10 @@ error:
 				}
 			}
 		}
-		$model->process_columns($data_row_final, ['ignore_not_set_fields' => true, 'skip_type_validation' => true]);
+		// process colums
+		// todo - maybe pass it as a parameter
+		// 'skip_type_validation' => true
+		$model->process_columns($data_row_final, ['ignore_not_set_fields' => true]);
 		// step 2 process row
 		$delete = $update = $audit = $audit_details = $pk = [];
 		$action = null;
@@ -542,7 +674,7 @@ error:
 			if (!empty($original_row)) {
 				$pk = extract_keys($collection['pk'], $original_row);
 				$delete = [
-					'table' => $model->name,
+					'table' => $model->full_table_name,
 					'pk' => $pk
 				];
 				// audit
@@ -555,11 +687,11 @@ error:
 			// handle serial types
 			foreach ($model->columns as $k => $v) {
 				if (strpos($v['type'], 'serial') !== false && empty($v['null'])) {
-					$temp = $this->primary_model->db_object->sequence($model->name . '_' . $k . '_seq');
+					$temp = $this->primary_model->db_object->sequence($model->full_table_name . '_' . $k . '_seq');
 					$result['new_serials'][$k] = $data_row_final[$k] = $temp['rows'][0]['counter'];
 				}
 			}
-			$temp = $this->primary_model->db_object->insert($model->name, [$data_row_final], null);
+			$temp = $this->primary_model->db_object->insert($model->full_table_name, [$data_row_final], null);
 			if (!$temp['success']) {
 				$result['error'] = $temp['error'];
 				return $result;
@@ -641,7 +773,7 @@ error:
 			$model->process_who_columns(['updated', 'optimistic_lock'], $update, $this->timestamp);
 			if (!empty($update)) {
 				// update record
-				$temp = $this->primary_model->db_object->update($model->name, $update, [], ['where' => $pk]);
+				$temp = $this->primary_model->db_object->update($model->full_table_name, $update, [], ['where' => $pk]);
 				if (!$temp['success']) {
 					$result['error'] = $temp['error'];
 					return $result;

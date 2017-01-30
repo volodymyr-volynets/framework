@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Configuration file helper
+ */
 class system_config {
 
 	/**
@@ -7,7 +10,8 @@ class system_config {
 	 *
 	 * @param string $ini_file
 	 * @param string $environment
-	*/
+	 * @return array
+	 */
 	public static function ini($ini_file, $environment = null) {
 		$result = [];
 		$data = parse_ini_file($ini_file, true);

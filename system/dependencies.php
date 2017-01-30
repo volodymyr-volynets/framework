@@ -6,6 +6,7 @@ class system_dependencies {
 	 * Process dependencies
 	 *
 	 * @param array $options
+	 *		mode
 	 * @return array
 	 */
 	public static function process_deps_all($options = []) {
@@ -15,6 +16,7 @@ class system_dependencies {
 			'data' => []
 		];
 		do {
+			$options['mode'] = $options['mode'] ?? 'test';
 			// processing main dependency file
 			$main_dep_filename = 'config/application.ini';
 			if (!file_exists($main_dep_filename)) {

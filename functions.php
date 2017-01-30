@@ -140,21 +140,27 @@ function array_remove_token($tokens, $token) {
 }
 
 /**
- * Render variable
+ * Print variable
  * 
  * @param mixed $data
+ * @param string $name
+ * @param boolean $return
  * @return string
  */
-function print_r2($data, $return = false) {
+function print_r2($data, string $name = '', bool $return = false) {
+	if (!empty($name)) {
+		$name = "\n[" . $name . "]\n\n";
+	}
+	$result = '<pre>' . $name . print_r($data, true) . '</pre>' . "\n";
 	if ($return) {
-		return '<pre>' . print_r($data, true) . '</pre>';
+		return $result;
 	} else {
-		echo '<pre>' . print_r($data, true) . '</pre>' . "\n";
+		echo $result;
 	}
 }
 
 /**
- * Render as var_export
+ * Export variable
  *
  * @param mixed $data
  * @param string $return
@@ -165,6 +171,24 @@ function var_export2($data, $return = false) {
 		return '<pre>' . var_export($data, true) . '</pre>';
 	} else {
 		echo '<pre>' . var_export($data, true) . '</pre>';
+	}
+}
+
+/**
+ * Export variable in condensed format
+ *
+ * @param mixed $data
+ * @return string
+ */
+function var_export_condensed($data) {
+	if (is_array($data)) {
+		$buffer = [];
+		foreach ($data as $k => $v) {
+			$buffer[] = var_export($k, true) . '=>' . var_export_condensed($v);
+		}
+		return '[' . implode(',', $buffer) . ']';
+	} else {
+		return var_export($data, true);
 	}
 }
 
@@ -189,7 +213,7 @@ function pk($pk, & $data) {
 }
 
 /**
- * Merge multiple arrays recursivly
+ * Merge multiple arrays recursively
  * 
  * @param array $arr1
  * @param array $arr2
@@ -200,7 +224,7 @@ function array_merge2($arr1, $arr2) {
 	$merged = array();
 	while ($arrays) {
 		$array = array_shift($arrays);
-		if (!is_array($array) || !$array) {
+		if (!is_array($array) || empty($array)) {
 			continue;
 		}
 		foreach ($array as $key => $value) {
@@ -810,4 +834,19 @@ function mb_str_pad($input, $length, $string = ' ', $type = STR_PAD_LEFT, $encod
 		}
 	}
 	return $input;
+}
+
+/**
+ * Check if its a valid json string
+ *
+ * @param mixed $input
+ * @return boolean
+ */
+function is_json($input) {
+	if (is_string($input) && $input !== '') {
+		json_decode($input);
+		return (json_last_error() == JSON_ERROR_NONE);
+	} else {
+		return false;
+	}
 }

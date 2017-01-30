@@ -279,9 +279,11 @@ class object_table extends object_override_data {
 	/**
 	 * Constructing object
 	 *
+	 * @param array $options
+	 *		skip_db_object
 	 * @throws Exception
 	 */
-	public function __construct() {
+	public function __construct($options = []) {
 		// we need to handle overrrides
 		parent::override_handle($this);
 		// we need to determine db link
@@ -306,8 +308,8 @@ class object_table extends object_override_data {
 			$this->full_table_name = $this->name;
 			$this->schema = '';
 		}
-		// processing table name
-		$this->history_name = $this->name . '__history';
+		// history table name
+		$this->history_name = $this->full_table_name . '__history';
 		// process relations
 		if (!empty($this->relation)) {
 			// add a column if not exists
@@ -335,7 +337,9 @@ class object_table extends object_override_data {
 		// process domain in columns
 		$this->columns = object_data_common::process_domains_and_types($this->columns);
 		// initialize db object
-		$this->db_object = new db($this->db_link);
+		if (empty($options['skip_db_object'])) {
+			$this->db_object = new db($this->db_link);
+		}
 		// process widgets
 		foreach (object_widgets::widget_models as $widget) {
 			if (!object_widgets::enabled($widget)) {
@@ -388,6 +392,7 @@ class object_table extends object_override_data {
 		// title & name
 		$this->title = $model->title . ' ' . ucwords($widget_name);
 		$this->name = $model->name . '__' . $widget_name;
+		$this->full_table_name = $model->full_table_name . '__' . $widget_name;
 		// determine pk
 		$columns = [];
 		$this->map = $model->{$widget_name}['map'];
@@ -406,20 +411,9 @@ class object_table extends object_override_data {
 	}
 
 	/**
-	 * Insert single row into table
-	 *
-	 * @param array $data
-	 * @return array
-	 */
-	/*
-	 * todo - remove in favour of object collections
-	public function insert($data) {
-		return $this->db_object->insert($this->name, [$data], null, ['returning' => $this->pk]);
-	}
-	*/
-
-	/**
-	 * Convert input into array
+	 * Process columns
+	 *		removes not existing columns
+	 *		processes column types
 	 *
 	 * @param array $data
 	 * @param array $options
@@ -444,63 +438,6 @@ class object_table extends object_override_data {
 		}
 		$data = $save;
 	}
-
-	/**
-	 * Save/create a record
-	 *
-	 * @param array $data
-	 * @return array
-	 */
-	/*
-	 * todo - remove in favour of object collections
-	public function save($data, $options = []) {
-		$result = [
-			'success' => false,
-			'error' => [],
-			'rows' => [],
-			'inserted' => false
-		];
-		// process columns
-		$save = $data;
-		$this->process_columns($save, ['ignore_not_set_fields' => true]);
-		// verifying
-		do {
-			if (empty($save)) {
-				$result['error'][] = 'You must specify atleast one field!';
-			}
-			// we need to unset pk if other primary key is used
-			if (!empty($options['pk'])) {
-				foreach ($this->pk as $k => $v) {
-					if (empty($save[$v])) {
-						unset($save[$v]);
-					}
-				}
-			}
-			// we need to process serial columns
-			$pk = $options['pk'] ?? $this->pk;
-			$options['sequences'] = [];
-			foreach ($this->columns as $k => $v) {
-				if (strpos($v['type'], 'serial') !== false && empty($v['null'])) {
-					$options['sequences'][$k] = [
-						'sequence_column' => $k,
-						'sequence_name' => $this->name . '_' . $k . '_seq'
-					];
-				}
-			}
-			// process who columns
-			$this->process_who_columns('all', $save);
-			// saving record to database
-			$result = $this->db_object->save($this->name, $save, $pk, $options);
-			if ($result['success'] && $this->cache) {
-				// now we need to reset cache
-				if (empty($options['do_not_reset_cache'])) {
-					$this->reset_cache();
-				}
-			}
-		} while(0);
-		return $result;
-	}
-	*/
 
 	/**
 	 * Get data as an array of rows
@@ -532,7 +469,7 @@ class object_table extends object_override_data {
 			$options_query['cache'] = true;
 		}
 		$options_query['cache_tags'] = !empty($this->cache_tags) ? array_values($this->cache_tags) : [];
-		$options_query['cache_tags'][] = $this->name;
+		$options_query['cache_tags'][] = $this->full_table_name;
 		$sql = '';
 		// pk
 		$pk = array_key_exists('pk', $options) ? $options['pk'] : $this->pk;
@@ -570,12 +507,11 @@ class object_table extends object_override_data {
 			$sql.= ' LIMIT ' . $this->limit;
 		}
 		// querying
-		$sql_full = 'SELECT ' . $columns . ' FROM ' . $this->name . ' a WHERE 1=1' . $sql;
+		$sql_full = 'SELECT ' . $columns . ' FROM ' . $this->full_table_name . ' a WHERE 1=1' . $sql;
 		// memory caching
 		if ($this->cache_memory) {
 			// hash is query + primary key
-			$crypt = new crypt();
-			$sql_hash = $crypt->hash($sql_full . serialize($pk));
+			$sql_hash = sha1($sql_full . serialize($pk));
 			if (isset(cache::$memory_storage[$sql_hash])) {
 				return cache::$memory_storage[$sql_hash];
 			}
@@ -583,9 +519,6 @@ class object_table extends object_override_data {
 		$result = $this->db_object->query($sql_full, $pk, $options_query);
 		if (!$result['success']) {
 			Throw new Exception(implode(", ", $result['error']));
-		}
-		if ($this->cache_memory) {
-			cache::$memory_storage[$sql_hash] = & $result['rows'];
 		}
 		// single row
 		if (!empty($options['single_row'])) {
@@ -599,6 +532,10 @@ class object_table extends object_override_data {
 				return $data;
 			}
 		}
+		// memory caching
+		if ($this->cache_memory) {
+			cache::$memory_storage[$sql_hash] = & $data;
+		}
 		return $data;
 	}
 
@@ -609,7 +546,7 @@ class object_table extends object_override_data {
 	 * @return int
 	 */
 	public function sequence($column) {
-		$temp = $this->db_object->sequence($this->name . '_' . $column . '_seq');
+		$temp = $this->db_object->sequence($this->full_table_name . '_' . $column . '_seq');
 		return $temp['rows'][0]['counter'];
 	}
 
@@ -619,9 +556,9 @@ class object_table extends object_override_data {
 	 * @param string $column
 	 */
 	public function synchronize_sequence($column) {
-		$result = $this->db_object->query("SELECT max({$column}) max_sequence FROM {$this->name}");
+		$result = $this->db_object->query("SELECT max({$column}) max_sequence FROM {$this->full_table_name}");
 		if (empty($result['num_rows']) || empty($result['rows'][0]['max_sequence'])) return;
-		$sequence = $this->name . '_' . $column . '_seq';
+		$sequence = $this->full_table_name . '_' . $column . '_seq';
 		$this->db_object->query("SELECT setval('{$sequence}', {$result['rows'][0]['max_sequence']});");
 	}
 
@@ -637,7 +574,7 @@ class object_table extends object_override_data {
 		}
 		// create unique caches by adding new
 		// todo - add miltitenancy cache
-		cache::$reset_caches[$cache_link] = array_unique(array_merge(cache::$reset_caches[$cache_link], $this->cache_tags, [$this->name]));
+		cache::$reset_caches[$cache_link] = array_unique(array_merge(cache::$reset_caches[$cache_link], $this->cache_tags, [$this->full_table_name]));
 	}
 
 	/**
@@ -875,4 +812,26 @@ TTT;
 			'model' => get_called_class()
 		]);
 	}
+
+	/**
+	 * Check if table exists in database
+	 *
+	 * @return boolean
+	 */
+	public function db_present() {
+		$temp_result = $this->db_object->query("SELECT count(*) counter FROM (" . $this->db_object->sql_helper('fetch_tables') . ") a WHERE a.schema_name = '{$this->schema}' AND table_name = '{$this->name}'");
+		return !empty($temp_result['rows'][0]['counter']);
+	}
+
+	/**
+	 * Insert multiple rows
+	 *
+	 * @param array $data
+	 * @return array
+	 */
+	/*
+	public function insert($data) {
+		return $this->db_object->insert($this->full_table_name, $data, null);
+	}
+	*/
 }

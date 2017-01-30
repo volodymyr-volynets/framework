@@ -28,21 +28,24 @@ class object_data_domains extends object_data {
 	public $data = [
 		// general
 		'name' => ['name' => 'Name', 'type' => 'varchar', 'length' => 120],
-		'code' => ['name' => 'Code', 'type' => 'varchar', 'length' => 255],
-		'short_code' => ['name' => 'Short Code', 'type' => 'varchar', 'length' => 6],
 		'reference' => ['name' => 'Reference', 'type' => 'varchar', 'length' => 255],
 		'description' => ['name' => 'Description', 'type' => 'varchar', 'length' => 2000],
+		// codes
+		'code' => ['name' => 'Code', 'type' => 'varchar', 'length' => 255],
+		'short_code' => ['name' => 'Short Code', 'type' => 'varchar', 'length' => 6],
+		'type_code' => ['name' => 'Type Code', 'type' => 'varchar', 'length' => 15],
+		'group_code' => ['name' => 'Group Code', 'type' => 'varchar', 'length' => 30],
+		// types & groups
 		'type_id' => ['name' => 'Type #', 'type' => 'smallint', 'default' => null, 'format' => 'id'],
 		'type_id_sequence' => ['name' => 'Type #', 'type' => 'smallserial', 'placeholder' => 'Sequence', 'format' => 'id'],
-		'type_code' => ['name' => 'Type Code', 'type' => 'varchar', 'length' => 15],
 		'group_id' => ['name' => 'Group #', 'type' => 'integer', 'default' => null, 'format' => 'id'],
 		'group_id_sequence' => ['name' => 'Group #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
-		'group_code' => ['name' => 'Group Code', 'type' => 'varchar', 'length' => 30],
 		'big_id' => ['name' => 'Big #', 'type' => 'bigint', 'default' => null, 'format' => 'id'],
 		'big_id_sequence' => ['name' => 'Big #', 'type' => 'bigserial', 'placeholder' => 'Sequence'],
 		'order' => ['name' => 'Order', 'type' => 'integer', 'default' => 0, 'format' => 'id'],
 		'counter' => ['name' => 'Counter', 'type' => 'integer', 'default' => 0, 'format' => 'id'],
 		'bigcounter' => ['name' => 'Counter (Big)', 'type' => 'bigint', 'default' => 0, 'format' => 'id'],
+		// personal
 		'email' => ['name' => 'Email', 'type' => 'varchar', 'length' => 255, 'validator_method' => 'object_validator_email::validate', 'null' => true],
 		'phone' => ['name' => 'Phone', 'type' => 'varchar', 'length' => 50, 'validator_method' => 'object_validator_phone::validate', 'null' => true],
 		'personal_name' => ['name' => 'Name (Personal)', 'type' => 'varchar', 'length' => 50],

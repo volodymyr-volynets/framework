@@ -1,6 +1,6 @@
 <?php
 
-class object_sequence {
+class object_sequence extends object_override_data {
 
 	/**
 	 * Link to database
@@ -17,18 +17,38 @@ class object_sequence {
 	public $db_link_flag;
 
 	/**
-	 * Sequence name including schema in format [schema].[name]
+	 * Schema name
+	 *
+	 * @var string
+	 */
+	public $schema = '';
+
+	/**
+	 * Sequence name
 	 *
 	 * @var string
 	 */
 	public $name;
 
 	/**
-	 * Sequence type
+	 * Full sequence name
 	 *
 	 * @var string
 	 */
-	public $type = "simple";
+	public $full_sequence_name;
+
+	/**
+	 * Sequence type
+	 *		global_simple
+	 *		global_advanced
+	 *		tenant_simple
+	 *		tenant_advanced
+	 *		ledger_simple
+	 *		ledger_advanced
+	 *
+	 * @var string
+	 */
+	public $type = "global_simple";
 
 	/**
 	 * Sequence prefix
@@ -72,6 +92,13 @@ class object_sequence {
 				Throw new Exception('Could not determine db link in sequnce!');
 			}
 		}
+		// process table name and schema
+		if (!empty($this->schema)) {
+			$this->full_sequence_name = $this->schema . '.' . $this->name;
+		} else {
+			$this->full_sequence_name = $this->name;
+			$this->schema = '';
+		}
 	}
 
 	/**
@@ -84,7 +111,7 @@ class object_sequence {
 	}
 
 	/**
-	 * Cet current sequence value
+	 * Get current sequence value
 	 *
 	 * @return type
 	 */
@@ -106,7 +133,7 @@ class object_sequence {
 		];
 		$db = new db($this->db_link);
 		$table_model = new numbers_backend_db_class_model_sequences();
-		$temp = $db->sequence($this->name, $type);
+		$temp = $db->sequence($this->full_sequence_name, $type);
 		if (!$temp['success']) {
 			$result['error'] = $temp['error'];
 		} else if (!empty($temp['rows'][0])) {

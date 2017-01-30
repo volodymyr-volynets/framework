@@ -1,24 +1,36 @@
 <?php
 
 class object_table_columns extends object_data {
-	public $column_key = 'no_table_column_code';
-	public $column_prefix = 'no_table_column_';
+	public $column_key = 'code';
+	public $column_prefix = null; // must not change it
 	public $orderby = [];
 	public $columns = [
-		'no_table_column_code' => ['name' => 'Attribute', 'type' => 'varchar', 'length' => 30],
-		'no_table_column_name' => ['name' => 'Name', 'type' => 'text'],
-		'no_table_column_description' => ['name' => 'Description', 'type' => 'text']
+		'code' => ['name' => 'Attribute Code', 'domain' => 'code'],
+		'name' => ['name' => 'Name', 'type' => 'text'],
+		'description' => ['name' => 'Description', 'type' => 'text']
 	];
 	public $data = [
-		'name' => ['no_table_column_name' => 'Name', 'no_table_column_description' => 'Name of a column'],
+		'name' => ['name' => 'Name', 'description' => 'Name of a column'],
 		// ddl related attributes
-		'domain' => ['no_table_column_name' => 'Domain', 'no_table_column_description' => 'Domain from object_data_domains'],
-		'type' => ['no_table_column_name' => 'Data Type', 'no_table_column_description' => 'Data Type from object_data_types'],
-		'null' => ['no_table_column_name' => 'Null', 'no_table_column_description' => 'Whether column is null'],
-		'default' => ['no_table_column_name' => 'Default', 'no_table_column_description' => 'Default value'],
-		'length' => ['no_table_column_name' => 'Length', 'no_table_column_description' => 'String length'],
-		'precision' => ['no_table_column_name' => 'Precision', 'no_table_column_description' => 'Numeric precision'],
-		'scale' => ['no_table_column_name' => 'Scale', 'no_table_column_description' => 'Numeric scale']
+		'domain' => ['name' => 'Domain', 'description' => 'Domain from object_data_domains'],
+		'type' => ['name' => 'Data Type', 'description' => 'Data Type from object_data_types'],
+		'null' => ['name' => 'Null', 'description' => 'Whether column is null'],
+		'default' => ['name' => 'Default', 'description' => 'Default value'],
+		'length' => ['name' => 'Length', 'description' => 'String length'],
+		'precision' => ['name' => 'Precision', 'description' => 'Numeric/Datetime precision'],
+		'scale' => ['name' => 'Scale', 'description' => 'Numeric scale'],
+		'sequence' => ['name' => 'Sequence', 'description' => 'Indicates that its a sequence'],
+		// php attributes
+		'php_type' => ['name' => 'PHP Type'],
+		// misc attributes
+		'format' => ['name' => 'Format'],
+		'format_options' => ['name' => 'Format Options'],
+		'align' => ['name' => 'Align'],
+		'validator_method' => ['name' => 'Validator Method'],
+		'validator_params' => ['name' => 'Validator Params'],
+		'placeholder' => ['name' => 'Placeholder'],
+		'searchable' => ['name' => 'Searchable'],
+		'tree' => ['name' => 'Tree']
 	];
 
 	/**
@@ -73,7 +85,6 @@ class object_table_columns extends object_data {
 			foreach (['dependent::', 'parent::', 'master_object::', 'static::'] as $v) {
 				if (strpos($column_options['default'] . '', $v) !== false) {
 					unset($column_options['default']);
-					break;
 				}
 			}
 		}
@@ -107,7 +118,7 @@ class object_table_columns extends object_data {
 			}
 		} else if (in_array($column_options['type'], ['numeric', 'bcnumeric'])) { // numerics as floats or strings
 			// if we got empty string we say its null
-			if (is_string($value) &&  $value == '') {
+			if (is_string($value) &&  $value === '') {
 				$value = null;
 			}
 			if (is_null($value)) {
@@ -129,12 +140,10 @@ class object_table_columns extends object_data {
 				}
 			}
 		} else if ($column_options['type'] == 'json') {
-			if (is_null($value)) {
-				$result[$column_name] = null;
-			} else if (is_array($value)) {
+			if (!is_json($value)) {
 				$result[$column_name] = json_encode($value);
 			} else {
-				$result[$column_name] = (string) $value;
+				$result[$column_name] = $value;
 			}
 		} else {
 			if (is_null($value)) {

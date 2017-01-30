@@ -106,7 +106,7 @@ class debug {
 				'name' => $name,
 				'time' => format::time_seconds($benchmark) . '',
 				'total' => format::time_seconds($total),
-				'start' => format::datetime($start),
+				'start' => format::datetime($start, ['skip_user_timezone' => true]),
 				'memory' => memory_get_peak_usage(true)
 			];
 		}
@@ -408,7 +408,7 @@ class debug {
 				$result.= '<tr id="debuging_toolbar_application" class="debuging_toolbar_class" style="display: none;">';
 					$result.= '<td>';
 						$result.= '<h3>Application (' . count($application) . ')</h3>';
-						$result.= print_r2($application, true);
+						$result.= print_r2($application, 'Application Variables:', true);
 					$result.= '</td>';
 				$result.= '</tr>';
 
@@ -438,7 +438,7 @@ TTT;
 				$result.= '<tr id="debuging_toolbar_acls" class="debuging_toolbar_class" style="display: none;">';
 					$result.= '<td>';
 						$result.= '<h3>Acls (' . count(debug::$data['acls']) . ')</h3>';
-						$result.= print_r2(debug::$data['acls'], true);
+						$result.= print_r2(debug::$data['acls'], 'Acls', true);
 					$result.= '</td>';
 				$result.= '</tr>';
 

@@ -1,5 +1,6 @@
 <?php
 
+// must change working directory to public_html
 chdir('public_html');
 
 // autoloading composer first
@@ -13,6 +14,13 @@ spl_autoload_register(array('application', 'autoloader'));
 
 // running application
 application::run(['__run_only_bootstrap' => 1]);
+
+// increase in memory and unlimited execution time
+ini_set('memory_limit', '2048M');
+set_time_limit(0);
+
+// confirmation whether to run the script
+if (!helper_cmd::confirm("Run Unit Tests?")) exit;
 
 // this is a must, otherwise PHPUnit will not find xml file
 chdir('..');

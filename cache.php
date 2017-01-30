@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Cache
+ * Cache (global wrapper)
  */
 class cache {
 
@@ -31,8 +31,9 @@ class cache {
 	 *
 	 * @param string $cache_link
 	 * @param string $class
+	 * @param array $options
 	 */
-	public function __construct($cache_link = null, $class = null) {
+	public function __construct($cache_link = null, $class = null, $options = []) {
 		// if we need to use default link from application
 		if (empty($cache_link)) {
 			$cache_link = application::get(['flag', 'global', 'cache', 'default_cache_link']);
@@ -49,11 +50,10 @@ class cache {
 			// if we are replacing database connection with the same link we
 			// need to manually close connection
 			if (!empty($temp['object']) && $temp['class'] != $class) {
-				$object = $temp['object'];
-				$object->close();
+				$temp['object']->close();
 				unset($this->object);
 			}
-			$this->object = new $class($cache_link);
+			$this->object = new $class($cache_link, $options);
 			// putting every thing into factory
 			factory::set(['cache', $cache_link], [
 				'object' => $this->object,
@@ -73,6 +73,14 @@ class cache {
 	 * @return array
 	 */
 	public function connect($options) {
+		// for deployed code the directory is different because we relate it based on code
+		if (!empty($options['dir']) && application::is_deployed() && $options['dir'][0] != '/') {
+			if ($options['dir'][0] . $options['dir'][1] == './') {
+				$options['dir'] = './.' . $options['dir'];
+			} else {
+				$options['dir'] = '../' . $options['dir'];
+			}
+		}
 		return $this->object->connect($options);
 	}
 
@@ -82,60 +90,78 @@ class cache {
 	 * @return array
 	 */
 	public function close() {
+		// run gc in 1% cases to clean old caches
+		if (chance(1)) {
+			$this->gc(1);
+		}
 		return $this->object->close();
 	}
 
 	/**
-	 * Get data from cache
+	 * Get
 	 *
 	 * @param string $cache_id
+	 * @param boolean $return_data_only
 	 * @return mixed
 	 */
-	public function get($cache_id) {
-		$data = $this->object->get($cache_id);
+	public function get($cache_id, $return_data_only = false) {
+		$result = $this->object->get($cache_id);
 		// if we are debugging
 		if (debug::$debug) {
 			debug::$data['cache'][] = array(
 				'type' => 'get',
 				'link' => $this->object->cache_link,
 				'cache_id' => $cache_id,
-				'have_data' => ($data !== false)
+				'have_data' => $result['success']
 			);
+			// todo: log errors
 		}
-		return $data;
+		// if we need to return data
+		if ($return_data_only) {
+			if ($result['success']) {
+				return $result['data'];
+			} else {
+				return false;
+			}
+		} else {
+			return $result;
+		}
 	}
 
 	/**
-	 * Set cache
+	 * Set
 	 *
 	 * @param string $cache_id
 	 * @param mixed $data
-	 * @param mixed $tags
 	 * @param int $expire
-	 * @return bool
+	 * @param array $tags
+	 * @return array
 	 */
-	public function set($cache_id, $data, $tags = [], $expire = null) {
-		$data = $this->object->set($cache_id, $data, $tags, $expire);
+	public function set($cache_id, $data, $expire = null, $tags = []) {
+		$result = $this->object->set($cache_id, $data, $expire, $tags);
 		// if we are debugging
 		if (debug::$debug) {
 			debug::$data['cache'][] = array(
 				'type' => 'set',
 				'link' => $this->object->cache_link,
 				'cache_id' => $cache_id,
-				'have_data' => ($data !== false)
+				'have_data' => $result['success']
 			);
+			// todo: log errors
 		}
-		return $data;
+		return $result;
 	}
 
 	/**
-	 * Collect garbage
+	 * Garbage collector
 	 *
-	 * @param string $mode
+	 * @param int $mode
 	 *		1 - old
 	 *		2 - all
+	 *		3 - tag
 	 * @param array $tags
-	 * @return bool
+	 *		array of arrays of tags
+	 * @return array
 	 */
 	public function gc($mode = 1, $tags = []) {
 		return $this->object->gc($mode, $tags);

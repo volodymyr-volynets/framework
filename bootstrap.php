@@ -29,6 +29,8 @@ class bootstrap {
 		}
 		// if we are from command line we exit here
 		if (!empty($options['__run_only_bootstrap'])) {
+			// format
+			format::init();
 			return;
 		}
 		// application structure
@@ -74,7 +76,7 @@ class bootstrap {
 				}
 				$connected = false;
 				foreach ($cache_settings['servers'] as $cache_server) {
-					$cache_object = new cache($cache_link, $cache_settings['submodule']);
+					$cache_object = new cache($cache_link, $cache_settings['submodule'], $cache_settings);
 					$cache_status = $cache_object->connect($cache_server);
 					if ($cache_status['success']) {
 						$connected = true;

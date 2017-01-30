@@ -70,6 +70,8 @@ class application {
 	 * @throws Exception
 	 */
 	public static function run($options = []) {
+		// recort application start time
+		$application_request_time = $_SERVER['REQUEST_TIME_FLOAT'] ?? microtime(true);
 
 		// fixing location paths
 		$application_path = isset($options['application_path']) ? (rtrim($options['application_path'], '/') . '/') : '../application/';
@@ -92,6 +94,7 @@ class application {
 
 		// load ini settings
 		self::$settings = system_config::load($ini_folder);
+		self::$settings['application']['system']['request_time'] = $application_request_time;
 
 		// special handling of media files for development, so there's no need to redeploy application
 		if (self::$settings['environment'] == 'development' && isset($_SERVER['REQUEST_URI'])) {
@@ -338,7 +341,7 @@ class application {
 	}
 
 	/**
-	 * Setting Mvc
+	 * Setting MVC
 	 *
 	 * @param string $request_uri
 	 */

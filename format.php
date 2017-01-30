@@ -222,6 +222,8 @@ class format {
 	 *		timestamp
 	 * @param array $options
 	 *		format  - for date function
+	 *		skip_i18n
+	 *		skip_user_timezone
 	 * @return string
 	 */
 	public static function date_format($value, $type = 'date', $options = []) {
@@ -235,15 +237,23 @@ class format {
 			$value = date('Y-m-d H:i:s', (int) $temp[0]) . (isset($temp[1]) ? '.' . $temp[1] : '');
 		}
 		try {
-			$object = new DateTime($value, new DateTimeZone(self::$options['server_timezone']));
-			$object->setTimezone(new DateTimeZone(self::$options['timezone']));
+			$server_timezone = self::$options['server_timezone'] ?? application::get('php.date.timezone');
+			$object = new DateTime($value, new DateTimeZone($server_timezone));
+			// change timezone
+			if (empty($options['skip_user_timezone'])) {
+				$object->setTimezone(new DateTimeZone(self::$options['timezone']));
+			}
 			$value = $object->format($format);
-		} catch (Exception $e) { // on exception we return as is
-			// nothing
+		} catch (Exception $e) {
+			// on exception we return as is
 		}
 		// localize
-		$value = str_replace(['am', 'pm'], [i18n(null, 'am'), i18n(null, 'pm')], $value);
-		return self::number_to_from_native_language($value, $options);
+		if (empty($options['skip_i18n'])) {
+			$value = str_replace(['am', 'pm'], [i18n(null, 'am'), i18n(null, 'pm')], $value);
+			return self::number_to_from_native_language($value, $options);
+		} else {
+			return $value;
+		}
 	}
 
 	/**
@@ -316,7 +326,7 @@ class format {
 		}
 		// if we need to format
 		if (!empty($options['format'])) {
-			return self::{$type}($time);
+			return self::{$type}($time + $msec, $options);
 		}
 		// rendering
 		switch ($type) {
@@ -424,6 +434,7 @@ class format {
 	 * @param array $options
 	 *		boolean - bcnumeric
 	 *		boolean - valid_check
+	 *		valid_check_type - FILTER_VALIDATE_INT or FILTER_VALIDATE_FLOAT
 	 * @return mixed
 	 */
 	public static function read_floatval($amount, $options = []) {

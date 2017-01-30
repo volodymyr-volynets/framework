@@ -16,7 +16,9 @@ class object_structure_base {
 		if (!empty($structure['db_multiple'])) {
 			$host_parts = request::host_parts();
 			$temp = preg_replace('/[^a-zA-Z0-9_]+/', '', ($structure['db_prefix'] ?? '') . $host_parts[$structure['db_domain_level']]);
-			$result['cache']['default']['cache_key'] = $result['db']['default']['dbname'] = $temp;
+			// default settings are for default db and cache links
+			$result['db']['default']['dbname'] = $temp;
+			$result['cache']['default']['cache_key'] = $temp;
 		}
 		// put settings back to registry
 		application::set('application.structure.settings', $result);

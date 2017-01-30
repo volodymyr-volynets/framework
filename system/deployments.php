@@ -13,26 +13,23 @@ class system_deployments {
 			'success' => false,
 			'error' => array()
 		);
+		$options['mode'] = $options['mode'] ?? 'production';
 		do {
-			if (empty($options['mode'])) {
-				$options['mode'] = 'code';
-			}
-
 			$temp = rtrim(getcwd(), '/');
 			$deployed_dir = $temp . '/../../deployed';
 			$code_dir = $temp . '/../../application';
 
 			// for development we handle deployment differently, just symlink to the code
-			if ($options['mode'] == 'code_dev') {
+			if ($options['mode'] == 'development') {
 				if (file_exists($deployed_dir)) {
 					shell_exec("rm -r $deployed_dir");
 				}
 				symlink($code_dir, $deployed_dir);
-				print_r(555555);
 				$result['success'] = true;
 				break;
 			}
 
+			// determine and create directories
 			$all_deps_dir = $temp . '/../../deployments';
 			$time = time();
 			$dep_id = 'build.' . $time . '.' . rand(100, 999);
