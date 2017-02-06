@@ -317,6 +317,10 @@ reask_for_migration:
 								goto error;
 							}
 							$result['hint'][] = "   -> Set permissions: {$permission_result['count']};";
+							// building hint
+							if (!empty($verbose)) {
+								$result['hint'] = array_merge($result['hint'], $permission_result['legend']);
+							}
 						}
 					}
 					// import data
