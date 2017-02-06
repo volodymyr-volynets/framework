@@ -17,12 +17,22 @@ class db {
 	public $backend;
 
 	/**
+	 * Options
+	 *		cache_link
+	 *		crypt_link
+	 *
+	 * @var array
+	 */
+	public $options = [];
+
+	/**
 	 * Constructing database object
 	 *
 	 * @param string $db_link
 	 * @param string $class
+	 * @param array $options
 	 */
-	public function __construct($db_link = null, $class = null) {
+	public function __construct($db_link = null, $class = null, $options = []) {
 		// if we need to use default link from application
 		if (empty($db_link)) {
 			$db_link = application::get(['flag', 'global', 'db', 'default_db_link']);
@@ -44,7 +54,7 @@ class db {
 				unset($this->object);
 			}
 			// creating new class
-			$this->object = new $class($db_link);
+			$this->object = new $class($db_link, $options);
 			// determining ddl class & object
 			$ddl_class = str_replace('_base_abc123', '_ddl', $class . '_abc123');
 			$ddl_object = new $ddl_class();
@@ -58,6 +68,9 @@ class db {
 				'ddl_class' => $ddl_class,
 				'ddl_object' => $ddl_object
 			]);
+			// set options without credentials
+			unset($options['servers']);
+			$this->options = $options;
 		} else if (!empty($temp['object'])) {
 			$this->object = & $temp['object'];
 			$this->backend = $temp['backend'];

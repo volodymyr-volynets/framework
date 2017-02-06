@@ -214,7 +214,7 @@ reask_for_migration:
 					}
 					// if we have new migrations
 					if (($mode == 'commit' || $mode == 'rollback') && $new_migration_count > 0) {
-						$action = $mode == 'commit' ? 'up' : 'down';
+						$action = ($mode == 'commit') ? 'up' : 'down';
 						$result['hint'][] = "   -> Applying migration(s):";
 						// apply migrations one by one
 						foreach ($new_migrations as $k2 => $v2) {
@@ -276,8 +276,10 @@ reask_for_migration:
 					}
 					//print_r2($db_result);
 					$result['hint'][] = "   -> Db objects:";
-					foreach ($db_result['count']['default'] as $k2 => $v2) {
-						$result['hint'][] = "       * {$k2}: $v2";
+					if (!empty($db_result['count']['default'])) {
+						foreach ($db_result['count']['default'] as $k2 => $v2) {
+							$result['hint'][] = "       * {$k2}: $v2";
+						}
 					}
 					// if dropping we have empty objects from the code
 					if ($mode == 'drop') {
@@ -306,6 +308,16 @@ reask_for_migration:
 							goto error;
 						}
 						$result['hint'][] = "   -> SQL changes: {$sql_result['count']};";
+						// set permissions to allow access for query user
+						if ($mode == 'commit' && !empty($code_result['permissions']['default'])) {
+							$permission_result = numbers_backend_db_class_schemas::set_permissions('default', $settings['db_query_owner'], $code_result['permissions']['default'], ['database' => $v]);
+							if (!$permission_result['success']) {
+								$result['error'] = array_merge($result['error'], $permission_result['error']);
+								$db_object->rollback();
+								goto error;
+							}
+							$result['hint'][] = "   -> Set permissions: {$permission_result['count']};";
+						}
 					}
 					// import data
 					// 

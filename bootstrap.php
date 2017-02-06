@@ -33,6 +33,21 @@ class bootstrap {
 			format::init();
 			return;
 		}
+		// including libraries that we need to auto include
+		if (!empty($flags['global']['library'])) {
+			foreach ($flags['global']['library'] as $k => $v) {
+				// we need to skip certain keys
+				if ($k == 'submodule' || $k == 'options') continue;
+				// we only include if autoconnect is on
+				if (!empty($v['autoconnect'])) {
+					factory::submodule('flag.global.library.' . $k . '.submodule')->add();
+				}
+			}
+		}
+		// check if we need to include system files from frontend
+		if (application::get('dep.submodule.numbers.frontend.system')) {
+			numbers_frontend_system_model_base::start();
+		}
 		// application structure
 		$application_structure_model = application::get('application.structure.model');
 		$application_structure_settings = [];
@@ -106,21 +121,6 @@ class bootstrap {
 		}
 		// format
 		format::init();
-		// including libraries that we need to auto include
-		if (!empty($flags['global']['library'])) {
-			foreach ($flags['global']['library'] as $k => $v) {
-				// we need to skip certain keys
-				if ($k == 'submodule' || $k == 'options') continue;
-				// we only include if autoconnect is on
-				if (!empty($v['autoconnect'])) {
-					factory::submodule('flag.global.library.' . $k . '.submodule')->add();
-				}
-			}
-		}
-		// check if we need to include system files from frontend
-		if (application::get('dep.submodule.numbers.frontend.system')) {
-			numbers_frontend_system_model_base::start();
-		}
 	}
 
 	/**

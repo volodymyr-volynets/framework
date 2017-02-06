@@ -566,15 +566,14 @@ class object_table extends object_override_data {
 	 * Reset caches on exit
 	 */
 	public function reset_cache() {
-		// get cache link
-		$cache_link = $this->db_object->object->connect_options['cache_link'];
-		// create empty cache array
-		if (!isset(cache::$reset_caches[$cache_link])) {
-			cache::$reset_caches[$cache_link] = [];
+		// only reset caches if cache link is present
+		if (!empty($this->db_object->object->options['cache_link'])) {
+			// create unique caches by adding new
+			// todo - add miltitenancy
+			$tags = array_merge($this->cache_tags, [$this->full_table_name]);
+			$hash = sha1(serialize($tags));
+			cache::$reset_caches[$this->db_object->object->options['cache_link']][$hash] = $tags;
 		}
-		// create unique caches by adding new
-		// todo - add miltitenancy cache
-		cache::$reset_caches[$cache_link] = array_unique(array_merge(cache::$reset_caches[$cache_link], $this->cache_tags, [$this->full_table_name]));
 	}
 
 	/**

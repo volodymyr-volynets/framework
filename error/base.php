@@ -60,8 +60,8 @@ class error_base {
 	 * Initialize error handler
 	 */
 	public static function init() {
-		set_error_handler(array('error_base', 'error_handler'));
-		set_exception_handler(array('error_base', 'exception_handler'));
+		set_error_handler(['error_base', 'error_handler']);
+		set_exception_handler(['error_base', 'exception_handler']);
 		ini_set('display_errors', 0);
 	}
 
