@@ -216,6 +216,7 @@ reask_for_migration:
 					if (($mode == 'commit' || $mode == 'rollback') && $new_migration_count > 0) {
 						$action = ($mode == 'commit') ? 'up' : 'down';
 						$result['hint'][] = "   -> Applying migration(s):";
+						$permissions = [];
 						// apply migrations one by one
 						foreach ($new_migrations as $k2 => $v2) {
 							// execute migration in commit mode
@@ -226,6 +227,21 @@ reask_for_migration:
 								goto error;
 							}
 							$result['hint'][] = "       * {$k2}: {$action} " . helper_cmd::color_string('OK', 'green');
+							// assemble permissions
+							$permissions = array_merge_hard($permissions, $execute_result['permissions']);
+						}
+						// set permissions
+						if (!empty($permissions)) {
+							$permission_result = numbers_backend_db_class_schemas::set_permissions('default', $settings['db_query_owner'], $permissions, ['database' => $v]);
+							if (!$permission_result['success']) {
+								$result['error'] = array_merge($result['error'], $permission_result['error']);
+								goto error;
+							}
+							$result['hint'][] = "   -> Set permissions: {$permission_result['count']};";
+							// building hint
+							if (!empty($verbose)) {
+								$result['hint'] = array_merge($result['hint'], $permission_result['legend']);
+							}
 						}
 					}
 				}
@@ -313,7 +329,6 @@ reask_for_migration:
 							$permission_result = numbers_backend_db_class_schemas::set_permissions('default', $settings['db_query_owner'], $code_result['permissions']['default'], ['database' => $v]);
 							if (!$permission_result['success']) {
 								$result['error'] = array_merge($result['error'], $permission_result['error']);
-								$db_object->rollback();
 								goto error;
 							}
 							$result['hint'][] = "   -> Set permissions: {$permission_result['count']};";
