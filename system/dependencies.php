@@ -201,7 +201,7 @@ class system_dependencies {
 
 			// processing models
 			if (!empty($data['model'])) {
-				array_keys_to_string($data['model'], $data['model_processed']);
+				$data['model_processed'] = $data['model'];
 			}
 
 			// processing imports, we need to sort them in order of dependencies

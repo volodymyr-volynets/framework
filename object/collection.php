@@ -344,6 +344,7 @@ class object_collection extends object_override_data {
 	 *		original - original row from database, if not set it would be loaded from database
 	 *		options_model - whether we need to validate provided options
 	 *		flag_delete_row - if we are deleting
+	 *		skip_optimistic_lock
 	 * @return array
 	 */
 	public function merge($data, $options = []) {
@@ -354,7 +355,8 @@ class object_collection extends object_override_data {
 			'deleted' => false,
 			'inserted' => false,
 			'new_serials' => [],
-			'options_model' => []
+			'options_model' => [],
+			'count' => 0
 		];
 		do {
 			if (empty($data)) {
@@ -390,7 +392,7 @@ class object_collection extends object_override_data {
 				}
 			}
 			// validate optimistic lock
-			if ($this->primary_model->optimistic_lock && !empty($original)) {
+			if ($this->primary_model->optimistic_lock && !empty($original) && empty($options['skip_optimistic_lock'])) {
 				if (($data[$this->primary_model->optimistic_lock_column] ?? '') !== $original[$this->primary_model->optimistic_lock_column]) {
 					$this->primary_model->db_object->rollback();
 					$result['error'][] = object_content_messages::optimistic_lock;
@@ -497,9 +499,9 @@ class object_collection extends object_override_data {
 			}
 			// we display warning if form has not been changed
 			if (empty($temp['data']['total'])) {
-				$this->primary_model->db_object->rollback();
 				$result['warning'][] = object_content_messages::no_changes;
-				break;
+			} else { // number of changes
+				$result['count'] = $temp['data']['total'];
 			}
 			// insert history
 			if (!empty($temp['data']['history'])) {
@@ -522,7 +524,6 @@ class object_collection extends object_override_data {
 				// todo
 				$temp2 = factory::model($this->primary_model->audit_model, true)->merge($temp['data']['audit'], ['changes' => $temp['data']['total']]);
 				if (!$temp2['success']) {
-					$this->primary_model->db_object->rollback();
 					$result['error'] = array_merge($result['error'], $temp2['error']);
 					break;
 				}
@@ -548,7 +549,8 @@ error:
 	public function merge_multiple($data, $options = []) {
 		$result = [
 			'success' => false,
-			'error' => []
+			'error' => [],
+			'count' => 0
 		];
 		do {
 			if (empty($data)) {
@@ -609,11 +611,11 @@ error:
 					$result['error'] = array_merge($result['error'], $merge_result['error']);
 					return $result;
 				}
+				$result['count']+= $merge_result['count'];
 			}
 			// commit transaction
 			$this->primary_model->db_object->commit();
 			$result['success'] = true;
-			return $result;
 		} while(0);
 		return $result;
 	}
@@ -684,9 +686,9 @@ error:
 		} else if (empty($original_row)) { // if we insert
 			// process who columns
 			$model->process_who_columns(['inserted', 'optimistic_lock'], $data_row_final, $this->timestamp);
-			// handle serial types
+			// handle serial types, empty only
 			foreach ($model->columns as $k => $v) {
-				if (strpos($v['type'], 'serial') !== false && empty($v['null'])) {
+				if (strpos($v['type'], 'serial') !== false && empty($v['null']) && empty($data_row_final[$k])) {
 					$temp = $this->primary_model->db_object->sequence($model->full_table_name . '_' . $k . '_seq');
 					$result['new_serials'][$k] = $data_row_final[$k] = $temp['rows'][0]['counter'];
 				}

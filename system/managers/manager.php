@@ -75,8 +75,10 @@ try {
 				]);
 				//print_r2($migration_result);
 				$result['hint'][] = "   -> Migration objects:";
-				foreach ($migration_result['count']['default'] as $k2 => $v2) {
-					$result['hint'][] = "       * {$k2}: $v2";
+				if (!empty($migration_result['count']['default'])) {
+					foreach ($migration_result['count']['default'] as $k2 => $v2) {
+						$result['hint'][] = "       * {$k2}: $v2";
+					}
 				}
 				$result['hint'][] = "   -> Rollback objects:";
 				foreach ($migration_result['rollback_count']['default'] as $k2 => $v2) {
@@ -274,15 +276,14 @@ reask_for_migration:
 						'db_link' => 'default',
 						'db_schema_owner' => $settings['db_schema_owner']
 					]);
-					//print_r2($code_result);
-					$result['hint'][] = "   -> Code objects:";
-					foreach ($code_result['count']['default'] as $k2 => $v2) {
-						$result['hint'][] = "       * {$k2}: $v2";
-					}
 					if (!$code_result['success']) {
 						$result['error'] = array_merge($result['error'], $code_result['error']);
 						$db_object->rollback();
 						goto error;
+					}
+					$result['hint'][] = "   -> Code objects:";
+					foreach ($code_result['count']['default'] as $k2 => $v2) {
+						$result['hint'][] = "       * {$k2}: $v2";
 					}
 					$db_result = numbers_backend_db_class_schemas::process_db_schema(['db_link' => 'default']);
 					if (!$db_result['success']) {
@@ -290,7 +291,6 @@ reask_for_migration:
 						$db_object->rollback();
 						goto error;
 					}
-					//print_r2($db_result);
 					$result['hint'][] = "   -> Db objects:";
 					if (!empty($db_result['count']['default'])) {
 						foreach ($db_result['count']['default'] as $k2 => $v2) {
@@ -339,15 +339,18 @@ reask_for_migration:
 						}
 					}
 					// import data
-					// 
-					// 
-					// 
-					// 
-					// todo   
-					// 
-					// 
-					// 
-					// 
+					if ($mode == 'commit' && !empty($code_result['data']['object_import'])) {
+						$import_data_result = numbers_backend_db_class_schemas::import_data('default', $code_result['data']['object_import'], []);
+						if (!$import_data_result['success']) {
+							$result['error'] = array_merge($result['error'], $import_data_result['error']);
+							goto error;
+						}
+						$result['hint'][] = "   -> Import data: {$import_data_result['count']};";
+						// building hint
+						if (!empty($verbose)) {
+							$result['hint'] = array_merge($result['hint'], $import_data_result['legend']);
+						}
+					}
 					// commit
 					$db_object->commit();
 				}

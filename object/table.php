@@ -804,12 +804,12 @@ TTT;
 	/**
 	 * Create collection object
 	 *
+	 * @param array $options
 	 * @return object
 	 */
-	public static function collection() {
-		return object_collection::collection_to_model([
-			'model' => get_called_class()
-		]);
+	public static function collection($options = []) {
+		$options['model'] = get_called_class();
+		return object_collection::collection_to_model($options);
 	}
 
 	/**
