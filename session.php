@@ -78,6 +78,9 @@ class session {
 			$_SESSION['numbers']['ip'] = [];
 		}
 		// we need to try to decode ip address
+		$_SESSION['numbers']['ip']['ip'] = $ip;
+		/*
+		 * todo
 		if (!isset($_SESSION['numbers']['ip']['ip'])) {
 			$ip_submodule = application::get('flag.global.ip.submodule', ['class' => 1]);
 			if (!empty($ip_submodule)) {
@@ -94,6 +97,7 @@ class session {
 				];
 			}
 		}
+		*/
 	}
 
 	/**

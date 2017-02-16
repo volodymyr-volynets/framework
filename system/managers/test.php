@@ -36,45 +36,8 @@ $result = [
 
 // wrapping everything into try-catch block for system exceptions
 try {
-	// testing memcached
-	/*
-	$memcached = new numbers_backend_cache_memcached_connection();
-	$temp = $memcached->connect(['host' => '127.0.0.1', 'port' => 11211]);
-	$temp = $memcached->set('test_key', 'some data', 5, $memcached::flag_tags, ['test_tag']);
-	print_r2($temp);
-	$temp = $memcached->get('test_key');
-	print_r2($temp);
-	exit;
-	*/
 
-/*
-	$settings = application::get('cache.default2');
-	$cache = new cache('default', $settings['submodule'], $settings);
-	$temp = $cache->connect(current($settings['servers']));
-	//print_r2($temp, 'connect');
-
-	$temp = $cache->set('test1', ['some_data' => 555], 3, ['+tag1', 'tag2', 'tag3']);
-	$temp = $cache->set('test2', ['some_data' => 555], 3, ['+tag1', 'tag2', 'tag3']);
-	$temp = $cache->set('test3', ['some_data' => 555], 3, ['+tag1', 'tag3']);
-	$temp = $cache->set('test4', ['some_data' => 555], 3, ['tag2', 'tag3']);
-	$temp = $cache->set('test5', ['some_data' => 555], 3, ['tag2', 'tag3']);
-	//print_r2($temp, 'set');
-	//$temp = $cache->get('test1');
-	//print_r2($temp, 'get');
-
-	//sleep(4);
-
-	$temp = $cache->gc(3, [['+tag1', 'tag2']]);
-	print_r2($temp, 'gc');
-	$temp = $cache->gc(3, [['tag3']]);
-	print_r2($temp, 'gc');
-	
-	//$temp = $cache->get('test');
-	//print_r2($temp, 'get');
-
-	$temp = $cache->close();
-	print_r2($temp, 'close');
-*/
+	// add your code here
 
 // error label
 error:

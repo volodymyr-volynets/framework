@@ -50,10 +50,10 @@ class bootstrap {
 		}
 		// application structure
 		$application_structure_model = application::get('application.structure.model');
-		$application_structure_settings = [];
 		if (!empty($application_structure_model)) {
-			$application_structure_settings = factory::model($application_structure_model, true)->settings();
+			factory::model($application_structure_model, true)->settings();
 		}
+		$application_structure = application::get('application.structure');
 		// create database connections
 		$db = application::get('db');
 		if (!empty($db) && $backend) {
@@ -65,8 +65,8 @@ class bootstrap {
 				foreach ($db_settings['servers'] as $server_key => $server_values) {
 					$db_object = new db($db_link, $db_settings['submodule']);
 					// application structure
-					if (isset($application_structure_settings['db'][$db_link])) {
-						$server_values = array_merge_hard($server_values, $application_structure_settings['db'][$db_link]);
+					if (isset($application_structure['settings']['db'][$db_link])) {
+						$server_values = array_merge_hard($server_values, $application_structure['settings']['db'][$db_link]);
 					}
 					// connecting
 					$server_values = array_merge2($server_values, $db_settings);
@@ -78,7 +78,12 @@ class bootstrap {
 				}
 				// checking if not connected
 				if (!$connected) {
-					Throw new Exception('Unable to open database connection!');
+					// if wrong database name is provided we redirect to special url
+					if (!empty($application_structure['db_not_found_url']) && isset($application_structure['settings']['db'][$db_link])) {
+						request::redirect($application_structure['db_not_found_url']);
+					} else {
+						Throw new Exception('Unable to open database connection!');
+					}
 				}
 			}
 		}

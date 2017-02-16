@@ -26,8 +26,8 @@ class object_structure_base {
 			// clean up database name
 			$temp = preg_replace('/[^a-zA-Z0-9_]+/', '', ($structure['db_prefix'] ?? '') . $host_parts[$structure['db_domain_level']]);
 			// default settings are for default db and cache links
-			$result['db']['default']['dbname'] = $temp;
-			$result['cache']['default']['cache_key'] = $temp;
+			$result['db']['default']['dbname'] = strtolower($temp);
+			$result['cache']['default']['cache_key'] = strtolower($temp);
 		}
 		// put settings back to registry
 		application::set('application.structure.settings', $result);

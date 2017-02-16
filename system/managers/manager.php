@@ -81,8 +81,10 @@ try {
 					}
 				}
 				$result['hint'][] = "   -> Rollback objects:";
-				foreach ($migration_result['rollback_count']['default'] as $k2 => $v2) {
-					$result['hint'][] = "       * {$k2}: $v2";
+				if (!empty($migration_result['rollback_count']['default'])) {
+					foreach ($migration_result['rollback_count']['default'] as $k2 => $v2) {
+						$result['hint'][] = "       * {$k2}: $v2";
+					}
 				}
 				if (!$migration_result['success']) {
 					$result['error'] = array_merge($result['error'], $migration_result['error']);
@@ -141,6 +143,13 @@ reask_for_migration:
 						goto error;
 					}
 				}
+				//
+				// load all import models from the code
+				$code_result = numbers_backend_db_class_schemas::process_code_models([
+					'db_link' => 'default',
+					'db_schema_owner' => $settings['db_schema_owner'],
+					'skip_db_object' => true
+				]);
 				// go through each database
 				foreach ($settings['db_list'] as $v) {
 					$schema_temp = $settings['db_settings'];
@@ -244,6 +253,19 @@ reask_for_migration:
 							if (!empty($verbose)) {
 								$result['hint'] = array_merge($result['hint'], $permission_result['legend']);
 							}
+						}
+					}
+					// import data
+					if ($mode == 'commit' && !empty($code_result['data']['object_import'])) {
+						$import_data_result = numbers_backend_db_class_schemas::import_data('default', $code_result['data']['object_import'], []);
+						if (!$import_data_result['success']) {
+							$result['error'] = array_merge($result['error'], $import_data_result['error']);
+							goto error;
+						}
+						$result['hint'][] = "   -> Import data: {$import_data_result['count']};";
+						// building hint
+						if (!empty($verbose)) {
+							$result['hint'] = array_merge($result['hint'], $import_data_result['legend']);
 						}
 					}
 				}

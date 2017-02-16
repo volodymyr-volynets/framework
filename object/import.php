@@ -52,6 +52,14 @@ class object_import {
 			if (count($this->data[$k]['data']) == 0) continue;
 			// object
 			$model = $this->data[$k]['options']['model'];
+			// we exit if primary model does not exists
+			
+			
+			// todo: if not form
+			
+			
+			$object = new $model();
+			if (!$object->db_present()) continue;
 			// collection options
 			$collection_options = [];
 			if (!empty($this->data[$k]['options']['pk'])) {
