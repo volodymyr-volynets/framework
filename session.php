@@ -59,9 +59,8 @@ class session {
 		// starting session submodule if we have one
 		$class = application::get('flag.global.session.submodule', ['class' => 1]);
 		if (!empty($class)) {
-			$object = new $class();
-			$object->init();
-			self::$object = $object;
+			self::$object = new $class();
+			self::$object->init();
 		}
 		// starting session
 		session_start();
@@ -78,13 +77,10 @@ class session {
 			$_SESSION['numbers']['ip'] = [];
 		}
 		// we need to try to decode ip address
-		$_SESSION['numbers']['ip']['ip'] = $ip;
-		/*
-		 * todo
-		if (!isset($_SESSION['numbers']['ip']['ip'])) {
-			$ip_submodule = application::get('flag.global.ip.submodule', ['class' => 1]);
+		if (!empty($options['ip_link']) && !isset($_SESSION['numbers']['ip']['ip'])) {
+			$ip_submodule = application::get("ip.{$options['ip_link']}.submodule", ['submodule_exists' => 1, 'class' => 1]);
 			if (!empty($ip_submodule)) {
-				$ip_object = new $ip_submodule();
+				$ip_object = new $ip_submodule($options['ip_link'], application::get("ip.{$options['ip_link']}") ?? []);
 				$ip_data = $ip_object->get($ip);
 				if ($ip_data['success']) {
 					$_SESSION['numbers']['ip'] = $ip_data['data'];
@@ -97,7 +93,6 @@ class session {
 				];
 			}
 		}
-		*/
 	}
 
 	/**

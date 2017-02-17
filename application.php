@@ -16,6 +16,7 @@ class application {
 	 *		array decrypt_keys - if we need to decrypt keys
 	 *		boolean class - if we need to return proper class name
 	 *		boolean backend_exists - if we need to determine if backend exists
+	 *		boolean submodule_exists - check if submodule is available
 	 * @return mixed
 	 */
 	public static function get($key = null, $options = []) {
@@ -31,7 +32,6 @@ class application {
 				return $flag;
 			}
 		}
-
 		// get data from settings
 		$result = array_key_get(self::$settings, $key);
 		// decrypting certain columns
@@ -40,6 +40,15 @@ class application {
 			array_walk_recursive($result, create_function('&$v, $k, $fn', 'if (in_array($k, $fn)) $v = crypt::static_decrypt($v);'), $options['decrypt_keys']);
 		}
 		*/
+		// submodule exists
+		if (!empty($options['submodule_exists'])) {
+			$temp = explode('.', $result);
+			array_pop($temp);
+			array_unshift($temp, 'submodule');
+			array_unshift($temp, 'dep');
+			$exists = array_key_get(self::$settings, $temp);
+			if (empty($exists)) return false;
+		}
 		// if we need to fix class name
 		if (!empty($options['class'])) {
 			$result = str_replace('.', '_', $result);

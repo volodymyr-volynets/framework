@@ -112,7 +112,7 @@ class bootstrap {
 		// initialize session
 		$session = application::get('flag.global.session');
 		if (!empty($session['start']) && $backend && !application::get('flag.global.__skip_session')) {
-			session::start(isset($session['options']) ? $session['options'] : []);
+			session::start($session['options'] ?? []);
 		}
 		// we need to get overrides from session and put them back to flag array
 		$flags = array_merge_hard($flags, session::get('numbers.flag'));

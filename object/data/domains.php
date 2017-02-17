@@ -77,7 +77,9 @@ class object_data_domains extends object_data {
 		'resource_id' => ['name' => 'Resource #', 'type' => 'integer', 'format' => 'id'],
 		'resource_id_sequence' => ['name' => 'Resource #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'action_id' => ['name' => 'Action #', 'type' => 'smallint', 'format' => 'id'],
-		// E/M Entities
+		// U/M User & Entity Management
+		'user_id' => ['name' => 'User #', 'type' => 'bigint', 'default' => null, 'format' => 'id'],
+		'user_id_sequence' => ['name' => 'User #', 'type' => 'bigserial', 'placeholder' => 'Sequence'],
 		'entity_id' => ['name' => 'Entity #', 'type' => 'integer', 'default' => null, 'format' => 'id'],
 		'entity_id_sequence' => ['name' => 'Entity #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		//'component_id' => ['name' => 'Component #', 'type' => 'integer', 'default' => null, 'format' => 'id'],
