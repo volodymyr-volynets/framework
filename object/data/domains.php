@@ -54,6 +54,7 @@ class object_data_domains extends object_data {
 		// login
 		'login' => ['name' => 'Login', 'type' => 'varchar', 'length' => 30],
 		'password' => ['name' => 'Password', 'type' => 'text', 'validator_method' => 'object_validator_password::validate'],
+		'ip' => ['name' => 'IP', 'type' => 'varchar', 'length' => 46],
 		// S/M System
 		'ledger_id' => ['name' => 'Ledger #', 'type' => 'integer', 'default' => null, 'format' => 'id'],
 		'ledger_id_sequence' => ['name' => 'Ledger #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
@@ -78,8 +79,8 @@ class object_data_domains extends object_data {
 		'resource_id_sequence' => ['name' => 'Resource #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'action_id' => ['name' => 'Action #', 'type' => 'smallint', 'format' => 'id'],
 		// U/M User & Entity Management
-		'user_id' => ['name' => 'User #', 'type' => 'bigint', 'default' => null, 'format' => 'id'],
-		'user_id_sequence' => ['name' => 'User #', 'type' => 'bigserial', 'placeholder' => 'Sequence'],
+		'user_id' => ['name' => 'User #', 'type' => 'integer', 'default' => null, 'format' => 'id'],
+		'user_id_sequence' => ['name' => 'User #', 'type' => 'serial', 'placeholder' => 'Sequence'],
 		'entity_id' => ['name' => 'Entity #', 'type' => 'integer', 'default' => null, 'format' => 'id'],
 		'entity_id_sequence' => ['name' => 'Entity #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		//'component_id' => ['name' => 'Component #', 'type' => 'integer', 'default' => null, 'format' => 'id'],

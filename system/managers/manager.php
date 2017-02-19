@@ -241,6 +241,13 @@ reask_for_migration:
 							// assemble permissions
 							$permissions = array_merge_hard($permissions, $execute_result['permissions']);
 						}
+						// cleanup permissions
+						foreach ($permissions as $k2 => $v2) {
+							foreach ($v2 as $k3 => $v4) {
+								if (empty($v4)) unset($permissions[$k2][$k3]);
+							}
+							if (empty($permissions[$k2])) unset($permissions[$k2]);
+						}
 						// set permissions
 						if (!empty($permissions)) {
 							$permission_result = numbers_backend_db_class_schemas::set_permissions('default', $settings['db_query_owner'], $permissions, ['database' => $v]);

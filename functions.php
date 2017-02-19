@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Concatenate params if not empty
+ * Concatenate parameters if not empty
  * 
  * @param string $delimiter
  * @param mized $arg1
@@ -197,19 +197,26 @@ function var_export_condensed($data) {
  * 
  * @param mixed $pk
  * @param array $data
+ * @param boolean $return_extracted
+ * @return array
  */
-function pk($pk, & $data) {
-	if (!is_array($pk)) {
-		$pk = [$pk];
+function pk($pk, & $data, $return_extracted = false) {
+	$pk = array_fix($pk);
+	if (!is_array($data)) $data = [];
+	if (!$return_extracted) {
+		$result = [];
+		foreach ($data as $k => $v) {
+			array_key_set_by_key_name($result, $pk, $v);
+		}
+		$data = $result;
+	} else {
+		$result = [];
+		foreach ($pk as $k) {
+			$result[$k] = array_key_exists($k, $data) ? $data[$k] : null;
+			unset($data[$k]);
+		}
+		return $result;
 	}
-	$result = [];
-	if (!is_array($data)) {
-		$data = [];
-	}
-	foreach ($data as $k => $v) {
-		array_key_set_by_key_name($result, $pk, $v);
-	}
-	$data = $result;
 }
 
 /**
@@ -395,7 +402,7 @@ function array_key_sort(& $arr, $keys, $methods = []) {
 }
 
 /**
- * Prepare sort keys
+ * Prepare orderby
  *
  * @param array $keys
  *		['id' => SORT_ASC, 'name' => SORT_DESC]

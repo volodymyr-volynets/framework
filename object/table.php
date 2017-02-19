@@ -470,53 +470,61 @@ class object_table extends object_override_data {
 		}
 		$options_query['cache_tags'] = !empty($this->cache_tags) ? array_values($this->cache_tags) : [];
 		$options_query['cache_tags'][] = $this->full_table_name;
-		$sql = '';
 		// pk
 		$pk = array_key_exists('pk', $options) ? $options['pk'] : $this->pk;
+		// query
+		$query = self::query_builder()->select();
 		// preset columns
 		if (!empty($options['__preset'])) {
-			$columns = 'DISTINCT ';
+			$query->distinct();
 			if (!empty($pk) && count($pk) > 1) {
 				$temp = $pk;
 				unset($temp[array_search('preset_value', $temp)]);
-				$columns.= $this->db_object->prepare_expression($temp) . ', ';
+				$query->columns($temp);
 			}
-			$columns.= "concat_ws(' ', " . $this->db_object->prepare_expression($options['columns']) . ") preset_value";
-			$sql.= ' AND coalesce(' . $this->db_object->prepare_expression($options['columns']) . ') IS NOT NULL';
+			$query->columns(['preset_value' => "concat_ws(' ', " . $query->prepare_expression($options['columns']) . ")"]);
+			$query->where('AND', ["coalesce(" . $query->prepare_expression($options['columns']) . ")", 'IS NOT', null]);
 			// if its a preset we cache
 			$options_query['cache'] = true;
 		} else { // regular columns
 			if (!empty($options['columns'])) {
-				$columns = $this->db_object->prepare_expression($options['columns']);
-			} else {
-				$columns = '*';
+				$query->columns($options['columns']);
 			}
 		}
 		// where
-		$sql.= !empty($options['where']) ? (' AND ' . $this->db_object->prepare_condition($options['where'])) : '';
-		$sql.= !empty($options['search']) ? (' AND (' . $this->db_object->prepare_condition($options['search'], 'OR') . ')') : '';
+		if (!empty($options['where'])) {
+			foreach ($options['where'] as $k => $v) {
+				$query->where('AND', $query->db_object->prepare_condition([$k => $v]));
+			}
+		}
+		// todo
+		//$sql.= !empty($options['search']) ? (' AND (' . $this->db_object->prepare_condition($options['search'], 'OR') . ')') : '';
 		// order by
 		$orderby = $options['orderby'] ?? (!empty($this->orderby) ? $this->orderby : null);
 		if (!empty($orderby)) {
-			$sql.= ' ORDER BY ' . array_key_sort_prepare_keys($orderby, true);
+			$query->orderby($orderby);
+		}
+		// offset
+		if (!empty($options['offset'])) {
+			$query->offset($options['offset']);
 		}
 		// limit
 		if (!empty($options['limit'])) {
-			$sql.= ' LIMIT ' . $options['limit'];
+			$query->limit($options['limit']);
 		} else if (!empty($this->limit)) {
-			$sql.= ' LIMIT ' . $this->limit;
+			$query->limit($this->limit);
+		} else if (!empty($options['single_row'])) {
+			$query->limit(1);
 		}
-		// querying
-		$sql_full = 'SELECT ' . $columns . ' FROM ' . $this->full_table_name . ' a WHERE 1=1' . $sql;
 		// memory caching
 		if ($this->cache_memory) {
 			// hash is query + primary key
-			$sql_hash = sha1($sql_full . serialize($pk));
+			$sql_hash = sha1($query->sql() . serialize($pk));
 			if (isset(cache::$memory_storage[$sql_hash])) {
 				return cache::$memory_storage[$sql_hash];
 			}
 		}
-		$result = $this->db_object->query($sql_full, $pk, $options_query);
+		$result = $query->query($pk, $options_query);
 		if (!$result['success']) {
 			Throw new Exception(implode(", ", $result['error']));
 		}
@@ -807,9 +815,23 @@ TTT;
 	 * @param array $options
 	 * @return object
 	 */
-	public static function collection($options = []) {
+	public static function collection(array $options = []) {
 		$options['model'] = get_called_class();
 		return object_collection::collection_to_model($options);
+	}
+
+	/**
+	 * Query builder
+	 *
+	 * @param array $options
+	 * @return \object_query_builder
+	 */
+	public static function query_builder(array $options = []) : object_query_builder {
+		$class = get_called_class();
+		$model = new $class();
+		$object = new object_query_builder($model->db_link, $options);
+		$object->from(['a' => $model->full_table_name]);
+		return $object;
 	}
 
 	/**
@@ -821,16 +843,4 @@ TTT;
 		$temp_result = $this->db_object->query("SELECT count(*) counter FROM (" . $this->db_object->sql_helper('fetch_tables') . ") a WHERE a.schema_name = '{$this->schema}' AND table_name = '{$this->name}'");
 		return !empty($temp_result['rows'][0]['counter']);
 	}
-
-	/**
-	 * Insert multiple rows
-	 *
-	 * @param array $data
-	 * @return array
-	 */
-	/*
-	public function insert($data) {
-		return $this->db_object->insert($this->full_table_name, $data, null);
-	}
-	*/
 }

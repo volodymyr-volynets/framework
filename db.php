@@ -105,7 +105,12 @@ class db {
 	 * @return array
 	 */
 	public function query($sql, $key = null, $options = []) {
-		return $this->object->query($sql, $key, $options);
+		$result = $this->object->query($sql, $key, $options);
+		// if we are debugging
+		if (debug::$debug) {
+			debug::$data['sql'][] = $result;
+		}
+		return $result;
 	}
 
 	/**
@@ -114,7 +119,12 @@ class db {
 	 * @return array
 	 */
 	public function begin() {
-		return $this->object->begin();
+		$result = $this->object->begin();
+		// if we are debugging
+		if (debug::$debug) {
+			debug::$data['sql'][] = $result;
+		}
+		return $result;
 	}
 
 	/**
@@ -123,7 +133,12 @@ class db {
 	 * @return array
 	 */
 	public function commit() {
-		return $this->object->commit();
+		$result = $this->object->commit();
+		// if we are debugging
+		if (debug::$debug) {
+			debug::$data['sql'][] = $result;
+		}
+		return $result;
 	}
 
 	/**
@@ -132,7 +147,12 @@ class db {
 	 * @return array
 	 */
 	public function rollback() {
-		return $this->object->rollback();
+		$result = $this->object->rollback();
+		// if we are debugging
+		if (debug::$debug) {
+			debug::$data['sql'][] = $result;
+		}
+		return $result;
 	}
 
 	/**
