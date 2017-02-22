@@ -69,7 +69,6 @@ class db {
 				'ddl_object' => $ddl_object
 			]);
 			// set options without credentials
-			unset($options['servers']);
 			$this->options = $options;
 		} else if (!empty($temp['object'])) {
 			$this->object = & $temp['object'];
@@ -105,12 +104,7 @@ class db {
 	 * @return array
 	 */
 	public function query($sql, $key = null, $options = []) {
-		$result = $this->object->query($sql, $key, $options);
-		// if we are debugging
-		if (debug::$debug) {
-			debug::$data['sql'][] = $result;
-		}
-		return $result;
+		return $this->object->query($sql, $key, $options);
 	}
 
 	/**
@@ -119,12 +113,7 @@ class db {
 	 * @return array
 	 */
 	public function begin() {
-		$result = $this->object->begin();
-		// if we are debugging
-		if (debug::$debug) {
-			debug::$data['sql'][] = $result;
-		}
-		return $result;
+		return $this->object->begin();
 	}
 
 	/**
@@ -133,12 +122,7 @@ class db {
 	 * @return array
 	 */
 	public function commit() {
-		$result = $this->object->commit();
-		// if we are debugging
-		if (debug::$debug) {
-			debug::$data['sql'][] = $result;
-		}
-		return $result;
+		return $this->object->commit();
 	}
 
 	/**
@@ -147,12 +131,7 @@ class db {
 	 * @return array
 	 */
 	public function rollback() {
-		$result = $this->object->rollback();
-		// if we are debugging
-		if (debug::$debug) {
-			debug::$data['sql'][] = $result;
-		}
-		return $result;
+		return $this->object->rollback();
 	}
 
 	/**

@@ -308,6 +308,8 @@ class object_table extends object_override_data {
 			$this->full_table_name = $this->name;
 			$this->schema = '';
 		}
+		// cache tags
+		$this->cache_tags[] = $this->full_table_name;
 		// history table name
 		$this->history_name = $this->full_table_name . '__history';
 		// process relations
@@ -469,7 +471,6 @@ class object_table extends object_override_data {
 			$options_query['cache'] = true;
 		}
 		$options_query['cache_tags'] = !empty($this->cache_tags) ? array_values($this->cache_tags) : [];
-		$options_query['cache_tags'][] = $this->full_table_name;
 		// pk
 		$pk = array_key_exists('pk', $options) ? $options['pk'] : $this->pk;
 		// query
@@ -493,9 +494,7 @@ class object_table extends object_override_data {
 		}
 		// where
 		if (!empty($options['where'])) {
-			foreach ($options['where'] as $k => $v) {
-				$query->where('AND', $query->db_object->prepare_condition([$k => $v]));
-			}
+			$query->where_multiple('AND', $options['where']);
 		}
 		// todo
 		//$sql.= !empty($options['search']) ? (' AND (' . $this->db_object->prepare_condition($options['search'], 'OR') . ')') : '';

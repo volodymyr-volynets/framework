@@ -58,12 +58,12 @@ class bootstrap {
 		$db = application::get('db');
 		if (!empty($db) && $backend) {
 			foreach ($db as $db_link => $db_settings) {
-				if (empty($db_settings['autoconnect']) || empty($db_settings['servers']) || empty($db_settings['submodule'])) {
-					continue;
-				}
+				if (empty($db_settings['autoconnect']) || empty($db_settings['servers']) || empty($db_settings['submodule'])) continue;
 				$connected = false;
+				$db_options = $db_settings;
+				unset($db_options['servers']);
 				foreach ($db_settings['servers'] as $server_key => $server_values) {
-					$db_object = new db($db_link, $db_settings['submodule']);
+					$db_object = new db($db_link, $db_settings['submodule'], $db_options);
 					// application structure
 					if (isset($application_structure['settings']['db'][$db_link])) {
 						$server_values = array_merge_hard($server_values, $application_structure['settings']['db'][$db_link]);
@@ -113,6 +113,10 @@ class bootstrap {
 		$session = application::get('flag.global.session');
 		if (!empty($session['start']) && $backend && !application::get('flag.global.__skip_session')) {
 			session::start($session['options'] ?? []);
+		}
+		// load tenant
+		if (!empty($application_structure_model)) {
+			factory::model($application_structure_model, true)->tenant();
 		}
 		// we need to get overrides from session and put them back to flag array
 		$flags = array_merge_hard($flags, session::get('numbers.flag'));

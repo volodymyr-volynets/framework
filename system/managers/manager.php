@@ -393,6 +393,9 @@ reask_for_migration:
 		case 'dependency':
 		default:
 			$result = system_dependencies::process_deps_all(['mode' => $mode]);
+			if ($result['success']) {
+				echo "\n" . helper_cmd::color_string('Dependency is OK', 'green', null, true) . "\n\n";
+			}
 	}
 // error label
 error:

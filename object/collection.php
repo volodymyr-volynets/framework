@@ -94,16 +94,23 @@ class object_collection extends object_override_data {
 		];
 		do {
 			$this->primary_model->db_object->begin();
-			// building SQL
-			$sql = '';
-			$sql.= !empty($options['where']) ? (' AND ' . $this->primary_model->db_object->prepare_condition($options['where'])) : '';
-			$sql_full = 'SELECT * FROM ' . $this->primary_model->full_table_name . ' a WHERE 1=1' . $sql;
-			// if we need to lock rows
-			if (!empty($options['for_update'])) {
-				$sql_full.= ' FOR UPDATE';
+			// building query
+			$query = new object_query_builder($this->primary_model->db_link);
+			$query->select()
+				->from(['a' => $this->primary_model->full_table_name]);
+			// where
+			if (!empty($options['where'])) {
+				$query->where_multiple('AND', $options['where']);
 			}
-			// quering
-			$query_result = $this->primary_model->db_object->query($sql_full, null);
+			// for update
+			if (!empty($options['for_update'])) {
+				$query->for_update();
+			}
+			// single row
+			if (!empty($options['single_row'])) {
+				$query->limit(1);
+			}
+			$query_result = $query->query(null);
 			if (!$query_result['success']) {
 				$this->primary_model->db_object->rollback();
 				$result['error'] = array_merge($result['error'], $query_result['error']);
@@ -226,7 +233,7 @@ class object_collection extends object_override_data {
 				$v1 = $v['map'][$k1];
 				$column = $v1;
 			} else {
-				$column = "concat_ws('::'[comma] " . implode('[comma] ', $v['map']) . ")";
+				$column = "concat_ws('::', " . implode(', ', $v['map']) . ")";
 			}
 			// special array for keys
 			$parent_keys2 = $parent_keys;
@@ -244,6 +251,7 @@ class object_collection extends object_override_data {
 			// if we have relation
 			$sql_relation_join = '';
 			$sql_relation_columns = '';
+			// todo
 			if (!empty($v['__relation_pk'])) {
 				$temp3 = [];
 				foreach ($v['map'] as $k3 => $v3) {
@@ -254,20 +262,26 @@ class object_collection extends object_override_data {
 			}
 			// sql extensions
 			$v['sql']['where'] = $v['sql']['where'] ?? null;
-			// building SQL
-			$sql = ' AND ' . $this->primary_model->db_object->prepare_condition([$column => $keys]);
-			$sql_full = 'SELECT b.*' . $sql_relation_columns . ' FROM ' . $model->full_table_name . ' b ' . $sql_relation_join . ' WHERE 1=1' . $sql . ($v['sql']['where'] ? (' AND ' . $v['sql']['where']) : '');
-			// order by
+			// building query
+			$query = new object_query_builder($model->db_link);
+			$query->select()
+				->columns(['a.*'])
+				->from(['a' => $model->full_table_name]);
+			// where
+			$query->where('AND', [$column, 'IN', $keys]);
+			if (!empty($v['sql']['where'])) {
+				$query->where('AND', $v['sql']['where']);
+			}
+			// orderby
 			$orderby = $options['orderby'] ?? (!empty($model->orderby) ? $model->orderby : null);
 			if (!empty($orderby)) {
-				$sql_full.= ' ORDER BY ' . array_key_sort_prepare_keys($orderby, true);
+				$query->orderby($orderby);
 			}
-			// if we need to lock rows
+			// for update
 			if (!empty($options['for_update'])) {
-				$sql_full.= ' FOR UPDATE';
+				$query->for_update();
 			}
-			// quering
-			$query_result = $this->primary_model->db_object->query($sql_full, null); // important not to set pk
+			$query_result = $query->query(null);
 			if (!$query_result['success']) {
 				$this->primary_model->db_object->rollback();
 				$result['error'] = array_merge($result['error'], $query_result['error']);
@@ -354,6 +368,7 @@ class object_collection extends object_override_data {
 			'warning' => [],
 			'deleted' => false,
 			'inserted' => false,
+			'updated' => false,
 			'new_serials' => [],
 			'options_model' => [],
 			'count' => 0
