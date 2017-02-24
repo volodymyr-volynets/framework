@@ -49,6 +49,10 @@ class object_controller {
 	 * @return boolean
 	 */
 	public static function can($action_code_or_id) {
+		return true;
+		
+		// todo		
+		
 		if (self::$cache_actions === null) {
 			self::$cache_actions = factory::model('numbers_backend_system_model_controller_actions')->get();
 		}

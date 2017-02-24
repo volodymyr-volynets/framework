@@ -112,7 +112,7 @@ class object_form_wrapper_base extends object_form_parent {
 			$this->form_link = $options['form_link'];
 		}
 		// step 1: create form object
-		$this->form_object = new numbers_frontend_html_form_base($this->form_link, array_merge_hard($this->options, $options));
+		$this->form_object = new object_form_base($this->form_link, array_merge_hard($this->options, $options));
 		// class
 		$this->form_object->form_class = get_called_class();
 		$this->form_object->initiator_class = $options['initiator_class'] ?? $this->form_object->form_class;
@@ -130,7 +130,8 @@ class object_form_wrapper_base extends object_form_parent {
 			$this->form_object->master_object = factory::model($this->master_options['model'], true);
 		}
 		// report object
-		$this->form_object->report_object = new numbers_frontend_html_form_report($this->form_object);
+		// todo		
+		//$this->form_object->report_object = new numbers_frontend_html_form_report($this->form_object);
 		// title
 		if (!empty($this->title)) {
 			$this->form_object->title = $this->title;

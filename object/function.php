@@ -17,6 +17,13 @@ class object_function {
 	public $db_link_flag;
 
 	/**
+	 * Schema
+	 *
+	 * @var string
+	 */
+	public $schema;
+
+	/**
 	 * Function name
 	 *
 	 * @var string
@@ -24,11 +31,32 @@ class object_function {
 	public $name;
 
 	/**
-	 * SQLs per submodule
+	 * Backend
 	 *
-	 * @var array
+	 * @var string
 	 */
-	public $function_sql = [];
+	public $backend;
+
+	/**
+	 * Full function name
+	 *
+	 * @var string
+	 */
+	public $full_function_name;
+
+	/**
+	 * Header
+	 *
+	 * @var string
+	 */
+	public $header;
+
+	/**
+	 * Definition
+	 *
+	 * @var string
+	 */
+	public $definition;
 
 	/**
 	 * Constructing object
@@ -50,6 +78,13 @@ class object_function {
 			if (empty($this->db_link)) {
 				Throw new Exception('Could not determine db link in function!');
 			}
+		}
+		// process function name and schema
+		if (!empty($this->schema)) {
+			$this->full_function_name = $this->schema . '.' . $this->name;
+		} else {
+			$this->full_function_name = $this->name;
+			$this->schema = '';
 		}
 	}
 }
