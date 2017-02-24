@@ -64,7 +64,7 @@ class object_data_domains extends object_data {
 		// C/M Country Management
 		'country_code' => ['name' => 'Country Code', 'type' => 'char', 'length' => 2, 'validator_method' => 'object_validator_uppercase::validate', 'searchable' => true],
 		'country_code3' => ['name' => 'Country Code (3)', 'type' => 'char', 'length' => 3, 'validator_method' => 'object_validator_uppercase::validate'],
-		'country_number' => ['name' => 'Country Numeric Code', 'type' => 'smallint'],
+		'country_number' => ['name' => 'Country Numeric Code', 'type' => 'smallint', 'default' => null],
 		'province_code' => ['name' => 'Province Code', 'type' => 'varchar', 'length' => 30, 'validator_method' => 'object_validator_uppercase::validate', 'searchable' => true],
 		'postal_code' => ['name' => 'Postal Code', 'type' => 'varchar', 'length' => 15, 'validator_method' => 'object_validator_postalcode::validate'],
 		'geo_coordinate' => ['name' => 'Geo Coordinate', 'type' => 'numeric', 'precision' => 10, 'scale' => 6, 'null' => true],

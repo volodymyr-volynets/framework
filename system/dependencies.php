@@ -198,16 +198,13 @@ class system_dependencies {
 					}
 				}
 			}
-
 			// processing models
 			if (!empty($data['model'])) {
 				$data['model_processed'] = $data['model'];
 			}
-
-			// processing imports, we need to sort them in order of dependencies
+			// need to sort models in order of dependencies
 			$imports = [];
 			foreach ($data['model_processed'] as $k => $v) {
-				if ($v != 'object_import') continue;
 				// find submodule
 				foreach ($data['__model_dependencies'] as $k2 => $v2) {
 					if (!empty($v2[$k])) {
@@ -228,7 +225,6 @@ class system_dependencies {
 					}
 				}
 			}
-			
 			// we need to go though an array few times to fix dependency issues
 			for ($i = 0; $i < 12; $i++) {
 				foreach ($imports as $k => $v) {
@@ -250,8 +246,9 @@ class system_dependencies {
 			}
 			foreach ($data['model_import'] as $k => $v) {
 				foreach ($v as $k2 => $v2) {
+					$temp = $data['model_processed'][$k2];
 					unset($data['model_processed'][$k2]);
-					$data['model_processed'][$k2] = 'object_import';
+					$data['model_processed'][$k2] = $temp;
 				}
 			}
 			unset($data['__submodule_dependencies'], $data['__model_dependencies'], $data['model_import']);
