@@ -43,8 +43,8 @@ class object_sequence extends object_override_data {
 	 *		global_advanced
 	 *		tenant_simple
 	 *		tenant_advanced
-	 *		ledger_simple
-	 *		ledger_advanced
+	 *		module_simple
+	 *		module_advanced
 	 *
 	 * @var string
 	 */

@@ -1,6 +1,6 @@
 <?php
 
-class object_table extends object_override_data {
+class object_table extends object_table_options {
 
 	/**
 	 * Link to database
@@ -277,6 +277,20 @@ class object_table extends object_override_data {
 	public $acl_get_options = [];
 
 	/**
+	 * Tenant
+	 *
+	 * @var boolean
+	 */
+	public $tenant = false;
+
+	/**
+	 * Tenant column
+	 *
+	 * @var string
+	 */
+	public $tenant_column;
+
+	/**
 	 * Constructing object
 	 *
 	 * @param array $options
@@ -307,6 +321,10 @@ class object_table extends object_override_data {
 		} else {
 			$this->full_table_name = $this->name;
 			$this->schema = '';
+		}
+		// tenant column
+		if ($this->tenant) {
+			$this->tenant_column = $this->column_prefix . 'tenant_id';
 		}
 		// cache tags
 		$this->cache_tags[] = $this->full_table_name;
@@ -474,7 +492,7 @@ class object_table extends object_override_data {
 		// pk
 		$pk = array_key_exists('pk', $options) ? $options['pk'] : $this->pk;
 		// query
-		$query = self::query_builder()->select();
+		$query = self::query_builder_static()->select();
 		// preset columns
 		if (!empty($options['__preset'])) {
 			$query->distinct();
@@ -550,10 +568,17 @@ class object_table extends object_override_data {
 	 * Generate a sequence
 	 *
 	 * @param string $column
+	 * @param string $type
 	 * @return int
 	 */
-	public function sequence($column) {
-		$temp = $this->db_object->sequence($this->full_table_name . '_' . $column . '_seq');
+	public function sequence(string $column, string $type = 'nextval') {
+		// add tenant
+		$tenant = null;
+		if ($this->tenant) {
+			$tenant = tenant::tenant_id();
+		}
+		$module = null;
+		$temp = $this->db_object->sequence($this->full_table_name . '_' . $column . '_seq', $type, $tenant, $module);
 		return $temp['rows'][0]['counter'];
 	}
 
@@ -814,7 +839,18 @@ TTT;
 	 * @param array $options
 	 * @return object
 	 */
-	public static function collection(array $options = []) {
+	public function collection(array $options = []) : object_collection {
+		$options['model'] = get_called_class();
+		return object_collection::collection_to_model($options);
+	}
+
+	/**
+	 * Create collection object (static)
+	 *
+	 * @param array $options
+	 * @return object
+	 */
+	public static function collection_static(array $options = []) : object_collection {
 		$options['model'] = get_called_class();
 		return object_collection::collection_to_model($options);
 	}
@@ -825,11 +861,32 @@ TTT;
 	 * @param array $options
 	 * @return \object_query_builder
 	 */
-	public static function query_builder(array $options = []) : object_query_builder {
+	public function query_builder(array $options = []) : object_query_builder {
+		return self::query_builder_static($options);
+	}
+
+	/**
+	 * Query builder (static)
+	 *
+	 * @param array $options
+	 * @return \object_query_builder
+	 */
+	public static function query_builder_static(array $options = []) : object_query_builder {
 		$class = get_called_class();
 		$model = new $class();
+		// alias
+		$alias = $options['alias'] ?? 'a';
+		unset($options['alias']);
+		// set tenant parameter
+		if ($model->tenant && empty($options['skip_tenant'])) {
+			$options['tenant'] = true;
+		}
 		$object = new object_query_builder($model->db_link, $options);
-		$object->from(['a' => $model->full_table_name]);
+		$object->from($model, $alias);
+		// inject tenant into the query
+		if ($model->tenant && empty($options['skip_tenant'])) {
+			$object->where('AND', [$alias . '.' . $model->column_prefix . 'tenant_id', '=', tenant::tenant_id()]);
+		}
 		return $object;
 	}
 

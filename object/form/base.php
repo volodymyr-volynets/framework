@@ -349,27 +349,28 @@ class object_form_base extends object_form_parent {
 	 * @return int
 	 */
 	private function sort_fields_for_processing($fields, $options = []) {
-		$temp = current($fields);
-		$collection = array_key_get($this->collection_object->data, $options['details_collection_key'] ?? null);
-		foreach ($fields as $k => $v) {
-			// skip certain values
-			if ($k == $this::separator_horisontal || $k == $this::separator_vertical || !empty($v['options']['process_submit'])) {
-				unset($fields[$k]);
-				continue;
+		if (!empty($this->collection_object)) {
+			$collection = array_key_get($this->collection_object->data, $options['details_collection_key'] ?? null);
+			foreach ($fields as $k => $v) {
+				// skip certain values
+				if ($k == $this::separator_horisontal || $k == $this::separator_vertical || !empty($v['options']['process_submit'])) {
+					unset($fields[$k]);
+					continue;
+				}
+				// sort
+				if (in_array($k, $collection['pk'] ?? [])) {
+					$fields[$k]['order_for_defaults'] = -32000;
+				} else if (!empty($v['options']['default']) && strpos($v['options']['default'], 'dependent::') !== false) { // processed last
+					$fields[$k]['order_for_defaults'] = 32000 + intval(str_replace(['dependent::', 'static::'], '', $v['options']['default']));
+				} else if (!empty($v['options']['default']) && (strpos($v['options']['default'], 'parent::') !== false || strpos($v['options']['default'], 'static::') !== false)) {
+					$column = str_replace(['parent::', 'static::'], '', $v['options']['default']);
+					$fields[$k]['order_for_defaults'] = ($fields[$column]['order_for_defaults'] ?? 0) + 100;
+				} else if (!isset($fields[$k]['order_for_defaults'])) {
+					$fields[$k]['order_for_defaults'] = 0;
+				}
 			}
-			// sort
-			if (in_array($k, $collection['pk'] ?? [])) {
-				$fields[$k]['order_for_defaults'] = -32000;
-			} else if (!empty($v['options']['default']) && strpos($v['options']['default'], 'dependent::') !== false) { // processed last
-				$fields[$k]['order_for_defaults'] = 32000 + intval(str_replace(['dependent::', 'static::'], '', $v['options']['default']));
-			} else if (!empty($v['options']['default']) && (strpos($v['options']['default'], 'parent::') !== false || strpos($v['options']['default'], 'static::') !== false)) {
-				$column = str_replace(['parent::', 'static::'], '', $v['options']['default']);
-				$fields[$k]['order_for_defaults'] = ($fields[$column]['order_for_defaults'] ?? 0) + 100;
-			} else if (!isset($fields[$k]['order_for_defaults'])) {
-				$fields[$k]['order_for_defaults'] = 0;
-			}
+			array_key_sort($fields, ['order_for_defaults' => SORT_ASC]);
 		}
-		array_key_sort($fields, ['order_for_defaults' => SORT_ASC]);
 		return $fields;
 	}
 
@@ -628,6 +629,8 @@ class object_form_base extends object_form_parent {
 				$this->process_params_and_depends($v['options']['options_depends'], $this->values, [], true);
 				$this->process_params_and_depends($v['options']['options_params'], $this->values, [], false);
 				$v['options']['options_params'] = array_merge_hard($v['options']['options_params'], $v['options']['options_depends']);
+				// todo - validate options_model
+				// CHECK CURRENT/EXISTING values
 				$this->misc_settings['options_model'][$k] = [
 					'options_model' => $v['options']['options_model'],
 					'options_params' => $v['options']['options_params'],
@@ -1144,7 +1147,8 @@ class object_form_base extends object_form_parent {
 					$this->values_saved = $this->save($this);
 				} else if (!empty($this->wrapper_methods['save'])) {
 					$this->values_saved = $this->trigger_method('save');
-				} else { // native save based on collection
+				} else if (!empty($this->collection_object)) {
+					// native save based on collection
 					$this->values_saved = $this->save_values();
 					/*
 					 * todo
@@ -1647,10 +1651,7 @@ convert_multiple_columns:
 		if (empty($this->collection_object)) {
 			Throw new Exception('You must provide collection object!');
 		}
-		$options = [
-			'flag_delete_row' => $this->process_submit[self::button_submit_delete] ?? false,
-			'options_model' => $this->misc_settings['options_model'] ?? []
-		];
+		$options = ['flag_delete_row' => $this->process_submit[self::button_submit_delete] ?? false];
 		// we do not need to reload values from database because we locked them
 		if ($this->values_loaded) {
 			$options['original'] = $this->original_values;
@@ -1699,6 +1700,7 @@ convert_multiple_columns:
 	 * @return boolean
 	 */
 	final public function preload_collection_object() {
+		if (empty($this->collection)) return false;
 		if (empty($this->collection_object)) {
 			$this->collection_object = object_collection::collection_to_model($this->collection);
 			if (empty($this->collection_object)) {
@@ -1712,7 +1714,9 @@ convert_multiple_columns:
 	 * Update collection object
 	 */
 	final public function update_collection_object() {
-		$this->collection_object->data = array_merge_hard($this->collection_object->data, $this->collection);
+		if (!empty($this->collection_object) && !empty($this->collection)) {
+			$this->collection_object->data = array_merge_hard($this->collection_object->data, $this->collection);
+		}
 	}
 
 	/**
@@ -2173,6 +2177,7 @@ convert_multiple_columns:
 		$key = $this->data[$container_link]['options']['details_key'];
 		$data = $this->values[$key] ?? [];
 		// details_unique_select
+		// todo - move to get_all_values
 		if (!empty($this->misc_settings['details_unique_select'][$key])) {
 			foreach ($this->misc_settings['details_unique_select'][$key] as $k => $v) {
 				foreach ($data as $k2 => $v2) {
@@ -2189,7 +2194,7 @@ convert_multiple_columns:
 	}
 
 	/**
-	 * Render container with type subdetails
+	 * Render container with type sub details
 	 *
 	 * @param string $container_link
 	 * @param array $options

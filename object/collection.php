@@ -97,7 +97,7 @@ class object_collection extends object_override_data {
 			// building query
 			$query = new object_query_builder($this->primary_model->db_link);
 			$query->select()
-				->from(['a' => $this->primary_model->full_table_name]);
+				->from($this->primary_model, 'a');
 			// where
 			if (!empty($options['where'])) {
 				$query->where_multiple('AND', $options['where']);
@@ -266,7 +266,7 @@ class object_collection extends object_override_data {
 			$query = new object_query_builder($model->db_link);
 			$query->select()
 				->columns(['a.*'])
-				->from(['a' => $model->full_table_name]);
+				->from($model, 'a');
 			// where
 			$query->where('AND', [$column, 'IN', $keys]);
 			if (!empty($v['sql']['where'])) {
@@ -370,7 +370,6 @@ class object_collection extends object_override_data {
 			'inserted' => false,
 			'updated' => false,
 			'new_serials' => [],
-			'options_model' => [],
 			'count' => 0
 		];
 		do {
@@ -380,6 +379,10 @@ class object_collection extends object_override_data {
 			}
 			// start transaction
 			$this->primary_model->db_object->begin();
+			// preset tenant
+			if ($this->primary_model->tenant && !isset($data[$this->primary_model->tenant_column])) {
+				$data[$this->primary_model->tenant_column] = tenant::tenant_id();
+			}
 			// load data from database
 			$original = [];
 			if (array_key_exists('original', $options)) {
@@ -411,92 +414,6 @@ class object_collection extends object_override_data {
 				if (($data[$this->primary_model->optimistic_lock_column] ?? '') !== $original[$this->primary_model->optimistic_lock_column]) {
 					$this->primary_model->db_object->rollback();
 					$result['error'][] = object_content_messages::optimistic_lock;
-					break;
-				}
-			}
-			// we need to validate options_model
-			if (!empty($options['options_model'])) {
-				// get existing values
-				foreach ($options['options_model'] as $k => $v) {
-					// current values
-					$value = array_key_get($data, $v['key']);
-					if ($value !== null && (is_string($value) && $value !== '')) {
-						if (is_array($value)) {
-							$value = array_keys($value);
-						} else {
-							$value = [$value];
-						}
-						$options['options_model'][$k]['current_values'] = $value;
-					} else {
-						$options['options_model'][$k]['current_values'] = null;
-					}
-					// we skip if we have no values
-					if (empty($options['options_model'][$k]['current_values'])) {
-						unset($options['options_model'][$k]);
-						continue;
-					}
-					// existing values
-					$value = array_key_get($original, $v['key']);
-					if ($value !== null) {
-						if (is_array($value)) {
-							$value = array_keys($value);
-						} else {
-							$value = [$value];
-						}
-						$options['options_model'][$k]['existing_values'] = $value;
-					} else {
-						$options['options_model'][$k]['existing_values'] = null;
-					}
-				}
-				// validate object_data
-				$sql_options = [];
-				foreach ($options['options_model'] as $k => $v) {
-					// we skip inactive model validations
-					if ($v['options_model'] == 'object_data_model_inactive') continue;
-					// process models
-					$temp = explode('::', $v['options_model']);
-					$model = factory::model($temp[0], true);
-					if (empty($temp[1])) $temp[1] = 'options';
-					if ($model->initiator_class == 'object_data' || ($model->initiator_class == 'object_table' && !in_array($temp[1], ['options', 'options_active']))) {
-						$temp_options = array_keys(object_data_common::process_options($v['options_model'], null, $v['options_params'], $v['existing_values']));
-						// difference between arrays
-						$diff = array_diff($v['current_values'], $temp_options);
-						if (!empty($diff)) {
-							$result['options_model'][$k] = 1;
-						}
-					} else if ($model->initiator_class == 'object_table' && in_array($temp[1], ['options', 'options_active'])) {
-						// last element in the pk is a field
-						$pk = $model->pk;
-						$last = array_pop($pk);
-						// handling inactive
-						$options_active = [];
-						if ($temp[1] == 'options_active') {
-							$options_active = $model->options_active ? $model->options_active : [$model->column_prefix . 'inactive' => 0];
-						}
-						$sql_options[$k] = [
-							'model' => $temp[0],
-							'field' => $last,
-							'params' => $v['options_params'],
-							'values' => $v['current_values'],
-							'existing_values' => $v['existing_values'],
-							'options_active' => $options_active
-						];
-					}
-				}
-				// validating options
-				if (!empty($sql_options)) {
-					$sql_model = new object_table_validator();
-					$sql_result = $sql_model->validate_options_multiple($sql_options);
-					if (!empty($sql_result['discrepancies'])) {
-						foreach ($sql_result['discrepancies'] as $k => $v) {
-							$result['options_model'][$k] = 1;
-						}
-					}
-				}
-				// we roll back if we have errors
-				if (!empty($result['options_model'])) {
-					$this->primary_model->db_object->rollback();
-					$result['error'][] = 'Could not validate options_model!';
 					break;
 				}
 			}
@@ -704,8 +621,7 @@ error:
 			// handle serial types, empty only
 			foreach ($model->columns as $k => $v) {
 				if (strpos($v['type'], 'serial') !== false && empty($v['null']) && empty($data_row_final[$k])) {
-					$temp = $this->primary_model->db_object->sequence($model->full_table_name . '_' . $k . '_seq');
-					$result['new_serials'][$k] = $data_row_final[$k] = $temp['rows'][0]['counter'];
+					$result['new_serials'][$k] = $data_row_final[$k] = $this->primary_model->sequence($k);
 				}
 			}
 			$temp = $this->primary_model->db_object->insert($model->full_table_name, [$data_row_final], null);

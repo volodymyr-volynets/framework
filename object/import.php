@@ -94,7 +94,7 @@ class object_import {
 				// if buffer has 250 rows or we have no data
 				if (count($buffer) > 249 || (count($buffer) > 0 && count($this->data[$k]['data']) == 0)) {
 					// merge
-					$result_insert = $model::collection($collection_options)->merge_multiple($buffer, [
+					$result_insert = $model::collection_static($collection_options)->merge_multiple($buffer, [
 						'skip_optimistic_lock' => true
 					]);
 					if (!$result_insert['success']) {

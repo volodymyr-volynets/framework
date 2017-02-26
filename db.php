@@ -209,10 +209,12 @@ class db {
 	 *
 	 * @param string $sequence_name
 	 * @param string $type - nextval or curval
+	 * @param int $tenant
+	 * @param int $module
 	 * @return array
 	 */
-	public function sequence($sequence_name, $type = 'nextval') {
-		return $this->object->sequence($sequence_name, $type);
+	public function sequence($sequence_name, $type = 'nextval', $tenant = null, $module = null) {
+		return $this->object->sequence($sequence_name, $type, $tenant, $module);
 	}
 
 	/**

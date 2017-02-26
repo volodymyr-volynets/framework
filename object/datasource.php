@@ -1,6 +1,6 @@
 <?php
 
-class object_datasource {
+class object_datasource extends object_table_options {
 
 	/**
 	 * Db link
@@ -106,6 +106,13 @@ class object_datasource {
 	public $query;
 
 	/**
+	 * SQL Last query
+	 *
+	 * @var string
+	 */
+	public $sql_last_query;
+
+	/**
 	 * Get
 	 *
 	 * @param array $options
@@ -123,7 +130,7 @@ class object_datasource {
 			$this->pk = $model->pk;
 			$this->cache_tags = $model->cache_tags;
 			// query
-			$this->query = call_user_func_array([$this->primary_model, 'query_builder'], [$options])->select();
+			$this->query = call_user_func_array([$this->primary_model, 'query_builder_static'], [$options])->select();
 		}
 		// we need to determine db link
 		if (empty($this->db_link)) {
@@ -172,8 +179,10 @@ class object_datasource {
 		// if we have SQL
 		if (!empty($sql)) {
 			$db = new db($this->db_link);
+			$this->sql_last_query = $sql;
 			$result = $db->query($sql, $query_settings['pk'] ?? null, $query_options);
 		} else { // query builder
+			$this->sql_last_query = $this->query->sql();
 			$result = $this->query->query($query_settings['pk'] ?? null, $query_options);
 		}
 		if (!$result['success']) {

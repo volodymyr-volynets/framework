@@ -165,7 +165,7 @@ class session {
 	}
 
 	/**
-	 * Unsetting a key in sessions
+	 * Unset a key in session
 	 * 
 	 * @param type $key
 	 */
