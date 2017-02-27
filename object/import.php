@@ -14,7 +14,6 @@ class object_import {
 				'pk' => ['column'],
 				'model' => 'model',
 				'method' => 'save', // save, save_insert_new
-				'form' => true, // whether its a form model
 			],
 			'data' => [
 				// associative array goes here
@@ -22,6 +21,22 @@ class object_import {
 		]
 		*/
 	];
+
+	/**
+	 * Options
+	 *
+	 * @var array
+	 */
+	public $options = [];
+
+	/**
+	 * Constructor
+	 *
+	 * @param array $options
+	 */
+	public function __construct(array $options = []) {
+		$this->options = $options;
+	}
 
 	/**
 	 * Process import object
@@ -36,7 +51,7 @@ class object_import {
 			'legend' => [],
 		];
 		if (empty($this->data)) {
-			Throw new Exception('You must pecify "data" parameter.');
+			Throw new Exception('You must specify "data" parameter.');
 		}
 		// if we have fixes to the data
 		if (method_exists($this, 'overrides')) {
@@ -53,17 +68,27 @@ class object_import {
 			// object
 			$model = $this->data[$k]['options']['model'];
 			// we exit if primary model does not exists
-			
-			
-			// todo: if not form
-			
-			
 			$object = new $model();
-			if (!$object->db_present()) continue;
-			// collection options
-			$collection_options = [];
-			if (!empty($this->data[$k]['options']['pk'])) {
-				$collection_options['pk'] = $this->data[$k]['options']['pk'];
+			$db_object = null;
+			$collection_object = null;
+			// regular model
+			if (is_a($object, 'object_table')) {
+				if (!$object->db_present()) continue;
+				$db_object = $object->db_object;
+				// collection options
+				$collection_options = [];
+				if (!empty($this->data[$k]['options']['pk'])) {
+					$collection_options['pk'] = $this->data[$k]['options']['pk'];
+				}
+				$collection_object = $model::collection_static($collection_options);
+			} else if (is_a($object, 'object_collection')) { // collections
+				if (!$object->primary_model->db_present()) continue;
+				$db_object = $object->primary_model->db_object;
+				$collection_object = $object;
+			}
+			// start transaction
+			if (!empty($db_object)) {
+				$db_object->begin();
 			}
 			// counter & buffer
 			$counter = 0;
@@ -94,7 +119,7 @@ class object_import {
 				// if buffer has 250 rows or we have no data
 				if (count($buffer) > 249 || (count($buffer) > 0 && count($this->data[$k]['data']) == 0)) {
 					// merge
-					$result_insert = $model::collection_static($collection_options)->merge_multiple($buffer, [
+					$result_insert = $collection_object->merge_multiple($buffer, [
 						'skip_optimistic_lock' => true
 					]);
 					if (!$result_insert['success']) {
@@ -108,6 +133,10 @@ class object_import {
 					gc_collect_cycles();
 				}
 			} while (count($this->data[$k]['data']) > 0);
+			// commit transaction
+			if (!empty($db_object)) {
+				$db_object->commit();
+			}
 			// legend
 			$result['legend'][] = '         * Process ' . $k . ' changes ' . $counter;
 			$result['count']+= $counter;

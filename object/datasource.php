@@ -127,8 +127,8 @@ class object_datasource extends object_table_options {
 		if (!empty($this->primary_model)) {
 			$model = new $this->primary_model();
 			$this->db_link = $model->db_link;
-			$this->pk = $model->pk;
-			$this->cache_tags = $model->cache_tags;
+			if (empty($this->pk)) $this->pk = $model->pk;
+			if (empty($this->cache_tags)) $this->cache_tags = $model->cache_tags;
 			// query
 			$this->query = call_user_func_array([$this->primary_model, 'query_builder_static'], [$options])->select();
 		}
@@ -211,8 +211,7 @@ class object_datasource extends object_table_options {
 	/**
 	 * Get (static)
 	 *
-	 * @param array $options
-	 * @return mixed
+	 * @see $this::get()
 	 */
 	public static function get_static(array $options = []) {
 		$class = get_called_class();

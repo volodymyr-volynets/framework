@@ -1750,7 +1750,10 @@ convert_multiple_columns:
 	 */
 	final public function load_values($for_update = false) {
 		if ($this->full_pk) {
-			return $this->collection_object->get(['where' => $this->pk, 'single_row' => true, 'for_update' => $for_update]);
+			$result = $this->collection_object->get(['where' => $this->pk, 'single_row' => true, 'for_update' => $for_update]);
+			if ($result['success']) {
+				return $result['data'];
+			}
 		}
 		return false;
 	}

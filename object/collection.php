@@ -156,6 +156,17 @@ class object_collection extends object_override_data {
 	}
 
 	/**
+	 * Get (static)
+	 *
+	 * @see $this::get()
+	 */
+	public static function get_static(array $options = []) {
+		$class = get_called_class();
+		$object = new $class();
+		return $object->get($options);
+	}
+
+	/**
 	 * Get all child keys
 	 *
 	 * @param array $data
@@ -269,8 +280,8 @@ class object_collection extends object_override_data {
 				->from($model, 'a');
 			// where
 			$query->where('AND', [$column, 'IN', $keys]);
-			if (!empty($v['sql']['where'])) {
-				$query->where('AND', $v['sql']['where']);
+			if (!empty($v['where'])) {
+				$query->where('AND', $v['where']);
 			}
 			// orderby
 			$orderby = $options['orderby'] ?? (!empty($model->orderby) ? $model->orderby : null);
@@ -494,6 +505,10 @@ error:
 			// generate a list of primary keys to fetch data
 			$data_pks = [];
 			foreach ($data as $k0 => $v0) {
+				// injecting tenant
+				if ($this->primary_model->tenant && empty($options['skip_tenant'])) {
+					$data[$k0][$this->primary_model->tenant_column] = $v0[$this->primary_model->tenant_column] = tenant::tenant_id();
+				}
 				// assemble primary key
 				$pk = [];
 				$full_pk = true;
@@ -513,7 +528,7 @@ error:
 				if (count($this->data['pk']) == 1) {
 					$column = current($this->data['pk']);
 				} else {
-					$column = "concat_ws('::'[comma] " . implode('[comma] ', $this->data['pk']) . ")";
+					$column = "concat_ws('::', " . implode(', ', $this->data['pk']) . ")";
 				}
 				// fetch
 				$original_result = $this->get([
@@ -536,7 +551,8 @@ error:
 				if (isset($data_pks[$k0]) && !empty($original_result['data'][$data_pks[$k0]])) {
 					$options2['original'] = $original_result['data'][$data_pks[$k0]];
 				} else {
-					unset($options2['original']);
+					// we must send empty array to avoid double quering
+					$options2['original'] = [];
 				}
 				$merge_result = $this->merge($v0, $options2);
 				if (!$merge_result['success']) {

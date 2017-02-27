@@ -74,7 +74,7 @@ class object_data_domains extends object_data {
 		'module_code' => ['name' => 'Module Code', 'type' => 'char', 'length' => 2, 'validator_method' => 'object_validator_uppercase::validate'],
 		'module_id' => ['name' => 'Module #', 'type' => 'integer', 'default' => null, 'format' => 'id'],
 		'module_id_sequence' => ['name' => 'Module #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
-		'feature_code' => ['name' => 'Feature Code', 'type' => 'varchar', 'length' => 15, 'validator_method' => 'object_validator_uppercase::validate'],
+		'feature_code' => ['name' => 'Feature Code', 'type' => 'varchar', 'length' => 30, 'validator_method' => 'object_validator_uppercase::validate'],
 		'resource_id' => ['name' => 'Resource #', 'type' => 'integer', 'format' => 'id'],
 		'resource_id_sequence' => ['name' => 'Resource #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'action_id' => ['name' => 'Action #', 'type' => 'smallint', 'format' => 'id'],

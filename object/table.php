@@ -291,6 +291,13 @@ class object_table extends object_table_options {
 	public $tenant_column;
 
 	/**
+	 * Module
+	 *
+	 * @var boolean
+	 */
+	public $module = false;
+
+	/**
 	 * Constructing object
 	 *
 	 * @param array $options
@@ -336,7 +343,10 @@ class object_table extends object_table_options {
 			if (empty($this->columns[$this->relation['field']])) {
 				$this->columns[$this->relation['field']] = ['name' => 'Relation #', 'domain' => 'relation_id_sequence'];
 				// add unique constraint
-				$this->constraints[$this->relation['field'] . '_un'] = ['type' => 'unique', 'columns' => [$this->relation['field']]];
+				$temp = [];
+				if ($this->tenant) $temp[] = $this->tenant_column; // a must
+				$temp[] = $this->relation['field'];
+				$this->constraints[$this->relation['field'] . '_un'] = ['type' => 'unique', 'columns' => $temp];
 			}
 		} else {
 			$this->relation = false;
@@ -475,6 +485,10 @@ class object_table extends object_table_options {
 	public function get($options = []) {
 		$data = [];
 		$this->acl_get_options = $options;
+		// handle tenant
+		if ($this->tenant && empty($options['skip_tenant'])) {
+			$options['where'][$this->tenant_column] = tenant::tenant_id();
+		}
 		// handle acl init
 		if (!empty($options['acl'])) {
 			$acl_key = get_called_class();
@@ -809,6 +823,17 @@ TTT;
 		return ($result['num_rows'] <> 0 ? true : false);
 	}
 	*/
+
+	/**
+	 * Get (static)
+	 *
+	 * @see $this::get()
+	 */
+	public static function get_static(array $options = []) {
+		$class = get_called_class();
+		$object = new $class();
+		return $object->get($options);
+	}
 
 	/**
 	 * Exists
