@@ -865,8 +865,7 @@ TTT;
 	 * @return object
 	 */
 	public function collection(array $options = []) : object_collection {
-		$options['model'] = get_called_class();
-		return object_collection::collection_to_model($options);
+		return self::collection_static($options);
 	}
 
 	/**
