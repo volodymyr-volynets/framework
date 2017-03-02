@@ -1,6 +1,6 @@
 <?php
 
-class object_data extends object_override_data {
+class object_data extends object_table_options {
 
 	/**
 	 * Primary key columns, used to convert data
@@ -231,73 +231,5 @@ class object_data extends object_override_data {
 		$class = get_called_class();
 		$object = new $class();
 		return $object->exists($options);
-	}
-
-	/**
-	 * Options
-	 *
-	 * @see $this->get()
-	 */
-	public function options($options = []) {
-		$data = $this->get($options);
-		// process options_map
-		if (isset($options['options_map'])) {
-			$options_map = $options['options_map'];
-		} else if (!empty($this->options_map)) {
-			$options_map = $this->options_map;
-		} else {
-			$options_map = [$this->column_prefix . 'name' => 'name'];
-		}
-		// if we need to filter options_active
-		if (!empty($options['__options_active'])) {
-			$options_active = $this->options_active ? $this->options_active : [$this->column_prefix . 'inactive' => 0];
-			$data = object_data_common::filter_active_options($data, $options_active, $options['existing_values'] ?? [], $options['skip_values'] ?? []);
-		}
-		// build options
-		$options['column_prefix'] = $this->column_prefix;
-		return object_data_common::build_options($data, $options_map, $this->orderby, $options);
-	}
-
-	/**
-	 * Active Options
-	 *
-	 * @param array $options
-	 * @return array
-	 */
-	public function options_active($options = []) {
-		$options['__options_active'] = true;
-		return $this->options($options);
-	}
-
-	/**
-	 * Optgroups
-	 *
-	 * @see $this->get()
-	 */
-	public function optgroups($options = []) {
-		$data = $this->get($options);
-		$options_map = !empty($this->options_map) ? $this->options_map : [$this->column_prefix . 'name' => 'name'];
-		if (!empty($this->optgroups_map)) {
-			$optgroups_map = $this->optgroups_map;
-			$optgroups_map['column'] = $optgroups_map['column'];
-			return object_data_common::optgroups($data, $optgroups_map, $options_map);
-		} else {
-			return object_data_common::options($data, $options_map);
-		}
-	}
-
-	/**
-	 * Multi level options
-	 *
-	 * @see $this->get()
-	 */
-	public function optmultis($options = []) {
-		if (empty($this->optmultis_map)) {
-			return [];
-		} else {
-			$data = $this->get($options);
-			$optmultis_map = $this->optmultis_map;
-			return object_data_common::optmultis($data, $optmultis_map);
-		}
 	}
 }

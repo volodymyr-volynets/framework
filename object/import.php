@@ -98,11 +98,9 @@ class object_import {
 				$v2 = array_shift($this->data[$k]['data']);
 				// we need to process overrides
 				foreach ($v2 as $k3 => $v3) {
-					if (!is_string($v3)) {
-						continue;
-					}
+					if (!is_string($v3)) continue;
 					// if we need id
-					if (strpos($v3, '~id~') === 0) {
+					if (strpos($v3, '::id::') === 0) {
 						$value = substr($v3, 4);
 						$alias = null;
 						foreach ($alias_data as $k4 => $v4) {
@@ -111,7 +109,7 @@ class object_import {
 								$alias = $k4;
 							}
 						}
-						$v2[$k3] = $alias_object->get_id_by_code($alias, substr($v3, 4));
+						$v2[$k3] = $alias_object->get_id_by_code($alias, str_replace('::id::', '', $v3));
 						continue;
 					}
 				}

@@ -414,7 +414,7 @@ class html {
 	}
 
 	/**
-	 * Breadcrumbs
+	 * Bread crumbs
 	 *
 	 * @param array $options
 	 * @return string

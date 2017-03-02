@@ -93,6 +93,10 @@ class session {
 				];
 			}
 		}
+		// add anonymous role
+		if (!user::authorized()) {
+			user::role_grant(object_acl_resources::get_static('user_roles', 'anonymous') ?? null);
+		}
 	}
 
 	/**

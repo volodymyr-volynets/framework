@@ -178,6 +178,7 @@ class bootstrap {
 				} else {
 					// set mvc + process
 					application::set_mvc('/error/_error/500');
+					application::$controller = new controller_error();
 					application::process();
 				}
 			}

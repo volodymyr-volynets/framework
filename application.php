@@ -10,6 +10,13 @@ class application {
 	protected static $settings = [];
 
 	/**
+	 * Controller
+	 *
+	 * @var \object_controller
+	 */
+	public static $controller;
+
+	/**
 	 * Access to settings, we can get a set of keys
 	 * @param mixed $key
 	 * @param array $options
@@ -81,38 +88,30 @@ class application {
 	public static function run($options = []) {
 		// recort application start time
 		$application_request_time = $_SERVER['REQUEST_TIME_FLOAT'] ?? microtime(true);
-
 		// fixing location paths
 		$application_path = isset($options['application_path']) ? (rtrim($options['application_path'], '/') . '/') : '../application/';
 		$application_name = isset($options['application_name']) ? $options['application_name'] : 'default';
 		$ini_folder = isset($options['ini_folder']) ? (rtrim($options['ini_folder'], '/') . '/') : $application_path . 'config/';
-
 		// working directory is location of the application
 		chdir($application_path);
 		$application_path_full = getcwd();
-
 		// setting include_path
 		$paths = [];
 		$paths[] = $application_path_full;
 		$paths[] = __DIR__;
 		$paths[] = str_replace('/numbers/framework', '', __DIR__);
 		set_include_path(implode(PATH_SEPARATOR, $paths));
-
 		// support functions
 		require("functions.php");
-
 		// load ini settings
 		self::$settings = system_config::load($ini_folder);
 		self::$settings['application']['system']['request_time'] = $application_request_time;
-
 		// special handling of media files for development, so there's no need to redeploy application
 		if (self::$settings['environment'] == 'development' && isset($_SERVER['REQUEST_URI'])) {
 			system_media::serve_media_if_exists($_SERVER['REQUEST_URI'], $application_path);
 		}
-
 		// we need to solve chicken and egg problem so we load cache first and then run application
 		//cache::create('php', array('type'=>'php', 'dir'=>'../application/cache'));
-
 		// setting variables
 		if (!isset(self::$settings['application']) || !is_array(self::$settings['application'])) {
 			self::$settings['application'] = [];
@@ -122,15 +121,12 @@ class application {
 		self::$settings['application']['path_full'] = $application_path_full . '/';
 		self::$settings['application']['loaded_classes'] = []; // class paths
 		self::$settings['layout'] = []; // layout settings
-
 		// flags
 		self::$settings['flag'] = (isset(self::$settings['flag']) && is_array(self::$settings['flag'])) ? self::$settings['flag'] : [];
 		self::$settings['flag']['global']['__run_only_bootstrap'] = !empty($options['__run_only_bootstrap']);
-
 		// magic variables processed here
 		self::$settings['flag']['global']['__content_type'] = 'text/html';
 		self::process_magic_variables();
-
 		// processing php settings
 		if (isset(self::$settings['php'])) {
 			foreach (self::$settings['php'] as $k=>$v) {
@@ -149,23 +145,18 @@ class application {
 				}
 			}
 		}
-
 		// Destructor
 		register_shutdown_function(array('bootstrap', 'destroy'));
-
 		// error handler first
 		error_base::init();
-
 		// debug after error handler
 		debug::init(self::get('debug'));
-
 		// Bootstrap Class
 		$bootstrap = new bootstrap();
 		$bootstrap_methods = get_class_methods($bootstrap);
 		foreach ($bootstrap_methods as $method) {
 			if (strpos($method, 'init')===0) call_user_func(array($bootstrap, $method), $options);
 		}
-
 		// if we are calling application from the command line
 		if (!empty($options['__run_only_bootstrap'])) {
 			// dispatch before, in case if we open database connections in there
@@ -174,47 +165,37 @@ class application {
 			}
 			return;
 		}
-
 		// processing mvc settings
 		self::set_mvc();
-
 		// check if controller exists
 		if (!file_exists(self::$settings['mvc']['controller_file'])) {
 			Throw new Exception('Resource not found!', -1);
 		}
-
 		// initialize the controller
 		$controller_class = self::$settings['mvc']['controller_class'];
-		$controller = new $controller_class;
-		self::$settings['controller'] = get_object_vars($controller);
-
+		self::$controller = new $controller_class;
 		// dispatch before, we need some settings from the controller
 		if (!empty(self::$settings['application']['dispatch']['before_controller'])) {
 			call_user_func(self::$settings['application']['dispatch']['before_controller']);
 		}
-
-		// singleton start
-		if (!empty(self::$settings['controller']['singleton_flag'])) {
-			$message = !empty(self::$settings['controller']['singleton_message']) ? self::$settings['controller']['singleton_message'] : 'This script is being run by another user!';
+		// start singleton
+		if (!empty(self::$controller->singleton_flag)) {
+			$message = self::$controller->singleton_message ?? 'This script is being run by another user!';
 			$lock_id = "singleton_" . $controller_class;
 			if (lock::process($lock_id)===false) {
 				Throw new Exception($message);
 			}
 		}
-
 		// process parameters and provide output
 		self::process();
-
 		// release singleton lock
-		if (!empty(self::$settings['controller']['singleton_flag'])) {
+		if (self::$controller->singleton_flag) {
 			lock::release($lock_id);
 		}
-
 		// dispatch after controller
 		if (!empty(self::$settings['application']['dispatch']['after_controller'])) {
 			call_user_func(self::$settings['application']['dispatch']['after_controller']);
 		}
-
 		// headers
 		if (!empty(self::$settings['header']) && !headers_sent()) {
 			foreach (self::$settings['header'] as $k=>$v) {
@@ -364,13 +345,10 @@ class application {
 		}
 		// processing
 		$request_uri = !empty($request_uri) ? $request_uri : $_SERVER['REQUEST_URI'];
-
 		// routing based on rules
 		$request_uri = self::route($request_uri);
-
 		// parsing request
 		$data = self::mvc($request_uri);
-
 		// forming class name and file
 		// todo: add full path here instead of relative
 		if (in_array('controller', $data['controllers'])) {
@@ -402,59 +380,42 @@ class application {
 	public static function process($options = []) {
 		// start buffering
 		helper_ob::start(true);
-
 		$controller_class = self::$settings['mvc']['controller_class'];
-
 		// if we are handling error message and controller class has not been loaded
 		if ($controller_class == 'controller_error' && error_base::$flag_error_already && !class_exists('controller_error')) {
 			require('./controller/error.php');
 		}
-		$controller = new $controller_class;
-
 		// processing options
  		if (!empty($options)) {
 			foreach ($options as $k => $v) {
-				$controller->{$k} = $v;
+				self::$controller->{$k} = $v;
 			}
  		}
-
 		// put action into controller
-		$controller->action = [
-			'code' => self::$settings['mvc']['controller_action_code'],
-			'full' => self::$settings['mvc']['controller_action']
-		];
-
+		self::$controller->action_code = self::$settings['mvc']['controller_action_code'];
+		self::$controller->action_method = self::$settings['mvc']['controller_action'];
 		// check ACL
 		if ($controller_class != 'controller_error') {
-			helper_acl::merge_data_with_db($controller, self::$settings['mvc']['controller_class']);
-			if (helper_acl::can_be_executed($controller, true) == false) {
+			if (!self::$controller->permitted(['redirect' => true])) {
 				Throw new Exception('Permission denied!', -1);
 			}
-		} else {
-			// important to unset controller data
-			application::set('controller', null);
 		}
-
 		// auto populating input property in controller
  		if (!empty(self::$settings['application']['controller']['input'])) {
- 			$controller->input = request::input(null, true, true);
+			self::$controller->input = request::input(null, true, true);
  		}
-
 		// init method
-		if (method_exists($controller, 'init')) {
-			call_user_func(array($controller, 'init'));
+		if (method_exists(self::$controller, 'init')) {
+			call_user_func(array(self::$controller, 'init'));
 		}
-
 		// check if action exists
-		if (!method_exists($controller, $controller->action['full'])) {
+		if (!method_exists(self::$controller, self::$controller->action_method)) {
 			Throw new Exception('Action does not exists!');
 		}
-
 		// calling action
-		echo call_user_func(array($controller, $controller->action['full']));
-
+		echo call_user_func(array(self::$controller, self::$controller->action_method));
 		// auto rendering view only if view exists, processing extension order as specified in .ini file
-		$temp_reflection_obj = new ReflectionClass($controller);
+		$temp_reflection_obj = new ReflectionClass(self::$controller);
 		$controller_dir = pathinfo($temp_reflection_obj->getFileName(), PATHINFO_DIRNAME) . '/';
 		$controller_file = end(self::$settings['mvc']['controllers']);
 		$view = self::$settings['mvc']['controller_view'];
@@ -464,7 +425,7 @@ class application {
 			foreach ($extensions as $extension) {
 				$file = $controller_dir  . $controller_file . '.' . $view . '.' . $extension;
 				if (file_exists($file)) {
-					$controller = new view($controller, $file, $extension);
+					self::$controller = new view(self::$controller, $file, $extension);
 					$flag_view_found = true;
 					break;
 				}
@@ -474,27 +435,22 @@ class application {
 				Throw new Exception('View ' . $view . ' does not exists!');
 			}
 		}
-
 		// autoloading media files
 		layout::include_media($controller_dir, $controller_file, $view, $controller_class);
-
 		// appending view after controllers output
-		$controller->view = ($controller->view ?? '') . helper_ob::clean();
-
+		self::$controller->view = (self::$controller->view ?? '') . helper_ob::clean();
 		// if we have to render debug toolbar
 		if (debug::$toolbar) {
 			helper_ob::start();
 		}
-
 		// call pre rendering method in bootstrap
 		bootstrap::pre_render();
-
 		// rendering layout
-		$__skip_layout = application::get('flag.global.__skip_layout');
+		$__skip_layout = self::get('flag.global.__skip_layout');
 		if (!empty(self::$settings['mvc']['controller_layout']) && empty($__skip_layout)) {
 			helper_ob::start();
 			if (file_exists(self::$settings['mvc']['controller_layout_file'])) {
-				$controller = new layout($controller, self::$settings['mvc']['controller_layout_file'], self::$settings['mvc']['controller_layout_extension']);
+				self::$controller = new layout(self::$controller, self::$settings['mvc']['controller_layout_file'], self::$settings['mvc']['controller_layout_extension']);
 			}
 			// session expiry dialog before replaces
 			session::expiry_dialog();
@@ -525,11 +481,10 @@ class application {
 			];
 			echo str_replace($from, $to, helper_ob::clean());
 		} else {
-			echo $controller->view;
+			echo self::$controller->view;
 		}
-
 		// ajax calls that has not been processed by application
-		if (application::get('flag.global.__ajax')) {
+		if (self::get('flag.global.__ajax')) {
 			layout::render_as(['success' => false, 'error' => [i18n(null, 'Could not process ajax call!')]], 'application/json');
 		}
 	}

@@ -7,7 +7,8 @@ class object_data_aliases extends object_data {
 	public $columns = [
 		'no_data_alias_code' => ['name' => 'Alias Code', 'type' => 'varchar', 'length' => 50],
 		'no_data_alias_name' => ['name' => 'Name', 'type' => 'text'],
-		'no_data_alias_model' => ['name' => 'Model', 'type' => 'text']
+		'no_data_alias_model' => ['name' => 'Model', 'type' => 'text'],
+		'no_data_alias_column' => ['name' => 'Code Column', 'type' => 'text']
 	];
 	public $data = [
 		// data would come from overrides
@@ -24,12 +25,21 @@ class object_data_aliases extends object_data {
 	public function get_id_by_code($alias, $code, $id_only = true) {
 		$class = $this->data[$alias]['no_data_alias_model'];
 		$model = new $class();
-		$data = $model->get(['where' => [$model->column_prefix . 'code' => $code . '']]);
+		$columns = [];
+		if ($id_only) {
+			$columns[] = $model->column_prefix . 'id';
+		}
+		$data = $model->get([
+			'columns' => $columns,
+			'where' => [
+				$this->data[$alias]['no_data_alias_column'] => $code . ''
+			],
+			'single_row' => true
+		]);
 		if (!$id_only) {
-			return current($data);
+			return $data;
 		} else {
-			$temp = current($data);
-			return $temp[$model->column_prefix . 'id'];
+			return $data[$model->column_prefix . 'id'];
 		}
 	}
 }

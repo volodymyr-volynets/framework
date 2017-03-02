@@ -3,11 +3,11 @@
 class object_controller {
 
 	/**
-	 * Controller's title
+	 * Title
 	 *
 	 * @var string
 	 */
-	public $title = '';
+	public $title;
 
 	/**
 	 * Icon
@@ -17,30 +17,153 @@ class object_controller {
 	public $icon;
 
 	/**
-	 * Acl settings
+	 * Description
+	 *
+	 * @var string
+	 */
+	public $description;
+
+	/**
+	 * Acl
+	 *
+	 * By default we allow public/authorized access
 	 *
 	 * @var array
 	 */
 	public $acl = [
-		'public' => 1,
-		'authorized' => 1,
-		//'permission' => 1
-		//'tokens' => ['token1', 'token2'],
+		'public' => true,
+		'authorized' => true,
+		'permission' => false
 	];
 
 	/**
-	 * Breadcrumbs
+	 * Actions
 	 *
-	 * @var string 
+	 * @var array
+	 */
+	public $actions = [];
+
+	/**
+	 * Action code
+	 *
+	 * @var string
+	 */
+	public $action_code;
+
+	/**
+	 * Action method
+	 *
+	 * @var string
+	 */
+	public $action_method;
+
+	/**
+	 * Bread crumbs
+	 *
+	 * @var array
 	 */
 	public $breadcrumbs = [];
 
 	/**
-	 * Cached actions
+	 * Singleton
+	 *
+	 * @var boolean
+	 */
+	public $singleton_flag;
+
+	/**
+	 * Controllers
 	 *
 	 * @var array
 	 */
-	public static $cache_actions = null;
+	private static $controllers;
+
+	/**
+	 * Constructor
+	 */
+	public function __construct() {
+		// load all controllers from datasource
+		if (is_null(self::$controllers)) {
+			self::$controllers = object_acl_resources::get_static('controllers', 'primary');
+		}
+		// find yourself
+		$class = get_called_class();
+		if (!empty(self::$controllers[$class])) {
+			$this->title = self::$controllers[$class]['name'];
+			$this->description = self::$controllers[$class]['description'];
+			$this->icon = self::$controllers[$class]['icon'];
+			$this->breadcrumbs = self::$controllers[$class]['breadcrumbs'];
+			$this->actions = self::$controllers[$class]['actions'];
+			// acl
+			foreach (['public', 'authorized', 'permission'] as $v) {
+				$this->acl[$v] = self::$controllers[$class]['acl_' . $v] ?? false;
+			}
+		}
+	}
+
+	/**
+	 * Permitted
+	 *
+	 * @param array $options
+	 * @return boolean
+	 */
+	public function permitted($options = []) : bool {
+		// authorized
+		if (user::authorized()) {
+			// see if controller is for authorized
+			if (empty($this->acl['authorized'])) {
+				return false;
+			}
+			// permissions
+			if (!empty($this->acl['permission'])) {
+				if (self::$permissions == null) {
+					self::handle_permissions();
+				}
+				// admin account can see everything
+				if (self::$flag_admin) {
+					// we need to put permission into controller
+					$permission_list = [];
+					foreach ($controller_object->actions['by_id'] as $k => $v) {
+						$permission_list[$k] = true;
+					}
+					application::set(['controller', 'acl', 'permissions'], $permission_list);
+					return true;
+				}
+				// see if we have this action code registered
+				if (empty($controller_object->actions['by_code'][$controller_object->action['code']])) {
+					return false;
+				}
+				// check if we have access to the controller
+				if (empty($controller_object->controller_id) || empty(self::$permissions[$controller_object->controller_id])) {
+					return false;
+				}
+				// if we have action
+				$all_actions = [];
+				foreach (self::$permissions[$controller_object->controller_id] as $k => $v) {
+					if ($v == true) {
+						$all_actions[] = $k;
+					}
+				}
+				$merged = array_intersect($all_actions, $controller_object->actions['by_code'][$controller_object->action['code']]);
+				if (empty($merged)) {
+					return false;
+				}
+				// we need to put permission into controller
+				application::set(['controller', 'acl', 'permissions'], self::$permissions[$controller_object->controller_id]);
+			}
+		} else {
+			// we need to redirect to login controller if not authorized
+			if (($options['redirect'] ?? false) && !empty($this->acl['authorized']) && empty($this->acl['public']) && !application::get('flag.global.__skip_session')) {
+				$url = object_acl_resources::get_static('authorization', 'login');
+				request::redirect($url);
+			}
+			// public permission
+			if (empty($this->acl['public'])) {
+				return false;
+			}
+		}
+		return true;
+	}
 
 	/**
 	 * Whether we can perform certain action
@@ -89,14 +212,5 @@ class object_controller {
 			}
 		} while(1);
 		return false;
-	}
-
-	/**
-	 * Title
-	 *
-	 * @return string
-	 */
-	public static function title() {
-		return application::get(['controller', 'title']);
 	}
 }

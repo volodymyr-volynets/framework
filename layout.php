@@ -290,7 +290,7 @@ class layout extends view {
 	}
 
 	/**
-	 * Render breadcrumbs
+	 * Render bread crumbs
 	 *
 	 * @return string
 	 */
