@@ -13,26 +13,32 @@ class object_structure_base {
 		$structure = application::get('application.structure') ?? [];
 		$result = [];
 		$host_parts = request::host_parts();
+		$validator = new object_validator_domain_part();
 		// see if we are in multi db environment
 		if (!empty($structure['db_multiple'])) {
-			// if db name cannot be found
-			if (empty($host_parts[$structure['db_domain_level']])) {
+			// validate host part
+			$validated = [];
+			if (!empty($host_parts[$structure['db_domain_level']])) {
+				$validated = $validator->validate($host_parts[$structure['db_domain_level']]);
+			}
+			if (empty($validated['success'])) {
 				if (!empty($structure['db_not_found_url'])) {
 					request::redirect($structure['db_not_found_url']);
 				} else {
 					Throw new Exception('Invalid URL!');
 				}
 			}
-			// clean up database name
-			$temp = preg_replace('/[^a-zA-Z0-9_]+/', '', ($structure['db_prefix'] ?? '') . $host_parts[$structure['db_domain_level']]);
 			// default settings are for default db and cache links
-			$result['db']['default']['dbname'] = strtolower($temp);
-			$result['cache']['default']['cache_key'] = strtolower($temp);
+			$result['cache']['default']['cache_key'] = $result['db']['default']['dbname'] = ($structure['db_prefix'] ?? '') . $validated['data'];
 		}
 		// multi tenant environment
-		if (!empty($structure['tenant_miltiple'])) {
-			// if tenant name cannot be found in url
-			if (empty($host_parts[$structure['tenant_domain_level']])) {
+		if (!empty($structure['tenant_multiple'])) {
+			// validate host part
+			$validated = [];
+			if (!empty($host_parts[$structure['tenant_domain_level']])) {
+				$validated = $validator->validate($host_parts[$structure['tenant_domain_level']]);
+			}
+			if (empty($validated['success'])) {
 				if (!empty($structure['tenant_not_found_url'])) {
 					request::redirect($structure['tenant_not_found_url']);
 				} else {
@@ -40,7 +46,7 @@ class object_structure_base {
 				}
 			}
 			// clenup tenant name
-			$result['tenant']['code'] = preg_replace('/[^a-zA-Z0-9_]+/', '', $host_parts[$structure['tenant_domain_level']]);
+			$result['tenant']['code'] = strtoupper($validated['data']);
 		} else { // we simply use id if its a single tenant system
 			$result['tenant']['id'] = (int) $structure['tenant_default_id'];
 		}
@@ -55,17 +61,31 @@ class object_structure_base {
 	 * @return array
 	 */
 	public function tenant() {
-		$structure = application::get('application.structure') ?? [];
-		if (!empty($structure['tenant_model'])) {
-			$tenant = call_user_func_array([$structure['tenant_model'], 'tenant'], [application::get('application.structure.settings.tenant')]);
-			if (empty($tenant)) {
+		$tenant_datasource_settings = object_acl_resources::get_static('application_structure', 'tenant');
+		if (!empty($tenant_datasource_settings['tenant_datasource'])) {
+			// prepare to query tenant
+			$tenant_input = application::get('application.structure.settings.tenant');
+			$tenant_where = [];
+			if (!empty($tenant_datasource_settings['column_prefix'])) {
+				array_key_prefix_and_suffix($tenant_input, $tenant_datasource_settings['column_prefix']);
+			}
+			// find tenant
+			$class = $tenant_datasource_settings['tenant_datasource'];
+			$datasource = new $class();
+			$tenant_result = $datasource->get(['where' => $tenant_input, 'single_row' => true]);
+			if (empty($tenant_result)) {
+				$structure = application::get('application.structure') ?? [];
 				if (!empty($structure['tenant_not_found_url'])) {
 					request::redirect($structure['tenant_not_found_url']);
 				} else {
 					Throw new Exception('Invalid URL!');
 				}
+			} else {
+				if (!empty($tenant_datasource_settings['column_prefix'])) {
+					array_key_prefix_and_suffix($tenant_result, $tenant_datasource_settings['column_prefix'], null, true);
+				}
+				application::set('application.structure.settings.tenant', $tenant_result);
 			}
-			application::set('application.structure.settings.tenant', $tenant);
 		}
 	}
 }

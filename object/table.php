@@ -298,6 +298,13 @@ class object_table extends object_table_options {
 	public $module = false;
 
 	/**
+	 * SQL Last query
+	 *
+	 * @var string
+	 */
+	public $sql_last_query;
+
+	/**
 	 * Constructing object
 	 *
 	 * @param array $options
@@ -315,7 +322,7 @@ class object_table extends object_table_options {
 			}
 			// get default link
 			if (empty($this->db_link)) {
-				$this->db_link = application::get('flag.global.db.default_db_link');
+				$this->db_link = application::get('flag.global.default_db_link');
 			}
 			// if we could not determine the link we throw exception
 			if (empty($this->db_link)) {
@@ -361,7 +368,7 @@ class object_table extends object_table_options {
 			foreach ($this->who as $k => $v) {
 				$k = strtolower($k);
 				$this->columns[$this->column_prefix . $k . '_timestamp'] = ['name' => ucwords($k) . ' Datetime', 'type' => 'timestamp', 'null' => ($k != 'inserted')];
-				$this->columns[$this->column_prefix . $k . '_entity_id'] = ['name' => ucwords($k) . ' Entity #', 'domain' => 'entity_id', 'null' => true];
+				$this->columns[$this->column_prefix . $k . '_user_id'] = ['name' => ucwords($k) . ' User #', 'domain' => 'user_id', 'null' => true];
 			}
 		}
 		// process domain in columns
@@ -395,8 +402,8 @@ class object_table extends object_table_options {
 			if (!empty($this->who[$type])) {
 				// timestamp
 				$row[$this->column_prefix . $type . '_timestamp'] = $timestamp;
-				// entity #
-				$row[$this->column_prefix . $type . '_entity_id'] = entity::id();
+				// user #
+				$row[$this->column_prefix . $type . '_user_id'] = user::user_id();
 			} else if ($type == 'optimistic_lock') {
 				if ($this->optimistic_lock) {
 					$row[$this->optimistic_lock_column] = $timestamp;
@@ -430,7 +437,7 @@ class object_table extends object_table_options {
 			$columns[$v] = $model->columns[$k];
 			if (isset($columns[$v]['domain'])) {
 				$columns[$v]['domain'] = str_replace('_sequence', '', $columns[$v]['domain']);
-				unset($columns[$v]['type']);
+				unset($columns[$v]['type'], $columns[$v]['sequence']);
 			}
 			if (!empty($model->relation['field']) && $k == $model->relation['field']) {
 				$this->__relation_pk = $model->pk;
@@ -556,6 +563,7 @@ class object_table extends object_table_options {
 			}
 		}
 		$result = $query->query($pk, $options_query);
+		$this->sql_last_query = $query->sql();
 		if (!$result['success']) {
 			Throw new Exception(implode(", ", $result['error']));
 		}

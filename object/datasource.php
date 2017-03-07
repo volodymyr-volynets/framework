@@ -140,7 +140,7 @@ class object_datasource extends object_table_options {
 			}
 			// get default link
 			if (empty($this->db_link)) {
-				$this->db_link = application::get('flag.global.db.default_db_link');
+				$this->db_link = application::get('flag.global.default_db_link');
 			}
 			// if we could not determine the link we throw exception
 			if (empty($this->db_link)) {
@@ -191,7 +191,7 @@ class object_datasource extends object_table_options {
 			if ($this->cache && !empty($db_object->object->options['cache_link'])) {
 				$cache_id = !empty($options['cache_id']) ? $options['cache_id'] : 'db_datasource_' . sha1($this->sql_last_query . serialize($query_settings['pk']));
 				// if we cache this query
-				$cache_object = new cache($this->options['cache_link']);
+				$cache_object = new cache($db_object->object->options['cache_link']);
 				$cached_result = $cache_object->get($cache_id, true);
 				if ($cached_result !== false) {
 					// if we are debugging

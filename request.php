@@ -96,7 +96,7 @@ class request {
 	 * @param array $params
 	 * @return string
 	 */
-	public static function host($params = array()) {
+	public static function host(array $params = []) : string {
 		$protocol = !empty($params['protocol']) ? $params['protocol'] : '';
 		if (!$protocol) $protocol = self::is_ssl() ? 'https' : 'http';
 		$host = !empty($params['ip']) ? (getenv('SERVER_ADDR') . ':' . getenv('SERVER_PORT')) : getenv('HTTP_HOST');

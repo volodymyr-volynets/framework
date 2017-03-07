@@ -1185,7 +1185,7 @@ class object_form_base extends object_form_parent {
 		}
 		// adding general error
 process_errors:
-		if ($this->errors['flag_error_in_fields']) {
+		if ($this->errors['flag_error_in_fields'] && empty($this->errors['general']['danger'])) {
 			$this->error('danger', object_content_messages::submission_problem);
 		}
 		if ($this->errors['flag_warning_in_fields']) {

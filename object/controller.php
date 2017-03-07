@@ -154,8 +154,7 @@ class object_controller {
 		} else {
 			// we need to redirect to login controller if not authorized
 			if (($options['redirect'] ?? false) && !empty($this->acl['authorized']) && empty($this->acl['public']) && !application::get('flag.global.__skip_session')) {
-				$url = object_acl_resources::get_static('authorization', 'login');
-				request::redirect($url);
+				request::redirect(object_acl_resources::get_static('authorization', 'login', 'url'));
 			}
 			// public permission
 			if (empty($this->acl['public'])) {

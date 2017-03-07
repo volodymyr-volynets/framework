@@ -73,9 +73,7 @@ class i18n {
 	 * @return string
 	 */
 	public static function get($i18n, $text, $options = []) {
-		return $text;
-		
-		$text = factory::submodule('flag.global.i18n.submodule')->get($i18n, $text, $options);
+		//$text = factory::submodule('flag.global.i18n.submodule')->get($i18n, $text, $options);
 		// if we need to handle replaces, for example:
 		//		"Error occured on line [line_number]"
 		// important: replaces must be translated/formatted separatly

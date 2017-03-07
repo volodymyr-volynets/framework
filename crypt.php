@@ -18,7 +18,7 @@ class crypt implements numbers_backend_crypt_interface_base {
 	public function __construct($crypt_link = null, $class = null, $options = []) {
 		// if we need to use default link from application
 		if ($crypt_link == null) {
-			$crypt_link = application::get(['flag', 'global', 'crypt', 'default_crypt_link']);
+			$crypt_link = application::get('flag.global.default_crypt_link');
 			if (empty($crypt_link)) {
 				Throw new Exception('You must specify crypt link!');
 			}
@@ -84,11 +84,12 @@ class crypt implements numbers_backend_crypt_interface_base {
 	 * Create token
 	 *
 	 * @param string $id
+	 * @param string $token
 	 * @param mixed $data
 	 * @return string - erlencoded
 	 */
-	public function token_create($id, $data = null){
-		return $this->object->token_create($id, $data);
+	public function token_create($id, $token = null, $data = null){
+		return $this->object->token_create($id, $token, $data);
 	}
 
 	/**

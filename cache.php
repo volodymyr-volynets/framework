@@ -36,7 +36,7 @@ class cache {
 	public function __construct($cache_link = null, $class = null, $options = []) {
 		// if we need to use default link from application
 		if (empty($cache_link)) {
-			$cache_link = application::get(['flag', 'global', 'cache', 'default_cache_link']);
+			$cache_link = application::get('flag.global.default_cache_link');
 			if (empty($cache_link)) {
 				Throw new Exception('You must specify cache link and/or class!');
 			}

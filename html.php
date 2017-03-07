@@ -128,6 +128,13 @@ class html {
 	 * Label
 	 *
 	 * @param array $options
+	 *		type - one of
+	 *			default
+	 *			primary
+	 *			success
+	 *			info
+	 *			warning
+	 *			danger
 	 * @return string
 	 */
 	public static function label($options = []) {
@@ -520,6 +527,45 @@ class html {
 	 */
 	public static function wysiwyg($options = []) {
 		return factory::delegate('flag.numbers.framework.html', 'wysiwyg', [$options]);
+	}
+
+	/**
+	 * Wizard
+	 *
+	 * @param array $options
+	 *		type - one of
+	 *			default
+	 *			primary
+	 *			success
+	 *			info
+	 *			warning
+	 *			danger
+	 *		step - current step
+	 *		options - a list of steps in a wizard
+	 * @return string
+	 */
+	public static function wizard($options = []) {
+		return factory::delegate('flag.numbers.framework.html', 'wizard', [$options]);
+	}
+
+	/**
+	 * HR
+	 *
+	 * @param array $options
+	 * @return string
+	 */
+	public static function hr($options = []) {
+		return factory::delegate('flag.numbers.framework.html', 'hr', [$options]);
+	}
+
+	/**
+	 * BR
+	 *
+	 * @param array $options
+	 * @return string
+	 */
+	public static function br($options = []) {
+		return factory::delegate('flag.numbers.framework.html', 'br', [$options]);
 	}
 
 	/**

@@ -32,9 +32,10 @@ class object_acl_resources extends object_override_data {
 	 *
 	 * @param string $type
 	 * @param string $module
+	 * @param string $key
 	 * @return array|string
 	 */
-	public function get(string $type = '', string $module = '') {
+	public function get(string $type = '', string $module = '', $key = null) {
 		$result = [];
 		foreach ($this->data as $k => $v) {
 			if (!empty($type) && $type != $k) continue;
@@ -44,8 +45,10 @@ class object_acl_resources extends object_override_data {
 				if (!empty($v2['datasource'])) {
 					$temp = factory::model($v2['datasource'], true)->get();
 					$result = array_merge_hard($result, $temp);
-				} else if ($v2['data']) { // if we are requresting url
-					return $v2['data'];
+				} else if (array_key_exists($key, $v2)) {
+					return $v2[$key];
+				} else {
+					return $v2;
 				}
 			}
 		}

@@ -327,6 +327,7 @@ class application {
 		}
 		// full string
 		$result['full'] = $result['controller'] . '/_' . $result['action'];
+		$result['full_with_host'] = rtrim(request::host(), '/') . $result['controller'] . '/_' . $result['action'];
 		return $result;
 	}
 

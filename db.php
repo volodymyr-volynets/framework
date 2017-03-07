@@ -35,7 +35,7 @@ class db {
 	public function __construct($db_link = null, $class = null, $options = []) {
 		// if we need to use default link from application
 		if (empty($db_link)) {
-			$db_link = application::get(['flag', 'global', 'db', 'default_db_link']);
+			$db_link = application::get('flag.global.default_db_link');
 			if (empty($db_link)) {
 				Throw new Exception('You must specify database link and/or class!');
 			}

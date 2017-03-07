@@ -47,14 +47,21 @@ class object_widgets {
 	const widget_models = ['attributes', 'addresses', 'audit', 'registrations'];
 
 	/**
-	 * Indicator whether widgets are enabled
+	 * Enabled
 	 *
 	 * @param string $widget
 	 * @return boolean
 	 */
 	public static function enabled($widget) {
-		if (!application::get('numbers.data', ['backend_exists' => true])) return false;
-		if (!application::get("flag.global.widgets.{$widget}.submodule")) return false;
+		// check if submodule is enabled
+		$submodule = application::get("flag.global.widgets.{$widget}.submodule");
+		if (empty($submodule)) return false;
+		// check if submodule is included
+		$temp = explode('.', $submodule);
+		array_pop($temp);
+		array_unshift($temp, 'submodule');
+		array_unshift($temp, 'dep');
+		if (empty(application::get($temp))) return false;
 		return true;
 	}
 }

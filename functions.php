@@ -440,11 +440,17 @@ function array_key_sort_prepare_keys($keys, $flag_string = false) {
  * @param array $arr
  * @param string $prefix
  * @param string $suffix
+ * @param boolean $strip
  */
-function array_key_prefix_and_suffix(& $arr, $prefix, $suffix) {
+function array_key_prefix_and_suffix(& $arr, $prefix = null, $suffix = null, $strip = false) {
 	if ($prefix . '' != '' || $suffix . '' != '') {
 		foreach ($arr as $k => $v) {
-			$arr[$prefix . $k . $suffix] = $v;
+			// appending / prepending
+			if (!$strip) {
+				$arr[$prefix . $k . $suffix] = $v;
+			} else { // stripping
+				$arr[str_replace([$prefix, $suffix], '', $k)] = $v;
+			}
 			unset($arr[$k]);
 		}
 	}

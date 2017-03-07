@@ -11,7 +11,7 @@ class user {
 	 * @return int
 	 */
 	public static function user_id() {
-		// todo
+		return ($_SESSION['numbers']['user']['id'] ?? null);
 	}
 
 	/**
@@ -24,17 +24,49 @@ class user {
 	}
 
 	/**
-	 * Grant role
+	 * Authorize user
 	 *
-	 * @param string $role
+	 * @param array $data
+	 */
+	public static function user_authorize(array $data) {
+		$_SESSION['numbers']['user'] = $data;
+		// flag as authorized
+		$_SESSION['numbers']['flag_authorized'] = true;
+		// add authorized role
+		self::role_grant(object_acl_resources::get_static('user_roles', 'authorized', 'data'));
+	}
+
+	/**
+	 * Grant role(s)
+	 *
+	 * @param string|array $role
 	 */
 	public static function role_grant($role) {
 		// initialize roles array
 		if (!isset($_SESSION['numbers']['user']['roles'])) {
 			$_SESSION['numbers']['user']['roles'] = [];
 		}
-		if (!empty($role) && !in_array($role, $_SESSION['numbers']['user']['roles'])) {
-			$_SESSION['numbers']['user']['roles'][] = $role;
+		// add roles
+		if (!empty($role)) {
+			if (!is_array($role)) $role = [$role];
+			$_SESSION['numbers']['user']['roles'] = array_unique(array_merge($_SESSION['numbers']['user']['roles'], $role));
+		}
+	}
+
+	/**
+	 * Revoke role(s)
+	 *
+	 * @param string|array $role
+	 */
+	public static function role_revoke($role) {
+		if (!empty($role) && !empty($_SESSION['numbers']['user']['roles'])) {
+			if (!is_array($role)) $role = [$role];
+			foreach ($role as $v) {
+				$key = array_search($v, $_SESSION['numbers']['user']['roles']);
+				if ($key !== false) {
+					unset($_SESSION['numbers']['user']['roles'][$key]);
+				}
+			}
 		}
 	}
 

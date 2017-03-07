@@ -77,10 +77,10 @@ class factory {
 	 *
 	 * @param string $class
 	 * @param boolean $cache
-	 * @param array $options
+	 * @param array $constructor_parameters
 	 * @return object
 	 */
-	public static function model($class, $cache = false, $options = null) {
+	public static function model($class, $cache = false, $constructor_parameters = null) {
 		// fix dot notation
 		$class = str_replace('.', '_', $class);
 		// if we need to override classes
@@ -99,8 +99,8 @@ class factory {
 			} else {
 no_cache:
 				// if we need to pass options to an object
-				if (isset($options)) {
-					self::$class_objects['model'][$class] = new $class($options);
+				if (isset($constructor_parameters)) {
+					self::$class_objects['model'][$class] = new $class(... $constructor_parameters);
 				} else {
 					self::$class_objects['model'][$class] = new $class();
 				}

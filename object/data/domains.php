@@ -38,6 +38,7 @@ class object_data_domains extends object_data {
 		// types & groups
 		'type_id' => ['name' => 'Type #', 'type' => 'smallint', 'default' => null, 'format' => 'id'],
 		'type_id_sequence' => ['name' => 'Type #', 'type' => 'smallserial', 'placeholder' => 'Sequence', 'format' => 'id'],
+		'status_id' => ['name' => 'Status #', 'type' => 'smallint', 'default' => null, 'format' => 'id'],
 		'group_id' => ['name' => 'Group #', 'type' => 'integer', 'default' => null, 'format' => 'id'],
 		'group_id_sequence' => ['name' => 'Group #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'big_id' => ['name' => 'Big #', 'type' => 'bigint', 'default' => null, 'format' => 'id'],
@@ -55,6 +56,7 @@ class object_data_domains extends object_data {
 		'login' => ['name' => 'Login', 'type' => 'varchar', 'length' => 30],
 		'password' => ['name' => 'Password', 'type' => 'text', 'validator_method' => 'object_validator_password::validate'],
 		'ip' => ['name' => 'IP', 'type' => 'varchar', 'length' => 46],
+		'domain_part' => ['name' => 'Domain Part', 'type' => 'varchar', 'length' => 30, 'validator_method' => 'object_validator_domain_part::validate'],
 		// S/M System
 		'ledger_id' => ['name' => 'Ledger #', 'type' => 'integer', 'default' => null, 'format' => 'id'],
 		'ledger_id_sequence' => ['name' => 'Ledger #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
@@ -78,11 +80,11 @@ class object_data_domains extends object_data {
 		'resource_id' => ['name' => 'Resource #', 'type' => 'integer', 'format' => 'id'],
 		'resource_id_sequence' => ['name' => 'Resource #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'action_id' => ['name' => 'Action #', 'type' => 'smallint', 'format' => 'id'],
-		// U/M User & Entity Management
+		// U/M User & O/N Organization Management
 		'user_id' => ['name' => 'User #', 'type' => 'integer', 'default' => null, 'format' => 'id'],
 		'user_id_sequence' => ['name' => 'User #', 'type' => 'serial', 'placeholder' => 'Sequence'],
-		'entity_id' => ['name' => 'Entity #', 'type' => 'integer', 'default' => null, 'format' => 'id'],
-		'entity_id_sequence' => ['name' => 'Entity #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
+		'organization_id' => ['name' => 'Organization #', 'type' => 'integer', 'default' => null, 'format' => 'id'],
+		'organization_id_sequence' => ['name' => 'Organization #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		//'component_id' => ['name' => 'Component #', 'type' => 'integer', 'default' => null, 'format' => 'id'],
 		//'component_id_sequence' => ['name' => 'Component #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		// relations & models
