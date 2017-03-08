@@ -27,13 +27,13 @@ class object_form_parent extends object_override_data {
 	 * Submit button
 	 */
 	const button_submit = '__submit_button';
-	const button_submit_data = ['order' => -100, 'button_group' => 'left', 'value' => 'Submit', 'type' => 'primary', 'method' => 'button2', 'accesskey' => 's', 'process_submit' => true];
+	const button_submit_data = ['order' => -100, 'button_group' => 'left', 'value' => 'Submit', 'method' => 'button2', 'accesskey' => 's', 'process_submit' => true]; // , 'type' => 'primary'
 
 	/**
 	 * Submit save
 	 */
 	const button_submit_save = '__submit_save';
-	const button_submit_save_data = ['order' => 100, 'button_group' => 'left', 'value' => 'Save', 'type' => 'primary', 'method' => 'button2', 'icon' => 'floppy-o', 'accesskey' => 's', 'process_submit' => true];
+	const button_submit_save_data = ['order' => 100, 'button_group' => 'left', 'value' => 'Save', 'method' => 'button2', 'icon' => 'floppy-o', 'accesskey' => 's', 'process_submit' => true]; // , 'type' => 'primary'
 
 	/**
 	 * Submit save and new

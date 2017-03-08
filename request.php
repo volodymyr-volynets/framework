@@ -99,12 +99,25 @@ class request {
 	public static function host(array $params = []) : string {
 		$protocol = !empty($params['protocol']) ? $params['protocol'] : '';
 		if (!$protocol) $protocol = self::is_ssl() ? 'https' : 'http';
-		$host = !empty($params['ip']) ? (getenv('SERVER_ADDR') . ':' . getenv('SERVER_PORT')) : getenv('HTTP_HOST');
+		if (!empty($params['host_parts'])) {
+			$host = implode('.', $params['host_parts']);
+		} else {
+			$host = !empty($params['ip']) ? (getenv('SERVER_ADDR') . ':' . getenv('SERVER_PORT')) : getenv('HTTP_HOST');
+		}
 		if (!empty($params['level3'])) {
 			$host = str_replace('www.', '', $host);
 			$host = @$params['level3'] . '.' . $host;
 		}
-		return $protocol . '://' . $host . (!empty($params['request']) ? $_SERVER['REQUEST_URI'] : '/');
+		$result = $protocol . '://' . $host . (!empty($params['request']) ? $_SERVER['REQUEST_URI'] : '/');
+		// append mvc
+		if (!empty($params['mvc'])) {
+			$result = rtrim($result, '/') . $params['mvc'];
+		}
+		// append parameters
+		if (!empty($params['params'])) {
+			$result.= '?' . http_build_query2($params['params']);
+		}
+		return $result;
 	}
 
 	/**
@@ -117,8 +130,7 @@ class request {
 		if (empty($host)) {
 			$host = self::host();
 		}
-		$host = str_replace(array('http://', 'https://'), '', $host);
-		$host = str_replace('/', '', $host);
+		$host = str_replace(['http://', 'https://', '/'], '', $host);
 		$temp = explode('.', $host);
 		krsort($temp);
 		$result = [];

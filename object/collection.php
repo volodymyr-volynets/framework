@@ -463,8 +463,13 @@ class object_collection extends object_override_data {
 				if (!empty($this->primary_model->relation['field'])) {
 					$temp['data']['audit']['pk'][$this->primary_model->relation['field']] = $temp['new_serials'][$this->primary_model->relation['field']] ?? $data[$this->primary_model->relation['field']] ?? $original[$this->primary_model->relation['field']];
 				}
+				// just in case we need to grap other pks
+				foreach ($this->primary_model->pk as $v) {
+					if (!isset($temp['data']['audit']['pk'][$v])) {
+						$temp['data']['audit']['pk'][$v] = $temp['new_serials'][$v] ?? $data[$v] ?? $original[$v];
+					}
+				}
 				// merge
-				// todo
 				$temp2 = factory::model($this->primary_model->audit_model, true)->merge($temp['data']['audit'], ['changes' => $temp['data']['total']]);
 				if (!$temp2['success']) {
 					$result['error'] = array_merge($result['error'], $temp2['error']);
@@ -504,6 +509,10 @@ error:
 			$this->primary_model->db_object->begin();
 			// generate a list of primary keys to fetch data
 			$data_pks = [];
+			$data_pk_final = $this->data['pk'];
+			if ($this->primary_model->tenant && empty($options['skip_tenant'])) {
+				array_unshift($data_pk_final, $this->primary_model->tenant_column);
+			}
 			foreach ($data as $k0 => $v0) {
 				// injecting tenant
 				if ($this->primary_model->tenant && empty($options['skip_tenant'])) {
@@ -512,7 +521,7 @@ error:
 				// assemble primary key
 				$pk = [];
 				$full_pk = true;
-				foreach ($this->data['pk'] as $v) {
+				foreach ($data_pk_final as $v) {
 					if (isset($v0[$v])) {
 						$pk[$v] = $v0[$v];
 					} else {
@@ -525,10 +534,10 @@ error:
 			}
 			// fetch data if we have pks
 			if (!empty($data_pks)) {
-				if (count($this->data['pk']) == 1) {
-					$column = current($this->data['pk']);
+				if (count($data_pk_final) == 1) {
+					$column = current($data_pk_final);
 				} else {
-					$column = "concat_ws('::', " . implode(', ', $this->data['pk']) . ")";
+					$column = "concat_ws('::', " . implode(', ', $data_pk_final) . ")";
 				}
 				// fetch
 				$original_result = $this->get([

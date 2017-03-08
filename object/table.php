@@ -844,6 +844,41 @@ TTT;
 	}
 
 	/**
+	 * Get by column
+	 *
+	 * @param string $column
+	 * @param mixed $value
+	 * @param mixed $only_column
+	 * @return mixed
+	 */
+	public function get_by_column(string $column, $value, $only_column = null) {
+		$result = $this->get([
+			//'columns' => ($only_column ? [$only_column] : null),
+			'where' => [
+				$column => $value
+			],
+			'pk' => [$column],
+			'single_row' => true
+		]);
+		if ($only_column) {
+			return $result[$only_column] ?? null;
+		} else {
+			return $result;
+		}
+	}
+
+	/**
+	 * Get by column (static)
+	 *
+	 * @see $this::get_by_column()
+	 */
+	public static function get_by_column_static(string $column, $value, $only_column = null) {
+		$class = get_called_class();
+		$object = new $class();
+		return $object->get_by_column($column, $value, $only_column);
+	}
+
+	/**
 	 * Exists
 	 *
 	 * @see $this->get()

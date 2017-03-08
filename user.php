@@ -37,6 +37,16 @@ class user {
 	}
 
 	/**
+	 * Sign out user
+	 *
+	 * @param array $data
+	 */
+	public static function user_sign_out() {
+		$_SESSION['numbers']['user'] = [];
+		$_SESSION['numbers']['flag_authorized'] = false;
+	}
+
+	/**
 	 * Grant role(s)
 	 *
 	 * @param string|array $role

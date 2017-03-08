@@ -2061,6 +2061,14 @@ convert_multiple_columns:
 					$options['options_model'] = 'object_data_model_inactive';
 					$options['searchable'] = false;
 				}
+				// validator method for captcha
+				if (($options['method'] ?? '') == 'captcha') {
+					$options['validator_method'] = application::get('flag.numbers.framework.html.captcha.submodule', ['class' => true]) . '::validate';
+				}
+				// type for buttons
+				if (in_array(($options['method'] ?? ''), ['button', 'button2', 'submit']) && empty($options['type'])) {
+					$options['type'] = $this->options['segment']['type'] ?? 'primary';
+				}
 				// put data into fields array
 				$field = [
 					'id' => $options['id'],

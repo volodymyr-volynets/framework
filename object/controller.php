@@ -212,4 +212,19 @@ class object_controller {
 		} while(1);
 		return false;
 	}
+
+	/**
+	 * Render menu
+	 *
+	 * @return string
+	 */
+	public static function render_menu() : string {
+		$data = object_acl_resources::get_static('menu', 'primary');
+		print_r2($data);
+		return html::menu([
+			'brand' => application::get('application.layout.name'),
+			'options' => $data[200] ?? [],
+			'options_right' => $data[210] ?? []
+		]);
+	}
 }
