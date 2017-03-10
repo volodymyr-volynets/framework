@@ -310,10 +310,6 @@ class object_form_base extends object_form_parent {
 			$this->options = array_merge_hard($this->options, $overrides);
 		}
 		$this->error_reset_all();
-		// actions
-		if (!empty($this->options['actions'])) {
-			$this->actions = array_merge($this->actions, $this->options['actions']);
-		}
 	}
 
 	/**
@@ -1281,7 +1277,7 @@ convert_multiple_columns:
 			}
 		}
 		// query for list
-		if ($this->initiator_class == 'list' && !$this->has_errors() && !empty($this->process_submit[$this::button_submit_save])) {
+		if ($this->initiator_class == 'list' && !$this->has_errors() && ($this->submitted || (!$this->refresh && !$this->submitted))) {
 			$this->misc_settings['list']['enabled'] = true;
 			// create query object
 			if (!empty($this->form_parent->query_primary_model)) {
