@@ -87,25 +87,14 @@ class bootstrap {
 				}
 			}
 		}
-		// initialize cache
+		// initialize caches
 		$cache = application::get('cache');
 		if (!empty($cache) && $backend) {
 			foreach ($cache as $cache_link => $cache_settings) {
-				if (empty($cache_settings['submodule']) || empty($cache_settings['autoconnect'])) {
-					continue;
-				}
-				$connected = false;
-				foreach ($cache_settings['servers'] as $cache_server) {
-					$cache_object = new cache($cache_link, $cache_settings['submodule'], $cache_settings);
-					$cache_status = $cache_object->connect($cache_server);
-					if ($cache_status['success']) {
-						$connected = true;
-						break;
-					}
-				}
-				// checking if not connected
-				if (!$connected) {
-					Throw new Exception('Unable to open cache connection!');
+				if (empty($cache_settings['submodule']) || empty($cache_settings['autoconnect'])) continue;
+				$cache_result = cache::connect_to_servers($cache_link, $cache_settings);
+				if (!$cache_result['success']) {
+					Throw new Exception(implode(', ', $cache_result['error']));
 				}
 			}
 		}

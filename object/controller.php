@@ -108,6 +108,7 @@ class object_controller {
 	 * @return boolean
 	 */
 	public function permitted($options = []) : bool {
+		return true;
 		// authorized
 		if (user::authorized()) {
 			// see if controller is for authorized
@@ -220,7 +221,6 @@ class object_controller {
 	 */
 	public static function render_menu() : string {
 		$data = object_acl_resources::get_static('menu', 'primary');
-		print_r2($data);
 		return html::menu([
 			'brand' => application::get('application.layout.name'),
 			'options' => $data[200] ?? [],

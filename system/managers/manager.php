@@ -389,6 +389,32 @@ reask_for_migration:
 			}
 			// todo: we need to reset all caches
 			break;
+		// caches - mode: drop
+		case 'cache':
+			if ($mode == 'drop') {
+reset_all_caches:
+				// initialize caches
+				$cache = application::get('cache');
+				if (!empty($cache)) {
+					foreach ($cache as $cache_link => $cache_settings) {
+						if (empty($cache_settings['submodule']) || empty($cache_settings['autoconnect'])) continue;
+						$cache_result = cache::connect_to_servers($cache_link, $cache_settings);
+						if (!$cache_result['success']) {
+							Throw new Exception(implode(', ', $cache_result['error']));
+						}
+					}
+				}
+				// reset opened caches
+				$cache = factory::get(['cache']);
+				if (!empty($cache)) {
+					foreach ($cache as $k => $v) {
+						$object = $v['object'];
+						$object->gc(2);
+					}
+				}
+				$result['success'] = true;
+			}
+			break;
 		// dependencies - mode: test, commit
 		case 'dependency':
 		default:

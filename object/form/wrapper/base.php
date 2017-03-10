@@ -115,7 +115,7 @@ class object_form_wrapper_base extends object_form_parent {
 		$this->form_object = new object_form_base($this->form_link, array_merge_hard($this->options, $options));
 		// class
 		$this->form_object->form_class = get_called_class();
-		$this->form_object->initiator_class = $options['initiator_class'] ?? $this->form_object->form_class;
+		$this->form_object->initiator_class = $options['initiator_class'] ?? 'form';
 		$this->form_object->form_parent = & $this;
 		$this->form_object->acl = $this->acl;
 		// add collection
@@ -169,7 +169,7 @@ class object_form_wrapper_base extends object_form_parent {
 			}
 		}
 		// step 3: methods
-		foreach (['refresh', 'validate', 'save', 'post', 'success', 'override_field_value', 'override_tabs', 'process_default_value'] as $v) {
+		foreach (['refresh', 'validate', 'save', 'post', 'success', 'override_field_value', 'override_tabs', 'process_default_value', 'list_query'] as $v) {
 			if (method_exists($this, $v)) {
 				$this->form_object->wrapper_methods[$v]['main'] = [& $this, $v];
 			}

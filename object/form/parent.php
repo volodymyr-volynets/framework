@@ -9,6 +9,11 @@ class object_form_parent extends object_override_data {
 	const separator_horisontal = '__separator_horizontal';
 
 	/**
+	 * List container
+	 */
+	const list_container = '__list_container';
+
+	/**
 	 * Row for buttons
 	 */
 	const buttons = '__submit_buttons';

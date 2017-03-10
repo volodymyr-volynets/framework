@@ -166,4 +166,28 @@ class cache {
 	public function gc($mode = 1, $tags = []) {
 		return $this->object->gc($mode, $tags);
 	}
+
+	/**
+	 * Connect to servers
+	 *
+	 * @param string $cache_link
+	 * @param array $cache_settings
+	 * @return array
+	 */
+	public static function connect_to_servers(string $cache_link, array $cache_settings) : array {
+		$result = [
+			'success' => false,
+			'error' => []
+		];
+		foreach ($cache_settings['servers'] as $cache_server) {
+			$cache_object = new cache($cache_link, $cache_settings['submodule'], $cache_settings);
+			$cache_status = $cache_object->connect($cache_server);
+			if ($cache_status['success']) {
+				$result['success'] = true;
+				return $result;
+			}
+		}
+		$result['error'][] = 'Unable to open cache connection!';
+		return $result;
+	}
 }
