@@ -14,6 +14,19 @@ class object_form_parent extends object_override_data {
 	const list_container = '__list_container';
 
 	/**
+	 * List buttons
+	 */
+	const list_buttons = '__list_buttons';
+	const list_buttons_data = [
+		'__content_type' => [
+			'__content_type' => ['order' => 1, 'container_order' => PHP_INT_MAX - 1000, 'container_class' => 'numbers_form_filter_sort_container', 'label_name' => 'Format', 'percent' => 25, 'required' => true, 'method' => 'select', 'default' => 'text/html', 'no_choose' => true, 'options_model' => 'numbers_framework_object_form_model_content_types']
+		],
+		self::buttons => [
+			self::button_submit => self::button_submit_data
+		]
+	];
+
+	/**
 	 * Row for buttons
 	 */
 	const buttons = '__submit_buttons';

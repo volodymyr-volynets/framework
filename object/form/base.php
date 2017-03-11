@@ -296,6 +296,13 @@ class object_form_base extends object_form_parent {
 	public $query;
 
 	/**
+	 * List rendered
+	 *
+	 * @var boolean
+	 */
+	public $list_rendered;
+
+	/**
 	 * Constructor
 	 *
 	 * @param string $form_link
@@ -980,8 +987,12 @@ class object_form_base extends object_form_parent {
 		$this->blank = false;
 		$this->values_loaded = false;
 		$this->values_saved = false;
-		$this->values_deleted = $this->values_inserted = $this->values_updated = false;
-		$this->transaction = $this->rollback = false;
+		$this->values_deleted = false;
+		$this->values_inserted = false;
+		$this->values_updated = false;
+		$this->transaction = false;
+		$this->rollback = false;
+		$this->list_rendered = false;
 		// preload collection, must be first
 		// fix here
 		if ($this->preload_collection_object() && $this->initiator_class != 'numbers_frontend_html_form_wrapper_report') {
@@ -1279,7 +1290,7 @@ convert_multiple_columns:
 		}
 		// query for list
 		if ($this->initiator_class == 'list' && !$this->has_errors() && ($this->submitted || (!$this->refresh && !$this->submitted))) {
-			$this->misc_settings['list']['enabled'] = true;
+			$this->list_rendered = true;
 			// create query object
 			if (!empty($this->form_parent->query_primary_model)) {
 				$this->query = call_user_func_array([$this->form_parent->query_primary_model, 'query_builder_static'], [])->select();
@@ -2240,13 +2251,13 @@ convert_multiple_columns:
 	 * @param string $format
 	 * @return mixed
 	 */
-	public function render($format = 'text/html') {
-		switch ($format) {
-			case 'text/html':
-			default:
-				$renderer = new numbers_frontend_html_form_renderers_html_base();
-				return $renderer->render($this);
-		}
+	public function render($format = null) {
+		if (!isset($format)) $format = $this->options['input']['__content_type'] ?? 'text/html';
+		$content_types_model = new numbers_framework_object_form_model_content_types();
+		$content_types = $content_types_model->get();
+		if (empty($content_types[$format])) $format = 'text/html';
+		$model =  new $content_types[$format]['no_form_content_type_model']();
+		return $model->render($this);
 	}
 
 	/**
