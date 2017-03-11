@@ -1003,6 +1003,7 @@ class object_form_base extends object_form_parent {
 		if ($this->initiator_class == 'list') {
 			$this->element($this::hidden, $this::hidden, '__limit', ['label_name' => 'Limit', 'type' => 'integer', 'default' => $this->form_parent->list_options['default_limit'] ?? 30, 'method'=> 'hidden']);
 			$this->element($this::hidden, $this::hidden, '__offset', ['label_name' => 'Offset', 'type' => 'integer', 'default' => 0, 'method'=> 'hidden']);
+			$this->element($this::hidden, $this::hidden, '__preview', ['label_name' => 'Preview', 'type' => 'integer', 'default' => 0, 'method'=> 'hidden']);
 		}
 		// custome renderers for reports
 		if ($this->initiator_class == 'numbers_frontend_html_form_wrapper_report') {
@@ -1330,6 +1331,7 @@ convert_multiple_columns:
 			}
 			$this->misc_settings['list']['limit'] = $this->values['__limit'];
 			$this->misc_settings['list']['offset'] = $this->values['__offset'];
+			$this->misc_settings['list']['preview'] = $this->values['__preview'];
 			$this->misc_settings['list']['columns'] = $this->data[$this::list_container]['rows'];
 		}
 	}

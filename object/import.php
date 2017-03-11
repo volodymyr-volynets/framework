@@ -30,12 +30,28 @@ class object_import {
 	public $options = [];
 
 	/**
+	 * ALias object
+	 *
+	 * @var object
+	 */
+	private $alias_object;
+
+	/**
+	 * Alias data
+	 *
+	 * @var array
+	 */
+	private $alias_data;
+
+	/**
 	 * Constructor
 	 *
 	 * @param array $options
 	 */
 	public function __construct(array $options = []) {
 		$this->options = $options;
+		$this->alias_object = new object_data_aliases();
+		$this->alias_data = $this->alias_object->get();
 	}
 
 	/**
@@ -57,9 +73,7 @@ class object_import {
 		if (method_exists($this, 'overrides')) {
 			$this->overrides();
 		}
-		// initialize alias & crypt objects
-		$alias_object = new object_data_aliases();
-		$alias_data = $alias_object->get();
+		// enable gc
 		gc_enable();
 		// processing one by one
 		foreach (array_keys($this->data) as $k) {
@@ -98,18 +112,24 @@ class object_import {
 				$v2 = array_shift($this->data[$k]['data']);
 				// we need to process overrides
 				foreach ($v2 as $k3 => $v3) {
-					if (!is_string($v3)) continue;
-					// if we need id
-					if (strpos($v3, '::id::') === 0) {
-						$value = substr($v3, 4);
-						$alias = null;
-						foreach ($alias_data as $k4 => $v4) {
-							// todo: maybe need column prefix with alias
-							if (strpos($k3, $k4) !== false) {
-								$alias = $k4;
+					// if we have a detail
+					if (is_array($v3)) {
+						foreach ($v3 as $k4 => $v4) {
+							foreach ($v4 as $k5 => $v5) {
+								if (!is_string($v5)) continue;
+								if (is_numeric($k5)) continue;
+								// if we need id
+								if (strpos($v5, '::id::') === 0) {
+									$temp = $this->find_aliased_value($k5, $v5);
+									if ($temp !== false) $v2[$k3][$k4][$k5] = $temp;
+								}
 							}
 						}
-						$v2[$k3] = $alias_object->get_id_by_code($alias, str_replace('::id::', '', $v3));
+					} else if (!is_string($v3)) continue;
+					// if we need id
+					if (strpos($v3, '::id::') === 0) {
+						$temp = $this->find_aliased_value($k3, $v3);
+						if ($temp !== false) $v2[$k3] = $temp;
 						continue;
 					}
 				}
@@ -144,5 +164,27 @@ class object_import {
 		}
 		$result['success'] = true;
 		return $result;
+	}
+
+	/**
+	 * Find aliased value
+	 *
+	 * @param string $column
+	 * @param mixed $value
+	 * @return mixed
+	 */
+	private function find_aliased_value(string $column, $value) {
+		$alias = null;
+		foreach ($this->alias_data as $k => $v) {
+			// todo: maybe need column prefix with alias
+			if (strpos($column, $k) !== false) {
+				$alias = $k;
+			}
+		}
+		if (!empty($alias)) {
+			return $this->alias_object->get_id_by_code($alias, str_replace('::id::', '', $value));
+		} else {
+			return false;
+		}
 	}
 }
