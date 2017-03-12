@@ -181,10 +181,21 @@ class object_table_options extends object_override_data {
 		// if compound key
 		if (!empty($temp)) {
 			foreach ($temp as $v) {
-				if (!isset($data[$options['where'][$v]])) {
-					return [];
+				// if pk is array
+				if (!empty($options['where'][$v]) && is_array($options['where'][$v])) {
+					$result = [];
+					foreach ($options['where'][$v] as $v2) {
+						if (isset($data[$v2])) {
+							$result = array_merge_hard($result, $data[$v2]);
+						}
+					}
+					$data = $result;
+				} else { // regular pk
+					if (!isset($data[$options['where'][$v]])) {
+						return [];
+					}
+					$data = $data[$options['where'][$v]];
 				}
-				$data = $data[$options['where'][$v]];
 			}
 		}
 		return $data;

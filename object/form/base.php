@@ -1015,6 +1015,16 @@ class object_form_base extends object_form_parent {
 			$this->element($this::hidden, $this::hidden, '__limit', ['label_name' => 'Limit', 'type' => 'integer', 'default' => $this->form_parent->list_options['default_limit'] ?? 30, 'method'=> 'hidden']);
 			$this->element($this::hidden, $this::hidden, '__offset', ['label_name' => 'Offset', 'type' => 'integer', 'default' => 0, 'method'=> 'hidden']);
 			$this->element($this::hidden, $this::hidden, '__preview', ['label_name' => 'Preview', 'type' => 'integer', 'default' => 0, 'method'=> 'hidden']);
+			// default sort
+			if (empty($this->options['input']['numbers_framework_object_form_model_dummy_sort']) && !empty($this->form_parent->list_options['default_sort'])) {
+				$this->options['input']['numbers_framework_object_form_model_dummy_sort'] = [];
+				foreach ($this->form_parent->list_options['default_sort'] as $k => $v) {
+					$this->options['input']['numbers_framework_object_form_model_dummy_sort'][] = [
+						'__sort' => $k,
+						'__order' => $v
+					];
+				}
+			}
 		}
 		// custome renderers for reports
 		if ($this->initiator_class == 'numbers_frontend_html_form_wrapper_report') {
@@ -1133,7 +1143,7 @@ class object_form_base extends object_form_parent {
 				goto load_values;
 			} else { // if we have no values its blank
 				$this->blank = true;
-				$this->get_all_values([]);
+				$this->get_all_values($this->options['input'] ?? []);
 				$this->trigger_method('refresh');
 				goto convert_multiple_columns;
 			}
@@ -1143,7 +1153,6 @@ class object_form_base extends object_form_parent {
 			'validate_required' => $this->submitted, // a must, used for widget data processing
 			'validate_for_delete' => $this->delete
 		]);
-		//print_r2($this->values);
 		// validate submits
 		if ($this->submitted) {
 			if (!$this->validate_submit_buttons()) {
