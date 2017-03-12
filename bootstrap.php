@@ -119,6 +119,9 @@ class bootstrap {
 		}
 		// format
 		format::init();
+		// default actions
+		layout::add_action('refresh', ['value' => 'Refresh', 'icon' => 'refresh', 'onclick' => 'location.reload();', 'order' => -32000]);
+		layout::add_action('print', ['value' => 'Print', 'icon' => 'print', 'onclick' => 'window.print();', 'order' => -31000]);
 	}
 
 	/**

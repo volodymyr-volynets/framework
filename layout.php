@@ -171,18 +171,11 @@ class layout extends view {
 	 * @return string
 	 */
 	public static function render_title() {
-		$result = '';
-		$data = application::get('controller');
-		if (!empty(self::$title_override)) {
-			$data['title'] = self::$title_override;
+		$title = self::$title_override ?? application::$controller->title ?? null;
+		if (!empty($title)) {
+			$icon = self::$icon_override ?? application::$controller->icon ?? null;
+			return (!empty($icon) ? (html::icon(['type' => $icon]) . ' ') : '') . i18n(null, $title);
 		}
-		if (!empty(self::$icon_override)) {
-			$data['icon'] = self::$icon_override;
-		}
-		if (!empty($data['title'])) {
-			$result.= (!empty($data['icon']) ? (html::icon(['type' => $data['icon']]) . ' ') : '') . i18n(null, $data['title']);
-		}
-		return $result;
 	}
 
 	/**
@@ -255,13 +248,13 @@ class layout extends view {
 
 	/**
 	 * Add action
-	 * 
-	 * @param array $action
+	 *
 	 * @param string $code
+	 * @param array $action
 	 */
-	public static function add_action($code, $action) {
-		$action['orderby'] = $action['orderby'] ?? 0;
-		application::set(array('layout', 'bar_action', $code), $action);
+	public static function add_action(string $code, array $action) {
+		$action['order'] = $action['order'] ?? 0;
+		application::set(array('layout', 'actions', $code), $action);
 	}
 
 	/**
@@ -271,16 +264,17 @@ class layout extends view {
 	 */
 	public static function render_actions() {
 		$result = '';
-		$data = application::get(array('layout', 'bar_action'));
+		$data = application::get(array('layout', 'actions'));
 		if (!empty($data)) {
 			// sorting first
-			array_key_sort($data, ['orderby' => SORT_ASC], ['orderby' => SORT_NUMERIC]);
+			array_key_sort($data, ['order' => SORT_ASC], ['order' => SORT_NUMERIC]);
 			// looping through data and building html
-			$temp = array();
-			foreach ($data as $k=>$v) {
+			$temp = [];
+			foreach ($data as $k => $v) {
+				if (empty($v)) continue;
 				$icon = !empty($v['icon']) ? (html::icon(['type' => $v['icon']]) . ' ') : '';
 				$onclick = !empty($v['onclick']) ? $v['onclick'] : '';
-				$value = !empty($v['value']) ? $v['value'] : '';
+				$value = !empty($v['value']) ? i18n(null, $v['value']) : '';
 				$href = $v['href'] ?? 'javascript:void(0);';
 				$temp[] = html::a(array('value' => $icon . $value, 'href' => $href, 'onclick' => $onclick));
 			}
@@ -295,14 +289,13 @@ class layout extends view {
 	 * @return string
 	 */
 	public static function render_breadcrumbs() {
-		$data = application::get(['controller', 'breadcrumbs']);
-		if ($data) {
-			return html::breadcrumbs($data);
+		if (!empty(application::$controller->breadcrumbs)) {
+			return html::breadcrumbs(application::$controller->breadcrumbs);
 		}
 	}
 
 	/**
-	 * Render as content type, non html output should go though this function
+	 * Render as content type, non HTML output should go though this function
 	 *
 	 * @param mixed $data
 	 * @param string $content_type
