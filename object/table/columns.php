@@ -145,6 +145,8 @@ class object_table_columns extends object_data {
 			} else {
 				$result[$column_name] = $value;
 			}
+		} else if ($column_options['type'] == 'mixed') {
+			$result[$column_name] = $value;
 		} else {
 			if (is_null($value)) {
 				$result[$column_name] = null;
@@ -157,6 +159,114 @@ class object_table_columns extends object_data {
 				}
 			}
 		}
+		return $result;
+	}
+
+	/**
+	 * Validate single column
+	 *
+	 * @param string $column_name
+	 * @param array $column_options
+	 * @param type $value
+	 * @param array $options
+	 * @return array
+	 */
+	public static function validate_single_column(string $column_name, array $column_options, $value, array $options = []) : array {
+		$result = [
+			'success' => false,
+			'error' => [],
+			'data' => null
+		];
+		// perform validation
+		$result['data'] = self::process_single_column_type($column_name, $column_options, $value, ['process_datetime' => true]);
+		if (array_key_exists($column_name, $result['data'])) {
+			// validations
+			$error = false;
+			// perform validation
+			if ($column_options['type'] == 'boolean') {
+				if (!empty($value) && ($value . '' != $result['data'][$column_name] . '')) {
+					$result['error'][] = i18n(null, 'Wrong boolean value!');
+					$error = true;
+				}
+			} else if (in_array($column_options['type'], ['date', 'time', 'datetime', 'timestamp'])) { // dates first
+				if (!empty($value) && empty($result['data'][$column_name . '_strtotime_value'])) {
+					$result['error'][] = i18n(null, 'Invalid date, time or datetime!');
+					$error = true;
+				}
+			} else if ($column_options['php_type'] == 'integer') {
+				if ($value . '' !== '' && !format::read_intval($value, ['valid_check' => 1])) {
+					$result['error'][] = i18n(null, 'Wrong integer value!');
+					$error = true;
+				}
+				// null processing
+				if (!$error) {
+					if (empty($result['data'][$column_name]) && !empty($column_options['null'])) {
+						$result['data'][$column_name] = null;
+					}
+				}
+			} else if ($column_options['php_type'] == 'bcnumeric') { // accounting numbers
+				if ($value . '' !== '' && !format::read_bcnumeric($value, ['valid_check' => 1])) {
+					$result['error'][] = i18n(null, 'Wrong numeric value!');
+					$error = true;
+				}
+				// precision & scale validations
+				if (!$error) {
+					// validate scale
+					$digits = explode('.', $result['data'][$column_name] . '');
+					if (!empty($column_options['scale'])) {
+						if (!empty($digits[1]) && strlen($digits[1]) > $column_options['scale']) {
+							$result['error'][] = i18n(null, 'Only [digits] fraction digits allowed!', ['replace' => ['[digits]' => i18n(null, $column_options['scale'])]]);
+							$error = true;
+						}
+					}
+					// validate precision
+					if (!empty($column_options['precision'])) {
+						$precision = $column_options['precision'] - $column_options['scale'] ?? 0;
+						if (strlen($digits[0]) > $precision) {
+							$result['error'][] = i18n(null, 'Only [digits] digits allowed!', ['replace' => ['[digits]' => i18n(null, $precision)]]);
+							$error = true;
+						}
+					}
+				}
+			} else if ($column_options['php_type'] == 'float') { // regular floats
+				if ($value . '' !== '' && !format::read_floatval($value, ['valid_check' => 1])) {
+					$result['error'][] = i18n(null, 'Wrong float value!');
+					$error = true;
+				}
+				// null processing
+				if (!$error) {
+					if (empty($result['data'][$column_name]) && !empty($column_options['null'])) {
+						$result['data'][$column_name] = null;
+					}
+				}
+			} else if ($column_options['php_type'] == 'string') {
+				// we need to convert empty string to null
+				if ($result['data'][$column_name] . '' === '' && !empty($column_options['null'])) {
+					$result['data'][$column_name] = null;
+				}
+				// validate string length
+				if ($result['data'][$column_name] . '' !== '') {
+					// validate length
+					if (!empty($column_options['type']) && $column_options['type'] == 'char' && strlen($result['data'][$column_name]) != $column_options['length']) {  // char
+						$result['error'][] = i18n(null, 'The length must be [length] characters!', ['replace' => ['[length]' => i18n(null, $column_options['length'])]]);
+						$error = true;
+					} else if (!empty($column_options['length']) && strlen($result['data'][$column_name]) > $column_options['length']) { // varchar
+						$result['error'][] = i18n(null, 'String is too long, should be no longer than [length]!', ['replace' => ['[length]' => i18n(null, $column_options['length'])]]);
+						$error = true;
+					}
+				}
+			}
+			$result['data']['flag_error'] = $error;
+		} else if (!empty($result['data'][$column_name . '_is_serial'])) {
+			if ($in_value . '' !== '' && !empty($result['data'][$column_name . '_is_serial_error'])) {
+				$result['error'][] = i18n(null, 'Wrong sequence value!');
+				$result['data']['flag_error'] = true;
+			}
+		} else {
+			$result['error'][] = i18n(null, object_content_messages::unknown_value);
+			$result['data']['flag_error'] = true;
+		}
+		if (empty($result['error'])) $result['success'] = true;
 		return $result;
 	}
 }

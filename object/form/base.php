@@ -1408,16 +1408,20 @@ convert_multiple_columns:
 				'column_value' => $this->values[$column],
 				'depends' => []
 			];
+			$depends = [];
 			foreach ($navigation_depends as $v) {
-				$params['depends'][$v] = $this->values[$v];
+				$depends[$v] = $this->values[$v];
 			}
-			$model = new numbers_frontend_html_form_model_datasource_navigation();
+			$model = new object_form_datasource_navigation();
 			$result = $model->get([
-				'model' => $this->collection['model'],
-				'type' => $navigation_type,
-				'column' => $column,
-				'pk' => $this->collection_object->data['pk'],
-				'where' => $params
+				'where' => [
+					'model' => $this->collection['model'],
+					'type' => $navigation_type,
+					'column' => $column,
+					'pk' => $this->collection_object->data['pk'],
+					'value' => $this->values[$column],
+					'depends' => $depends
+				]
 			]);
 			// if we have data we override
 			if (!empty($result[0])) {
@@ -1651,97 +1655,11 @@ convert_multiple_columns:
 		if (empty($error_field)) {
 			$error_field = $k;
 		}
-		// perform validation
-		$data = object_table_columns::process_single_column_type($k, $v['options'], $in_value, ['process_datetime' => true]);
-		if (array_key_exists($k, $data)) {
-			// validations
-			$error = false;
-			$value = $in_value;
-			// perform validation
-			if ($v['options']['type'] == 'boolean') {
-				if (!empty($value) && ($value . '' != $data[$k] . '')) {
-					$this->error('danger', 'Wrong boolean value!', $error_field);
-					$error = true;
-				}
-			} else if (in_array($v['options']['type'], ['date', 'time', 'datetime', 'timestamp'])) { // dates first
-				if (!empty($value) && empty($data[$k . '_strtotime_value'])) {
-					$this->error('danger', 'Invalid date, time or datetime!', $error_field);
-					$error = true;
-				}
-			} else if ($v['options']['php_type'] == 'integer') {
-				if ($value . '' !== '' && !format::read_intval($value, ['valid_check' => 1])) {
-					$this->error('danger', 'Wrong integer value!', $error_field);
-					$error = true;
-				}
-				// null processing
-				if (!$error) {
-					if (empty($data[$k]) && !empty($v['options']['null'])) {
-						$data[$k] = null;
-					}
-				}
-			} else if ($v['options']['php_type'] == 'bcnumeric') { // accounting numbers
-				if ($value . '' !== '' && !format::read_bcnumeric($value, ['valid_check' => 1])) {
-					$this->error('danger', 'Wrong numeric value!', $error_field);
-					$error = true;
-				}
-				// precision & scale validations
-				if (!$error) {
-					// validate scale
-					$digits = explode('.', $data[$k] . '');
-					if (!empty($v['options']['scale'])) {
-						if (!empty($digits[1]) && strlen($digits[1]) > $v['options']['scale']) {
-							$this->error('danger', 'Only [digits] fraction digits allowed!', $error_field, ['replace' => ['[digits]' => i18n(null, $v['options']['scale'])]]);
-							$error = true;
-						}
-					}
-					// validate precision
-					if (!empty($v['options']['precision'])) {
-						$precision = $v['options']['precision'] - $v['options']['scale'] ?? 0;
-						if (strlen($digits[0]) > $precision) {
-							$this->error('danger', 'Only [digits] digits allowed!', $error_field, ['replace' => ['[digits]' => i18n(null, $precision)]]);
-							$error = true;
-						}
-					}
-				}
-			} else if ($v['options']['php_type'] == 'float') { // regular floats
-				if ($value . '' !== '' && !format::read_floatval($value, ['valid_check' => 1])) {
-					$this->error('danger', 'Wrong float value!', $error_field);
-					$error = true;
-				}
-				// null processing
-				if (!$error) {
-					if (empty($data[$k]) && !empty($v['options']['null'])) {
-						$data[$k] = null;
-					}
-				}
-			} else if ($v['options']['php_type'] == 'string') {
-				// we need to convert empty string to null
-				if ($data[$k] . '' === '' && !empty($v['options']['null'])) {
-					$data[$k] = null;
-				}
-				// validate string length
-				if ($data[$k] . '' !== '') {
-					// validate length
-					if (!empty($v['options']['type']) && $v['options']['type'] == 'char' && strlen($data[$k]) != $v['options']['length']) {  // char
-						$this->error('danger', 'The length must be [length] characters!', $error_field, ['replace' => ['[length]' => i18n(null, $v['options']['length'])]]);
-						$error = true;
-					} else if (!empty($v['options']['length']) && strlen($data[$k]) > $v['options']['length']) { // varchar
-						$this->error('danger', 'String is too long, should be no longer than [length]!', $error_field, ['replace' => ['[length]' => i18n(null, $v['options']['length'])]]);
-						$error = true;
-					}
-				}
-			}
-			$data['flag_error'] = $error;
-		} else if (!empty($data[$k . '_is_serial'])) {
-			if ($in_value . '' !== '' && !empty($data[$k . '_is_serial_error'])) {
-				$this->error('danger', 'Wrong sequence value!', $error_field);
-				$data['flag_error'] = true;
-			}
-		} else {
-			$this->error('danger', object_content_messages::unknown_value, $error_field);
-			$data['flag_error'] = true;
+		$result = object_table_columns::validate_single_column($k, $v['options'], $in_value);
+		if (!$result['success']) {
+			$this->error('danger', $result['error'], $error_field, ['skip_i18n' => true]);
 		}
-		return $data;
+		return $result['data'];
 	}
 
 	/**
@@ -1830,6 +1748,8 @@ convert_multiple_columns:
 		$this->full_pk = true;
 		if (!empty($this->collection_object)) {
 			foreach ($this->collection_object->data['pk'] as $v) {
+				// skip tenant
+				if (!empty($this->collection_object->primary_model->tenant) && $v == $this->collection_object->primary_model->tenant_column) continue;
 				if (isset($values[$v])) {
 					$temp = object_table_columns::process_single_column_type($v, $this->collection_object->primary_model->columns[$v], $values[$v]);
 					if (!empty($temp[$v])) { // pk can not be empty

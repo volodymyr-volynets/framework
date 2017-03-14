@@ -158,4 +158,26 @@ class object_form_parent extends object_override_data {
 		self::button_submit_blank => self::button_submit_blank_data,
 		self::button_submit_reset => self::button_submit_reset_data
 	];
+
+	/**
+	 * Segment list
+	 */
+	const segment_list = [
+		'type' => 'success',
+		'header' => [
+			'icon' => ['type' => 'list'],
+			'title' => 'List:'
+		]
+	];
+
+	/**
+	 * Segment form
+	 */
+	const segment_form = [
+		'type' => 'primary',
+		'header' => [
+			'icon' => ['type' => 'pencil-square-o'],
+			'title' => 'View / Edit:'
+		]
+	];
 }

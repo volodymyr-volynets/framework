@@ -121,7 +121,39 @@ class object_datasource extends object_table_options {
 	 */
 	final public function get($options = []) {
 		// process parameters
-		$parameters = $options['where'] ?? [];
+		$parameters = [];
+		$options['where'] = $options['where'] ?? [];
+		if (!empty($this->parameters)) {
+			$this->parameters = object_data_common::process_domains_and_types($this->parameters);
+			foreach ($this->parameters as $k => $v) {
+				// if we have a parameter
+				if (array_key_exists($k, $options['where'])) {
+					if (!empty($v['multiple_column'])) {
+						if (!is_array($options['where'][$k])) $options['where'][$k] = [$options['where'][$k]];
+						$parameters[$k] = [];
+						foreach ($options['where'][$k] as $v2) {
+							$result = object_table_columns::validate_single_column($k, $v, $v2);
+							if (!$result['success']) {
+								Throw new Exception("Datasource: " . get_called_class() . " parameter: {$k} error" . implode(', ', $result['error']));
+							} else {
+								$parameters[$k][] = $result['data'][$k];
+							}
+						}
+					} else {
+						$result = object_table_columns::validate_single_column($k, $v, $options['where'][$k]);
+						if (!$result['success']) {
+							Throw new Exception("Datasource: " . get_called_class() . " parameter: {$k} error" . implode(', ', $result['error']));
+						} else {
+							$parameters[$k] = $result['data'][$k];
+						}
+					}
+				}
+				// required
+				if (!empty($v['required']) && empty($parameters[$k])) {
+					Throw new Exception("Datasource: " . get_called_class() . " parameter: {$k} error" . i18n(null, object_content_messages::required_field));
+				}
+			}
+		}
 		unset($options['where']);
 		// process primary model
 		if (!empty($this->primary_model)) {
