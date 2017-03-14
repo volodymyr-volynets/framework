@@ -432,7 +432,8 @@ class object_collection extends object_override_data {
 			$this->timestamp = format::now('timestamp');
 			$temp = $this->compare_one_row($data, $original, $this->data, [
 				'flag_delete_row' => $options['flag_delete_row'] ?? false,
-				'flag_main_record' => true
+				'flag_main_record' => true,
+				'skip_type_validation' => $options['skip_type_validation'] ?? false
 			]);
 			// if we goe an error
 			if (!empty($temp['error'])) {
@@ -624,7 +625,10 @@ error:
 		// process colums
 		// todo - maybe pass it as a parameter
 		// 'skip_type_validation' => true
-		$model->process_columns($data_row_final, ['ignore_not_set_fields' => true]);
+		$model->process_columns($data_row_final, [
+			'ignore_not_set_fields' => true,
+			'skip_type_validation' => $options['skip_type_validation'] ?? false
+		]);
 		// step 2 process row
 		$delete = $update = $audit = $audit_details = $pk = [];
 		$action = null;
@@ -708,7 +712,8 @@ error:
 					if (!empty($keys)) {
 						foreach ($keys as $v2) {
 							$details_result = $this->compare_one_row($data_row[$k][$v2] ?? [], $original_row[$k][$v2] ?? [], $v, [
-								'flag_delete_row' => !empty($delete)
+								'flag_delete_row' => !empty($delete),
+								'skip_type_validation' => $options['skip_type_validation'] ?? false
 							], $pk, $data_row_final);
 							if (!empty($details_result['error'])) {
 								$result['error'] = $details_result['error'];

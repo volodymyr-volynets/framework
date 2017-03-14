@@ -1672,7 +1672,10 @@ convert_multiple_columns:
 		if (empty($this->collection_object)) {
 			Throw new Exception('You must provide collection object!');
 		}
-		$options = ['flag_delete_row' => $this->process_submit[self::button_submit_delete] ?? false];
+		$options = [
+			'flag_delete_row' => $this->process_submit[self::button_submit_delete] ?? false,
+			'skip_type_validation' => true
+		];
 		// we do not need to reload values from database because we locked them
 		if ($this->values_loaded) {
 			$options['original'] = $this->original_values;
@@ -1684,23 +1687,25 @@ convert_multiple_columns:
 					$this->error('danger', $v);
 				}
 			}
+			// show warnings
 			if (!empty($result['warning'])) {
 				foreach ($result['warning'] as $v) {
 					$this->error('warning', $v);
 				}
 			}
-			if (!empty($result['options_model'])) {
-				foreach ($result['options_model'] as $k => $v) {
-					$this->error('danger', object_content_messages::unknown_value, $k);
-				}
-				$this->error('danger', object_content_messages::submission_problem);
-			}
 			$this->rollback = true;
 			return false;
 		} else { // if success
-			if (!empty($result['deleted'])) {
+			// show warnings
+			if (!empty($result['warning'])) {
+				foreach ($result['warning'] as $v) {
+					$this->error('warning', $v);
+				}
+			}
+			// success messages
+			if (!empty($result['deleted'])) { // deleted
 				$this->values_deleted = true;
-			} else if ($result['inserted']) {
+			} else if ($result['inserted']) { // inseted
 				$this->values_inserted = true;
 				// we must put serial columns back into values
 				if (!empty($result['new_serials'])) {
@@ -1708,8 +1713,10 @@ convert_multiple_columns:
 					$this->values = array_merge_hard($this->values, $result['new_serials']);
 					$this->load_pk($this->values);
 				}
-			} else {
+			} else if (!empty($result['updated'])) { // updated
 				$this->values_updated = true;
+			} else { // if no update/insert/delete we rollback
+				return false;
 			}
 			return true;
 		}
@@ -1748,8 +1755,12 @@ convert_multiple_columns:
 		$this->full_pk = true;
 		if (!empty($this->collection_object)) {
 			foreach ($this->collection_object->data['pk'] as $v) {
-				// skip tenant
-				if (!empty($this->collection_object->primary_model->tenant) && $v == $this->collection_object->primary_model->tenant_column) continue;
+				// inject tenant
+				if (!empty($this->collection_object->primary_model->tenant) && $v == $this->collection_object->primary_model->tenant_column) {
+					if (!isset($values[$this->collection_object->primary_model->tenant_column])) {
+						$values[$this->collection_object->primary_model->tenant_column] = tenant::tenant_id();
+					}
+				}
 				if (isset($values[$v])) {
 					$temp = object_table_columns::process_single_column_type($v, $this->collection_object->primary_model->columns[$v], $values[$v]);
 					if (!empty($temp[$v])) { // pk can not be empty

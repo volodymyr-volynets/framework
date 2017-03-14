@@ -125,12 +125,13 @@ class object_import {
 								}
 							}
 						}
-					} else if (!is_string($v3)) continue;
-					// if we need id
-					if (strpos($v3, '::id::') === 0) {
-						$temp = $this->find_aliased_value($k3, $v3);
-						if ($temp !== false) $v2[$k3] = $temp;
-						continue;
+					} else if (is_string($v3)) {
+						// if we need id
+						if (strpos($v3, '::id::') === 0) {
+							$temp = $this->find_aliased_value($k3, $v3);
+							if ($temp !== false) $v2[$k3] = $temp;
+							continue;
+						}
 					}
 				}
 				$buffer[] = $v2;

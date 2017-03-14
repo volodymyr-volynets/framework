@@ -165,6 +165,10 @@ class object_table_options extends object_override_data {
 			$options['pk'] = $this->pk;
 		}
 		$pk = $options['pk'];
+		// inject tenant
+		if ($this->tenant && !isset($options['where'][$this->tenant_column])) {
+			$options['where'][$this->tenant_column] = tenant::tenant_id();
+		}
 		// if compound key
 		if (count($pk) > 1) {
 			$temp = $pk;

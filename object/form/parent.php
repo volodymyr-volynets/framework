@@ -22,7 +22,9 @@ class object_form_parent extends object_override_data {
 			'__content_type' => ['order' => 1, 'container_order' => PHP_INT_MAX - 1000, 'container_class' => 'numbers_form_filter_sort_container', 'label_name' => 'Format', 'percent' => 25, 'required' => true, 'method' => 'select', 'default' => 'text/html', 'no_choose' => true, 'options_model' => 'numbers_framework_object_form_model_content_types']
 		],
 		self::buttons => [
-			self::button_submit => self::button_submit_data
+			self::button_submit => self::button_submit_data,
+			self::button_submit_blank => self::button_submit_blank_data,
+			self::button_submit_reset => self::button_submit_reset_data
 		]
 	];
 
@@ -81,7 +83,7 @@ class object_form_parent extends object_override_data {
 	 * Blank button
 	 */
 	const button_submit_blank = '__submit_blank';
-	const button_submit_blank_data = ['order' => 30000, 'button_group' => 'right', 'value' => 'Blank', 'icon' => 'file-o', 'method' => 'button2', 'accesskey' => 'n', 'process_submit' => true, 'confirm_message' => object_content_messages::confirm_blank];
+	const button_submit_blank_data = ['order' => 30000, 'button_group' => 'right', 'value' => 'Blank', 'type' => 'default', 'icon' => 'file-o', 'method' => 'button2', 'accesskey' => 'n', 'process_submit' => true, 'confirm_message' => object_content_messages::confirm_blank];
 
 	/**
 	 * Refresh button

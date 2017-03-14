@@ -94,6 +94,20 @@ class object_data extends object_table_options {
 	public $initiator_class = 'object_data';
 
 	/**
+	 * Tenant
+	 *
+	 * @var boolean
+	 */
+	public $tenant;
+
+	/**
+	 * Tenant column
+	 *
+	 * @var string
+	 */
+	public $tenant_column;
+
+	/**
 	 * Constructor
 	 */
 	public function __construct() {
