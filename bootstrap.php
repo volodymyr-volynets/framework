@@ -191,11 +191,10 @@ class bootstrap {
 		$cache = factory::get(['cache']);
 		if (!empty($cache)) {
 			foreach ($cache as $k => $v) {
-				$object = $v['object'];
 				if (!empty(cache::$reset_caches[$k])) {
-					$object->gc(1, cache::$reset_caches[$k]);
+					$v['object']->gc(3, cache::$reset_caches[$k]);
 				}
-				$object->close();
+				$v['object']->close();
 			}
 		}
 		// destroy i18n
@@ -206,8 +205,7 @@ class bootstrap {
 		$dbs = factory::get(['db']);
 		if (!empty($dbs)) {
 			foreach ($dbs as $k => $v) {
-				$object = $v['object'];
-				$object->close();
+				$v['object']->close();
 			}
 		}
 		// emails with erros

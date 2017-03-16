@@ -583,6 +583,10 @@ class object_form_base extends object_form_parent {
 		$this->values = [];
 		// sort fields
 		$fields = $this->sort_fields_for_processing($this->fields);
+		// inject tenant #
+		if (!empty($this->collection_object->primary_model->tenant)) {
+			$this->values[$this->collection_object->primary_model->tenant_column] = tenant::tenant_id();
+		}
 		// if we delete we only allow pk and optimistic lock
 		$allowed = [];
 		if (!empty($options['validate_for_delete'])) {
@@ -2015,7 +2019,7 @@ convert_multiple_columns:
 				'order' => $options['order'] ?? 0
 			];
 			// handling widgets
-			if ($this->data[$container_link]['type'] == 'tabs' && !empty($options['widget'])) {
+			if (($this->data[$container_link]['type'] ?? '') == 'tabs' && !empty($options['widget'])) {
 				$options['type'] = 'tabs';
 				// we skip if widgets are not enabled
 				if (!object_widgets::enabled($options['widget']) || !$this->process_widget($options)) {
@@ -2060,7 +2064,7 @@ convert_multiple_columns:
 				$this->misc_settings['tabs'][$container] = $this->data[$container_link]['rows'][$row_link]['options']['label_name'];
 			} else {
 				// name & id
-				if ($this->data[$container_link]['type'] == 'details' || $this->data[$container_link]['type'] == 'subdetails') { // details & subdetails
+				if (($this->data[$container_link]['type'] ?? '') == 'details' || ($this->data[$container_link]['type'] ?? '') == 'subdetails') { // details & subdetails
 					$options['values_key'] = $options['error_name'] = $options['name'] = null;
 					$options['id'] = null;
 					$options['details_key'] = $this->data[$container_link]['options']['details_key'];
@@ -2113,7 +2117,7 @@ convert_multiple_columns:
 				];
 				// we need to put values into fields and details
 				$persistent_key = [];
-				if ($this->data[$container_link]['type'] == 'details') {
+				if (($this->data[$container_link]['type'] ?? '') == 'details') {
 					array_key_set($this->detail_fields, [$this->data[$container_link]['options']['details_key'], 'elements', $element_link], $field);
 					array_key_set($this->detail_fields, [$this->data[$container_link]['options']['details_key'], 'options'], $this->data[$container_link]['options']);
 					// details_unique_select
@@ -2124,7 +2128,7 @@ convert_multiple_columns:
 					$persistent_key[] = 'details';
 					$persistent_key[] = $this->data[$container_link]['options']['details_key'];
 					$persistent_key[] = $element_link;
-				} else if ($this->data[$container_link]['type'] == 'subdetails') {
+				} else if (($this->data[$container_link]['type'] ?? '') == 'subdetails') {
 					$this->data[$container_link]['options']['container_link'] = $container_link;
 					array_key_set($this->detail_fields, [$this->data[$container_link]['options']['details_parent_key'], 'subdetails', $this->data[$container_link]['options']['details_key'], 'elements', $element_link], $field);
 					array_key_set($this->detail_fields, [$this->data[$container_link]['options']['details_parent_key'], 'subdetails', $this->data[$container_link]['options']['details_key'], 'options'], $this->data[$container_link]['options']);

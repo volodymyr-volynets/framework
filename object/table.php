@@ -342,6 +342,7 @@ class object_table extends object_table_options {
 		}
 		// cache tags
 		$this->cache_tags[] = $this->full_table_name;
+		if ($this->tenant) $this->cache_tags[] = '+numbers_tenant_' . tenant::tenant_id();
 		// history table name
 		$this->history_name = $this->full_table_name . '__history';
 		// process relations
@@ -622,9 +623,8 @@ class object_table extends object_table_options {
 	public function reset_cache() {
 		// only reset caches if cache link is present
 		if (!empty($this->db_object->object->options['cache_link'])) {
-			// create unique caches by adding new
-			// todo - add miltitenancy
-			$tags = array_merge($this->cache_tags, [$this->full_table_name]);
+			$tags = array_unique($this->cache_tags);
+			sort($tags, SORT_STRING);
 			$hash = sha1(serialize($tags));
 			cache::$reset_caches[$this->db_object->object->options['cache_link']][$hash] = $tags;
 		}

@@ -383,7 +383,7 @@ function array_key_sort(& $arr, $keys, $methods = []) {
 		$params[$k . '_order'] = $v;
 		$params[$k . '_flags'] = $methods[$k] ?? SORT_REGULAR;
 		foreach ($arr as $k2 => $v2) {
-			$params[$k . '_column']['_' . $k2] = $v2[$k];
+			$params[$k . '_column']['_' . $k2] = $v2[$k] ?? null;
 		}
 	}
 	// calling multisort function
