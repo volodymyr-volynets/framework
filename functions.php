@@ -178,17 +178,23 @@ function var_export2($data, $return = false) {
  * Export variable in condensed format
  *
  * @param mixed $data
+ * @param array $options
+ *		boolean skip_objects
  * @return string
  */
-function var_export_condensed($data) {
+function var_export_condensed($data, $options = []) {
 	if (is_array($data)) {
 		$buffer = [];
 		foreach ($data as $k => $v) {
-			$buffer[] = var_export($k, true) . '=>' . var_export_condensed($v);
+			$buffer[] = var_export($k, true) . '=>' . var_export_condensed($v, $options);
 		}
 		return '[' . implode(',', $buffer) . ']';
 	} else {
-		return var_export($data, true);
+		if (!empty($options['skip_objects']) && gettype($data) == 'object') {
+			return '(object) ' . get_class($data);
+		} else {
+			return var_export($data, true);
+		}
 	}
 }
 
@@ -850,7 +856,7 @@ function mb_str_pad($input, $length, $string = ' ', $type = STR_PAD_LEFT, $encod
 }
 
 /**
- * Check if its a valid json string
+ * Check if its a valid JSON string
  *
  * @param mixed $input
  * @return boolean

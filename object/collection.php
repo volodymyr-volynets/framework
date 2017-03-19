@@ -281,7 +281,7 @@ class object_collection extends object_override_data {
 			// where
 			$query->where('AND', [$column, 'IN', $keys]);
 			if (!empty($v['where'])) {
-				$query->where('AND', $v['where']);
+				$query->where_multiple('AND', $v['where']);
 			}
 			// orderby
 			$orderby = $options['orderby'] ?? (!empty($model->orderby) ? $model->orderby : null);

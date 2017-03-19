@@ -150,7 +150,8 @@ class object_datasource extends object_table_options {
 				}
 				// required
 				if (!empty($v['required']) && empty($parameters[$k])) {
-					Throw new Exception("Datasource: " . get_called_class() . " parameter: {$k} error" . i18n(null, object_content_messages::required_field));
+					return [];
+					//Throw new Exception("Datasource: " . get_called_class() . " parameter: {$k} error" . i18n(null, object_content_messages::required_field));
 				}
 			}
 		}

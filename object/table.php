@@ -514,7 +514,11 @@ class object_table extends object_table_options {
 		// pk
 		$pk = array_key_exists('pk', $options) ? $options['pk'] : $this->pk;
 		// query
-		$query = self::query_builder_static()->select();
+		$query = self::query_builder_static(['skip_tenant' => $options['skip_tenant'] ?? false])->select();
+		// skip filtering by tenant twice
+		if (!empty($query->options['tenant']) && $this->tenant) {
+			unset($options['where'][$this->tenant_column]);
+		}
 		// preset columns
 		if (!empty($options['__preset'])) {
 			$query->distinct();

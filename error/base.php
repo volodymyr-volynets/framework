@@ -183,7 +183,11 @@ class error_base {
 				$params = [];
 				if (isset($v['args'])) {
 					foreach ($v['args'] as $v2) {
-						$params[] = gettype($v2);
+						if (gettype($v2) == 'string') {
+							$params[] = str_replace(["\n", "\r", "\t"], ' ', $v2);
+						} else {
+							$params[] = var_export_condensed($v2, ['skip_objects' => true]);
+						}
 					}
 				}
 				$stack.= $v['function'] . '(' . implode(', ', $params) . ');';

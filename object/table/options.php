@@ -206,6 +206,17 @@ class object_table_options extends object_override_data {
 	}
 
 	/**
+	 * Format key for JSON options
+	 *
+	 * @param array $key
+	 * @return string
+	 */
+	public static function options_json_format_key(array $key) : string {
+		ksort($key);
+		return json_encode($key);
+	}
+
+	/**
 	 * Multi level options
 	 *
 	 * @see $this->get()

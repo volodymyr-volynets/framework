@@ -310,6 +310,12 @@ class debug {
 										$result.= '</tr>';
 									}
 								}
+								// backtrace
+								if (!empty($v['backtrace'])) {
+									$result.= '<tr>';
+										$result.= '<td valign="top" colspan="4"><pre style="width: 1130px;">' . $v['backtrace'] . '</pre></td>';
+									$result.= '</tr>';
+								}
 							}
 						$result.= '</table>';
 					$result.= '</td>';

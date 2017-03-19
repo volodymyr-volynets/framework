@@ -606,6 +606,17 @@ class object_form_base extends object_form_parent {
 				$changed_field['parent'] = $this->misc_settings['__form_onchange_field_values_key'][0];
 			}
 		}
+		// process json_contains
+		foreach ($fields as $k => $v) {
+			if (empty($v['options']['json_contains'])) continue;
+			$value = array_key_get($input, $v['options']['values_key']);
+			if (is_json($value)) {
+				$value = json_decode($value, true);
+				foreach ($v['options']['json_contains'] as $k2 => $v2) {
+					array_key_set($input, $v2, $value[$k2] ?? null);
+				}
+			}
+		}
 		// process fields
 		foreach ($fields as $k => $v) {
 			// skip certain values
@@ -753,6 +764,18 @@ class object_form_base extends object_form_parent {
 					$this->generate_details_primary_key($detail_key_holder, 'pk', $v2, [$k], $v);
 					$error_name = $detail_key_holder['error_name'];
 					$k2 = $detail_key_holder['pk'];
+					// process json_contains
+					foreach ($fields as $k3 => $v3) {
+						if (empty($v3['options']['json_contains'])) continue;
+						// get value, grab from neighbouring values first
+						$value = $detail[$k3] ?? $v2[$k3] ?? null;
+						if (is_json($value)) {
+							$value = json_decode($value, true);
+							foreach ($v3['options']['json_contains'] as $k31 => $v31) {
+								$detail[$v31] = $value[$k31] ?? null;
+							}
+						}
+					}
 					// process fields
 					foreach ($fields as $k3 => $v3) {
 						// default data type
