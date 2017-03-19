@@ -760,22 +760,22 @@ class object_form_base extends object_form_parent {
 					$flag_change_detected = false;
 					// put pk into detail
 					$detail = $detail_key_holder['parent_pks'];
-					// process pk
-					$this->generate_details_primary_key($detail_key_holder, 'pk', $v2, [$k], $v);
-					$error_name = $detail_key_holder['error_name'];
-					$k2 = $detail_key_holder['pk'];
 					// process json_contains
 					foreach ($fields as $k3 => $v3) {
 						if (empty($v3['options']['json_contains'])) continue;
 						// get value, grab from neighbouring values first
-						$value = $detail[$k3] ?? $v2[$k3] ?? null;
+						$value = $v2[$k3] ?? null;
 						if (is_json($value)) {
 							$value = json_decode($value, true);
 							foreach ($v3['options']['json_contains'] as $k31 => $v31) {
-								$detail[$v31] = $value[$k31] ?? null;
+								$v2[$v31] = $value[$k31] ?? null;
 							}
 						}
 					}
+					// process pk
+					$this->generate_details_primary_key($detail_key_holder, 'pk', $v2, [$k], $v);
+					$error_name = $detail_key_holder['error_name'];
+					$k2 = $detail_key_holder['pk'];
 					// process fields
 					foreach ($fields as $k3 => $v3) {
 						// default data type
@@ -2117,10 +2117,12 @@ convert_multiple_columns:
 				$options['container_link'] = $container_link;
 				// fix boolean type
 				if (($options['type'] ?? '') == 'boolean' && !isset($options['method'])) {
-					$options['method'] = 'select';
-					$options['no_choose'] = true;
-					$options['options_model'] = 'object_data_model_inactive';
-					$options['searchable'] = false;
+					$options['method'] = 'checkbox';
+					// we revert inactive if set
+					if (application::get('flag.numbers.frontend.html.form.revert_inactive') && ($options['label_name'] ?? '') == 'Inactive') {
+						$options['label_name'] = 'Active';
+						$options['oposite_checkbox'] = true;
+					}
 				}
 				// validator method for captcha
 				if (($options['method'] ?? '') == 'captcha') {
