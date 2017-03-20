@@ -958,6 +958,8 @@ class object_form_base extends object_form_parent {
 			}
 			$value = object_table_options::options_json_format_key($temp);
 		}
+		if (is_string($value) && $value === '') return;
+		if (is_array($value) && empty($value)) return;
 		if (empty($field['options_params'])) $field['options_params'] = [];
 		if (empty($field['options_options'])) $field['options_options'] = [];
 		$field['options_options']['i18n'] = false;
@@ -969,7 +971,7 @@ class object_form_base extends object_form_parent {
 		$this->process_params_and_depends($field['options_params'], $neighbouring_values, $options, false);
 		$field['options_params'] = array_merge_hard($field['options_params'], $field['options_depends']);
 		// we do not need options for autocomplete
-		if (strpos($field['method'], 'autocomplete') === false) {
+		if (strpos(($field['method'] ?? ''), 'autocomplete') === false) {
 			$skip_values = [];
 			$field['options'] = object_data_common::process_options($field['options_model'], $this, $field['options_params'], $value, $skip_values, $field['options_options']);
 		} else {
@@ -2160,8 +2162,22 @@ convert_multiple_columns:
 				$options = $temp['options'];
 				$options['row_link'] = $row_link;
 				$options['container_link'] = $container_link;
-				// fix boolean type
-				if (($options['type'] ?? '') == 'boolean' && !isset($options['method'])) {
+				// fixes for list container
+				if ($this->initiator_class == 'list' && $container_link == self::list_container) {
+					// add manual validation
+					if (!empty($options['options_model'])) {
+						$options['options_manual_validation'] = true;
+					}
+					// add options model for boolean type
+					if (($options['type'] ?? '') == 'boolean') {
+						if (application::get('flag.numbers.frontend.html.form.revert_inactive') && ($options['label_name'] ?? '') == 'Inactive') {
+							$options['label_name'] = 'Active';
+							$options['options_model'] = 'object_data_model_inactive2';
+						} else {
+							$options['options_model'] = 'object_data_model_inactive';
+						}
+					}
+				} else if (($options['type'] ?? '') == 'boolean' && !isset($options['method'])) { // fix boolean type for forms
 					$options['method'] = 'checkbox';
 					// we revert inactive if set
 					if (application::get('flag.numbers.frontend.html.form.revert_inactive') && ($options['label_name'] ?? '') == 'Inactive') {

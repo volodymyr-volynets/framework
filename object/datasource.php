@@ -113,6 +113,14 @@ class object_datasource extends object_table_options {
 	public $sql_last_query;
 
 	/**
+	 * Tenant
+	 *
+	 * @var integer
+	 */
+	public $tenant;
+	public $tenant_column;
+
+	/**
 	 * Get
 	 *
 	 * @param array $options
