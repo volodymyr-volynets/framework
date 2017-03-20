@@ -85,6 +85,7 @@ class object_import {
 			$object = new $model();
 			$db_object = null;
 			$collection_object = null;
+			$flag_collection = false;
 			// regular model
 			if (is_a($object, 'object_table')) {
 				if (!$object->db_present()) continue;
@@ -99,6 +100,7 @@ class object_import {
 				if (!$object->primary_model->db_present()) continue;
 				$db_object = $object->primary_model->db_object;
 				$collection_object = $object;
+				$flag_collection = true;
 			}
 			// start transaction
 			if (!empty($db_object)) {
@@ -134,6 +136,27 @@ class object_import {
 						}
 					}
 				}
+				// we need to fix primary keys for details
+				if ($flag_collection && !empty($collection_object->data['details'])) {
+					foreach ($collection_object->data['details'] as $k25 => $v25) {
+						if (empty($v2[$k25])) continue;
+						if ($v25['type'] != '1M') continue;
+						$temp_key = [];
+						foreach ($v25['map'] as $k26 => $v26) {
+							$temp_key[$v26] = $v2[$k26];
+						}
+						foreach ($v2[$k25] as $k27 => $v27) {
+							$temp_key2 = [];
+							foreach ($v25['pk'] as $v26) {
+								$temp_key2[] = $temp_key[$v26] ?? $v27[$v26] ?? null;
+							}
+							$temp_key2 = implode('::', $temp_key2);
+							unset($v2[$k25][$k27]);
+							$v2[$k25][$temp_key2] = $v27;
+						}
+					}
+				}
+				// add value to buffer
 				$buffer[] = $v2;
 				// if buffer has 250 rows or we have no data
 				if (count($buffer) > 249 || (count($buffer) > 0 && count($this->data[$k]['data']) == 0)) {

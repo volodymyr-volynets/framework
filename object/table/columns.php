@@ -258,7 +258,7 @@ class object_table_columns extends object_data {
 			}
 			$result['data']['flag_error'] = $error;
 		} else if (!empty($result['data'][$column_name . '_is_serial'])) {
-			if ($in_value . '' !== '' && !empty($result['data'][$column_name . '_is_serial_error'])) {
+			if ($value . '' !== '' && !empty($result['data'][$column_name . '_is_serial_error'])) {
 				$result['error'][] = i18n(null, 'Wrong sequence value!');
 				$result['data']['flag_error'] = true;
 			}

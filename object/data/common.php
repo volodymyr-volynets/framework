@@ -177,7 +177,7 @@ class object_data_common {
 				}
 			}
 		}
-		// inactive
+		// inactive & icon_class
 		$i18n_inactive = !empty($options['i18n']) ? i18n(null, object_content_messages::info_inactive) : object_content_messages::info_inactive;
 		foreach ($data as $k => $v) {
 			if (!empty($options['column_prefix']) && !empty($v[$options['column_prefix'] . 'inactive'])) {
@@ -186,7 +186,13 @@ class object_data_common {
 				$data[$k]['__prepend'] = $i18n_inactive;
 			}
 		}
-		return remap($data, $options_map_new);
+		$data = remap($data, $options_map_new);
+		foreach ($data as $k => $v) {
+			if (!empty($v['icon_class'])) {
+				$data[$k]['icon_class'] = html::icon(['type' => $v['icon_class'], 'class_only' => true]);
+			}
+		}
+		return $data;
 	}
 
 	/**
