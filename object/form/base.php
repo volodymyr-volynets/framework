@@ -579,7 +579,6 @@ class object_form_base extends object_form_parent {
 	 */
 	private function get_all_values($input, $options = []) {
 		// reset values
-		$this->misc_settings['options_model'] = [];
 		$this->values = [];
 		// sort fields
 		$fields = $this->sort_fields_for_processing($this->fields);
@@ -663,27 +662,17 @@ class object_form_base extends object_form_parent {
 			}
 			// put into values
 			array_key_set($this->values, $v['options']['values_key'], $value);
-			// options_model
-			if (!empty($v['options']['options_model']) && empty($v['options']['options_manual_validation'])) {
-				// options depends & params
-				$v['options']['options_depends'] = $v['options']['options_depends'] ?? [];
-				$v['options']['options_params'] = $v['options']['options_params'] ?? [];
-				$this->process_params_and_depends($v['options']['options_depends'], $this->values, [], true);
-				$this->process_params_and_depends($v['options']['options_params'], $this->values, [], false);
-				$v['options']['options_params'] = array_merge_hard($v['options']['options_params'], $v['options']['options_depends']);
-				// todo - validate options_model
-				// CHECK CURRENT/EXISTING values
-				$this->misc_settings['options_model'][$k] = [
-					'options_model' => $v['options']['options_model'],
-					'options_params' => $v['options']['options_params'],
-					'key' => $v['options']['values_key']
-				];
+			// options_model validation
+			if (isset($value) && !empty($v['options']['options_model']) && empty($v['options']['options_manual_validation'])) {
+				$this->check_options_model($v['options'], $value, $error_name, $this->values);
 			}
-			// options
-			// todo: add options validation to details
+			// options validation
 			if (isset($value) && !empty($v['options']['options']) && empty($v['options']['options_manual_validation'])) {
-				if (empty($v['options']['options'][$value])) {
-					$this->error('danger', object_content_messages::invalid_value, $error_name);
+				$temp_value = is_array($value) ? $value : [$value];
+				foreach ($temp_value as $v54) {
+					if (empty($v['options']['options'][$v54])) {
+						$this->error('danger', object_content_messages::invalid_value, $error_name);
+					}
 				}
 			}
 		}
@@ -826,6 +815,19 @@ class object_form_base extends object_form_parent {
 						if (!is_null($value) && $value !== $default) {
 							$flag_change_detected = true;
 						}
+						// options_model validation
+						if (isset($value) && !empty($v3['options']['options_model']) && empty($v3['options']['options_manual_validation'])) {
+							$this->check_options_model($v3['options'], $value, "{$error_name}[{$k3}]", array_merge($v2, $detail));
+						}
+						// options validation
+						if (isset($value) && !empty($v3['options']['options']) && empty($v3['options']['options_manual_validation'])) {
+							$temp_value = is_array($value) ? $value : [$value];
+							foreach ($temp_value as $v54) {
+								if (empty($v3['options']['options'][$v54])) {
+									$this->error('danger', object_content_messages::invalid_value, "{$error_name}[{$k3}]");
+								}
+							}
+						}
 						$detail[$k3] = $value;
 					}
 					// process subdetails, first to detect change
@@ -935,6 +937,49 @@ class object_form_base extends object_form_parent {
 						}
 					}
 				}
+			}
+		}
+	}
+
+	/**
+	 * Check options model
+	 *
+	 * @param array $field
+	 * @param mixed $value
+	 * @param string $error_name
+	 * @param array $neighbouring_values
+	 */
+	private function check_options_model(array $field, $value, string $error_name, array $neighbouring_values) {
+		// we need to convert value
+		if (!empty($field['json_contains'])) {
+			$temp = [];
+			foreach ($field['json_contains'] as $k31 => $v31) {
+				$temp[$k31] = $neighbouring_values[$v31];
+			}
+			$value = object_table_options::options_json_format_key($temp);
+		}
+		if (empty($field['options_params'])) $field['options_params'] = [];
+		if (empty($field['options_options'])) $field['options_options'] = [];
+		$field['options_options']['i18n'] = false;
+		$field['options_options']['acl'] = $field['options_options']['acl'] ?? $this->acl;
+		if (empty($field['options_depends'])) $field['options_depends'] = [];
+		// options depends & params
+		$options = [];
+		$this->process_params_and_depends($field['options_depends'], $neighbouring_values, $options, true);
+		$this->process_params_and_depends($field['options_params'], $neighbouring_values, $options, false);
+		$field['options_params'] = array_merge_hard($field['options_params'], $field['options_depends']);
+		// we do not need options for autocomplete
+		if (strpos($field['method'], 'autocomplete') === false) {
+			$skip_values = [];
+			$field['options'] = object_data_common::process_options($field['options_model'], $this, $field['options_params'], $value, $skip_values, $field['options_options']);
+		} else {
+			$field['options'] = [];
+		}
+		// check if we have values
+		if (!is_array($value)) $value = [$value];
+		foreach ($value as $v) {
+			if (empty($field['options'][$v])) {
+				$this->error('danger', object_content_messages::invalid_value, $error_name);
 			}
 		}
 	}
