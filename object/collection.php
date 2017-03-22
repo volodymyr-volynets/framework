@@ -609,6 +609,10 @@ error:
 		// important to reset cache
 		// todo - reset only if there's a change
 		$model->reset_cache();
+		// process sql where
+		if (!empty($collection['sql']['where']) && !empty($data_row)) {
+			$data_row = array_merge_hard($data_row, $collection['sql']['where']);
+		}
 		// step 1, clenup data
 		$data_row_final = $data_row;
 		// we need to manualy inject parents keys
@@ -623,8 +627,6 @@ error:
 			}
 		}
 		// process colums
-		// todo - maybe pass it as a parameter
-		// 'skip_type_validation' => true
 		$model->process_columns($data_row_final, [
 			'ignore_not_set_fields' => true,
 			'skip_type_validation' => $options['skip_type_validation'] ?? false
