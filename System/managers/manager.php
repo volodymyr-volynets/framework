@@ -7,6 +7,7 @@
 $type = $argv[1];
 $mode = $argv[2];
 $verbose = $argv[3] ?? false;
+$skip_confirmation = $argv[4] ?? false;
 
 // must change working directory to public_html
 chdir('public_html');
@@ -28,7 +29,9 @@ ini_set('memory_limit', '2048M');
 set_time_limit(0);
 
 // confirmation whether to run the script
-if (!Helper_Cmd::confirm("Conitune operation \"$type\" with mode \"$mode\"?")) exit;
+if (empty($skip_confirmation)) {
+	if (!Helper_Cmd::confirm("Conitune operation \"$type\" with mode \"$mode\"?")) exit;
+}
 
 // define result variable to keep scripts messages
 $result = [
