@@ -17,18 +17,18 @@ if (file_exists('../libraries/vendor/autoload.php')) {
 }
 
 // automatic class loading
-require('../libraries/vendor/numbers/framework/application.php');
-spl_autoload_register(array('application', 'autoloader'));
+require('../libraries/vendor/numbers/framework/Application.php');
+spl_autoload_register(array('Application', 'autoloader'));
 
 // running application
-application::run(['__run_only_bootstrap' => 1]);
+Application::run(['__run_only_bootstrap' => 1]);
 
 // increase in memory and unlimited execution time
 ini_set('memory_limit', '2048M');
 set_time_limit(0);
 
 // confirmation whether to run the script
-if (!helper_cmd::confirm("Conitune operation \"$type\" with mode \"$mode\"?")) exit;
+if (!Helper_Cmd::confirm("Conitune operation \"$type\" with mode \"$mode\"?")) exit;
 
 // define result variable to keep scripts messages
 $result = [
@@ -119,7 +119,7 @@ try {
 			$migration_db_rollback_name = null;
 			if ($mode == 'rollback') {
 reask_for_migration:
-				$migration_db_rollback_name = helper_cmd::ask('Enter migration name: ');
+				$migration_db_rollback_name = Helper_Cmd::ask('Enter migration name: ');
 				if (empty($migration_db_rollback_name)) goto reask_for_migration;
 			}
 			// get settings for default db_link
@@ -233,11 +233,11 @@ reask_for_migration:
 							// execute migration in commit mode
 							$execute_result = $v2['object']->execute($action);
 							if (!$execute_result['success']) {
-								$result['hint'][] = "       * {$k2}: {$action} " . helper_cmd::color_string('FAILED', 'red', null, true);
+								$result['hint'][] = "       * {$k2}: {$action} " . Helper_Cmd::colorString('FAILED', 'red', null, true);
 								$result['error'] = array_merge($result['error'], $execute_result['error']);
 								goto error;
 							}
-							$result['hint'][] = "       * {$k2}: {$action} " . helper_cmd::color_string('OK', 'green');
+							$result['hint'][] = "       * {$k2}: {$action} " . Helper_Cmd::colorString('OK', 'green');
 							// assemble permissions
 							$permissions = array_merge_hard($permissions, $execute_result['permissions']);
 						}
@@ -420,22 +420,22 @@ reset_all_caches:
 		default:
 			$result = system_dependencies::process_deps_all(['mode' => $mode]);
 			if ($result['success']) {
-				echo "\n" . helper_cmd::color_string('Dependency is OK', 'green', null, true) . "\n\n";
+				echo "\n" . Helper_Cmd::colorString('Dependency is OK', 'green', null, true) . "\n\n";
 			}
 	}
 // error label
 error:
 	// hint
 	if (!empty($result['hint'])) {
-		echo "\n" . helper_cmd::color_string(implode("\n", $result['hint']), null, null, false) . "\n\n";
+		echo "\n" . Helper_Cmd::colorString(implode("\n", $result['hint']), null, null, false) . "\n\n";
 	}
 	// if we did not succeed
 	if (!$result['success']) {
-		echo "\n" . helper_cmd::color_string(implode("\n", $result['error']), 'red', null, true) . "\n\n";
+		echo "\n" . Helper_Cmd::colorString(implode("\n", $result['error']), 'red', null, true) . "\n\n";
 		exit;
 	}
 } catch(Exception $e) {
-	echo "\n" . helper_cmd::color_string($e->getMessage(), 'red', null, true) . "\n\n" . $e->getTraceAsString() . "\n\n";
+	echo "\n" . Helper_Cmd::colorString($e->getMessage(), 'red', null, true) . "\n\n" . $e->getTraceAsString() . "\n\n";
 	exit;
 }
 

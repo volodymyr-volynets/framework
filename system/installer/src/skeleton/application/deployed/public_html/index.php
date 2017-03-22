@@ -1,1 +1,0 @@
-<h1>Hello, Numbers application is here, try running "make build".</h1>

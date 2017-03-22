@@ -1,6 +1,6 @@
 <?php
 
-class application {
+class Application {
 
 	/**
 	 * Application settings

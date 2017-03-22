@@ -1,4 +1,0 @@
-# important! we need to turn off php processing for cache folder
-<IfModule mod_php7.c>
-	php_flag engine off
-</IfModule>

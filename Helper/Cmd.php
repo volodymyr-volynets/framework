@@ -3,7 +3,7 @@
 /**
  * Command line helper
  */
-class helper_cmd {
+class Helper_Cmd {
 
 	/**
 	 * Confirm
@@ -16,11 +16,11 @@ class helper_cmd {
 		$options['text_color'] = $options['text_color'] ?? 'red';
 		$options['background_color'] = $options['background_color'] ?? null;
 		$options['bold'] = $options['bold'] ?? true;
-		echo self::color_string("\n{$message} [Yes/No]: ", $options['text_color'], $options['background_color'], $options['bold']);
+		echo self::colorString("\n{$message} [Yes/No]: ", $options['text_color'], $options['background_color'], $options['bold']);
 		$line = fgets(STDIN);
 		$line = strtolower(trim($line));
 		if (!($line == 'y' || $line == 'yes')) {
-			echo self::color_string("\nAborted...\n\n", $options['text_color'], $options['background_color'], $options['bold']);
+			echo self::colorString("\nAborted...\n\n", $options['text_color'], $options['background_color'], $options['bold']);
 			return false;
 		} else {
 			echo "\n";
@@ -39,7 +39,7 @@ class helper_cmd {
 		$options['text_color'] = $options['text_color'] ?? 'green';
 		$options['background_color'] = $options['background_color'] ?? null;
 		$options['bold'] = $options['bold'] ?? true;
-		echo "\n" . self::color_string($message, $options['text_color'], $options['background_color'], $options['bold']) . ": ";
+		echo "\n" . self::colorString($message, $options['text_color'], $options['background_color'], $options['bold']) . ": ";
 		return trim(fgets(STDIN));
 	}
 
@@ -87,7 +87,7 @@ class helper_cmd {
 	 * @param string $background_color
 	 * @return string
 	 */
-	public static function color_string($string, $text_color = null, $background_color = null, $bold = false) {
+	public static function colorString($string, $text_color = null, $background_color = null, $bold = false) {
 		$result = "";
 		// text color
 		if (isset(self::color_text[$text_color])) {
