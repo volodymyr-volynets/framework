@@ -9,13 +9,12 @@
 		}
 	],
 	"require": {
-		"php": ">=7.0.0",
-		"mnsami/composer-custom-directory-installer": "1.1.*"
+		"php": ">=7.0.0"
 	},
 	"license": "Apache License 2.0",
 	"extra": {
 		"installer-paths": {
-			"./Numbers/Framework": ["numbers/framework"]
+			"Numbers/Framework": ["numbers/framework"]
 		}
 	}
 }
