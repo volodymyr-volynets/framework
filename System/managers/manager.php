@@ -30,7 +30,7 @@ set_time_limit(0);
 
 // confirmation whether to run the script
 if (empty($skip_confirmation)) {
-	if (!Helper_Cmd::confirm("Conitune operation \"$type\" with mode \"$mode\"?")) exit;
+	if (!\Helper\Cmd::confirm("Conitune operation \"$type\" with mode \"$mode\"?")) exit;
 }
 
 // define result variable to keep scripts messages
@@ -122,7 +122,7 @@ try {
 			$migration_db_rollback_name = null;
 			if ($mode == 'rollback') {
 reask_for_migration:
-				$migration_db_rollback_name = Helper_Cmd::ask('Enter migration name: ');
+				$migration_db_rollback_name = \Helper\Cmd::ask('Enter migration name: ');
 				if (empty($migration_db_rollback_name)) goto reask_for_migration;
 			}
 			// get settings for default db_link
@@ -236,11 +236,11 @@ reask_for_migration:
 							// execute migration in commit mode
 							$execute_result = $v2['object']->execute($action);
 							if (!$execute_result['success']) {
-								$result['hint'][] = "       * {$k2}: {$action} " . Helper_Cmd::colorString('FAILED', 'red', null, true);
+								$result['hint'][] = "       * {$k2}: {$action} " . \Helper\Cmd::colorString('FAILED', 'red', null, true);
 								$result['error'] = array_merge($result['error'], $execute_result['error']);
 								goto error;
 							}
-							$result['hint'][] = "       * {$k2}: {$action} " . Helper_Cmd::colorString('OK', 'green');
+							$result['hint'][] = "       * {$k2}: {$action} " . \Helper\Cmd::colorString('OK', 'green');
 							// assemble permissions
 							$permissions = array_merge_hard($permissions, $execute_result['permissions']);
 						}
@@ -421,27 +421,27 @@ reset_all_caches:
 		// dependencies - mode: test, commit
 		case 'dependency':
 		default:
-			$result = System_Dependencies::processDepsAll(['mode' => $mode]);
+			$result = \System\Dependencies::processDepsAll(['mode' => $mode]);
 			if ($result['success']) {
-				echo "\n" . Helper_Cmd::colorString('Dependency is OK', 'green', null, true) . "\n\n";
+				echo "\n" . \Helper\Cmd::colorString('Dependency is OK', 'green', null, true) . "\n\n";
 			}
 	}
 // error label
 error:
 	// hint
 	if (!empty($result['hint'])) {
-		echo "\n" . Helper_Cmd::colorString(implode("\n", $result['hint']), null, null, false) . "\n\n";
+		echo "\n" . \Helper\Cmd::colorString(implode("\n", $result['hint']), null, null, false) . "\n\n";
 	}
 	// if we did not succeed
 	if (!$result['success']) {
-		echo "\n" . Helper_Cmd::colorString(implode("\n", $result['error']), 'red', null, true) . "\n\n";
+		echo "\n" . \Helper\Cmd::colorString(implode("\n", $result['error']), 'red', null, true) . "\n\n";
 		exit;
 	}
 } catch(Exception $e) {
-	echo "\n" . Helper_Cmd::colorString($e->getMessage(), 'red', null, true) . "\n\n" . $e->getTraceAsString() . "\n\n";
+	echo "\n" . \Helper\Cmd::colorString($e->getMessage(), 'red', null, true) . "\n\n" . $e->getTraceAsString() . "\n\n";
 	exit;
 }
 
 // success message
-$seconds = Format::time_seconds(microtime(true) - Application::get('application.system.request_time'));
+$seconds = Format::timeSeconds(microtime(true) - Application::get('application.system.request_time'));
 echo "\nOperation \"$type\" with mode \"$mode\" completed in {$seconds} seconds!\n\n";

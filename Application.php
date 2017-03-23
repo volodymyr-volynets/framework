@@ -29,12 +29,16 @@ class Application {
 	public static function get($key = null, $options = []) {
 		// if we need to determine if backend exists
 		if (!empty($options['backend_exists'])) {
-			$key = str_replace('.', '_', $key);
+			$composer = self::get("dep.composer.{$key}");
+			if (empty($composer)) return false;
+			$key = str_replace('.', '/', $key);
 			$existing = array_key_get(self::$settings, ['backend_exists', $key]);
 			if (isset($existing)) {
 				return $existing;
 			} else {
-				$flag = file_exists('./../libraries/vendor/' . str_replace('_', '/', $key));
+				$flag = file_exists('./../libraries/vendor/' . $key);
+				print_r2($flag);
+				exit;
 				array_key_set(self::$settings, ['backend_exists', $key], $flag);
 				return $flag;
 			}

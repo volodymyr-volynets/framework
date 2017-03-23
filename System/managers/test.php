@@ -68,5 +68,5 @@ error:
 }
 
 // success message
-$seconds = Format::time_seconds(microtime(true) - Application::get('application.system.request_time'));
+$seconds = Format::timeSeconds(microtime(true) - Application::get('application.system.request_time'));
 echo "\nOperation completed in {$seconds} seconds!\n\n";

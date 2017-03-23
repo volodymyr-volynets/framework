@@ -25,7 +25,7 @@ class Dependencies {
 				break;
 			}
 			// some array arrangements
-			$data = System_Config::ini($main_dep_filename, 'dependencies');
+			$data = \System\Config::ini($main_dep_filename, 'dependencies');
 			$data = $data['dep'] ?? [];
 			$data['composer'] = $data['composer'] ?? [];
 			$data['submodule'] = $data['submodule'] ?? [];
@@ -72,24 +72,24 @@ class Dependencies {
 						}
 						if (file_exists($v . 'module.ini')) {
 							$data['submodule_dirs'][$v] = $v;
-							$sub_data = system_config::ini($v . 'module.ini', 'dependencies');
+							$sub_data = \System\Config::ini($v . 'module.ini', 'dependencies');
 							$sub_data = isset($sub_data['dep']) ? $sub_data['dep'] : [];
 							if (!empty($sub_data['composer'])) {
 								self::processDepsArray($sub_data['composer'], $composer_data['require'], $composer_dirs, $k, $dummy);
-								$data['composer'] = array_merge2($data['composer'], $sub_data['composer']);
+								$data['composer'] = array_merge_hard($data['composer'], $sub_data['composer']);
 							}
 							if (!empty($sub_data['submodule'])) {
 								self::processDepsArray($sub_data['submodule'], $composer_data['require'], $composer_dirs, $k, $data['__submodule_dependencies']);
-								$data['submodule'] = array_merge2($data['submodule'], $sub_data['submodule']);
+								$data['submodule'] = array_merge_hard($data['submodule'], $sub_data['submodule']);
 							}
 							if (!empty($sub_data['apache'])) {
-								$data['apache'] = array_merge2($data['apache'], $sub_data['apache']);
+								$data['apache'] = array_merge_hard($data['apache'], $sub_data['apache']);
 							}
 							if (!empty($sub_data['php'])) {
-								$data['php'] = array_merge2($data['php'], $sub_data['php']);
+								$data['php'] = array_merge_hard($data['php'], $sub_data['php']);
 							}
 							if (!empty($sub_data['model'])) {
-								$data['model'] = array_merge2($data['model'], $sub_data['model']);
+								$data['model'] = array_merge_hard($data['model'], $sub_data['model']);
 								$temp = [];
 								array_keys_to_string($sub_data['model'], $temp);
 								foreach ($temp as $k0 => $v0) {
@@ -97,13 +97,13 @@ class Dependencies {
 								}
 							}
 							if (!empty($sub_data['override'])) {
-								$data['override'] = array_merge2($data['override'], $sub_data['override']);
+								$data['override'] = array_merge_hard($data['override'], $sub_data['override']);
 							}
 							if (!empty($sub_data['acl'])) {
-								$data['acl'] = array_merge2($data['acl'], $sub_data['acl']);
+								$data['acl'] = array_merge_hard($data['acl'], $sub_data['acl']);
 							}
 							if (!empty($sub_data['media'])) {
-								$data['media'] = array_merge2($data['media'], $sub_data['media']);
+								$data['media'] = array_merge_hard($data['media'], $sub_data['media']);
 							}
 							// processing unit tests
 							if (file_exists($v . 'unit_tests')) {
@@ -244,7 +244,7 @@ class Dependencies {
 			}
 			unset($data['__submodule_dependencies'], $data['__model_dependencies'], $data['model_import']);
 			// handling overrides, cleanup directory first
-			Helper_File::delete('./Overrides/Class', ['only_contents' => true, 'skip_files' => ['.gitkeep']]);
+			\Helper\File::delete('./Overrides/Class', ['only_contents' => true, 'skip_files' => ['.gitkeep']]);
 			$data['override'] = array_merge_hard($data['override'], $data['acl']);
 			if (!empty($data['override'])) {
 				array_keys_to_string($data['override'], $data['override_processed']);
@@ -271,35 +271,34 @@ class Dependencies {
 					foreach ($override_classes as $k => $v) {
 						if ($v['found']) {
 							$class_code = "<?php\n\n" . '$object_override_blank_object = ' . var_export($v['object'], true) . ';';
-							Helper_File::write('./overrides/class/override_' . $k . '.php', $class_code);
+							\Helper\File::write('./Overrides/Class/Override_' . $k . '.php', $class_code);
 						}
 					}
 				}
 			}
-
 			// unit tests
-			Helper_File::delete('./Overrides/Unit_Tests', ['only_contents' => true, 'skip_files' => ['.gitkeep']]);
+			\Helper\File::delete('./Overrides/Unit_Tests', ['only_contents' => true, 'skip_files' => ['.gitkeep']]);
 			// submodule tests first
 			if (!empty($data['unit_tests'])) {
 				$xml = '';
-				$xml.= '<phpunit bootstrap="../../../libraries/vendor/numbers/framework/System/Managers/Unit_Tests.php">';
+				$xml.= '<phpunit bootstrap="../../../libraries/vendor/numbers/framework/System/Managers/UnitTests.php">';
 					$xml.= '<testsuites>';
 						foreach ($data['unit_tests'] as $k => $v) {
 							$xml.= '<testsuite name="' . $k . '">';
-								foreach (Helper_File::iterate($v, ['recursive' => true, 'only_extensions' => ['php']]) as $v2) {
+								foreach (\Helper\File::iterate($v, ['recursive' => true, 'only_extensions' => ['php']]) as $v2) {
 									$xml.= '<file>../../' . $v2 . '</file>';
 								}
 							$xml.= '</testsuite>';
 						}
 					$xml.= '</testsuites>';
 				$xml.= '</phpunit>';
-				Helper_File::write('./overrides/unit_tests/submodules.xml', $xml);
+				\Helper\File::write('./Overrides/UnitTests/submodules.xml', $xml);
 			}
 			// application test last
-			$application_tests = Helper_File::iterate('misc/unit_tests', ['recursive' => true, 'only_extensions' => ['php']]);
+			$application_tests = \Helper\File::iterate('Miscellaneous/UnitTests', ['recursive' => true, 'only_extensions' => ['php']]);
 			if (!empty($application_tests)) {
 				$xml = '';
-				$xml.= '<phpunit bootstrap="../../../libraries/vendor/numbers/framework/System/Managers/Unit_Tests.php">';
+				$xml.= '<phpunit bootstrap="../../../libraries/vendor/numbers/framework/System/Managers/UnitTests.php">';
 					$xml.= '<testsuites>';
 							$xml.= '<testsuite name="application/unit/tests">';
 								foreach ($application_tests as $v) {
@@ -308,14 +307,12 @@ class Dependencies {
 							$xml.= '</testsuite>';
 					$xml.= '</testsuites>';
 				$xml.= '</phpunit>';
-				Helper_File::write('./overrides/unit_tests/application.xml', $xml);
+				\Helper\File::write('./Overrides/UnitTests/application.xml', $xml);
 			}
-
 			// updating composer.json file
 			if ($options['mode'] == 'commit') {
-				Helper_File::write('../libraries/composer.json', json_encode($composer_data, JSON_PRETTY_PRINT));
+				\Helper\File::write('../libraries/composer.json', json_encode($composer_data, JSON_PRETTY_PRINT));
 			}
-
 			// assinging variables to return to the caller
 			$result['data'] = $data;
 			if (empty($result['error'])) {
@@ -614,7 +611,7 @@ import_data:
 				if (!file_exists($dir)) {
 					continue;
 				}
-				$files = Helper_File::iterate($dir, ['only_extensions' => ['php']]);
+				$files = \Helper\File::iterate($dir, ['only_extensions' => ['php']]);
 				foreach ($files as $v2) {
 					$model_name = str_replace(['../libraries/vendor/', '.php'], '', $v2);
 					$model_name = str_replace('/', '_', $model_name);

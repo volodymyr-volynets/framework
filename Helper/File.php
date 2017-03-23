@@ -18,7 +18,7 @@ class File {
 	public static function write($filename, $data, $permission = 0777, $flags = LOCK_EX, $relative = true) {
 		// if we have relative path we convert it to full path
 		if ($relative && $filename[0] == '.') {
-			$path = Application::get('application.path_full');
+			$path = \Application::get('application.path_full');
 			$info = pathinfo($filename);
 			$filename = realpath($path . $info['dirname']) . '/' . $info['basename'];
 		}
@@ -84,8 +84,10 @@ class File {
 			} else {
 				return true;
 			}
-		} else {
+		} else if (file_exists($dir)) {
 			return unlink($dir);
+		} else {
+			return false;
 		}
 	}
 
@@ -101,9 +103,9 @@ class File {
 	public static function iterate($dir, $options = []) {
 		$result = [];
 		if (empty($options['recursive'])) {
-			$iterator = new DirectoryIterator($dir);
+			$iterator = new \DirectoryIterator($dir);
 		} else {
-			$iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($dir));
+			$iterator = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($dir));
 		}
 		foreach ($iterator as $v) {
 			if (method_exists($v, 'isDot')) {

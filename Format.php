@@ -73,13 +73,14 @@ class Format {
 		// settings from config files
 		$config = Application::get('flag.global.format');
 		// settings from user account
-		$entity = entity::groupped('format');
+		//$entity = entity::groupped('format');
+		$user_settings = [];
 		// merge all of them together
-		self::$options = array_merge_hard(self::$defaut_options, $config, I18n::$options, $entity, $options);
+		self::$options = array_merge_hard(self::$defaut_options, $config, I18n::$options, $user_settings, $options);
 		// fix utf8
 		self::$options['locale'] = str_replace(['utf8', 'utf-8'], 'UTF-8', self::$options['locale']);
 		// generate a list of available locales
-		$locale_settings = self::set_locale(self::$options['locale'], self::$defaut_options['locale']);
+		$locale_settings = self::setLocale(self::$options['locale'], self::$defaut_options['locale']);
 		self::$options = array_merge_hard(self::$options, $locale_settings);
 		// fix values
 		self::$options['amount_frm'] = (int) self::$options['amount_frm'];
