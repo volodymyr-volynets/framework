@@ -380,7 +380,7 @@ run_again:
 				goto run_again; // some widgets have attributes
 			}
 			$dep['data']['model_processed'] = array_merge_hard($dep['data']['model_processed'], $virtual_models);
-			$domains = object_data_domains::get_static();
+			$domains = \Object\Data\Domains::get_static();
 			// run 2
 			foreach ($dep['data']['model_processed'] as $k => $v) {
 				$k2 = str_replace('.', '_', $k);

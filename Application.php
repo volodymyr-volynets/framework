@@ -126,7 +126,7 @@ class Application {
 		self::$settings['flag']['global']['__run_only_bootstrap'] = !empty($options['__run_only_bootstrap']);
 		// magic variables processed here
 		self::$settings['flag']['global']['__content_type'] = 'text/html';
-		self::process_magic_variables();
+		self::processMagicVariables();
 		// processing php settings
 		if (isset(self::$settings['php'])) {
 			foreach (self::$settings['php'] as $k=>$v) {
@@ -146,13 +146,13 @@ class Application {
 			}
 		}
 		// Destructor
-		register_shutdown_function(array('bootstrap', 'destroy'));
+		register_shutdown_function(array('Bootstrap', 'destroy'));
 		// error handler first
-		Object_Error_Base::init();
+		\Object\Error\Base::init();
 		// debug after error handler
-		Debug::init(self::get('debug'));
+		\Debug::init(self::get('debug'));
 		// Bootstrap Class
-		$bootstrap = new bootstrap();
+		$bootstrap = new Bootstrap();
 		$bootstrap_methods = get_class_methods($bootstrap);
 		foreach ($bootstrap_methods as $method) {
 			if (strpos($method, 'init')===0) call_user_func(array($bootstrap, $method), $options);
@@ -166,7 +166,7 @@ class Application {
 			return;
 		}
 		// processing mvc settings
-		self::set_mvc();
+		self::setMvc();
 		// check if controller exists
 		if (!file_exists(self::$settings['mvc']['controller_file'])) {
 			Throw new Exception('Resource not found!', -1);
@@ -182,7 +182,7 @@ class Application {
 		if (!empty(self::$controller->singleton_flag)) {
 			$message = self::$controller->singleton_message ?? 'This script is being run by another user!';
 			$lock_id = "singleton_" . $controller_class;
-			if (lock::process($lock_id)===false) {
+			if (\Lock::process($lock_id)===false) {
 				Throw new Exception($message);
 			}
 		}
@@ -190,7 +190,7 @@ class Application {
 		self::process();
 		// release singleton lock
 		if (self::$controller->singleton_flag) {
-			lock::release($lock_id);
+			\Lock::release($lock_id);
 		}
 		// dispatch after controller
 		if (!empty(self::$settings['application']['dispatch']['after_controller'])) {
@@ -313,7 +313,7 @@ class Application {
 	 *
 	 * @param string $request_uri
 	 */
-	public static function set_mvc($request_uri = null) {
+	public static function setMvc($request_uri = null) {
 		// storing previous mvc settings
 		if (!empty(self::$settings['mvc']['module'])) {
 			if (!isset(self::$settings['mvc_prev'])) {
@@ -360,7 +360,7 @@ class Application {
 		Helper_Ob::start(true);
 		$controller_class = self::$settings['mvc']['controller_class'];
 		// if we are handling error message and controller class has not been loaded
-		if ($controller_class == 'controller_error' && error_base::$flag_error_already && !class_exists('controller_error')) {
+		if ($controller_class == 'controller_error' && \Object\Error\Base::$flag_error_already && !class_exists('controller_error')) {
 			require('./controller/error.php');
 		}
 		// processing options
@@ -506,8 +506,8 @@ class Application {
 	/**
 	 * Process magic variables
 	 */
-	public static function process_magic_variables() {
-		$variables_object = new object_magic_variables();
+	public static function processMagicVariables() {
+		$variables_object = new \Object\Magic\Variables();
 		$variables = $variables_object->get();
 		$input = request::input(null, true, true);
 		foreach ($variables as $k => $v) {

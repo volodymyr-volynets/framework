@@ -1,6 +1,7 @@
 <?php
 
-class object_magic_variables extends object_data {
+namespace Object\Magic;
+class Variables extends \Object\Data {
 	public $column_key = 'no_magic_variable_name';
 	public $column_prefix = 'no_magic_variable_';
 	public $columns = [

@@ -229,7 +229,7 @@ class Format {
 	 */
 	public static function dateFormat($value, string $type = 'date', array $options = []) {
 		if (empty($value)) return null;
-		$format = $options['format'] ?? self::get_date_format($type);
+		$format = $options['format'] ?? self::getDateFormat($type);
 		// additional handling for timestamp
 		if (is_float($value)) {
 			$temp = explode('.', $value . '');
@@ -249,7 +249,7 @@ class Format {
 		// localize
 		if (empty($options['skip_i18n'])) {
 			$value = str_replace(['am', 'pm'], [i18n(null, 'am'), i18n(null, 'pm')], $value);
-			return self::number_to_from_native_language($value, $options);
+			return self::numberToFromNativeLanguage($value, $options);
 		} else {
 			return $value;
 		}
@@ -263,7 +263,7 @@ class Format {
 	 * @return string
 	 */
 	public static function date($value, array $options = []) : string {
-		return self::date_format($value, 'date', $options);
+		return self::dateFormat($value, 'date', $options);
 	}
 
 	/**
@@ -274,7 +274,7 @@ class Format {
 	 * @return string
 	 */
 	public static function time($value, array $options = []) : string {
-		return self::date_format($value, 'time', $options);
+		return self::dateFormat($value, 'time', $options);
 	}
 
 	/**
@@ -285,7 +285,7 @@ class Format {
 	 * @return string
 	 */
 	public static function datetime($value, array $options = []) : string {
-		return self::date_format($value, 'datetime', $options);
+		return self::dateFormat($value, 'datetime', $options);
 	}
 
 	/**
@@ -296,7 +296,7 @@ class Format {
 	 * @return string
 	 */
 	public static function timestamp($value, array $options = []) : string {
-		return self::date_format($value, 'timestamp', $options);
+		return self::dateFormat($value, 'timestamp', $options);
 	}
 
 	/**
@@ -510,7 +510,7 @@ class Format {
 		}
 		// decimals
 		if (!isset($options['decimals'])) {
-			$options['decimals'] = object_data_domains::get_setting('amount', 'scale');
+			$options['decimals'] = \Object\Data\Domains::get_setting('amount', 'scale');
 		}
 		// user defined monetary options
 		if (empty($options['skip_user_settings'])) {
@@ -569,7 +569,7 @@ class Format {
 	 * @return string
 	 */
 	public static function currencyRate($amount, $options = []) {
-		$options['decimals'] = object_data_domains::get_setting('currency_rate', 'scale');
+		$options['decimals'] = \Object\Data\Domains::get_setting('currency_rate', 'scale');
 		return self::amount($amount, $options);
 	}
 
@@ -580,7 +580,7 @@ class Format {
 	 */
 	public static function quantity($amount, $options = []) {
 		$options['symbol'] = false;
-		$options['decimals'] = object_data_domains::get_setting('quantity', 'scale');
+		$options['decimals'] = \Object\Data\Domains::get_setting('quantity', 'scale');
 		return self::amount($amount, $options);
 	}
 

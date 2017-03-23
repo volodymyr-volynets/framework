@@ -132,7 +132,7 @@ class object_datasource extends object_table_options {
 		$parameters = [];
 		$options['where'] = $options['where'] ?? [];
 		if (!empty($this->parameters)) {
-			$this->parameters = object_data_common::process_domains_and_types($this->parameters);
+			$this->parameters = \Object\Data\Common::process_domains_and_types($this->parameters);
 			foreach ($this->parameters as $k => $v) {
 				// if we have a parameter
 				if (array_key_exists($k, $options['where'])) {

@@ -61,8 +61,8 @@ class Base {
 	 * Initialize error handler
 	 */
 	public static function init() {
-		set_error_handler(['error_base', 'error_handler']);
-		set_exception_handler(['error_base', 'exception_handler']);
+		set_error_handler(['\Object\Error\Base', 'error_handler']);
+		set_exception_handler(['\Object\Error\Base', 'exception_handler']);
 		ini_set('display_errors', 0);
 	}
 
@@ -118,7 +118,7 @@ class Base {
 	 *
 	 * @param Exception $e
 	 */
-	public static function exception_handler(Throwable $e) {
+	public static function exception_handler(\Throwable $e) {
 		self::$errors[] = [
 			'errno' => $e->getCode(),
 			'error' => [$e->getMessage()],

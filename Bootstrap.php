@@ -134,8 +134,8 @@ class Bootstrap {
 				]
 			],
 			// domains
-			'object_data_domains' => [
-				'data' => object_data_domains::get_static()
+			'\Object\Data\Domains' => [
+				'data' => \Object\Data\Domains::get_static()
 			]
 		]);
 	}
@@ -148,19 +148,19 @@ class Bootstrap {
 		// we need to set working directory again
 		chdir(Application::get(['application', 'path_full']));
 		// error processing
-		if (empty(error_base::$flag_error_already)) {
+		if (empty(\Object\Error\Base::$flag_error_already)) {
 			$last_error = error_get_last();
 			$flag_render = false;
 			if (in_array($last_error['type'], [E_COMPILE_ERROR, E_PARSE, E_ERROR])) {
-				error_base::error_handler($last_error['type'], $last_error['message'], $last_error['file'], $last_error['line']);
-				error_base::$flag_error_already = true;
+				\Object\Error\Base::error_handler($last_error['type'], $last_error['message'], $last_error['file'], $last_error['line']);
+				\Object\Error\Base::$flag_error_already = true;
 				$flag_render = true;
 			}
-			if ($flag_render || error_base::$flag_exception) {
-				error_base::$flag_error_already = true;
+			if ($flag_render || \Object\Error\Base::$flag_exception) {
+				\Object\Error\Base::$flag_error_already = true;
 				if ($__run_only_bootstrap) {
-					Helper_Ob::clean_all();
-					print_r(error_base::$errors);
+					\Helper\Ob::cleanAll();
+					print_r(\Object\Error\Base::$errors);
 				} else {
 					// set mvc + process
 					Application::set_mvc('/error/_error/500');
@@ -204,7 +204,7 @@ class Bootstrap {
 		}
 		// emails with erros
 		if (debug::$debug && !empty(debug::$email)) {
-			debug::send_errors_to_admin();
+			debug::sendErrorsToAdmin();
 		}
 	}
 }

@@ -1,6 +1,7 @@
 <?php
 
-class object_data_domains extends object_data {
+namespace Object\Data;
+class Domains extends \Object\Data {
 	public $column_key = 'code';
 	public $column_prefix = null; // you must not change it !!!
 	public $orderby = ['name' => SORT_ASC];
@@ -119,7 +120,7 @@ class object_data_domains extends object_data {
 	 * @param array $options
 	 * @return array
 	 */
-	public function options_no_sequences($options = []) {
+	public function optionsNoSequences($options = []) {
 		$data = $this->options($options);
 		foreach ($data as $k => $v) {
 			if (strpos($k, '_sequence') !== false) {

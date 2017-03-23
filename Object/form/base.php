@@ -973,7 +973,7 @@ class object_form_base extends object_form_parent {
 		// we do not need options for autocomplete
 		if (strpos(($field['method'] ?? ''), 'autocomplete') === false) {
 			$skip_values = [];
-			$field['options'] = object_data_common::process_options($field['options_model'], $this, $field['options_params'], $value, $skip_values, $field['options_options']);
+			$field['options'] = \Object\Data\Common::process_options($field['options_model'], $this, $field['options_params'], $value, $skip_values, $field['options_options']);
 		} else {
 			$field['options'] = [];
 		}
@@ -2158,7 +2158,7 @@ convert_multiple_columns:
 					$options['details_collection_key'] = array_merge(($options['details_collection_key'] ?? []), ['details', $element_link]);
 				}
 				// process domain & type
-				$temp = object_data_common::process_domains_and_types(['options' => $options]);
+				$temp = \Object\Data\Common::process_domains_and_types(['options' => $options]);
 				$options = $temp['options'];
 				$options['row_link'] = $row_link;
 				$options['container_link'] = $container_link;

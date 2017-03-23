@@ -113,18 +113,18 @@ class Data extends \Object\Table\Options {
 	 */
 	public function __construct() {
 		// we need to handle overrrides
-		parent::override_handle($this);
+		parent::overrideHandle($this);
 		// we must have columns
 		if (empty($this->columns)) {
 			Throw new Exception('object_data ' . get_called_class() . ' children must have columns!');
 		}
 		// process domain in columns, we skip domain model
 		$class = get_called_class();
-		if ($class != 'object_data_domains') {
-			if ($class == 'object_data_types') {
-				$this->columns = object_data_common::process_domains_and_types($this->columns, $this->data);
+		if ($class != 'Object\Data\Domains') {
+			if ($class == 'Object\Data\Types') {
+				$this->columns = \Object\Data\Common::processDomainsAndTypes($this->columns, $this->data);
 			} else {
-				$this->columns = object_data_common::process_domains_and_types($this->columns);
+				$this->columns = \Object\Data\Common::processDomainsAndTypes($this->columns);
 			}
 		}
 	}
@@ -140,10 +140,10 @@ class Data extends \Object\Table\Options {
 	 */
 	public function get($options = []) {
 		// get available data types
-		if (get_called_class() == 'object_data_types') {
+		if (get_called_class() == 'Object\Data\Types') {
 			$types = $this->data;
 		} else {
-			$types = object_data_types::get_static();
+			$types = \Object\Data\Types::get_static();
 		}
 		// transform data
 		$result = [];

@@ -1,6 +1,7 @@
 <?php
 
-class object_data_common {
+namespace Object\Data;
+class Common {
 
 	/**
 	 * Attributes
@@ -35,10 +36,10 @@ class object_data_common {
 	 * @param array $types
 	 * @return array
 	 */
-	public static function process_domains_and_types($columns, $types = null) {
+	public static function processDomainsAndTypes($columns, $types = null) {	
 		// cache domains and types
 		if (empty(self::$domains)) {
-			$object = new object_data_domains();
+			$object = new \Object\Data\Domains();
 			// use unprocessed data - a must
 			self::$domains = $object->data;
 		}
@@ -46,7 +47,7 @@ class object_data_common {
 			if (!empty($types)) {
 				self::$types = $types;
 			} else {
-				$object = new object_data_types();
+				$object = new \Object\Data\Types();
 				// use unprocessed data - a must
 				self::$types = $object->data;
 			}
@@ -100,7 +101,7 @@ class object_data_common {
 	 * @param array $options
 	 * @return array
 	 */
-	public static function process_options($model_and_method, $existing_object = null, $where = [], $existing_values = [], $skip_values = [], $options = []) {
+	public static function processOptions($model_and_method, $existing_object = null, $where = [], $existing_values = [], $skip_values = [], $options = []) {
 		// put changes into options
 		$options['where'] = array_merge_hard($options['where'] ?? [], $where);
 		$options['existing_values'] = $existing_values;
@@ -205,8 +206,8 @@ class object_data_common {
 	 * @param array $options
 	 * @return array
 	 */
-	public static function build_options($data, $options_map, $orderby, $options) {
-		$data = object_data_common::options($data, $options_map, $options);
+	public static function buildOptions($data, $options_map, $orderby, $options) {
+		$data = \Object\Data\Common::options($data, $options_map, $options);
 		// sorting
 		if (!empty($options['i18n']) && $options['i18n'] !== 'skip_sorting') {
 			array_key_sort($data, ['name' => SORT_ASC], ['name' => SORT_NATURAL]);
@@ -225,7 +226,7 @@ class object_data_common {
 	 * @param array $skip_values
 	 * @return array
 	 */
-	public static function filter_active_options($data, $options_active, $existing_values = [], $skip_values = []) {
+	public static function filterActiveOptions($data, $options_active, $existing_values = [], $skip_values = []) {
 		if (!empty($existing_values) && !is_array($existing_values)) {
 			$existing_values = [$existing_values];
 		}

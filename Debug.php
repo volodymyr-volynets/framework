@@ -95,17 +95,17 @@ class Debug {
 			static $total = 0;
 			$benchmark = 0;
 			if (is_null($start)) {
-				$start = self::get_microtime();
+				$start = self::getMicrotime();
 			} else {
-				$temp = self::get_microtime();
+				$temp = self::getMicrotime();
 				$benchmark = $temp - $start;
 				$start = $temp;
 			}
 			$total+= $benchmark;
 			self::$data['benchmark'][] = [
 				'name' => $name,
-				'time' => Format::time_seconds($benchmark) . '',
-				'total' => Format::time_seconds($total),
+				'time' => Format::timeSeconds($benchmark) . '',
+				'total' => Format::timeSeconds($total),
 				'start' => Format::datetime($start, ['skip_user_timezone' => true]),
 				'memory' => memory_get_peak_usage(true)
 			];
@@ -118,7 +118,7 @@ class Debug {
 	public static function sendErrorsToAdmin() {
 		// determine if we need to send anything
 		$found = false;
-		foreach (error_base::$errors as $k => $v) {
+		foreach (\Object\Error\Base::$errors as $k => $v) {
 			if ($v['errno'] != -1) {
 				$found = true;
 				break;
@@ -156,7 +156,7 @@ class Debug {
 								$result.= '<td nowrap>&nbsp;' . Html::a(['value' => 'Hide All', 'href' => 'javascript:void(0);', 'onclick' => "$('.debuging_toolbar_class').hide();"]) . '&nbsp;</td>';
 								foreach (self::$data as $k => $v) {
 									if ($k == 'errors') {
-										$count = count(error_base::$errors);
+										$count = count(\Object\Error\Base::$errors);
 									} else if ($k == 'classes') {
 										$count = count($loaded_classes);
 									} else if ($k == 'application') {
@@ -177,11 +177,11 @@ class Debug {
 				// errors
 				$result.= '<tr id="debuging_toolbar_errors" class="debuging_toolbar_class" style="display: none;">';
 					$result.= '<td>';
-						$result.= '<h3>Errors (' . count(error_base::$errors) . ')</h3>';
+						$result.= '<h3>Errors (' . count(\Object\Error\Base::$errors) . ')</h3>';
 						$result.= '<table border="1" cellpadding="2" cellspacing="2" width="100%">';
-							foreach (error_base::$errors as $k => $v) {
+							foreach (\Object\Error\Base::$errors as $k => $v) {
 								$result.= '<tr>';
-									$result.= '<td><b>' . error_base::$error_codes[$v['errno']] . ' (' . $v['errno'] . ') - ' . implode('<br/>', $v['error']) . '</b></td>';
+									$result.= '<td><b>' . \Object\Error\Base::$error_codes[$v['errno']] . ' (' . $v['errno'] . ') - ' . implode('<br/>', $v['error']) . '</b></td>';
 								$result.= '</tr>';
 								$result.= '<tr>';
 									$result.= '<td>File: ' . $v['file'] . ', Line: ' . $v['line'] . '</td>';
@@ -204,7 +204,7 @@ class Debug {
 						$result.= '<table border="1" cellpadding="2" cellspacing="2" width="100%">';
 							foreach (self::$data['suppressed'] as $k => $v) {
 								$result.= '<tr>';
-									$result.= '<td><b>' . error_base::$error_codes[$v['errno']] . ' (' . $v['errno'] . ') - ' . implode('<br/>', $v['error']) . '</b></td>';
+									$result.= '<td><b>' . \Object\Error\Base::$error_codes[$v['errno']] . ' (' . $v['errno'] . ') - ' . implode('<br/>', $v['error']) . '</b></td>';
 								$result.= '</tr>';
 								$result.= '<tr>';
 									$result.= '<td>File: ' . $v['file'] . ', Line: ' . $v['line'] . '</td>';

@@ -12,8 +12,8 @@ class object_table_columns extends object_data {
 	public $data = [
 		'name' => ['name' => 'Name', 'description' => 'Name of a column'],
 		// ddl related attributes
-		'domain' => ['name' => 'Domain', 'description' => 'Domain from object_data_domains'],
-		'type' => ['name' => 'Data Type', 'description' => 'Data Type from object_data_types'],
+		'domain' => ['name' => 'Domain', 'description' => 'Domain from \Object\Data\Domains'],
+		'type' => ['name' => 'Data Type', 'description' => 'Data Type from \Object\Data\Types'],
 		'null' => ['name' => 'Null', 'description' => 'Whether column is null'],
 		'default' => ['name' => 'Default', 'description' => 'Default value'],
 		'length' => ['name' => 'Length', 'description' => 'String length'],
@@ -47,7 +47,7 @@ class object_table_columns extends object_data {
 		// process domain
 		if (!empty($options['process_domains'])) {
 			$temp = [$column_name => $column_options];
-			$temp = object_data_common::process_domains_and_types($temp);
+			$temp = \Object\Data\Common::process_domains_and_types($temp);
 			$column_options = $temp[$column_name];
 		}
 		// if we ignoring not set fields

@@ -373,7 +373,7 @@ class object_table extends object_table_options {
 			}
 		}
 		// process domain in columns
-		$this->columns = object_data_common::process_domains_and_types($this->columns);
+		$this->columns = \Object\Data\Common::process_domains_and_types($this->columns);
 		// initialize db object
 		if (empty($options['skip_db_object'])) {
 			$this->db_object = new db($this->db_link);
