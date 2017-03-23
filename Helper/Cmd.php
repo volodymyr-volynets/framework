@@ -3,7 +3,8 @@
 /**
  * Command line helper
  */
-class Helper_Cmd {
+namespace Helper;
+class Cmd {
 
 	/**
 	 * Confirm

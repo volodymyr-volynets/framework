@@ -9,18 +9,18 @@ if (file_exists('../libraries/vendor/autoload.php')) {
 }
 
 // automatic class loading
-require('../libraries/vendor/numbers/framework/application.php');
-spl_autoload_register(array('application', 'autoloader'));
+require('../libraries/vendor/numbers/framework/Application.php');
+spl_autoload_register(array('Application', 'autoloader'));
 
 // running application
-application::run(['__run_only_bootstrap' => 1]);
+Application::run(['__run_only_bootstrap' => 1]);
 
 // increase in memory and unlimited execution time
 ini_set('memory_limit', '2048M');
 set_time_limit(0);
 
 // confirmation whether to run the script
-if (!helper_cmd::confirm("Run Unit Tests?")) exit;
+if (!Helper_Cmd::confirm("Run Unit Tests?")) exit;
 
 // this is a must, otherwise PHPUnit will not find xml file
 chdir('..');

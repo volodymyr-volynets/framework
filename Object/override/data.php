@@ -1,6 +1,7 @@
 <?php
 
-class object_override_data {
+namespace Object_Override;
+class Data {
 
 	/**
 	 * We would keep override data cached here
@@ -15,7 +16,7 @@ class object_override_data {
 	 * @param type $object
 	 * @return boolean
 	 */
-	public function override_handle(& $object) {
+	public function overrideHandle(& $object) {
 		$class = get_class($object);
 		if (isset(self::$override_data[$class]) && self::$override_data[$class] === false) {
 			return false;

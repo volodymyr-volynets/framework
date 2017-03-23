@@ -3,7 +3,8 @@
 /**
  * Configuration file helper
  */
-class system_config {
+namespace System;
+class Config {
 
 	/**
 	 * Process ini file
@@ -12,10 +13,9 @@ class system_config {
 	 * @param string $environment
 	 * @return array
 	 */
-	public static function ini($ini_file, $environment = null) {
+	public static function ini(string $ini_file, $environment = null) : array {
 		$result = [];
 		$data = parse_ini_file($ini_file, true);
-
 		// processing environment
 		if (!empty($data['environment'])) {
 			foreach ($data['environment'] as $k => $v) {
@@ -23,12 +23,10 @@ class system_config {
 			}
 		}
 		unset($data['environment']);
-
 		// small chicken and egg problem for environment variable
 		if ($environment == null && !empty($result['environment'])) {
 			$environment = $result['environment'];
 		}
-
 		// processing dependencies first
 		if (!empty($data['dependencies'])) {
 			foreach ($data['dependencies'] as $k => $v) {
@@ -36,7 +34,6 @@ class system_config {
 			}
 		}
 		unset($data['dependencies']);
-
 		// proccesing environment specific sectings
 		foreach ($data as $section => $values) {
 			$sections = explode(',', $section);
@@ -51,27 +48,25 @@ class system_config {
 	/**
 	 * Load configuration files
 	 *
-	 * @param type $ini_folder
-	 * @return type
+	 * @param string $ini_folder
+	 * @return array
 	 */
-	public static function load($ini_folder) {
-		$settings = [
+	public static function load(string $ini_folder) : array {
+		$result = [
 			'environment' => 'production'
 		];
-
 		// environment ini file first
 		$file = $ini_folder . 'environment.ini';
 		if (file_exists($file)) {
 			$ini_data = self::ini($file);
-			$settings = array_merge2($settings, $ini_data);
+			$result = array_merge2($result, $ini_data);
 		}
-
 		// application.ini file second
 		$file = $ini_folder . 'application.ini';
 		if (file_exists($file)) {
-			$ini_data = self::ini($file, $settings['environment']);
-			$settings = array_merge2($settings, $ini_data);
+			$ini_data = self::ini($file, $result['environment']);
+			$result = array_merge2($result, $ini_data);
 		}
-		return $settings;
+		return $result;
 	}
 }

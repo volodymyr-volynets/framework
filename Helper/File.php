@@ -3,7 +3,8 @@
 /**
  * File/directory helper
  */
-class helper_file {
+namespace Helper;
+class File {
 
 	/**
 	 * Write content to file and sets permissions
@@ -40,16 +41,6 @@ class helper_file {
 	}
 
 	/**
-	 * Delete file
-	 *
-	 * @param string $filename
-	 * @return boolean
-	 */
-	public static function delete($filename) {
-		return unlink($filename);
-	}
-
-	/**
 	 * Create directory
 	 *
 	 * @param string $dir
@@ -57,11 +48,11 @@ class helper_file {
 	 * @return boolean
 	 */
 	public static function mkdir($dir, $permission = 0777) {
-		return mkdir($dir, $permission, true);
+		return @mkdir($dir, $permission, true);
 	}
 
 	/**
-	 * Remove directories content and optionally itself
+	 * Delete file/directory
 	 * 
 	 * @param string $dir
 	 * @param arary $options
@@ -69,7 +60,7 @@ class helper_file {
 	 *		skip_files - array of files to skip
 	 * @return boolean
 	 */
-	public static function rmdir($dir, $options = []) {
+	public static function delete(string $dir, array $options = []) : bool {
 		if (is_dir($dir)) {
 			$skip_files = [];
 			if (!empty($options['skip_files'])) {
@@ -82,9 +73,9 @@ class helper_file {
 			foreach ($objects as $v) {
 				if (!in_array($v, $skip_files)) {
 					if (filetype($dir . '/' . $v) == 'dir') {
-						self::rmdir($dir . '/' . $v, $options);
+						self::delete($dir . '/' . $v, $options);
 					} else {
-						self::delete($dir . '/' . $v);
+						unlink($dir . '/' . $v);
 					}
 				}
 			}
@@ -93,8 +84,9 @@ class helper_file {
 			} else {
 				return true;
 			}
+		} else {
+			return unlink($dir);
 		}
-		return false;
 	}
 
 	/**
@@ -130,6 +122,59 @@ class helper_file {
 			$result[] = $v->getPathname();
 		}
 		return $result;
+	}
+
+	/**
+	 * Copy file/directory
+	 *
+	 * @param string $source
+	 * @param string $destination
+	 * @return bool
+	 */
+	public static function copy(string $source, string $destination, array $options = []) : bool {
+		if (is_dir($source)) {
+			$dir = opendir($source);
+			self::mkdir($destination);
+			while (($file = readdir($dir)) !== false) {
+				if ($file != '.' && $file != '..') {
+					if (is_dir($source . '/' . $file)) {
+						self::copy($source . '/' . $file, $destination . '/' . $file);
+					} else {
+						copy($source . '/' . $file, $destination . '/' . $file);
+					}
+				}
+			}
+			closedir($dir);
+			return true;
+		} else {
+			return copy($source, $destination);
+		}
+	}
+
+	/**
+	 * Chmod
+	 *
+	 * @param string $dir_or_file
+	 * @param int $permission
+	 * @return bool
+	 */
+	public static function chmod(string $dir_or_file, int $permission = 0777) : bool {
+		if (is_dir($dir_or_file)) {
+			$dir = opendir($dir_or_file);
+			while (($file = readdir($dir)) !== false) {
+				if ($file != '.' && $file != '..') {
+					if (is_dir($dir_or_file . '/' . $file)) {
+						self::chmod($dir_or_file . '/' . $file, $permission);
+					} else {
+						chmod($dir_or_file . '/' . $file, $permission);
+					}
+				}
+			}
+			closedir($dir);
+			return true;
+		} else {
+			return chmod($dir_or_file, $permission);
+		}
 	}
 }
 

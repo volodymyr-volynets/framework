@@ -1,6 +1,7 @@
 <?php
 
-class system_dependencies {
+namespace System;
+class Dependencies {
 
 	/**
 	 * Process dependencies
@@ -9,7 +10,7 @@ class system_dependencies {
 	 *		mode
 	 * @return array
 	 */
-	public static function process_deps_all($options = []) {
+	public static function processDepsAll(array $options = []) : array {
 		$result = [
 			'success' => false,
 			'error' => [],
@@ -23,9 +24,8 @@ class system_dependencies {
 				$result['error'][] = "Main dep. file not found!";
 				break;
 			}
-
 			// some array arrangements
-			$data = system_config::ini($main_dep_filename, 'dependencies');
+			$data = System_Config::ini($main_dep_filename, 'dependencies');
 			$data = $data['dep'] ?? [];
 			$data['composer'] = $data['composer'] ?? [];
 			$data['submodule'] = $data['submodule'] ?? [];
@@ -42,7 +42,6 @@ class system_dependencies {
 			$data['unit_tests'] = [];
 			$data['__submodule_dependencies'] = [];
 			$dummy = [];
-
 			// we have small chicken and egg problem with composer
 			$composer_data = [];
 			$composer_dirs = [];
@@ -50,18 +49,16 @@ class system_dependencies {
 			if (file_exists('../libraries/composer.json')) {
 				$composer_data = json_decode(file_get_contents('../libraries/composer.json'), true);
 			}
-
 			// if we have composer or submodules from main dep file
 			if (!empty($data['composer']) || !empty($data['submodules'])) {
 				$composer_data['require'] = [];
 				if (!empty($data['composer'])) {
-					self::process_deps_array($data['composer'], $composer_data['require'], $composer_dirs, 'dummy', $dummy);
+					self::processDepsArray($data['composer'], $composer_data['require'], $composer_dirs, 'dummy', $dummy);
 				}
 				if (!empty($data['submodule'])) {
-					self::process_deps_array($data['submodule'], $composer_data['require'], $composer_dirs, 'dummy', $dummy);
+					self::processDepsArray($data['submodule'], $composer_data['require'], $composer_dirs, 'dummy', $dummy);
 				}
 			}
-
 			// processing submodules
 			$mutex = [];
 			$__any = [];
@@ -78,11 +75,11 @@ class system_dependencies {
 							$sub_data = system_config::ini($v . 'module.ini', 'dependencies');
 							$sub_data = isset($sub_data['dep']) ? $sub_data['dep'] : [];
 							if (!empty($sub_data['composer'])) {
-								self::process_deps_array($sub_data['composer'], $composer_data['require'], $composer_dirs, $k, $dummy);
+								self::processDepsArray($sub_data['composer'], $composer_data['require'], $composer_dirs, $k, $dummy);
 								$data['composer'] = array_merge2($data['composer'], $sub_data['composer']);
 							}
 							if (!empty($sub_data['submodule'])) {
-								self::process_deps_array($sub_data['submodule'], $composer_data['require'], $composer_dirs, $k, $data['__submodule_dependencies']);
+								self::processDepsArray($sub_data['submodule'], $composer_data['require'], $composer_dirs, $k, $data['__submodule_dependencies']);
 								$data['submodule'] = array_merge2($data['submodule'], $sub_data['submodule']);
 							}
 							if (!empty($sub_data['apache'])) {
@@ -132,7 +129,6 @@ class system_dependencies {
 					}
 				}
 			}
-
 			// processing any dependencies
 			if (!empty($__any)) {
 				foreach ($__any as $k => $v) {
@@ -143,7 +139,6 @@ class system_dependencies {
 					}
 				}
 			}
-
 			// processing composer
 			if (!empty($composer_data['require'])) {
 				foreach ($composer_data['require'] as $k => $v) {
@@ -152,12 +147,10 @@ class system_dependencies {
 					}
 				}
 			}
-
 			// sometimes we need to make sure we have functions available
 			$func_per_extension = [
 				'pgsql' => 'pg_connect'
 			];
-
 			// proceccing php extensions
 			if (!empty($data['php']['extension'])) {
 				foreach ($data['php']['extension'] as $k => $v) {
@@ -166,7 +159,6 @@ class system_dependencies {
 					}
 				}
 			}
-
 			// processing php ini settings
 			if (!empty($data['php']['ini'])) {
 				foreach ($data['php']['ini'] as $k => $v) {
@@ -178,7 +170,6 @@ class system_dependencies {
 					}
 				}
 			}
-
 			// processing apache modules
 			if (!empty($data['apache']['module'])) {
 				if (function_exists('apache_get_modules')) {
@@ -253,7 +244,7 @@ class system_dependencies {
 			}
 			unset($data['__submodule_dependencies'], $data['__model_dependencies'], $data['model_import']);
 			// handling overrides, cleanup directory first
-			helper_file::rmdir('./overrides/class', ['only_contents' => true, 'skip_files' => ['.gitkeep']]);
+			Helper_File::delete('./Overrides/Class', ['only_contents' => true, 'skip_files' => ['.gitkeep']]);
 			$data['override'] = array_merge_hard($data['override'], $data['acl']);
 			if (!empty($data['override'])) {
 				array_keys_to_string($data['override'], $data['override_processed']);
@@ -262,7 +253,7 @@ class system_dependencies {
 				foreach ($data['override_processed'] as $k => $v) {
 					if (!isset($override_classes[$v])) {
 						$override_classes[$v] = [
-							'object' => new object_override_blank(),
+							'object' => new Object_Override_Blank(),
 							'found' => false
 						];
 					}
@@ -280,35 +271,35 @@ class system_dependencies {
 					foreach ($override_classes as $k => $v) {
 						if ($v['found']) {
 							$class_code = "<?php\n\n" . '$object_override_blank_object = ' . var_export($v['object'], true) . ';';
-							helper_file::write('./overrides/class/override_' . $k . '.php', $class_code);
+							Helper_File::write('./overrides/class/override_' . $k . '.php', $class_code);
 						}
 					}
 				}
 			}
 
 			// unit tests
-			helper_file::rmdir('./overrides/unit_tests', ['only_contents' => true, 'skip_files' => ['.gitkeep']]);
+			Helper_File::delete('./Overrides/Unit_Tests', ['only_contents' => true, 'skip_files' => ['.gitkeep']]);
 			// submodule tests first
 			if (!empty($data['unit_tests'])) {
 				$xml = '';
-				$xml.= '<phpunit bootstrap="../../../libraries/vendor/numbers/framework/system/managers/unit_tests.php">';
+				$xml.= '<phpunit bootstrap="../../../libraries/vendor/numbers/framework/System/Managers/Unit_Tests.php">';
 					$xml.= '<testsuites>';
 						foreach ($data['unit_tests'] as $k => $v) {
 							$xml.= '<testsuite name="' . $k . '">';
-								foreach (helper_file::iterate($v, ['recursive' => true, 'only_extensions' => ['php']]) as $v2) {
+								foreach (Helper_File::iterate($v, ['recursive' => true, 'only_extensions' => ['php']]) as $v2) {
 									$xml.= '<file>../../' . $v2 . '</file>';
 								}
 							$xml.= '</testsuite>';
 						}
 					$xml.= '</testsuites>';
 				$xml.= '</phpunit>';
-				helper_file::write('./overrides/unit_tests/submodules.xml', $xml);
+				Helper_File::write('./overrides/unit_tests/submodules.xml', $xml);
 			}
 			// application test last
-			$application_tests = helper_file::iterate('misc/unit_tests', ['recursive' => true, 'only_extensions' => ['php']]);
+			$application_tests = Helper_File::iterate('misc/unit_tests', ['recursive' => true, 'only_extensions' => ['php']]);
 			if (!empty($application_tests)) {
 				$xml = '';
-				$xml.= '<phpunit bootstrap="../../../libraries/vendor/numbers/framework/system/managers/unit_tests.php">';
+				$xml.= '<phpunit bootstrap="../../../libraries/vendor/numbers/framework/System/Managers/Unit_Tests.php">';
 					$xml.= '<testsuites>';
 							$xml.= '<testsuite name="application/unit/tests">';
 								foreach ($application_tests as $v) {
@@ -317,12 +308,12 @@ class system_dependencies {
 							$xml.= '</testsuite>';
 					$xml.= '</testsuites>';
 				$xml.= '</phpunit>';
-				helper_file::write('./overrides/unit_tests/application.xml', $xml);
+				Helper_File::write('./overrides/unit_tests/application.xml', $xml);
 			}
 
 			// updating composer.json file
 			if ($options['mode'] == 'commit') {
-				helper_file::write('../libraries/composer.json', json_encode($composer_data, JSON_PRETTY_PRINT));
+				Helper_File::write('../libraries/composer.json', json_encode($composer_data, JSON_PRETTY_PRINT));
 			}
 
 			// assinging variables to return to the caller
@@ -340,7 +331,7 @@ class system_dependencies {
 	 * @param array $options
 	 * @return array
 	 */
-	public static function process_models($options = []) {
+	public static function processModels(array $options = []) : array {
 		$result = [
 			'success' => false,
 			'error' => [],
@@ -350,13 +341,12 @@ class system_dependencies {
 		];
 		do {
 			// we need to process all dependencies first
-			$dep = self::process_deps_all($options);
+			$dep = self::processDepsAll($options);
 			if (!$dep['success']) {
 				$result = $dep;
 				$result['error'][] = 'You must fix all dependency related errors first before processing models.';
 				break;
 			}
-
 			// proccesing models
 			if (empty($dep['data']['model_processed'])) {
 				$result['error'][] = 'You do not have models to process!';
@@ -624,7 +614,7 @@ import_data:
 				if (!file_exists($dir)) {
 					continue;
 				}
-				$files = helper_file::iterate($dir, ['only_extensions' => ['php']]);
+				$files = Helper_File::iterate($dir, ['only_extensions' => ['php']]);
 				foreach ($files as $v2) {
 					$model_name = str_replace(['../libraries/vendor/', '.php'], '', $v2);
 					$model_name = str_replace('/', '_', $model_name);
@@ -690,7 +680,7 @@ import_data:
 	 * @param array $composer_data
 	 * @param array $composer_dirs
 	 */
-	public static function process_deps_array($data, & $composer_data, & $composer_dirs, $origin_submodule, & $origin_dependencies) {
+	public static function processDepsArray($data, & $composer_data, & $composer_dirs, $origin_submodule, & $origin_dependencies) {
 		if (empty($data)) return;
 		foreach ($data as $k => $v) {
 			foreach ($v as $k2 => $v2) {

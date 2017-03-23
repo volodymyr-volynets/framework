@@ -1,6 +1,7 @@
 <?php
 
-class object_override_blank {
+namespace Object\Override;
+class Blank {
 
 	/**
 	 * Create new object and set properties
