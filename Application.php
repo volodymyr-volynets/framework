@@ -44,7 +44,7 @@ class Application {
 		// decrypting certain columns
 		/* todo: maybe this is not needed at all
 		if (!empty($options['decrypt_keys'])) {
-			array_walk_recursive($result, create_function('&$v, $k, $fn', 'if (in_array($k, $fn)) $v = crypt::static_decrypt($v);'), $options['decrypt_keys']);
+			array_walk_recursive($result, create_function('&$v, $k, $fn', 'if (in_array($k, $fn)) $v = Crypt::static_decrypt($v);'), $options['decrypt_keys']);
 		}
 		*/
 		// submodule exists
