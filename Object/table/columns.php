@@ -93,8 +93,8 @@ class object_table_columns extends object_data {
 		if ($column_options['type'] == 'boolean') { // booleans
 			$result[$column_name] = !empty($value) ? 1 : 0;
 		} else if (in_array($column_options['type'], ['smallserial', 'serial', 'bigserial'])) {
-			if (format::read_intval($value, ['valid_check' => 1])) {
-				$temp = format::read_intval($value);
+			if (Format::read_intval($value, ['valid_check' => 1])) {
+				$temp = Format::read_intval($value);
 				if ($temp !== 0) {
 					$result[$column_name] = $temp;
 				}
@@ -114,7 +114,7 @@ class object_table_columns extends object_data {
 					$result[$column_name] = $column_options['default'] ?? 0;
 				}
 			} else {
-				$result[$column_name] = format::read_intval($value);
+				$result[$column_name] = Format::read_intval($value);
 			}
 		} else if (in_array($column_options['type'], ['numeric', 'bcnumeric'])) { // numerics as floats or strings
 			// if we got empty string we say its null
@@ -128,10 +128,10 @@ class object_table_columns extends object_data {
 					$result[$column_name] = $column_options['default'] ?? ($column_options['type'] == 'bcnumeric' ? '0' : 0);
 				}
 			} else {
-				$result[$column_name] = format::read_floatval($value, ['bcnumeric' => $column_options['type'] == 'bcnumeric']);
+				$result[$column_name] = Format::read_floatval($value, ['bcnumeric' => $column_options['type'] == 'bcnumeric']);
 			}
 		} else if (in_array($column_options['type'], ['date', 'time', 'datetime', 'timestamp'])) {
-			$result[$column_name] = format::read_date($value, $column_options['type']);
+			$result[$column_name] = Format::read_date($value, $column_options['type']);
 			// for datetime we do additional processing
 			if (!empty($options['process_datetime'])) {
 				$result[$column_name . '_strtotime_value'] = 0;
@@ -153,7 +153,7 @@ class object_table_columns extends object_data {
 			} else {
 				// we need to convert numeric strings
 				if (($column_options['format'] ?? '') == 'id') {
-					$result[$column_name] = format::number_to_from_native_language($value, [], true);
+					$result[$column_name] = Format::number_to_from_native_language($value, [], true);
 				} else {
 					$result[$column_name] = (string) $value;
 				}
@@ -194,7 +194,7 @@ class object_table_columns extends object_data {
 					$error = true;
 				}
 			} else if ($column_options['php_type'] == 'integer') {
-				if ($value . '' !== '' && !format::read_intval($value, ['valid_check' => 1])) {
+				if ($value . '' !== '' && !Format::read_intval($value, ['valid_check' => 1])) {
 					$result['error'][] = i18n(null, 'Wrong integer value!');
 					$error = true;
 				}
@@ -205,7 +205,7 @@ class object_table_columns extends object_data {
 					}
 				}
 			} else if ($column_options['php_type'] == 'bcnumeric') { // accounting numbers
-				if ($value . '' !== '' && !format::read_bcnumeric($value, ['valid_check' => 1])) {
+				if ($value . '' !== '' && !Format::read_bcnumeric($value, ['valid_check' => 1])) {
 					$result['error'][] = i18n(null, 'Wrong numeric value!');
 					$error = true;
 				}
@@ -229,7 +229,7 @@ class object_table_columns extends object_data {
 					}
 				}
 			} else if ($column_options['php_type'] == 'float') { // regular floats
-				if ($value . '' !== '' && !format::read_floatval($value, ['valid_check' => 1])) {
+				if ($value . '' !== '' && !Format::read_floatval($value, ['valid_check' => 1])) {
 					$result['error'][] = i18n(null, 'Wrong float value!');
 					$error = true;
 				}

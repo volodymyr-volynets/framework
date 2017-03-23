@@ -18,7 +18,7 @@ require('../libraries/vendor/numbers/framework/application.php');
 spl_autoload_register(array('application', 'autoloader'));
 
 // running application
-application::run(['__run_only_bootstrap' => 1]);
+Application::run(['__run_only_bootstrap' => 1]);
 
 // increase in memory and unlimited execution time
 ini_set('memory_limit', '2048M');
@@ -68,5 +68,5 @@ error:
 }
 
 // success message
-$seconds = format::time_seconds(microtime(true) - application::get('application.system.request_time'));
+$seconds = Format::time_seconds(microtime(true) - Application::get('application.system.request_time'));
 echo "\nOperation completed in {$seconds} seconds!\n\n";

@@ -54,14 +54,14 @@ class object_widgets {
 	 */
 	public static function enabled($widget) {
 		// check if submodule is enabled
-		$submodule = application::get("flag.global.widgets.{$widget}.submodule");
+		$submodule = Application::get("flag.global.widgets.{$widget}.submodule");
 		if (empty($submodule)) return false;
 		// check if submodule is included
 		$temp = explode('.', $submodule);
 		array_pop($temp);
 		array_unshift($temp, 'submodule');
 		array_unshift($temp, 'dep');
-		if (empty(application::get($temp))) return false;
+		if (empty(Application::get($temp))) return false;
 		return true;
 	}
 }

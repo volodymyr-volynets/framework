@@ -127,7 +127,7 @@ class object_form_wrapper_base extends object_form_parent {
 			$this->master_options['type'] = $this->master_options['type'] ?? '';
 			$this->master_options['ledger'] = strtoupper($this->master_options['ledger']) ?? '';
 			$this->form_object->master_options = $this->master_options;
-			$this->form_object->master_object = factory::model($this->master_options['model'], true);
+			$this->form_object->master_object = Factory::model($this->master_options['model'], true);
 		}
 		// report object
 		// todo		

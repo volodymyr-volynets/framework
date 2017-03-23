@@ -312,7 +312,7 @@ class object_form_base extends object_form_parent {
 		$this->form_link = $form_link . '';
 		$this->options = $options;
 		// overrides from ini files
-		$overrides = application::get('flag.numbers.frontend.html.form');
+		$overrides = Application::get('flag.numbers.frontend.html.form');
 		if (!empty($overrides)) {
 			$this->options = array_merge_hard($this->options, $overrides);
 		}
@@ -695,7 +695,7 @@ class object_form_base extends object_form_parent {
 				$fields = $this->sort_fields_for_processing($v['elements'], $v['options']);
 				// if we have custom data processor
 				if (!empty($v['options']['details_process_widget_data'])) {
-					$widget_model = factory::model($k, true);
+					$widget_model = Factory::model($k, true);
 					$v['validate_required'] = $options['validate_required'] ?? false;
 					$this->values[$k] = $widget_model->process_widget_data($this, [$k], $details, $this->values, $fields, $v);
 					continue;
@@ -839,7 +839,7 @@ class object_form_base extends object_form_parent {
 							$subdetail_fields = $this->sort_fields_for_processing($v0['elements']);
 							// if we have custom data processor
 							if (!empty($v0['options']['details_process_widget_data'])) {
-								$widget_model = factory::model($k0, true);
+								$widget_model = Factory::model($k0, true);
 								$v0['validate_required'] = $options['validate_required'] ?? false;
 								$detail[$k0] = $widget_model->process_widget_data($this, [$k, $k2, $k0], $v2[$k0] ?? [], $detail, $subdetail_fields, $v0);
 								// change detected
@@ -1138,7 +1138,7 @@ class object_form_base extends object_form_parent {
 			if (($this->options['input']['__ajax_form_id'] ?? '') == "form_{$this->form_link}_form") {
 				// it its a call to auto complete
 				if ($this->attributes && !empty($this->options['input']['__ajax_autocomplete']['rn_attrattr_id'])) {
-					return factory::model('numbers_data_relations_model_attribute_form', true)->autocomplete($this, $this->options['input']);
+					return Factory::model('numbers_data_relations_model_attribute_form', true)->autocomplete($this, $this->options['input']);
 				} else if (!empty($this->options['input']['__ajax_autocomplete']['name'])
 					&& !empty($this->fields[$this->options['input']['__ajax_autocomplete']['name']]['options']['method'])
 					&& strpos($this->fields[$this->options['input']['__ajax_autocomplete']['name']]['options']['method'], 'autocomplete') !== false
@@ -1148,9 +1148,9 @@ class object_form_base extends object_form_parent {
 					$options['__ajax_autocomplete'] = $this->options['input']['__ajax_autocomplete'];
 					$temp = explode('::', $this->fields[$this->options['input']['__ajax_autocomplete']['name']]['options']['method']);
 					if (count($temp) == 1) {
-						return html::{$temp[0]}($options);
+						return Html::{$temp[0]}($options);
 					} else {
-						return factory::model($temp[0])->{$temp[1]}($options);
+						return Factory::model($temp[0])->{$temp[1]}($options);
 					}
 				}
 			} else {
@@ -1274,7 +1274,7 @@ class object_form_base extends object_form_parent {
 					 * todo
 					if ($this->save_values() || empty($this->errors['general']['danger'])) {
 						// we need to redirect for certain buttons
-						$mvc = application::get('mvc');
+						$mvc = Application::get('mvc');
 						// save and new
 						if (!empty($this->process_submit[self::button_submit_save_and_new])) {
 							request::redirect($mvc['full']);
@@ -1357,7 +1357,7 @@ convert_multiple_columns:
 		$this->convert_multiple_columns($this->values);
 		// assuming save has been executed without errors we need to process on_success_js
 		if (!$this->has_errors() && !empty($this->options['on_success_js'])) {
-			layout::onload($this->options['on_success_js']);
+			Layout::onload($this->options['on_success_js']);
 		}
 		// we need to hide buttons
 		$this->validate_submit_buttons(['skip_validation' => true]);
@@ -1535,7 +1535,7 @@ convert_multiple_columns:
 		foreach ($this->detail_fields as $k => $v) {
 			if (empty($values[$k]) || !is_array($values[$k])) continue;
 			if (!empty($v['options']['details_convert_multiple_columns'])) {
-				$widget_model = factory::model($k, true);
+				$widget_model = Factory::model($k, true);
 				$widget_model->convert_multiple_columns($this, $values[$k]);
 			} else if (!empty($values[$k])) { // convert fields
 				// 1 to 1
@@ -1566,7 +1566,7 @@ convert_multiple_columns:
 				foreach ($values[$k] as $k11 => $v11) {
 					foreach ($v['subdetails'] as $k0 => $v0) {
 						if (!empty($v0['options']['details_convert_multiple_columns'])) {
-							$widget_model = factory::model($k0, true);
+							$widget_model = Factory::model($k0, true);
 							$widget_model->convert_multiple_columns($this, $values[$k][$k11][$k0]);
 						}
 					}
@@ -1667,7 +1667,7 @@ convert_multiple_columns:
 				if (!empty($buttons_found[$k]) && in_array($k, $not_allowed)) {
 					foreach ($buttons_found[$k] as $v2) {
 						// we disable buttons in test mode
-						if (application::get('flag.numbers.frontend.html.form.show_field_settings')) {
+						if (Application::get('flag.numbers.frontend.html.form.show_field_settings')) {
 							$temp = array_key_get($this->data, $v2['key']);
 							$temp['options']['class'] = ($temp['options']['class'] ?? '') . ' disabled';
 							array_key_set($this->data, $v2['key'], $temp);
@@ -1972,10 +1972,10 @@ convert_multiple_columns:
 		if ($options['type'] == 'tabs' || $options['type'] == 'fields') {
 			$object = & $this->collection_object->primary_model;
 		} else if ($options['type'] == 'subdetails') {
-			$object = factory::model($options['details_parent_key'], true);
+			$object = Factory::model($options['details_parent_key'], true);
 		}
 		if (!empty($object->{$property})) {
-			return factory::model($object->{"{$property}_model"}, true)->process_widget($this, $options);
+			return Factory::model($object->{"{$property}_model"}, true)->process_widget($this, $options);
 		}
 		return false;
 	}
@@ -2037,7 +2037,7 @@ convert_multiple_columns:
 			];
 			// special handling for details
 			if ($type == 'details') {
-				$model = factory::model($options['details_key'], true);
+				$model = Factory::model($options['details_key'], true);
 				// if we have relation
 				if (!empty($model->relation['field']) && !in_array($model->relation['field'], $model->pk)) {
 					$this->element($container_link, $this::hidden, $model->relation['field'], ['label_name' => 'Relation #', 'domain' => 'relation_id_sequence', 'method'=> 'input', 'persistent' => true]);
@@ -2046,7 +2046,7 @@ convert_multiple_columns:
 			if ($type == 'details' || $type == 'subdetails') {
 				// if we have autoincrement
 				if (!empty($options['details_autoincrement'])) {
-					$model = factory::model($options['details_key'], true);
+					$model = Factory::model($options['details_key'], true);
 					foreach ($options['details_autoincrement'] as $v) {
 						$this->element($container_link, $this::hidden, $v, $model->columns[$v]);
 					}
@@ -2170,7 +2170,7 @@ convert_multiple_columns:
 					}
 					// add options model for boolean type
 					if (($options['type'] ?? '') == 'boolean') {
-						if (application::get('flag.numbers.frontend.html.form.revert_inactive') && ($options['label_name'] ?? '') == 'Inactive') {
+						if (Application::get('flag.numbers.frontend.html.form.revert_inactive') && ($options['label_name'] ?? '') == 'Inactive') {
 							$options['label_name'] = 'Active';
 							$options['options_model'] = 'object_data_model_inactive2';
 						} else {
@@ -2180,14 +2180,14 @@ convert_multiple_columns:
 				} else if (($options['type'] ?? '') == 'boolean' && !isset($options['method'])) { // fix boolean type for forms
 					$options['method'] = 'checkbox';
 					// we revert inactive if set
-					if (application::get('flag.numbers.frontend.html.form.revert_inactive') && ($options['label_name'] ?? '') == 'Inactive') {
+					if (Application::get('flag.numbers.frontend.html.form.revert_inactive') && ($options['label_name'] ?? '') == 'Inactive') {
 						$options['label_name'] = 'Active';
 						$options['oposite_checkbox'] = true;
 					}
 				}
 				// validator method for captcha
 				if (($options['method'] ?? '') == 'captcha') {
-					$options['validator_method'] = application::get('flag.numbers.framework.html.captcha.submodule', ['class' => true]) . '::validate';
+					$options['validator_method'] = Application::get('flag.numbers.framework.html.captcha.submodule', ['class' => true]) . '::validate';
 				}
 				// type for buttons
 				if (in_array(($options['method'] ?? ''), ['button', 'button2', 'submit']) && empty($options['type'])) {
@@ -2327,7 +2327,7 @@ convert_multiple_columns:
 			foreach ($sorted as $k => $v) {
 				if (empty($v)) continue;
 				foreach ($v as $k2 => $v2) {
-					$result['message'].= html::text(['tag' => 'div', 'class' => 'numbers_field_error_messages', 'field_value_hash' => $k2, 'type' => $k, 'value' => $v2]);
+					$result['message'].= Html::text(['tag' => 'div', 'class' => 'numbers_field_error_messages', 'field_value_hash' => $k2, 'type' => $k, 'value' => $v2]);
 				}
 			}
 			return $result;
@@ -2388,7 +2388,7 @@ convert_multiple_columns:
 				}
 			}
 		}
-		return html::table($data);
+		return Html::table($data);
 		*/
 	}
 
@@ -2438,7 +2438,7 @@ convert_multiple_columns:
 			$field = str_replace(['parent::', 'static::'], '', $default);
 			$value = $this->values[$field] ?? null;
 		} else {
-			if ($default === 'now()') $default = format::now('timestamp');
+			if ($default === 'now()') $default = Format::now('timestamp');
 			$value = $default;
 		}
 		// handling override_field_value method

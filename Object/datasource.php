@@ -177,11 +177,11 @@ class object_datasource extends object_table_options {
 		if (empty($this->db_link)) {
 			// get from flags first
 			if (!empty($this->db_link_flag)) {
-				$this->db_link = application::get($this->db_link_flag);
+				$this->db_link = Application::get($this->db_link_flag);
 			}
 			// get default link
 			if (empty($this->db_link)) {
-				$this->db_link = application::get('flag.global.default_db_link');
+				$this->db_link = Application::get('flag.global.default_db_link');
 			}
 			// if we could not determine the link we throw exception
 			if (empty($this->db_link)) {

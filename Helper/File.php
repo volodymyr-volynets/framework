@@ -18,7 +18,7 @@ class File {
 	public static function write($filename, $data, $permission = 0777, $flags = LOCK_EX, $relative = true) {
 		// if we have relative path we convert it to full path
 		if ($relative && $filename[0] == '.') {
-			$path = application::get('application.path_full');
+			$path = Application::get('application.path_full');
 			$info = pathinfo($filename);
 			$filename = realpath($path . $info['dirname']) . '/' . $info['basename'];
 		}

@@ -10,7 +10,7 @@ class object_structure_base {
 	 * @return array
 	 */
 	public function settings() {
-		$structure = application::get('application.structure') ?? [];
+		$structure = Application::get('application.structure') ?? [];
 		$result = [];
 		$host_parts = request::host_parts();
 		$validator = new object_validator_domain_part();
@@ -51,7 +51,7 @@ class object_structure_base {
 			$result['tenant']['id'] = (int) $structure['tenant_default_id'];
 		}
 		// put settings back to registry
-		application::set('application.structure.settings', $result);
+		Application::set('application.structure.settings', $result);
 		return $result;
 	}
 
@@ -64,7 +64,7 @@ class object_structure_base {
 		$tenant_datasource_settings = object_acl_resources::get_static('application_structure', 'tenant');
 		if (!empty($tenant_datasource_settings['tenant_datasource'])) {
 			// prepare to query tenant
-			$tenant_input = application::get('application.structure.settings.tenant');
+			$tenant_input = Application::get('application.structure.settings.tenant');
 			$tenant_where = [];
 			if (!empty($tenant_datasource_settings['column_prefix'])) {
 				array_key_prefix_and_suffix($tenant_input, $tenant_datasource_settings['column_prefix']);
@@ -74,7 +74,7 @@ class object_structure_base {
 			$datasource = new $class();
 			$tenant_result = $datasource->get(['where' => $tenant_input, 'single_row' => true]);
 			if (empty($tenant_result)) {
-				$structure = application::get('application.structure') ?? [];
+				$structure = Application::get('application.structure') ?? [];
 				if (!empty($structure['tenant_not_found_url'])) {
 					request::redirect($structure['tenant_not_found_url']);
 				} else {
@@ -84,7 +84,7 @@ class object_structure_base {
 				if (!empty($tenant_datasource_settings['column_prefix'])) {
 					array_key_prefix_and_suffix($tenant_result, $tenant_datasource_settings['column_prefix'], null, true);
 				}
-				application::set('application.structure.settings.tenant', $tenant_result);
+				Application::set('application.structure.settings.tenant', $tenant_result);
 			}
 		}
 	}

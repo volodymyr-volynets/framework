@@ -8,7 +8,7 @@ class object_data_autocomplete_datasource extends object_datasource {
 	public $cache_tags = [];
 	public $cache_memory = false;
 	public function query($options = []) {
-		$model = factory::model($options['model']);
+		$model = Factory::model($options['model']);
 		$db = $model->db_object();
 		$where = '';
 		if (!empty($options['where'])) {

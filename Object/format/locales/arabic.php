@@ -22,6 +22,6 @@ class object_format_locales_arabic {
 				}
 			};
 TTT;
-		layout::onload($js);
+		Layout::onload($js);
 	}
 }

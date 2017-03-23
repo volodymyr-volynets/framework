@@ -366,7 +366,7 @@ run_again:
 			foreach ($virtual_models as $k => $v) {
 				$k2 = str_replace('.', '_', $k);
 				if ($v == 'object_table') {
-					$model = factory::model($k2, true);
+					$model = Factory::model($k2, true);
 					foreach (object_widgets::widget_models as $v0) {
 						if (!empty($model->{$v0})) {
 							$v01 = $v0 . '_model';
@@ -385,7 +385,7 @@ run_again:
 			foreach ($dep['data']['model_processed'] as $k => $v) {
 				$k2 = str_replace('.', '_', $k);
 				if ($v == 'object_table') {
-					$model = factory::model($k2, true);
+					$model = Factory::model($k2, true);
 					// todo: disable non default db links
 					$temp_result = $ddl->process_table_model($model);
 					if (!$temp_result['success']) {
@@ -450,7 +450,7 @@ run_again:
 			}
 
 			// db factory
-			$db_factory = factory::get('db');
+			$db_factory = Factory::get('db');
 
 			// we load objects from database
 			$loaded_objects = [];
@@ -600,7 +600,7 @@ import_data:
 		// relation
 		if ($flag_relation && $options['mode'] == 'commit') {
 			$result['hint'][] = '';
-			$model2 = factory::model('numbers_data_relations_model_relation_attributes');
+			$model2 = Factory::model('numbers_data_relations_model_relation_attributes');
 			// insert new models
 			if (!empty($object_relations)) {
 				foreach ($object_relations as $k => $v) {
@@ -638,7 +638,7 @@ import_data:
 			if (!empty($object_forms)) {
 				// load all relation models
 				$data = $model2->get(['pk' => ['rn_relattr_model']]);
-				$model = factory::model('numbers_data_relations_model_relation_formfields');
+				$model = Factory::model('numbers_data_relations_model_relation_formfields');
 				foreach ($object_forms as $k => $v) {
 					if (empty($data[$v['rn_relfrmfld_relattr_id']])) {
 						continue;
@@ -651,7 +651,7 @@ import_data:
 			// todo: import models   
 			//print_r2($object_attributes);
 			if (!empty($object_attributes)) {
-				$model = factory::model('numbers_data_relations_model_attribute_models');
+				$model = Factory::model('numbers_data_relations_model_attribute_models');
 				foreach ($object_attributes as $k => $v) {
 					$result_insert = $model->save($v, ['pk' => ['rn_attrmdl_code'], 'ignore_not_set_fields' => true]);
 				}
@@ -659,9 +659,9 @@ import_data:
 			}
 		}
 		// we need to generate documentation
-		$system_documentation = application::get('system_documentation');
+		$system_documentation = Application::get('system_documentation');
 		if (!empty($system_documentation) && $options['mode'] == 'commit') {
-			$model = factory::model($system_documentation['model']);
+			$model = Factory::model($system_documentation['model']);
 			/*
 			print_r2($object_documentation);
 			$documentation_result = $model->update($object_documentation, $system_documentation);

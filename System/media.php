@@ -47,7 +47,7 @@ class system_media {
 					header('Content-type: text/css');
 					if (!$flag_scss) {
 						echo file_get_contents($new);
-					} else if (application::get('dep.submodule.numbers.frontend.media.scss')) {
+					} else if (Application::get('dep.submodule.numbers.frontend.media.scss')) {
 						$temp = numbers_frontend_media_scss_base::serve($new);
 						if ($temp['success']) {
 							echo $temp['data'];

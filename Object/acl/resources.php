@@ -43,7 +43,7 @@ class object_acl_resources extends object_override_data {
 				if (!empty($module) && $module != $k2) continue;
 				// if we have datasource
 				if (!empty($v2['datasource'])) {
-					$temp = factory::model($v2['datasource'], true)->get();
+					$temp = Factory::model($v2['datasource'], true)->get();
 					$result = array_merge_hard($result, $temp);
 				} else if (array_key_exists($key, $v2)) {
 					return $v2[$key];
@@ -61,6 +61,6 @@ class object_acl_resources extends object_override_data {
 	 * @see $this::get()
 	 */
 	public static function get_static(string $type = '', string $module = '') {
-		return factory::model(get_called_class())->get($type, $module);
+		return Factory::model(get_called_class())->get($type, $module);
 	}
 }

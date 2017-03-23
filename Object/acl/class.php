@@ -44,7 +44,7 @@ class object_acl_class extends object_override_data {
 		array_key_sort($this->data[$acl_key][$acl_type], ['order' => SORT_ASC], ['order' => SORT_NUMERIC]);
 		// process one by one
 		foreach ($this->data[$acl_key][$acl_type] as $k => $v) {
-			$method = factory::method($v['method'], null, true);
+			$method = Factory::method($v['method'], null, true);
 			$result = $method[0]->{$method[1]}($acl_key, $acl_type, $data, $options);
 			if (!$result) {
 				debug::$data['acls'][$acl_key][$acl_type] = 'Failed';

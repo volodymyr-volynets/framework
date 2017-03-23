@@ -63,7 +63,7 @@ class object_collection extends object_override_data {
 			$this->data = $options['data'];
 		}
 		// primary model & pk
-		$this->primary_model = factory::model($this->data['model']);
+		$this->primary_model = Factory::model($this->data['model']);
 		$this->data['model_object'] = & $this->primary_model;
 		$this->data['serial'] = false;
 		if (empty($this->data['pk'])) {
@@ -234,7 +234,7 @@ class object_collection extends object_override_data {
 			'error' => []
 		];
 		foreach ($details as $k => $v) {
-			$details[$k]['model_object'] = $model = factory::model($k, true);
+			$details[$k]['model_object'] = $model = Factory::model($k, true);
 			$pk = $v['pk'] ?? $model->pk;
 			// generate keys from parent array
 			$keys = [];
@@ -353,7 +353,7 @@ class object_collection extends object_override_data {
 	 */
 	public static function collection_to_model($collection) {
 		if (is_string($collection)) {
-			return factory::model($this->collection);
+			return Factory::model($this->collection);
 		} else if (!empty($collection['model'])) {
 			return new object_collection(['data' => $collection]);
 		} else {
@@ -429,7 +429,7 @@ class object_collection extends object_override_data {
 				}
 			}
 			// compare main row
-			$this->timestamp = format::now('timestamp');
+			$this->timestamp = Format::now('timestamp');
 			$temp = $this->compare_one_row($data, $original, $this->data, [
 				'flag_delete_row' => $options['flag_delete_row'] ?? false,
 				'flag_main_record' => true,
@@ -471,7 +471,7 @@ class object_collection extends object_override_data {
 					}
 				}
 				// merge
-				$temp2 = factory::model($this->primary_model->audit_model, true)->merge($temp['data']['audit'], ['changes' => $temp['data']['total']]);
+				$temp2 = Factory::model($this->primary_model->audit_model, true)->merge($temp['data']['audit'], ['changes' => $temp['data']['total']]);
 				if (!$temp2['success']) {
 					$result['error'] = array_merge($result['error'], $temp2['error']);
 					break;
@@ -687,7 +687,7 @@ error:
 		if (!empty($collection['details'])) {
 			foreach ($collection['details'] as $k => $v) {
 				// create new object
-				$v['model_object'] = factory::model($k, true);
+				$v['model_object'] = Factory::model($k, true);
 				if ($v['type'] == '11') {
 					$details_result = $this->compare_one_row($data_row[$k] ?? [], $original_row[$k] ?? [], $v, [
 						'flag_delete_row' => !empty($delete)

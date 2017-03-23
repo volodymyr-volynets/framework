@@ -121,7 +121,7 @@ class object_data_common {
 			if ($model == 'this' && !empty($existing_object)) {
 				$object = $existing_object;
 			} else {
-				$object = factory::model($model, true);
+				$object = Factory::model($model, true);
 			}
 			self::$cached_options[$hash] = $object->{$method}($options);
 			return self::$cached_options[$hash];
@@ -149,7 +149,7 @@ class object_data_common {
 				}
 				if (!empty($v['format'])) {
 					$format[$k] = $v;
-					$format_methods[$k] = factory::method($v['format'], 'format');
+					$format_methods[$k] = Factory::method($v['format'], 'format');
 				}
 			} else {
 				$options_map_new[$k] = $v;
@@ -189,7 +189,7 @@ class object_data_common {
 		$data = remap($data, $options_map_new);
 		foreach ($data as $k => $v) {
 			if (!empty($v['icon_class'])) {
-				$data[$k]['icon_class'] = html::icon(['type' => $v['icon_class'], 'class_only' => true]);
+				$data[$k]['icon_class'] = Html::icon(['type' => $v['icon_class'], 'class_only' => true]);
 			}
 		}
 		return $data;
@@ -354,7 +354,7 @@ class object_data_common {
 					// icon
 					$temp_result['icon_class'] = null;
 					if (isset($optmultis_map[$v2]['icon_column']) && !empty($v[$optmultis_map[$v2]['icon_column']])) {
-						$temp_result['icon_class'] = html::icon(['type' => $v[$optmultis_map[$v2]['icon_column']], 'class_only' => true]);
+						$temp_result['icon_class'] = Html::icon(['type' => $v[$optmultis_map[$v2]['icon_column']], 'class_only' => true]);
 					}
 					// only this value flag
 					if (!empty($optmultis_map[$v2]['only_this_value'])) {

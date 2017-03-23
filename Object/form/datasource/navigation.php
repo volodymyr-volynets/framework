@@ -27,7 +27,7 @@ class object_form_datasource_navigation extends object_datasource {
 	];
 
 	public function query($parameters, $options = []) {
-		$model = factory::model($parameters['model'], true);
+		$model = Factory::model($parameters['model'], true);
 		$this->db_link = $model->db_link;
 		//$this->pk = $parameters['pk'];
 		$column = $parameters['column'];

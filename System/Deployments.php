@@ -45,7 +45,7 @@ class System_Deployments {
 			// js, css, scss, files here
 			$files_to_copy = [];
 			$process_extensions = ['js', 'css'];
-			if (application::get('dep.submodule.numbers.frontend.media.scss')) {
+			if (Application::get('dep.submodule.numbers.frontend.media.scss')) {
 				$process_extensions[] = 'scss';
 			}
 			$iterator = new RecursiveIteratorIterator(
@@ -110,7 +110,7 @@ class System_Deployments {
 						$copy_to = $media_dir_submodule . $v2['destination'];
 						if ($k == 'js' || $k == 'css') {
 							Helper_File::copy($copy_from, $copy_to);
-						} else if ($k == 'scss' && application::get('dep.submodule.numbers.frontend.media.scss')) {
+						} else if ($k == 'scss' && Application::get('dep.submodule.numbers.frontend.media.scss')) {
 							// we need to process scss
 							$temp = numbers_frontend_media_scss_base::serve($copy_from);
 							if ($temp['success']) {

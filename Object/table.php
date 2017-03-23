@@ -318,11 +318,11 @@ class object_table extends object_table_options {
 		if (empty($this->db_link)) {
 			// get from flags first
 			if (!empty($this->db_link_flag)) {
-				$this->db_link = application::get($this->db_link_flag);
+				$this->db_link = Application::get($this->db_link_flag);
 			}
 			// get default link
 			if (empty($this->db_link)) {
-				$this->db_link = application::get('flag.global.default_db_link');
+				$this->db_link = Application::get('flag.global.default_db_link');
 			}
 			// if we could not determine the link we throw exception
 			if (empty($this->db_link)) {
@@ -398,7 +398,7 @@ class object_table extends object_table_options {
 	public function process_who_columns($types, & $row, $timestamp = null) {
 		if ($types === 'all') $types = array_keys($this->who);
 		if (!is_array($types)) $types = [$types];
-		if (empty($timestamp)) $timestamp = format::now('timestamp');
+		if (empty($timestamp)) $timestamp = Format::now('timestamp');
 		foreach ($types as $type) {
 			if (!empty($this->who[$type])) {
 				// timestamp
@@ -423,7 +423,7 @@ class object_table extends object_table_options {
 	 */
 	final public function determine_model_map($class, $widget_name) {
 		$this->virtual_class_name = $class . '__virtual__' . $widget_name;
-		$model = factory::model($class, true);
+		$model = Factory::model($class, true);
 		if (empty($model->{$widget_name}) || empty($model->{$widget_name}['map'])) {
 			Throw new Exception("You must indicate {$widget_name} for {$class} map!");
 		}
@@ -500,7 +500,7 @@ class object_table extends object_table_options {
 		// handle acl init
 		if (!empty($options['acl'])) {
 			$acl_key = get_called_class();
-			if (factory::model('object_acl_class', true)->acl_init($acl_key, $data, $this->acl_get_options) === false) {
+			if (Factory::model('object_acl_class', true)->acl_init($acl_key, $data, $this->acl_get_options) === false) {
 				return $data;
 			}
 			$options = $this->acl_get_options;
@@ -580,7 +580,7 @@ class object_table extends object_table_options {
 		}
 		// handle acl init
 		if (!empty($options['acl'])) {
-			if (factory::model('object_acl_class', true)->acl_finish($acl_key, $data, $this->acl_get_options) === false) {
+			if (Factory::model('object_acl_class', true)->acl_finish($acl_key, $data, $this->acl_get_options) === false) {
 				return $data;
 			}
 		}

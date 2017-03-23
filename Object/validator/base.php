@@ -34,10 +34,10 @@ abstract class object_validator_base {
 	 * @return array
 	 */
 	public static function method($method, $value, $params = [], $options = [], $neighbouring_values = []) {
-		$method = factory::method($method);
+		$method = Factory::method($method);
 		$params = $params ?? [];
 		$params['options'] = $options;
 		$params['neighbouring_values'] = $neighbouring_values;
-		return factory::model($method[0], true)->{$method[1]}($value, $params);
+		return Factory::model($method[0], true)->{$method[1]}($value, $params);
 	}
 }

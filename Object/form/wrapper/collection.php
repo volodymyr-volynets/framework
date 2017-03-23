@@ -236,7 +236,7 @@ abstract class object_form_wrapper_collection {
 					$model_options['form_link'] = $form_k;
 					// input
 					$model_options['input'] = $this->values;
-					$model = factory::model($class, false, [$model_options]);
+					$model = Factory::model($class, false, [$model_options]);
 					// render to grid
 					$result[$index]['grid']['options'][$row_k][$form_k][$form_k] = [
 						'value' => $model->render(),
@@ -254,7 +254,7 @@ abstract class object_form_wrapper_collection {
 					$this->current_tab[] = "{$tab_id}_{$form_k}";
 					$labels = '';
 					foreach (['records', 'danger', 'warning', 'success', 'info'] as $v78) {
-						$labels.= html::label2(['type' => ($v78 == 'records' ? 'primary' : $v78), 'style' => 'display: none;', 'value' => 0, 'id' => implode('__', $this->current_tab) . '__' . $v78]);
+						$labels.= Html::label2(['type' => ($v78 == 'records' ? 'primary' : $v78), 'style' => 'display: none;', 'value' => 0, 'id' => implode('__', $this->current_tab) . '__' . $v78]);
 					}
 					$tab_header[$form_k] = i18n(null, $form_v['options']['label_name']) . $labels;
 					$tab_values[$form_k] = 'test tab';
@@ -266,7 +266,7 @@ abstract class object_form_wrapper_collection {
 				}
 				// if we do not have tabs
 				if ($have_tabs) {
-					$result[$index]['html'] = html::tabs([
+					$result[$index]['html'] = Html::tabs([
 						'id' => $tab_id,
 						'header' => $tab_header,
 						'options' => $tab_values,
@@ -276,17 +276,17 @@ abstract class object_form_wrapper_collection {
 			}
 		}
 		// todo handle separator
-		//$result[] = html::separator(['value' => $v2['separator']['title'], 'icon' => $v2['separator']['icon'] ?? '']);
+		//$result[] = Html::separator(['value' => $v2['separator']['title'], 'icon' => $v2['separator']['icon'] ?? '']);
 		$html = '';
 		foreach ($result as $k => $v) {
 			if (!empty($v['grid'])) {
-				$temp = html::grid($v['grid']);
+				$temp = Html::grid($v['grid']);
 			} else {
 				$temp = $v['html'] ?? '';
 			}
 			if (!empty($v['segment'])) {
 				$v['segment']['value'] = $temp;
-				$temp = html::segment($v['segment']);
+				$temp = Html::segment($v['segment']);
 			}
 			$html.= $temp;
 		}

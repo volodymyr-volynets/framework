@@ -1,6 +1,6 @@
 <?php
 
-namespace Object_Override;
+namespace Object\Override;
 class Data {
 
 	/**

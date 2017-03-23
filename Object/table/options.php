@@ -1,6 +1,7 @@
 <?php
 
-class object_table_options extends object_override_data {
+namespace Object\Table;
+class Options extends \Object\Override\Data {
 
 	/**
 	 * Column prefix

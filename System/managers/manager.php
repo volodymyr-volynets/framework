@@ -397,7 +397,7 @@ reask_for_migration:
 			if ($mode == 'drop') {
 reset_all_caches:
 				// initialize caches
-				$cache = application::get('cache');
+				$cache = Application::get('cache');
 				if (!empty($cache)) {
 					foreach ($cache as $cache_link => $cache_settings) {
 						if (empty($cache_settings['submodule']) || empty($cache_settings['autoconnect'])) continue;
@@ -408,7 +408,7 @@ reset_all_caches:
 					}
 				}
 				// reset opened caches
-				$cache = factory::get(['cache']);
+				$cache = Factory::get(['cache']);
 				if (!empty($cache)) {
 					foreach ($cache as $k => $v) {
 						$object = $v['object'];
@@ -443,5 +443,5 @@ error:
 }
 
 // success message
-$seconds = format::time_seconds(microtime(true) - application::get('application.system.request_time'));
+$seconds = Format::time_seconds(microtime(true) - Application::get('application.system.request_time'));
 echo "\nOperation \"$type\" with mode \"$mode\" completed in {$seconds} seconds!\n\n";

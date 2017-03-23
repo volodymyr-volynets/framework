@@ -99,12 +99,12 @@ class Application {
 		$paths = [];
 		$paths[] = $application_path_full;
 		$paths[] = __DIR__;
-		$paths[] = str_replace('/numbers/framework', '', __DIR__);
+		//$paths[] = str_replace('/numbers/framework', '', __DIR__);
 		set_include_path(implode(PATH_SEPARATOR, $paths));
 		// support functions
-		require("functions.php");
+		require('Functions.php');
 		// load ini settings
-		self::$settings = system_config::load($ini_folder);
+		self::$settings = System\Config::load($ini_folder);
 		self::$settings['application']['system']['request_time'] = $application_request_time;
 		// special handling of media files for development, so there's no need to redeploy application
 		if (self::$settings['environment'] == 'development' && isset($_SERVER['REQUEST_URI'])) {
@@ -148,9 +148,9 @@ class Application {
 		// Destructor
 		register_shutdown_function(array('bootstrap', 'destroy'));
 		// error handler first
-		error_base::init();
+		Object_Error_Base::init();
 		// debug after error handler
-		debug::init(self::get('debug'));
+		Debug::init(self::get('debug'));
 		// Bootstrap Class
 		$bootstrap = new bootstrap();
 		$bootstrap_methods = get_class_methods($bootstrap);
@@ -215,30 +215,7 @@ class Application {
 		}
 		// we need to check if we have customization for classes, we only allow 
 		// customizaton for models and controllers
-		$file = str_replace('_', DIRECTORY_SEPARATOR, $class) . '.php';
-		/* todo: refactor later
-		if (strpos($class, 'model_') !== false || strpos($class, 'controller_') !== false) {
-			// todo: refactor code here
-			$company_id = session::get('company_id');
-			if (!empty($company_id)) {
-				$custom_file = self::$settings['application']['path'] . 'custom/'  . $company_id . '/' . str_replace('_', DIRECTORY_SEPARATOR, $class) . '.php';
-				$cached_file = self::$settings['application']['path'] . 'cache/custom/' . $company_id . '/'  . str_replace('_', DIRECTORY_SEPARATOR, $class) . '.php';
-				$cached_dir = pathinfo($cached_file, PATHINFO_DIRNAME);
-
-				// if we have custom file
-				if (file_exists($custom_file)) {
-					// generate cached version of the file
-					if (!file_exists($cached_file)) {
-						$content = file_get_contents($file);
-						$content = str_replace('class ' . $class . ' {', 'class cache_custom_' . $company_id . '_' . $class . ' {', $content);
-						if (!file_exists($cached_dir)) file::mkdir($cached_dir);
-						file::write($cached_file, $content, 0777);
-					}
-					$file = $custom_file;
-				}
-			}
-		}
-		*/
+		$file = str_replace(['_', '\\'], DIRECTORY_SEPARATOR, $class) . '.php';
 		// we need to store class path so we can load js, css and scss files
 		self::$settings['application']['loaded_classes'][$class] = [
 			'class' => $class,
@@ -246,7 +223,7 @@ class Application {
 			'media' => []
 		];
 		// debuging
-		if (class_exists('debug', false) && debug::$debug) {
+		if (class_exists('Debug', false) && Debug::$debug) {
 			debug::$data['classes'][] = ['class' => $class, 'file' => $file];
 		}
 		require_once($file);
@@ -369,7 +346,7 @@ class Application {
 		self::$settings['mvc']['controller_view'] = $data['action'];
 		self::$settings['mvc']['controller_layout'] = self::$settings['application']['layout']['layout'] ?? 'index';
 		self::$settings['mvc']['controller_layout_extension'] = (self::$settings['application']['layout']['extension'] ?? 'html');
-		self::$settings['mvc']['controller_layout_file'] = application::get(['application', 'path_full']) . 'layout/' . self::$settings['mvc']['controller_layout'] . '.' . self::$settings['mvc']['controller_layout_extension'];
+		self::$settings['mvc']['controller_layout_file'] = Application::get(['application', 'path_full']) . 'layout/' . self::$settings['mvc']['controller_layout'] . '.' . self::$settings['mvc']['controller_layout_extension'];
 		self::$settings['mvc']['controller_file'] = $file;
 	}
 
@@ -380,7 +357,7 @@ class Application {
 	 */
 	public static function process($options = []) {
 		// start buffering
-		helper_ob::start(true);
+		Helper_Ob::start(true);
 		$controller_class = self::$settings['mvc']['controller_class'];
 		// if we are handling error message and controller class has not been loaded
 		if ($controller_class == 'controller_error' && error_base::$flag_error_already && !class_exists('controller_error')) {
@@ -437,24 +414,24 @@ class Application {
 			}
 		}
 		// autoloading media files
-		layout::include_media($controller_dir, $controller_file, $view, $controller_class);
+		Layout::include_media($controller_dir, $controller_file, $view, $controller_class);
 		// appending view after controllers output
-		self::$controller->view = (self::$controller->view ?? '') . helper_ob::clean();
+		self::$controller->view = (self::$controller->view ?? '') . Helper_Ob::clean();
 		// if we have to render debug toolbar
 		if (debug::$toolbar) {
-			helper_ob::start();
+			Helper_Ob::start();
 		}
 		// call pre rendering method in bootstrap
 		bootstrap::pre_render();
 		// rendering layout
 		$__skip_layout = self::get('flag.global.__skip_layout');
 		if (!empty(self::$settings['mvc']['controller_layout']) && empty($__skip_layout)) {
-			helper_ob::start();
+			Helper_Ob::start();
 			if (file_exists(self::$settings['mvc']['controller_layout_file'])) {
 				self::$controller = new layout(self::$controller, self::$settings['mvc']['controller_layout_file'], self::$settings['mvc']['controller_layout_extension']);
 			}
 			// session expiry dialog before replaces
-			session::expiry_dialog();
+			Session::expiry_dialog();
 			// buffer output and handling javascript files, chicken and egg problem
 			$from = [
 				'<!-- [numbers: messages] -->',
@@ -469,24 +446,24 @@ class Application {
 				'<!-- [numbers: layout onhtml] -->'
 			];
 			$to = [
-				layout::render_messages(),
-				layout::render_title(),
-				layout::render_document_title(),
-				layout::render_actions(),
-				layout::render_breadcrumbs(),
-				layout::render_js(),
-				layout::render_js_data(),
-				layout::render_css(),
-				layout::render_onload(),
-				layout::$onhtml
+				Layout::render_messages(),
+				Layout::render_title(),
+				Layout::render_document_title(),
+				Layout::render_actions(),
+				Layout::render_breadcrumbs(),
+				Layout::render_js(),
+				Layout::render_js_data(),
+				Layout::render_css(),
+				Layout::render_onload(),
+				Layout::$onhtml
 			];
-			echo str_replace($from, $to, helper_ob::clean());
+			echo str_replace($from, $to, Helper_Ob::clean());
 		} else {
 			echo self::$controller->view;
 		}
 		// ajax calls that has not been processed by application
 		if (self::get('flag.global.__ajax')) {
-			layout::render_as(['success' => false, 'error' => [i18n(null, 'Could not process ajax call!')]], 'application/json');
+			Layout::render_as(['success' => false, 'error' => [i18n(null, 'Could not process ajax call!')]], 'application/json');
 		}
 	}
 
