@@ -9,6 +9,12 @@ class Bootstrap {
 		// initialize mbstring
 		mb_internal_encoding('UTF-8');
 		mb_regex_encoding('UTF-8');
+		// if we are from command line we exit here
+		if (!empty($options['__run_only_bootstrap'])) {
+			// format
+			Format::init();
+			return;
+		}
 		// get flags & dependencies
 		$flags = Application::get('flag');
 		$backend = Application::get('Numbers.Backend', ['backend_exists' => true]);
@@ -20,12 +26,6 @@ class Bootstrap {
 					$crypt_object = new crypt($crypt_link, $crypt_settings['submodule'], $crypt_settings);
 				}
 			}
-		}
-		// if we are from command line we exit here
-		if (!empty($options['__run_only_bootstrap'])) {
-			// format
-			Format::init();
-			return;
 		}
 		// including libraries that we need to auto include
 		if (!empty($flags['global']['library'])) {
