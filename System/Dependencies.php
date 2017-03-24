@@ -311,6 +311,18 @@ class Dependencies {
 			}
 			// updating composer.json file
 			if ($options['mode'] == 'commit') {
+				$composer_data['extra'] = [
+					'installer-types' => ['library'],
+					'installer-paths' => []
+				];
+				foreach ($composer_data['require'] as $k => $v) {
+					if (strpos($k, 'Numbers') !== false) {
+						$composer_data['extra']['installer-paths']["vendor/{$k}/"] = [strtolower($k)];
+						unset($composer_data['require'][$k]);
+						$composer_data['require'][strtolower($k)] = $v;
+					}
+				}
+				$composer_data['require']['oomphinc/composer-installers-extender'] = '~1.0';
 				\Helper\File::write('../libraries/composer.json', json_encode($composer_data, JSON_PRETTY_PRINT));
 			}
 			// assinging variables to return to the caller
