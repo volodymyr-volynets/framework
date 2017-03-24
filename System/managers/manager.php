@@ -421,7 +421,7 @@ reset_all_caches:
 		// dependencies - mode: test, commit
 		case 'dependency':
 		default:
-			$result = \System\Dependencies::processDepsAll(['mode' => $mode]);
+			$result = \System\Dependencies::processDepsAll(['mode' => $mode, 'skip_confirmation' => $skip_confirmation]);
 			if ($result['success']) {
 				echo "\n" . \Helper\Cmd::colorString('Dependency is OK', 'green', null, true) . "\n\n";
 			}

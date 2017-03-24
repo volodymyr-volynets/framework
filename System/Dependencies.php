@@ -140,10 +140,12 @@ class Dependencies {
 				}
 			}
 			// processing composer
-			if (!empty($composer_data['require'])) {
-				foreach ($composer_data['require'] as $k => $v) {
-					if (!file_exists('../libraries/vendor/' . $k)) {
-						$result['error'][] = " - Composer library \"$k\" is not loaded!";
+			if (empty($options['skip_confirmation'])) {
+				if (!empty($composer_data['require'])) {
+					foreach ($composer_data['require'] as $k => $v) {
+						if (!file_exists('../libraries/vendor/' . $k)) {
+							$result['error'][] = " - Composer library \"$k\" is not loaded!";
+						}
 					}
 				}
 			}
