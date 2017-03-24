@@ -12,7 +12,7 @@ class Application {
 	/**
 	 * Controller
 	 *
-	 * @var \object_controller
+	 * @var \\Object\Controller
 	 */
 	public static $controller;
 
@@ -43,12 +43,6 @@ class Application {
 		}
 		// get data from settings
 		$result = array_key_get(self::$settings, $key);
-		// decrypting certain columns
-		/* todo: maybe this is not needed at all
-		if (!empty($options['decrypt_keys'])) {
-			array_walk_recursive($result, create_function('&$v, $k, $fn', 'if (in_array($k, $fn)) $v = Crypt::static_decrypt($v);'), $options['decrypt_keys']);
-		}
-		*/
 		// submodule exists
 		if (!empty($options['submodule_exists'])) {
 			$temp = explode('.', $result);
@@ -60,7 +54,7 @@ class Application {
 		}
 		// if we need to fix class name
 		if (!empty($options['class'])) {
-			$result = str_replace('.', '_', $result);
+			$result = str_replace('.', '\\', $result);
 		}
 		return $result;
 	}

@@ -1,6 +1,7 @@
 <?php
 
-class object_controller_permission extends object_controller {
+namespace Object\Controller;
+class Permission extends \Object\Controller {
 
 	/**
 	 * Acl settings

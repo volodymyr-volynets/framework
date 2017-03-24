@@ -430,9 +430,9 @@ class Debug {
 				$result.= '<tr id="debuging_toolbar_phpinfo" class="debuging_toolbar_class" style="display: none;">';
 					$result.= '<td>';
 						$result.= '<h3>PHPInfo</h3>';
-						Helper_Ob::start();
+						\Helper\Ob::start();
 						phpinfo();
-						$str = Helper_Ob::clean();
+						$str = \Helper\Ob::clean();
 						$str = preg_replace( '%^.*<body>(.*)</body>.*$%ms', '$1', $str);
 						$str.= <<<TTT
 							<style type="text/css">

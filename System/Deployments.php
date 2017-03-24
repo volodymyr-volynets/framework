@@ -1,6 +1,7 @@
 <?php
 
-class System_Deployments {
+namespace System;
+class Deployments {
 
 	/**
 	 * Deploy application
@@ -20,7 +21,7 @@ class System_Deployments {
 			$code_dir = $temp . '/../../application';
 			// for development we handle deployment differently, just symlink to the code
 			if ($options['mode'] == 'development') {
-				Helper_File::delete($deployed_dir);
+				\Helper\File::delete($deployed_dir);
 				symlink($code_dir, $deployed_dir);
 				$result['success'] = true;
 				break;
@@ -31,25 +32,23 @@ class System_Deployments {
 			$dep_id = 'build.' . $time . '.' . rand(100, 999);
 			$dep_dir = $all_deps_dir . '/' . $dep_id;
 			$media_dir = $dep_dir . '/public_html/numbers';
-			if (Helper_File::mkdir($dep_dir, 0777) === false) {
+			if (\Helper\File::mkdir($dep_dir, 0777) === false) {
 				$result['error'][] = ' - unable to create new deployment directory ' . $dep_dir;
 				break;
 			}
 			// copying code repository
-			Helper_File::copy($code_dir, $dep_dir);
-			// removing what we do not want to have
-			$dels = ['.git', 'Makefile'];
-			foreach ($dels as $v) {
-				Helper_File::delete("$dep_dir/$v");
+			if (!\Helper\File::copy($code_dir, $dep_dir, ['skip_files' => ['.git', 'Makefile', '.gitignore']])) {
+				$result['error'][] = ' - unable to copy code!';
+				break;
 			}
 			// js, css, scss, files here
 			$files_to_copy = [];
 			$process_extensions = ['js', 'css'];
-			if (Application::get('dep.submodule.numbers.frontend.media.scss')) {
+			if (\Application::get('dep.submodule.numbers.frontend.media.scss')) {
 				$process_extensions[] = 'scss';
 			}
-			$iterator = new RecursiveIteratorIterator(
-				new RecursiveDirectoryIterator($dep_dir)
+			$iterator = new \RecursiveIteratorIterator(
+				new \RecursiveDirectoryIterator($dep_dir)
 			);
 			foreach ($iterator as $filename => $cur) {
 				$extension = $cur->getExtension();
@@ -64,20 +63,20 @@ class System_Deployments {
 			// create media directory
 			$media_dir_full = $media_dir . '/media_generated';
 			if (!empty($files_to_copy['js']) || !empty($files_to_copy['css']) || !empty($files_to_copy['scss'])) {
-				Helper_File::mkdir($media_dir_full, 0777);
+				\Helper\File::mkdir($media_dir_full, 0777);
 			}
 			// coping javescript files
 			if (!empty($files_to_copy['js'])) {
 				foreach ($files_to_copy['js'] as $k => $v) {
 					$newname = ltrim(str_replace('/', '_', $k), '_');
-					Helper_File::copy($v, "$media_dir_full/$newname");
+					\Helper\File::copy($v, "$media_dir_full/$newname");
 				}
 			}
 			// coping css files
 			if (!empty($files_to_copy['css'])) {
 				foreach ($files_to_copy['css'] as $k => $v) {
 					$newname = ltrim(str_replace('/', '_', $k), '_');
-					Helper_File::copy($v, "$media_dir_full/$newname");
+					\Helper\File::copy($v, "$media_dir_full/$newname");
 				}
 			}
 			// coping scss files
@@ -92,11 +91,11 @@ class System_Deployments {
 				}
 			}
 			// we need to load media from dependencies
-			$result = system_dependencies::process_deps_all(['mode' => 'test']);
+			$result = \System\Dependencies::processDepsAll(['mode' => 'test']);
 			// copying js, css & scss files
 			$media_dir_submodule = $dep_dir . '/public_html';
 			if (!empty($result['data']['media'])) {
-				Helper_File::mkdir($media_dir_submodule . '/numbers/media_submodules', 0777);
+				\Helper\File::mkdir($media_dir_submodule . '/numbers/media_submodules', 0777);
 				foreach ($result['data']['media'] as $k => $v) {
 					if (!in_array($k, ['js', 'css', 'scss'])) {
 						continue;
@@ -109,8 +108,9 @@ class System_Deployments {
 						$copy_from = $dep_dir . '/libraries/vendor' . $v2['origin'];
 						$copy_to = $media_dir_submodule . $v2['destination'];
 						if ($k == 'js' || $k == 'css') {
-							Helper_File::copy($copy_from, $copy_to);
+							\Helper\File::copy($copy_from, $copy_to);
 						} else if ($k == 'scss' && Application::get('dep.submodule.numbers.frontend.media.scss')) {
+							// todo
 							// we need to process scss
 							$temp = numbers_frontend_media_scss_base::serve($copy_from);
 							if ($temp['success']) {
@@ -121,14 +121,14 @@ class System_Deployments {
 				}
 			}
 			// setting permissions
-			Helper_File::chmod($dep_dir, 0777);
+			\Helper\File::chmod($dep_dir, 0777);
 			// now we need to create a symlink
 			if (file_exists($deployed_dir)) {
-				Helper_File::delete($deployed_dir);
+				\Helper\File::delete($deployed_dir);
 			}
 			symlink($dep_dir, $deployed_dir);
 			// cleanup older deployments,older than 5 days
-			$iterator = new DirectoryIterator($all_deps_dir);
+			$iterator = new \DirectoryIterator($all_deps_dir);
 			foreach ($iterator as $filedir => $fileinfo) {
 				if ($fileinfo->isDir()) {
 					$filename = $fileinfo->getFilename();
@@ -137,7 +137,7 @@ class System_Deployments {
 					if (strpos($filename, 'build.') === 0) {
 						if ($time - $fileinfo->getMTime() > 259200) {
 							$temp = $fileinfo->getPathname();
-							Helper_File::delete($temp);
+							\Helper\File::delete($temp);
 						}
 					}
 				}

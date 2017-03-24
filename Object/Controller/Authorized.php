@@ -1,6 +1,7 @@
 <?php
 
-class object_controller_authorized extends object_controller {
+namespace Object\Controller;
+class Authorized extends \Object\Controller {
 
 	/**
 	 * Acl settings

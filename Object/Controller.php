@@ -1,6 +1,7 @@
 <?php
 
-class object_controller {
+namespace Object;
+class Controller {
 
 	/**
 	 * Title

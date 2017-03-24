@@ -203,7 +203,7 @@ class Bootstrap {
 			}
 		}
 		// emails with erros
-		if (debug::$debug && !empty(debug::$email)) {
+		if (debug::$debug && !empty(debug::$email) && Application::get('Numbers.Backend', ['backend_exists' => true]) && Application::get('Numbers.Frontend', ['backend_exists' => true])) {
 			debug::sendErrorsToAdmin();
 		}
 	}

@@ -1,6 +1,7 @@
 <?php
 
-class object_controller_public extends object_controller {
+namespace Object\Controller;
+class Public2 extends \Object\Controller {
 
 	/**
 	 * Acl settings

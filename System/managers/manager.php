@@ -43,7 +43,7 @@ try {
 	switch ($type) {
 		// deployment, mode: production, development
 		case 'deployment':
-			$result = system_deployments::deploy(['mode' => $mode]);
+			$result = \System\Deployments::deploy(['mode' => $mode]);
 			break;
 		// migration - code, mode: test, commit, drop
 		case 'migration_code':

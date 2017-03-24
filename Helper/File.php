@@ -20,7 +20,7 @@ class File {
 		if ($relative && $filename[0] == '.') {
 			$path = \Application::get('application.path_full');
 			$info = pathinfo($filename);
-			$filename = realpath($path . $info['dirname']) . '/' . $info['basename'];
+			$filename = realpath($path . $info['dirname']) . DIRECTORY_SEPARATOR . $info['basename'];
 		}
 		// write file
 		if (file_put_contents($filename, $data, $flags) !== false) {
@@ -48,7 +48,7 @@ class File {
 	 * @return boolean
 	 */
 	public static function mkdir($dir, $permission = 0777) {
-		return @mkdir($dir, $permission, true);
+		return mkdir($dir, $permission, true);
 	}
 
 	/**
@@ -72,11 +72,7 @@ class File {
 			$objects = scandir($dir);
 			foreach ($objects as $v) {
 				if (!in_array($v, $skip_files)) {
-					if (filetype($dir . '/' . $v) == 'dir') {
-						self::delete($dir . '/' . $v, $options);
-					} else {
-						unlink($dir . '/' . $v);
-					}
+					if (!self::delete($dir . DIRECTORY_SEPARATOR . $v, $options)) return false;
 				}
 			}
 			if (empty($options['only_contents'])) {
@@ -136,14 +132,12 @@ class File {
 	public static function copy(string $source, string $destination, array $options = []) : bool {
 		if (is_dir($source)) {
 			$dir = opendir($source);
-			self::mkdir($destination);
+			if (!file_exists($destination)) {
+				if (!self::mkdir($destination)) return false;
+			}
 			while (($file = readdir($dir)) !== false) {
-				if ($file != '.' && $file != '..') {
-					if (is_dir($source . '/' . $file)) {
-						self::copy($source . '/' . $file, $destination . '/' . $file);
-					} else {
-						copy($source . '/' . $file, $destination . '/' . $file);
-					}
+				if ($file != '.' && $file != '..' && (empty($options['skip_files']) || (!empty($options['skip_files']) && !in_array($file, $options['skip_files'])))) {
+					if (!self::copy($source . DIRECTORY_SEPARATOR . $file, $destination . DIRECTORY_SEPARATOR . $file, $options)) return false;
 				}
 			}
 			closedir($dir);
@@ -165,11 +159,7 @@ class File {
 			$dir = opendir($dir_or_file);
 			while (($file = readdir($dir)) !== false) {
 				if ($file != '.' && $file != '..') {
-					if (is_dir($dir_or_file . '/' . $file)) {
-						self::chmod($dir_or_file . '/' . $file, $permission);
-					} else {
-						chmod($dir_or_file . '/' . $file, $permission);
-					}
+					if (!self::chmod($dir_or_file . DIRECTORY_SEPARATOR . $file, $permission)) return false;
 				}
 			}
 			closedir($dir);
@@ -179,73 +169,3 @@ class File {
 		}
 	}
 }
-
-/*
-todo - move to document upload module
-public static $extensions = array('gif','jpg','jpeg','tiff','png','doc','docx','xls','xlsx','pdf');
-public static $extensions_for_thumbnails = array('jpg','jpeg','png', 'gif');
-
-	 * Upload file to the server
-	 * 
-	 * @param string $fid
-	 * @param string $file_name
-	 * @param string $path
-	 * @param array $extensions
-	 * @return array
-	public static function upload($fid, $file_name, $path, $extensions = array()) {
-		global $_FILES;
-		$result = array(
-			'error'=>array(),
-			'success'=>false,
-			'file_name_safe' => '',
-			'file_name_full' => '',
-			'size' => '',
-			'type' => '',
-			'name' => '',
-		);
-		$file_upload_valid_extensions = !empty($extensions) ? $extensions : self::$extensions;
-		$file_error_types = array(
-			1=>'The uploaded file exceeds the upload_max_filesize directive in php.ini.',
-			2=>'The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form.',
-			3=>'The uploaded file was only partially uploaded.',
-			4=>'No file was uploaded.',
-			6=>'Missing a temporary folder.',
-			7=>'Failed to write file to disk.',
-			8=>'A PHP extension stopped the file upload.',
-		);
-		do {
-			if (!is_uploaded_file(@$_FILES[$fid]['tmp_name']) || @$_FILES[$fid]['size'] == 0) {
-				$result['error'][] = 'Error occured when uploading file!';
-				break;
-			}
-			if ($_FILES[$fid]['error']) {
-				$result['error'][] = $file_error_types[$_FILES[$fid]['error']];
-				break;
-			}
-			$file_extension = pathinfo($_FILES[$fid]['name'], PATHINFO_EXTENSION);
-			if (!in_array(strtolower($file_extension), $file_upload_valid_extensions) && !in_array('*.*', $file_upload_valid_extensions)) {
-				$result['error'][] = 'You can not upload files with extension';
-				break;
-			}
-			//$result['file_name'] = !empty($file_name) ? $file_name : trim($_FILES[$fid]['name']);
-			$result['file_name_safe'] = strtolower(!empty($file_name) ? $file_name : preg_replace(array('/\s+/', '/[^-\.\w]+/'), array('_', ''), trim($_FILES[$fid]['name'])));
-			$result['file_name_full'] = $path ? ($path . '/' . $result['file_name_safe']) : $result['file_name_safe'];
-			// create directory recursively
-			if (!file_exists($path)) mkdir($path, 0777, true);
-			// uploading
-			if (!move_uploaded_file($_FILES[$fid]['tmp_name'], $result['file_name_full'])) {
-				$result['error'][] = 'Could not upload file (Move error)!';
-				break;
-			} else {
-				// we set permission that everyone can change uploaded file
-				@chmod($result['file_name_full'], 0777);
-			}
-			$result['success'] = true;
-			// other variables
-			$result['size'] = $_FILES[$fid]['size'];
-			$result['type'] = $_FILES[$fid]['type'];
-			$result['name'] = $_FILES[$fid]['name'];
-		} while(0);
-		return $result;
-	}
-*/
