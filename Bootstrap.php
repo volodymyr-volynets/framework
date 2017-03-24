@@ -11,7 +11,7 @@ class Bootstrap {
 		mb_regex_encoding('UTF-8');
 		// get flags & dependencies
 		$flags = Application::get('flag');
-		$backend = Application::get('numbers.backend', ['backend_exists' => true]);
+		$backend = Application::get('Numbers.Backend', ['backend_exists' => true]);
 		// initialize cryptography
 		$crypt = Application::get('crypt');
 		if (!empty($crypt) && $backend) {

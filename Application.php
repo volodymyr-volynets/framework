@@ -37,8 +37,6 @@ class Application {
 				return $existing;
 			} else {
 				$flag = file_exists('./../libraries/vendor/' . $key);
-				print_r2($flag);
-				exit;
 				array_key_set(self::$settings, ['backend_exists', $key], $flag);
 				return $flag;
 			}
@@ -103,8 +101,10 @@ class Application {
 		$paths = [];
 		$paths[] = $application_path_full;
 		$paths[] = __DIR__;
-		//$paths[] = str_replace('/numbers/framework', '', __DIR__);
+		$paths[] = str_replace(['/Numbers/Framework', '/numbers/Framework'], '', __DIR__);
 		set_include_path(implode(PATH_SEPARATOR, $paths));
+		// autoloader
+		spl_autoload_register(array('Application', 'autoloader'));
 		// support functions
 		require('Functions.php');
 		// load ini settings
