@@ -84,8 +84,8 @@ class Factory {
 		// fix dot notation
 		$class = str_replace('.', '_', $class);
 		// if we need to override classes
-		if (isset(overrides_Factory::$data[$class])) {
-			$class = overrides_Factory::$data[$class];
+		if (isset(\Overrides\Factory::$data[$class])) {
+			$class = \Overrides\Factory::$data[$class];
 		}
 		// if we are not caching
 		if (!$cache) goto no_cache;

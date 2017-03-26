@@ -48,7 +48,7 @@ class Columns extends \Object\Data {
 		// process domain
 		if (!empty($options['process_domains'])) {
 			$temp = [$column_name => $column_options];
-			$temp = \Object\Data\Common::process_domains_and_types($temp);
+			$temp = \Object\Data\Common::processDomainsAndTypes($temp);
 			$column_options = $temp[$column_name];
 		}
 		// if we ignoring not set fields

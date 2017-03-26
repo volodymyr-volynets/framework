@@ -956,7 +956,7 @@ class object_form_base extends object_form_parent {
 			foreach ($field['json_contains'] as $k31 => $v31) {
 				$temp[$k31] = $neighbouring_values[$v31];
 			}
-			$value = object_table_options::options_json_format_key($temp);
+			$value = \Object\Table_options::options_json_format_key($temp);
 		}
 		if (is_string($value) && $value === '') return;
 		if (is_array($value) && empty($value)) return;
@@ -1729,7 +1729,7 @@ convert_multiple_columns:
 		if (empty($error_field)) {
 			$error_field = $k;
 		}
-		$result = object_table_columns::validate_single_column($k, $v['options'], $in_value);
+		$result = \Object\Table_columns::validate_single_column($k, $v['options'], $in_value);
 		if (!$result['success']) {
 			$this->error('danger', $result['error'], $error_field, ['skip_i18n' => true]);
 		}
@@ -1836,7 +1836,7 @@ convert_multiple_columns:
 					}
 				}
 				if (isset($values[$v])) {
-					$temp = object_table_columns::process_single_column_type($v, $this->collection_object->primary_model->columns[$v], $values[$v]);
+					$temp = \Object\Table_columns::process_single_column_type($v, $this->collection_object->primary_model->columns[$v], $values[$v]);
 					if (!empty($temp[$v])) { // pk can not be empty
 						$this->pk[$v] = $temp[$v];
 					} else {
@@ -1997,10 +1997,10 @@ convert_multiple_columns:
 			// see if we adding a widget
 			if (!empty($options['widget'])) {
 				// we skip if widgets are not enabled
-				if (!object_widgets::enabled(str_replace('detail_', '', $options['widget']))) return;
+				if (!\Object\Widgets::enabled(str_replace('detail_', '', $options['widget']))) return;
 				// process default widget options
-				$widget = constant('object_widgets::'. $options['widget']);
-				$widget_data = constant('object_widgets::'. $options['widget'] . '_data');
+				$widget = constant('\Object\Widgets::'. $options['widget']);
+				$widget_data = constant('\Object\Widgets::'. $options['widget'] . '_data');
 				$options = array_merge_hard($widget_data, $options);
 				if (isset($widget_data['type'])) {
 					$options['type'] = $widget_data['type'];
@@ -2092,7 +2092,7 @@ convert_multiple_columns:
 			if (($this->data[$container_link]['type'] ?? '') == 'tabs' && !empty($options['widget'])) {
 				$options['type'] = 'tabs';
 				// we skip if widgets are not enabled
-				if (!object_widgets::enabled($options['widget']) || !$this->process_widget($options)) {
+				if (!\Object\Widgets::enabled($options['widget']) || !$this->process_widget($options)) {
 					unset($this->data[$container_link]['rows'][$row_link]);
 					return;
 				}
@@ -2158,7 +2158,7 @@ convert_multiple_columns:
 					$options['details_collection_key'] = array_merge(($options['details_collection_key'] ?? []), ['details', $element_link]);
 				}
 				// process domain & type
-				$temp = \Object\Data\Common::process_domains_and_types(['options' => $options]);
+				$temp = \Object\Data\Common::processDomainsAndTypes(['options' => $options]);
 				$options = $temp['options'];
 				$options['row_link'] = $row_link;
 				$options['container_link'] = $container_link;

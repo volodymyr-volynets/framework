@@ -88,7 +88,7 @@ class Import {
 			$collection_object = null;
 			$flag_collection = false;
 			// regular model
-			if (is_a($object, 'object_table')) {
+			if (is_a($object, '\Object\Table')) {
 				if (!$object->db_present()) continue;
 				$db_object = $object->db_object;
 				// collection options

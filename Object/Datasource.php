@@ -133,7 +133,7 @@ class Datasource extends \Object\Table\Options {
 		$parameters = [];
 		$options['where'] = $options['where'] ?? [];
 		if (!empty($this->parameters)) {
-			$this->parameters = \Object\Data\Common::process_domains_and_types($this->parameters);
+			$this->parameters = \Object\Data\Common::processDomainsAndTypes($this->parameters);
 			foreach ($this->parameters as $k => $v) {
 				// if we have a parameter
 				if (array_key_exists($k, $options['where'])) {
@@ -141,7 +141,7 @@ class Datasource extends \Object\Table\Options {
 						if (!is_array($options['where'][$k])) $options['where'][$k] = [$options['where'][$k]];
 						$parameters[$k] = [];
 						foreach ($options['where'][$k] as $v2) {
-							$result = object_table_columns::validate_single_column($k, $v, $v2);
+							$result = \Object\Table_columns::validate_single_column($k, $v, $v2);
 							if (!$result['success']) {
 								Throw new Exception("Datasource: " . get_called_class() . " parameter: {$k} error" . implode(', ', $result['error']));
 							} else {
@@ -149,7 +149,7 @@ class Datasource extends \Object\Table\Options {
 							}
 						}
 					} else {
-						$result = object_table_columns::validate_single_column($k, $v, $options['where'][$k]);
+						$result = \Object\Table_columns::validate_single_column($k, $v, $options['where'][$k]);
 						if (!$result['success']) {
 							Throw new Exception("Datasource: " . get_called_class() . " parameter: {$k} error" . implode(', ', $result['error']));
 						} else {

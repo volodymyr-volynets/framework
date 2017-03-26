@@ -368,7 +368,7 @@ class Dependencies {
 			$object_forms = [];
 			$flag_relation = true;
 			$object_documentation = [];
-			$\Object\Import = [];
+			$object_import = [];
 			$ddl = new numbers_backend_db_class_ddl();
 			// run 1 to deterine virtual tables
 			$first = true;
@@ -376,12 +376,12 @@ class Dependencies {
 run_again:
 			foreach ($virtual_models as $k => $v) {
 				$k2 = str_replace('.', '_', $k);
-				if ($v == 'object_table') {
+				if ($v == '\Object\Table') {
 					$model = Factory::model($k2, true);
-					foreach (object_widgets::widget_models as $v0) {
+					foreach (\Object\Widgets::widget_models as $v0) {
 						if (!empty($model->{$v0})) {
 							$v01 = $v0 . '_model';
-							$virtual_models[str_replace('_', '.', $model->{$v01})] = 'object_table';
+							$virtual_models[str_replace('_', '.', $model->{$v01})] = '\Object\Table';
 						}
 					}
 				}
@@ -395,7 +395,7 @@ run_again:
 			// run 2
 			foreach ($dep['data']['model_processed'] as $k => $v) {
 				$k2 = str_replace('.', '_', $k);
-				if ($v == 'object_table') {
+				if ($v == '\Object\Table') {
 					$model = Factory::model($k2, true);
 					// todo: disable non default db links
 					$temp_result = $ddl->process_table_model($model);
@@ -449,7 +449,7 @@ run_again:
 					}
 					$object_documentation[$v][$k2] = $k2;
 				} else if ($v == '\Object\Import') {
-					$\Object\Import[$k2] = [
+					$object_import[$k2] = [
 						'model' => $k2
 					];
 				}
@@ -597,9 +597,9 @@ error:
 		// import data
 import_data:
 		// we need to import data
-		if (!empty($\Object\Import) && $options['mode'] == 'commit') {
+		if (!empty($object_import) && $options['mode'] == 'commit') {
 			$result['hint'][] = '';
-			foreach ($\Object\Import as $k => $v) {
+			foreach ($object_import as $k => $v) {
 				$data_object = new $k();
 				$data_result = $data_object->process();
 				if (!$data_result['success']) {

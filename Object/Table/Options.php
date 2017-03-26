@@ -86,7 +86,7 @@ class Options extends \Object\Override\Data {
 	 *
 	 * @see $this->get()
 	 */
-	public function options_active($options = []) {
+	public function optionsActive($options = []) {
 		$options['__options_active'] = true;
 		return $this->options($options);
 	}
@@ -145,7 +145,7 @@ class Options extends \Object\Override\Data {
 	 *
 	 * @see $this->get()
 	 */
-	public function presets_active($options = []) {
+	public function presetsActive($options = []) {
 		$options['__options_active'] = true;
 		return $this->presets($options);
 	}
@@ -156,7 +156,7 @@ class Options extends \Object\Override\Data {
 	 * @param array $options
 	 * @return array
 	 */
-	public function options_query_data(& $options) {
+	public function optionsQueryData(& $options) {
 		// column prefix
 		if (empty($options['column_prefix'])) {
 			$options['column_prefix'] = $this->column_prefix;
@@ -212,7 +212,7 @@ class Options extends \Object\Override\Data {
 	 * @param array $key
 	 * @return string
 	 */
-	public static function options_json_format_key(array $key) : string {
+	public static function optionsJsonFormatKey(array $key) : string {
 		ksort($key);
 		return json_encode($key);
 	}

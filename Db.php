@@ -44,8 +44,12 @@ class Db {
 		$temp = Factory::get(['db', $db_link]);
 		// if we have class
 		if (!empty($class) && !empty($db_link)) {
-			// replaces in case we have it as submodule
-			$class = str_replace('.', '_', trim($class));
+			// check if backend has been enabled
+			$parts = explode('\\', trim($class, '\\'));
+			array_pop($parts);
+			if (!\Application::get('dep.submodule.' . implode('.', $parts))) {
+				Throw new Exception('You must enable ' . implode('\\', $parts) . ' first!');
+			}
 			// if we are replacing database connection with the same link we
 			// need to manually close database connection
 			if (!empty($temp['object']) && $temp['class'] != $class) {
@@ -56,7 +60,7 @@ class Db {
 			// creating new class
 			$this->object = new $class($db_link, $options);
 			// determining ddl class & object
-			$ddl_class = str_replace('_base_abc123', '_ddl', $class . '_abc123');
+			$ddl_class = str_replace('\\Base\\Abc123', '\\DDL', $class . '\\Abc123');
 			$ddl_object = new $ddl_class();
 			// backend
 			$this->backend = str_replace(['numbers_backend_db_', '_base'], '', $class);

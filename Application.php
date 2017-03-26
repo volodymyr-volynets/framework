@@ -222,7 +222,7 @@ class Application {
 		];
 		// debuging
 		if (class_exists('Debug', false) && Debug::$debug) {
-			debug::$data['classes'][] = ['class' => $class, 'file' => $file];
+			Debug::$data['classes'][] = ['class' => $class, 'file' => $file];
 		}
 		require_once($file);
 	}

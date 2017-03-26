@@ -133,7 +133,7 @@ class Sequence extends \Object\Override\Data {
 			'advanced' => null
 		];
 		$db = new db($this->db_link);
-		$table_model = new numbers_backend_db_class_model_sequences();
+		$table_model = new \Numbers\Backend\Db\Common\Model\Sequences();
 		$temp = $db->sequence($this->full_sequence_name, $type);
 		if (!$temp['success']) {
 			$result['error'] = $temp['error'];

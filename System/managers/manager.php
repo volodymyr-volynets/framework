@@ -48,12 +48,12 @@ try {
 		// migration - code, mode: test, commit, drop
 		case 'migration_code':
 			// get settings for default db_link
-			$settings = numbers_backend_db_class_schemas::get_settings([
+			$settings = Numbers\Backend\Db\Common\Schemas::get_settings([
 				'db_link' => 'default'
 			]);
 			if ($settings['success']) {
 				// process models
-				$code_result = numbers_backend_db_class_schemas::process_code_models([
+				$code_result = Numbers\Backend\Db\Common\Schemas::process_code_models([
 					'db_link' => 'default',
 					'db_schema_owner' => $settings['db_schema_owner'],
 					'skip_db_object' => true
@@ -96,7 +96,7 @@ try {
 					$result['hint'][] = "   -> Migrations dropped: {$drop_result['count']};";
 				} else {
 					// compare objects
-					$compare_result = numbers_backend_db_class_schemas::compare_two_set_of_objects($code_result['objects']['default'] ?? [], $migration_result['objects']['default'] ?? [], [
+					$compare_result = Numbers\Backend\Db\Common\Schemas::compare_two_set_of_objects($code_result['objects']['default'] ?? [], $migration_result['objects']['default'] ?? [], [
 						'type' => 'migration',
 						'db_link' => 'default'
 					]);
@@ -123,7 +123,7 @@ reask_for_migration:
 				if (empty($migration_db_rollback_name)) goto reask_for_migration;
 			}
 			// get settings for default db_link
-			$settings = numbers_backend_db_class_schemas::get_settings([
+			$settings = Numbers\Backend\Db\Common\Schemas::get_settings([
 				'db_link' => 'default'
 			]);
 			if ($settings['success']) {
@@ -145,7 +145,7 @@ reask_for_migration:
 				}
 				//
 				// load all import models from the code
-				$code_result = numbers_backend_db_class_schemas::process_code_models([
+				$code_result = Numbers\Backend\Db\Common\Schemas::process_code_models([
 					'db_link' => 'default',
 					'db_schema_owner' => $settings['db_schema_owner'],
 					'skip_db_object' => true
@@ -164,7 +164,7 @@ reask_for_migration:
 					$db_last_migration_name = null;
 					$db_migration_count = 0;
 					$db_migrations = [];
-					$migration_model = new numbers_backend_db_class_model_migrations();
+					$migration_model = new \Numbers\Backend\Db\Common\Model\Migrations();
 					if ($migration_model->db_present()) {
 						$temp = $migration_model->get(['where' => [
 								'sm_migration_db_link' => 'default',
@@ -250,7 +250,7 @@ reask_for_migration:
 						}
 						// set permissions
 						if (!empty($permissions)) {
-							$permission_result = numbers_backend_db_class_schemas::set_permissions('default', $settings['db_query_owner'], $permissions, ['database' => $v]);
+							$permission_result = Numbers\Backend\Db\Common\Schemas::set_permissions('default', $settings['db_query_owner'], $permissions, ['database' => $v]);
 							if (!$permission_result['success']) {
 								$result['error'] = array_merge($result['error'], $permission_result['error']);
 								goto error;
@@ -264,7 +264,7 @@ reask_for_migration:
 					}
 					// import data
 					if ($mode == 'commit' && !empty($code_result['data']['\Object\Import'])) {
-						$import_data_result = numbers_backend_db_class_schemas::import_data('default', $code_result['data'], []);
+						$import_data_result = Numbers\Backend\Db\Common\Schemas::import_data('default', $code_result['data'], []);
 						if (!$import_data_result['success']) {
 							$result['error'] = array_merge($result['error'], $import_data_result['error']);
 							goto error;
@@ -284,7 +284,7 @@ reask_for_migration:
 		// direct schema changes - mode: test, commit, drop
 		case 'schema':
 			// get settings for default db_link
-			$settings = numbers_backend_db_class_schemas::get_settings([
+			$settings = Numbers\Backend\Db\Common\Schemas::getSettings([
 				'db_link' => 'default'
 			]);
 			if ($settings['success']) {
@@ -301,7 +301,7 @@ reask_for_migration:
 					// start transaction
 					$db_object->begin();
 					// process models
-					$code_result = numbers_backend_db_class_schemas::process_code_models([
+					$code_result = Numbers\Backend\Db\Common\Schemas::processCodeModels([
 						'db_link' => 'default',
 						'db_schema_owner' => $settings['db_schema_owner']
 					]);
@@ -314,7 +314,7 @@ reask_for_migration:
 					foreach ($code_result['count']['default'] as $k2 => $v2) {
 						$result['hint'][] = "       * {$k2}: $v2";
 					}
-					$db_result = numbers_backend_db_class_schemas::process_db_schema(['db_link' => 'default']);
+					$db_result = Numbers\Backend\Db\Common\Schemas::processDbSchema(['db_link' => 'default']);
 					if (!$db_result['success']) {
 						$result['error'] = array_merge($result['error'], $db_result['error']);
 						$db_object->rollback();
@@ -331,7 +331,7 @@ reask_for_migration:
 						$code_result['objects']['default'] = [];
 					}
 					// compare objects
-					$compare_result = numbers_backend_db_class_schemas::compare_two_set_of_objects($code_result['objects']['default'] ?? [], $db_result['objects']['default'] ?? [], [
+					$compare_result = Numbers\Backend\Db\Common\Schemas::compareTwoSetsOfObjects($code_result['objects']['default'] ?? [], $db_result['objects']['default'] ?? [], [
 						'type' => 'schema',
 						'db_link' => 'default'
 					]);
@@ -342,7 +342,7 @@ reask_for_migration:
 					}
 					// make schema changes
 					if ($compare_result['count'] > 0 && ($mode == 'drop' || $mode == 'commit')) {
-						$sql_result = numbers_backend_db_class_schemas::generate_sql_from_diff_and_execute('default', $compare_result['up'], [
+						$sql_result = Numbers\Backend\Db\Common\Schemas::generate_sql_from_diff_and_execute('default', $compare_result['up'], [
 							'mode' => $mode,
 							'execute' => true,
 							'legend' => $compare_result['legend']['up']
@@ -355,7 +355,7 @@ reask_for_migration:
 						$result['hint'][] = "   -> SQL changes: {$sql_result['count']};";
 						// set permissions to allow access for query user
 						if ($mode == 'commit' && !empty($code_result['permissions']['default'])) {
-							$permission_result = numbers_backend_db_class_schemas::set_permissions('default', $settings['db_query_owner'], $code_result['permissions']['default'], ['database' => $v]);
+							$permission_result = Numbers\Backend\Db\Common\Schemas::set_permissions('default', $settings['db_query_owner'], $code_result['permissions']['default'], ['database' => $v]);
 							if (!$permission_result['success']) {
 								$result['error'] = array_merge($result['error'], $permission_result['error']);
 								goto error;
@@ -369,7 +369,7 @@ reask_for_migration:
 					}
 					// import data
 					if ($mode == 'commit' && !empty($code_result['data']['\Object\Import'])) {
-						$import_data_result = numbers_backend_db_class_schemas::import_data('default', $code_result['data'], []);
+						$import_data_result = Numbers\Backend\Db\Common\Schemas::import_data('default', $code_result['data'], []);
 						if (!$import_data_result['success']) {
 							$result['error'] = array_merge($result['error'], $import_data_result['error']);
 							goto error;

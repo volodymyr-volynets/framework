@@ -314,16 +314,16 @@ class Table extends \Object\Table\Options {
 	 */
 	public function __construct($options = []) {
 		// we need to handle overrrides
-		parent::override_handle($this);
+		parent::overrideHandle($this);
 		// we need to determine db link
 		if (empty($this->db_link)) {
 			// get from flags first
 			if (!empty($this->db_link_flag)) {
-				$this->db_link = Application::get($this->db_link_flag);
+				$this->db_link = \Application::get($this->db_link_flag);
 			}
 			// get default link
 			if (empty($this->db_link)) {
-				$this->db_link = Application::get('flag.global.default_db_link');
+				$this->db_link = \Application::get('flag.global.default_db_link');
 			}
 			// if we could not determine the link we throw exception
 			if (empty($this->db_link)) {
@@ -374,14 +374,14 @@ class Table extends \Object\Table\Options {
 			}
 		}
 		// process domain in columns
-		$this->columns = \Object\Data\Common::process_domains_and_types($this->columns);
+		$this->columns = \Object\Data\Common::processDomainsAndTypes($this->columns);
 		// initialize db object
 		if (empty($options['skip_db_object'])) {
-			$this->db_object = new db($this->db_link);
+			$this->db_object = new \Db($this->db_link);
 		}
 		// process widgets
-		foreach (object_widgets::widget_models as $widget) {
-			if (!object_widgets::enabled($widget)) {
+		foreach (\Object\Widgets::WIDGET_MODELS as $widget) {
+			if (!\Object\Widgets::enabled($widget)) {
 				$this->{$widget} = false;
 			} else if (!empty($this->{$widget})) {
 				$temp = $widget . '_model';
@@ -467,7 +467,7 @@ class Table extends \Object\Table\Options {
 				continue;
 			}
 			if (empty($options['skip_type_validation'])) {
-				$temp = object_table_columns::process_single_column_type($k, $v, $data[$k] ?? null);
+				$temp = \Object\Table_columns::process_single_column_type($k, $v, $data[$k] ?? null);
 				if (array_key_exists($k, $temp)) {
 					$save[$k] = $temp[$k];
 				}
