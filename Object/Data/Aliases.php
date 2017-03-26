@@ -1,6 +1,7 @@
 <?php
 
-class object_data_aliases extends object_data {
+namespace Object\Data;
+class Aliases extends \Object\Data {
 	public $column_key = 'no_data_alias_code';
 	public $column_prefix = 'no_data_alias_';
 	public $orderby = ['no_data_alias_name' => SORT_ASC];
@@ -22,7 +23,7 @@ class object_data_aliases extends object_data {
 	 * @param boolean $id_only
 	 * @return mixed
 	 */
-	public function get_id_by_code($alias, $code, $id_only = true) {
+	public function getIdByCode($alias, $code, $id_only = true) {
 		$class = $this->data[$alias]['no_data_alias_model'];
 		$model = new $class();
 		$columns = [];

@@ -263,7 +263,7 @@ reask_for_migration:
 						}
 					}
 					// import data
-					if ($mode == 'commit' && !empty($code_result['data']['object_import'])) {
+					if ($mode == 'commit' && !empty($code_result['data']['\Object\Import'])) {
 						$import_data_result = numbers_backend_db_class_schemas::import_data('default', $code_result['data'], []);
 						if (!$import_data_result['success']) {
 							$result['error'] = array_merge($result['error'], $import_data_result['error']);
@@ -368,7 +368,7 @@ reask_for_migration:
 						}
 					}
 					// import data
-					if ($mode == 'commit' && !empty($code_result['data']['object_import'])) {
+					if ($mode == 'commit' && !empty($code_result['data']['\Object\Import'])) {
 						$import_data_result = numbers_backend_db_class_schemas::import_data('default', $code_result['data'], []);
 						if (!$import_data_result['success']) {
 							$result['error'] = array_merge($result['error'], $import_data_result['error']);

@@ -1,6 +1,7 @@
 <?php
 
-class object_datasource extends object_table_options {
+namespace Object;
+class Datasource extends \Object\Table\Options {
 
 	/**
 	 * Db link
@@ -190,7 +191,7 @@ class object_datasource extends object_table_options {
 		}
 		// create empty query object
 		if (empty($this->query)) {
-			$this->query = new object_query_builder($this->db_link, $options);
+			$this->query = new \Object\Query\Builder($this->db_link, $options);
 			$this->query->select();
 		}
 		// add settings to query
@@ -302,7 +303,7 @@ class object_datasource extends object_table_options {
 	 *
 	 * @see $this::get()
 	 */
-	public static function get_static(array $options = []) {
+	public static function getStatic(array $options = []) {
 		$class = get_called_class();
 		$object = new $class();
 		return $object->get($options);

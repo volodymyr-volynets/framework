@@ -92,7 +92,7 @@ class Data extends \Object\Table\Options {
 	 *
 	 * @var string
 	 */
-	public $initiator_class = 'object_data';
+	public $initiator_class = '\Object\Data';
 
 	/**
 	 * Tenant
@@ -116,7 +116,7 @@ class Data extends \Object\Table\Options {
 		parent::overrideHandle($this);
 		// we must have columns
 		if (empty($this->columns)) {
-			Throw new Exception('object_data ' . get_called_class() . ' children must have columns!');
+			Throw new Exception('\Object\Data ' . get_called_class() . ' children must have columns!');
 		}
 		// process domain in columns, we skip domain model
 		$class = get_called_class();

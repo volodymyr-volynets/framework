@@ -1,6 +1,6 @@
 <?php
 
-class object_table_indexes extends object_data {
+class object_table_indexes extends \Object\Data {
 	public $column_key = 'no_table_index_type';
 	public $column_prefix = 'no_table_index_';
 	public $orderby = [];

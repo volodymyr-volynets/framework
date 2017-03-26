@@ -1,6 +1,6 @@
 <?php
 
-class numbers_framework_object_form_model_content_types extends object_data {
+class numbers_framework_object_form_model_content_types extends \Object\Data {
 	public $column_key = 'no_form_content_type_code';
 	public $column_prefix = 'no_form_content_type_';
 	public $orderby = ['no_form_content_type_order' => SORT_ASC];

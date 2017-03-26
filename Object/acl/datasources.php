@@ -1,6 +1,6 @@
 <?php
 
-class object_acl_datasources extends object_override_data {
+class object_acl_datasources extends \Object\Override\Data {
 
 	/**
 	 * A list of module/datasource

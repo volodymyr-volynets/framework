@@ -368,7 +368,7 @@ class Dependencies {
 			$object_forms = [];
 			$flag_relation = true;
 			$object_documentation = [];
-			$object_import = [];
+			$\Object\Import = [];
 			$ddl = new numbers_backend_db_class_ddl();
 			// run 1 to deterine virtual tables
 			$first = true;
@@ -430,26 +430,26 @@ run_again:
 							];
 						}
 					}
-				} else if ($v == 'object_sequence') {
+				} else if ($v == '\Object\Sequence') {
 					$temp_result = $ddl->process_sequence_model($k2);
 					if (!$temp_result['success']) {
 						array_merge3($result['error'], $temp_result['error']);
 					}
 					$object_documentation[$v][$k2] = $k2;
-				} else if ($v == 'object_function') {
+				} else if ($v == '\Object\Function2') {
 					$temp_result = $ddl->process_function_model($k2);
 					if (!$temp_result['success']) {
 						array_merge3($result['error'], $temp_result['error']);
 					}
 					$object_documentation[$v][$k2] = $k2;
-				} else if ($v == 'object_extension') {
+				} else if ($v == '\Object\Extension') {
 					$temp_result = $ddl->process_function_extension($k2);
 					if (!$temp_result['success']) {
 						array_merge3($result['error'], $temp_result['error']);
 					}
 					$object_documentation[$v][$k2] = $k2;
-				} else if ($v == 'object_import') {
-					$object_import[$k2] = [
+				} else if ($v == '\Object\Import') {
+					$\Object\Import[$k2] = [
 						'model' => $k2
 					];
 				}
@@ -597,9 +597,9 @@ error:
 		// import data
 import_data:
 		// we need to import data
-		if (!empty($object_import) && $options['mode'] == 'commit') {
+		if (!empty($\Object\Import) && $options['mode'] == 'commit') {
 			$result['hint'][] = '';
-			foreach ($object_import as $k => $v) {
+			foreach ($\Object\Import as $k => $v) {
 				$data_object = new $k();
 				$data_result = $data_object->process();
 				if (!$data_result['success']) {

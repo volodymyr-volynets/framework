@@ -1,6 +1,6 @@
 <?php
 
-class object_form_parent extends object_override_data {
+class object_form_parent extends \Object\Override\Data {
 
 	/**
 	 * Separators

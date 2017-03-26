@@ -1,6 +1,7 @@
 <?php
 
-class object_import {
+namespace Object;
+class Import {
 
 	/**
 	 * Data
@@ -50,7 +51,7 @@ class object_import {
 	 */
 	public function __construct(array $options = []) {
 		$this->options = $options;
-		$this->alias_object = new object_data_aliases();
+		$this->alias_object = new \Object\Data\Aliases();
 		$this->alias_data = $this->alias_object->get();
 	}
 
@@ -96,7 +97,7 @@ class object_import {
 					$collection_options['pk'] = $this->data[$k]['options']['pk'];
 				}
 				$collection_object = $model::collection_static($collection_options);
-			} else if (is_a($object, 'object_collection')) { // collections
+			} else if (is_a($object, '\Object\Collection')) { // collections
 				if (!$object->primary_model->db_present()) continue;
 				$db_object = $object->primary_model->db_object;
 				$collection_object = $object;
@@ -197,7 +198,7 @@ class object_import {
 	 * @param mixed $value
 	 * @return mixed
 	 */
-	private function find_aliased_value(string $column, $value) {
+	private function findAliasedValue(string $column, $value) {
 		$alias = null;
 		foreach ($this->alias_data as $k => $v) {
 			// todo: maybe need column prefix with alias
@@ -206,7 +207,7 @@ class object_import {
 			}
 		}
 		if (!empty($alias)) {
-			return $this->alias_object->get_id_by_code($alias, str_replace('::id::', '', $value));
+			return $this->alias_object->getIdByCode($alias, str_replace('::id::', '', $value));
 		} else {
 			return false;
 		}

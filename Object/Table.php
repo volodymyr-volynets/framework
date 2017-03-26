@@ -1,6 +1,7 @@
 <?php
 
-class object_table extends object_table_options {
+namespace Object;
+class Table extends \Object\Table\Options {
 
 	/**
 	 * Link to database
@@ -256,7 +257,7 @@ class object_table extends object_table_options {
 	 *
 	 * @var string
 	 */
-	public $initiator_class = 'object_table';
+	public $initiator_class = 'Object\Table';
 
 	/**
 	 * Who inserted/updated/posted the record
@@ -395,7 +396,7 @@ class object_table extends object_table_options {
 	 * @param mixed $types
 	 * @param array $row
 	 */
-	public function process_who_columns($types, & $row, $timestamp = null) {
+	public function processWhoColumns($types, & $row, $timestamp = null) {
 		if ($types === 'all') $types = array_keys($this->who);
 		if (!is_array($types)) $types = [$types];
 		if (empty($timestamp)) $timestamp = Format::now('timestamp');
@@ -421,7 +422,7 @@ class object_table extends object_table_options {
 	 * @return boolean
 	 * @throws Exception
 	 */
-	final public function determine_model_map($class, $widget_name) {
+	final public function determineModelMap($class, $widget_name) {
 		$this->virtual_class_name = $class . '__virtual__' . $widget_name;
 		$model = Factory::model($class, true);
 		if (empty($model->{$widget_name}) || empty($model->{$widget_name}['map'])) {
@@ -459,7 +460,7 @@ class object_table extends object_table_options {
 	 *		boolean skip_type_validation
 	 * @return array
 	 */
-	public function process_columns(& $data, $options = []) {
+	public function processColumns(& $data, $options = []) {
 		$save = [];
 		foreach ($this->columns as $k => $v) {
 			if (!empty($options['ignore_not_set_fields']) && !array_key_exists($k, $data)) {
@@ -614,7 +615,7 @@ class object_table extends object_table_options {
 	 *
 	 * @param string $column
 	 */
-	public function synchronize_sequence($column) {
+	public function synchronizeSequence($column) {
 		$result = $this->db_object->query("SELECT max({$column}) max_sequence FROM {$this->full_table_name}");
 		if (empty($result['num_rows']) || empty($result['rows'][0]['max_sequence'])) return;
 		$sequence = $this->full_table_name . '_' . $column . '_seq';
@@ -624,7 +625,7 @@ class object_table extends object_table_options {
 	/**
 	 * Reset caches on exit
 	 */
-	public function reset_cache() {
+	public function resetCache() {
 		// only reset caches if cache link is present
 		if (!empty($this->db_object->object->options['cache_link'])) {
 			$tags = array_unique($this->cache_tags);
@@ -677,7 +678,7 @@ TTT;
 	 *
 	 * @see $this::get()
 	 */
-	public static function get_static(array $options = []) {
+	public static function getStatic(array $options = []) {
 		$class = get_called_class();
 		$object = new $class();
 		return $object->get($options);
@@ -691,7 +692,7 @@ TTT;
 	 * @param mixed $only_column
 	 * @return mixed
 	 */
-	public function get_by_column(string $column, $value, $only_column = null) {
+	public function getByColumn(string $column, $value, $only_column = null) {
 		$result = $this->get([
 			//'columns' => ($only_column ? [$only_column] : null),
 			'where' => [
@@ -712,10 +713,10 @@ TTT;
 	 *
 	 * @see $this::get_by_column()
 	 */
-	public static function get_by_column_static(string $column, $value, $only_column = null) {
+	public static function getByColumnStatic(string $column, $value, $only_column = null) {
 		$class = get_called_class();
 		$object = new $class();
-		return $object->get_by_column($column, $value, $only_column);
+		return $object->getByColumn($column, $value, $only_column);
 	}
 
 	/**
@@ -735,7 +736,7 @@ TTT;
 	 * @see $this->get()
 	 * @return boolean
 	 */
-	public static function exists_static($options = []) {
+	public static function existsStatic($options = []) {
 		$class = get_called_class();
 		$object = new $class();
 		return $object->exists($options);
@@ -747,8 +748,8 @@ TTT;
 	 * @param array $options
 	 * @return object
 	 */
-	public function collection(array $options = []) : object_collection {
-		return self::collection_static($options);
+	public function collection(array $options = []) : \Object\Collection {
+		return self::collectionStatic($options);
 	}
 
 	/**
@@ -757,28 +758,28 @@ TTT;
 	 * @param array $options
 	 * @return object
 	 */
-	public static function collection_static(array $options = []) : object_collection {
+	public static function collectionStatic(array $options = []) : \Object\Collection {
 		$options['model'] = get_called_class();
-		return object_collection::collection_to_model($options);
+		return \Object\Collection::collection_to_model($options);
 	}
 
 	/**
 	 * Query builder
 	 *
 	 * @param array $options
-	 * @return \object_query_builder
+	 * @return \\Object\Query\Builder
 	 */
-	public function query_builder(array $options = []) : object_query_builder {
-		return self::query_builder_static($options);
+	public function queryBuilder(array $options = []) : \Object\Query\Builder {
+		return self::queryBuilderStatic($options);
 	}
 
 	/**
 	 * Query builder (static)
 	 *
 	 * @param array $options
-	 * @return \object_query_builder
+	 * @return \\Object\Query\Builder
 	 */
-	public static function query_builder_static(array $options = []) : object_query_builder {
+	public static function queryBuilderStatic(array $options = []) : \Object\Query\Builder {
 		$class = get_called_class();
 		$model = new $class();
 		// alias
@@ -788,7 +789,7 @@ TTT;
 		if ($model->tenant && empty($options['skip_tenant'])) {
 			$options['tenant'] = true;
 		}
-		$object = new object_query_builder($model->db_link, $options);
+		$object = new \Object\Query\Builder($model->db_link, $options);
 		$object->from($model, $alias);
 		// inject tenant into the query
 		if ($model->tenant && empty($options['skip_tenant'])) {
@@ -802,8 +803,8 @@ TTT;
 	 *
 	 * @return boolean
 	 */
-	public function db_present() {
-		$temp_result = $this->db_object->query("SELECT count(*) counter FROM (" . $this->db_object->sql_helper('fetch_tables') . ") a WHERE a.schema_name = '{$this->schema}' AND table_name = '{$this->name}'");
+	public function dbPresent() {
+		$temp_result = $this->db_object->query("SELECT count(*) counter FROM (" . $this->db_object->sqlHelper('fetch_tables') . ") a WHERE a.schema_name = '{$this->schema}' AND table_name = '{$this->name}'");
 		return !empty($temp_result['rows'][0]['counter']);
 	}
 }

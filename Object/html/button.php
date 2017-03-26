@@ -1,6 +1,6 @@
 <?php
 
-class object_type_html_button extends object_data {
+class object_type_html_button extends \Object\Data {
 	public $column_key = 'no_type_html_button_code';
 	public $column_prefix = 'no_type_html_button_';
 	public $columns = [

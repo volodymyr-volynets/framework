@@ -1,6 +1,6 @@
 <?php
 
-class object_content_types extends object_data {
+class object_content_types extends \Object\Data {
 	public $column_key = 'no_content_type_code';
 	public $column_prefix = 'no_content_type_';
 	public $columns = [

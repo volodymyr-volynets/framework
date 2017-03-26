@@ -291,7 +291,7 @@ class object_form_base extends object_form_parent {
 	 *
 	 * Used in lists
 	 *
-	 * @var \object_query_builder
+	 * @var \\Object\Query\Builder
 	 */
 	public $query;
 
@@ -1804,7 +1804,7 @@ convert_multiple_columns:
 	final public function preload_collection_object() {
 		if (empty($this->collection)) return false;
 		if (empty($this->collection_object)) {
-			$this->collection_object = object_collection::collection_to_model($this->collection);
+			$this->collection_object = \Object\Collection::collection_to_model($this->collection);
 			if (empty($this->collection_object)) {
 				return false;
 			}
@@ -2172,9 +2172,9 @@ convert_multiple_columns:
 					if (($options['type'] ?? '') == 'boolean') {
 						if (Application::get('flag.numbers.frontend.html.form.revert_inactive') && ($options['label_name'] ?? '') == 'Inactive') {
 							$options['label_name'] = 'Active';
-							$options['options_model'] = 'object_data_model_inactive2';
+							$options['options_model'] = '\Object\Data\Model\Inactive2';
 						} else {
-							$options['options_model'] = 'object_data_model_inactive';
+							$options['options_model'] = '\Object\Data\Model\Inactive';
 						}
 					}
 				} else if (($options['type'] ?? '') == 'boolean' && !isset($options['method'])) { // fix boolean type for forms

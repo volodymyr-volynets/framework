@@ -1,18 +1,19 @@
 <?php
 
-class object_widgets {
+namespace Object;
+class Widgets {
 
 	/**
 	 * Attributes
 	 */
-	const attributes = '__widget_attributes';
-	const attributes_data = ['order' => PHP_INT_MAX - 1000, 'label_name' => 'Attributes', 'widget' => 'attributes'];
+	const ATTRIBUTES = '__widget_attributes';
+	const ATTRIBUTES_DATA = ['order' => PHP_INT_MAX - 1000, 'label_name' => 'Attributes', 'widget' => 'attributes'];
 
 	/**
 	 * Details Attributes
 	 */
-	const detail_attributes = '__widget_attribute_details';
-	const detail_attributes_data = [
+	const DETAIL_ATTRIBUTES = '__widget_attribute_details';
+	const DETAIL_ATTRIBUTES_DATA = [
 		'widget' => 'detail_attributes',
 		'label_name' => 'Attributes',
 		'type' => 'subdetails',
@@ -28,23 +29,23 @@ class object_widgets {
 	/**
 	 * Addresses
 	 */
-	const addresses = '__widget_addresses';
-	const addresses_data = ['order' => PHP_INT_MAX - 2000, 'label_name' => 'Addresses', 'widget' => 'addresses'];
+	const ADDRESSES = '__widget_addresses';
+	const ADDRESSES_DATA = ['order' => PHP_INT_MAX - 2000, 'label_name' => 'Addresses', 'widget' => 'addresses'];
 
 	/**
 	 * All available widgets embedded into tabs
 	 */
-	const widget_tabs = [self::attributes, self::addresses];
+	const WIDGET_TABS = [self::ATTRIBUTES, self::ADDRESSES];
 
 	/**
 	 * All available widgets embedded into details
 	 */
-	const widget_details = ['attributes'];
+	const WIDGET_DETAILS = ['attributes'];
 
 	/**
 	 * Widgets that can be attached to the models
 	 */
-	const widget_models = ['attributes', 'addresses', 'audit', 'registrations'];
+	const WIDGET_MODELS = ['attributes', 'addresses', 'audit', 'registrations'];
 
 	/**
 	 * Enabled

@@ -1,6 +1,7 @@
 <?php
 
-class object_collection extends object_override_data {
+namespace Object;
+class Collection extends \Object\Override\Data {
 
 	/**
 	 * Relationship types
@@ -95,7 +96,7 @@ class object_collection extends object_override_data {
 		do {
 			$this->primary_model->db_object->begin();
 			// building query
-			$query = new object_query_builder($this->primary_model->db_link);
+			$query = new \Object\Query\Builder($this->primary_model->db_link);
 			$query->select()
 				->from($this->primary_model, 'a');
 			// where
@@ -274,7 +275,7 @@ class object_collection extends object_override_data {
 			// sql extensions
 			$v['sql']['where'] = $v['sql']['where'] ?? null;
 			// building query
-			$query = new object_query_builder($model->db_link);
+			$query = new \Object\Query\Builder($model->db_link);
 			$query->select()
 				->columns(['a.*'])
 				->from($model, 'a');
@@ -349,13 +350,13 @@ class object_collection extends object_override_data {
 	 * Convert collection to model
 	 *
 	 * @param mixed $collection
-	 * @return boolean|\object_collection
+	 * @return boolean|\\Object\Collection
 	 */
 	public static function collection_to_model($collection) {
 		if (is_string($collection)) {
 			return Factory::model($this->collection);
 		} else if (!empty($collection['model'])) {
-			return new object_collection(['data' => $collection]);
+			return new \Object\Collection(['data' => $collection]);
 		} else {
 			return null;
 		}
@@ -493,7 +494,7 @@ error:
 	/**
 	 * Merge multiple
 	 *
-	 * @see object_collection::merge()
+	 * @see \Object\Collection::merge()
 	 */
 	public function merge_multiple($data, $options = []) {
 		$result = [

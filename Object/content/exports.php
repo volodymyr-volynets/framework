@@ -1,6 +1,6 @@
 <?php
 
-class object_content_exports extends object_data {
+class object_content_exports extends \Object\Data {
 	public $column_key = 'no_content_export_code';
 	public $column_prefix = 'no_content_export_';
 	public $columns = [

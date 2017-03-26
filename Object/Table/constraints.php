@@ -1,6 +1,6 @@
 <?php
 
-class object_table_constraints extends object_data {
+class object_table_constraints extends \Object\Data {
 	public $column_key = 'no_table_constraint_type';
 	public $column_prefix = 'no_table_constraint_';
 	public $orderby = [];

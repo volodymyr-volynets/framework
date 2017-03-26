@@ -1,6 +1,7 @@
 <?php
 
-class object_table_columns extends object_data {
+namespace Object\Table;
+class Columns extends \Object\Data {
 	public $column_key = 'code';
 	public $column_prefix = null; // must not change it
 	public $orderby = [];
@@ -42,7 +43,7 @@ class object_table_columns extends object_data {
 	 * @param array $options
 	 * @return array
 	 */
-	public static function process_single_column($column_name, $column_options, $data, $options = []) {
+	public static function processSingleColumn($column_name, $column_options, $data, $options = []) {
 		$result = [];
 		// process domain
 		if (!empty($options['process_domains'])) {
@@ -79,7 +80,7 @@ class object_table_columns extends object_data {
 	 * @param mixed $value
 	 * @return array
 	 */
-	public static function process_single_column_type($column_name, $column_options, $value, $options = []) {
+	public static function processSingleColumnType($column_name, $column_options, $value, $options = []) {
 		// we need to fix default
 		if (isset($column_options['default'])) {
 			foreach (['dependent::', 'parent::', 'master_object::', 'static::'] as $v) {
@@ -171,7 +172,7 @@ class object_table_columns extends object_data {
 	 * @param array $options
 	 * @return array
 	 */
-	public static function validate_single_column(string $column_name, array $column_options, $value, array $options = []) : array {
+	public static function validateSingleColumn(string $column_name, array $column_options, $value, array $options = []) : array {
 		$result = [
 			'success' => false,
 			'error' => [],

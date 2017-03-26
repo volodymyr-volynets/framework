@@ -1,6 +1,6 @@
 <?php
 
-class object_form_datasource_navigation extends object_datasource {
+class object_form_datasource_navigation extends \Object\Datasource {
 	public $db_link;
 	public $db_link_flag;
 	public $pk;

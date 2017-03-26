@@ -1,6 +1,7 @@
 <?php
 
-class object_data_model_inactive extends object_data {
+namespace Object\Data\Model;
+class Inactive extends \Object\Data {
 	public $column_key = 'no_data_model_inactive_id';
 	public $column_prefix = 'no_data_model_inactive_';
 	public $columns = [

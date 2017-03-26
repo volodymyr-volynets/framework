@@ -1,6 +1,6 @@
 <?php
 
-class object_acl_class extends object_override_data {
+class object_acl_class extends \Object\Override\Data {
 
 	/**
 	 * Data

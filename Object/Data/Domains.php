@@ -15,7 +15,7 @@ class Domains extends \Object\Data {
 		'null' => ['name' => 'Null', 'type' => 'boolean', 'default' => 0],
 		'precision' => ['name' => 'Precision', 'type' => 'smallint'],
 		'scale' => ['name' => 'Scale', 'type' => 'smallint'],
-		'php_type' => ['name' => 'PHP Type', 'type' => 'text', 'default' => 'string', 'options_model' => 'object_data_php_types'],
+		'php_type' => ['name' => 'PHP Type', 'type' => 'text', 'default' => 'string', 'options_model' => '\Object\Data_php_types'],
 		// misc settings
 		'format' => ['name' => 'Format', 'type' => 'text'],
 		'format_options' => ['name' => 'Format Params', 'type' => 'mixed'],

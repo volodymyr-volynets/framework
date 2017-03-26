@@ -1,6 +1,7 @@
 <?php
 
-class object_data_model_order extends object_data {
+namespace Object\Data\Model;
+class Order extends \Object\Data {
 	public $column_key = 'no_data_model_order_id';
 	public $column_prefix = 'no_data_model_order_';
 	public $columns = [

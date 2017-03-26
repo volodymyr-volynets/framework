@@ -1,6 +1,7 @@
 <?php
 
-class object_sequence extends object_override_data {
+namespace Object;
+class Sequence extends \Object\Override\Data {
 
 	/**
 	 * Link to database
@@ -124,7 +125,7 @@ class object_sequence extends object_override_data {
 	 *
 	 * @return type
 	 */
-	private function get_by_type($type) {
+	private function getByType($type) {
 		$result = [
 			'success' => false,
 			'error' => [],

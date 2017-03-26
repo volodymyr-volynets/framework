@@ -1,6 +1,6 @@
 <?php
 
-class object_virtual_controllers extends object_data {
+class object_virtual_controllers extends \Object\Data {
 	public $column_key = 'no_virtual_controller_code';
 	public $column_prefix = 'no_virtual_controller_';
 	public $columns = [

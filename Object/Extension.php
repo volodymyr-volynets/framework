@@ -1,6 +1,7 @@
 <?php
 
-class object_function {
+namespace Object;
+class Extension {
 
 	/**
 	 * Link to database
@@ -17,46 +18,18 @@ class object_function {
 	public $db_link_flag;
 
 	/**
-	 * Schema
-	 *
-	 * @var string
-	 */
-	public $schema;
-
-	/**
-	 * Function name
+	 * Extension name
 	 *
 	 * @var string
 	 */
 	public $name;
 
 	/**
-	 * Backend
+	 * Extension submodule
 	 *
 	 * @var string
 	 */
-	public $backend;
-
-	/**
-	 * Full function name
-	 *
-	 * @var string
-	 */
-	public $full_function_name;
-
-	/**
-	 * Header
-	 *
-	 * @var string
-	 */
-	public $header;
-
-	/**
-	 * Definition
-	 *
-	 * @var string
-	 */
-	public $definition;
+	public $extension_submodule;
 
 	/**
 	 * Constructing object
@@ -78,13 +51,6 @@ class object_function {
 			if (empty($this->db_link)) {
 				Throw new Exception('Could not determine db link in function!');
 			}
-		}
-		// process function name and schema
-		if (!empty($this->schema)) {
-			$this->full_function_name = $this->schema . '.' . $this->name;
-		} else {
-			$this->full_function_name = $this->name;
-			$this->schema = '';
 		}
 	}
 }
