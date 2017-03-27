@@ -152,7 +152,7 @@ class Bootstrap {
 			$last_error = error_get_last();
 			$flag_render = false;
 			if (in_array($last_error['type'], [E_COMPILE_ERROR, E_PARSE, E_ERROR])) {
-				\Object\Error\Base::error_handler($last_error['type'], $last_error['message'], $last_error['file'], $last_error['line']);
+				\Object\Error\Base::errorHandler($last_error['type'], $last_error['message'], $last_error['file'], $last_error['line']);
 				\Object\Error\Base::$flag_error_already = true;
 				$flag_render = true;
 			}

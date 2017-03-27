@@ -96,7 +96,7 @@ class Import {
 				if (!empty($this->data[$k]['options']['pk'])) {
 					$collection_options['pk'] = $this->data[$k]['options']['pk'];
 				}
-				$collection_object = $model::collection_static($collection_options);
+				$collection_object = $model::collectionStatic($collection_options);
 			} else if (is_a($object, '\Object\Collection')) { // collections
 				if (!$object->primary_model->dbPresent()) continue;
 				$db_object = $object->primary_model->db_object;

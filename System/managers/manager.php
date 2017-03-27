@@ -48,12 +48,12 @@ try {
 		// migration - code, mode: test, commit, drop
 		case 'migration_code':
 			// get settings for default db_link
-			$settings = Numbers\Backend\Db\Common\Schemas::get_settings([
+			$settings = Numbers\Backend\Db\Common\Schemas::getSettings([
 				'db_link' => 'default'
 			]);
 			if ($settings['success']) {
 				// process models
-				$code_result = Numbers\Backend\Db\Common\Schemas::process_code_models([
+				$code_result = Numbers\Backend\Db\Common\Schemas::processCodeModels([
 					'db_link' => 'default',
 					'db_schema_owner' => $settings['db_schema_owner'],
 					'skip_db_object' => true
@@ -68,7 +68,7 @@ try {
 					goto error;
 				}
 				// process migrations
-				$migration_result = numbers_backend_db_class_migration_processor::process_code_migrations([
+				$migration_result = \Numbers\Backend\Db\Common\Migration\Processor::processCodeMigrations([
 					'db_link' => 'default',
 					'mode' => $mode,
 					'skip_db_object' => true
@@ -92,11 +92,11 @@ try {
 				}
 				// drop existing code migrations
 				if ($mode == 'drop') {
-					$drop_result = numbers_backend_db_class_migration_processor::drop_code_migrations(['db_link' => 'default']);
+					$drop_result = \Numbers\Backend\Db\Common\Migration\Processor::dropCodeMigrations(['db_link' => 'default']);
 					$result['hint'][] = "   -> Migrations dropped: {$drop_result['count']};";
 				} else {
 					// compare objects
-					$compare_result = Numbers\Backend\Db\Common\Schemas::compare_two_set_of_objects($code_result['objects']['default'] ?? [], $migration_result['objects']['default'] ?? [], [
+					$compare_result = Numbers\Backend\Db\Common\Schemas::compareTwoSetsOfObjects($code_result['objects']['default'] ?? [], $migration_result['objects']['default'] ?? [], [
 						'type' => 'migration',
 						'db_link' => 'default'
 					]);
@@ -107,7 +107,7 @@ try {
 					}
 					// make schema changes
 					if ($compare_result['count'] > 0 && $mode == 'commit') {
-						$generate_migration_result = numbers_backend_db_class_migration_processor::generate_migration('default', $compare_result, []);
+						$generate_migration_result = \Numbers\Backend\Db\Common\Migration\Processor::generateMigration('default', $compare_result, []);
 						$result['hint'][] = "   -> Migrations created: {$generate_migration_result['count']};";
 						$result['hint'][] = "       * name: {$generate_migration_result['migration_name']};";
 					}
@@ -116,6 +116,11 @@ try {
 			break;
 		// migration - db, mode: test, commit, rollback
 		case 'migration_db':
+			// check settings to see if we can run this command
+			$temp = \Application::get('application.structure.db_migration');
+			if (empty($temp)) {
+				Throw new Exception('Migrations are disabled, you must use schema commands!');
+			}
 			$migration_db_rollback_name = null;
 			if ($mode == 'rollback') {
 reask_for_migration:
@@ -123,12 +128,12 @@ reask_for_migration:
 				if (empty($migration_db_rollback_name)) goto reask_for_migration;
 			}
 			// get settings for default db_link
-			$settings = Numbers\Backend\Db\Common\Schemas::get_settings([
+			$settings = \Numbers\Backend\Db\Common\Schemas::getSettings([
 				'db_link' => 'default'
 			]);
 			if ($settings['success']) {
 				// load all migrations from the code
-				$migration_result = numbers_backend_db_class_migration_processor::load_code_migrations([
+				$migration_result = \Numbers\Backend\Db\Common\Migration\Processor::loadCodeMigrations([
 					'db_link' => 'default',
 					'load_migration_objects' => true
 				]);
@@ -143,9 +148,8 @@ reask_for_migration:
 						goto error;
 					}
 				}
-				//
 				// load all import models from the code
-				$code_result = Numbers\Backend\Db\Common\Schemas::process_code_models([
+				$code_result = \Numbers\Backend\Db\Common\Schemas::processCodeModels([
 					'db_link' => 'default',
 					'db_schema_owner' => $settings['db_schema_owner'],
 					'skip_db_object' => true
@@ -154,7 +158,7 @@ reask_for_migration:
 				foreach ($settings['db_list'] as $v) {
 					$schema_temp = $settings['db_settings'];
 					$schema_temp['dbname'] = $v;
-					$db_object = new db('default', $schema_temp['submodule']);
+					$db_object = new \Db('default', $schema_temp['submodule']);
 					$db_status = $db_object->connect($schema_temp);
 					if (!($db_status['success'] && $db_status['status'])) {
 						Throw new Exception('Unable to open database connection!');
@@ -234,7 +238,7 @@ reask_for_migration:
 							$execute_result = $v2['object']->execute($action);
 							if (!$execute_result['success']) {
 								$result['hint'][] = "       * {$k2}: {$action} " . \Helper\Cmd::colorString('FAILED', 'red', null, true);
-								$result['error'] = array_merge($result['error'], $execute_result['error']);
+								array_merge3($result['error'], $execute_result['error']);
 								goto error;
 							}
 							$result['hint'][] = "       * {$k2}: {$action} " . \Helper\Cmd::colorString('OK', 'green');
@@ -250,7 +254,7 @@ reask_for_migration:
 						}
 						// set permissions
 						if (!empty($permissions)) {
-							$permission_result = Numbers\Backend\Db\Common\Schemas::setPermissions('default', $settings['db_query_owner'], $permissions, ['database' => $v]);
+							$permission_result = \Numbers\Backend\Db\Common\Schemas::setPermissions('default', $settings['db_query_owner'], $permissions, ['database' => $v]);
 							if (!$permission_result['success']) {
 								$result['error'] = array_merge($result['error'], $permission_result['error']);
 								goto error;
@@ -264,7 +268,7 @@ reask_for_migration:
 					}
 					// import data
 					if ($mode == 'commit' && !empty($code_result['data']['\Object\Import'])) {
-						$import_data_result = Numbers\Backend\Db\Common\Schemas::import_data('default', $code_result['data'], []);
+						$import_data_result = \Numbers\Backend\Db\Common\Schemas::importData('default', $code_result['data'], []);
 						if (!$import_data_result['success']) {
 							$result['error'] = array_merge($result['error'], $import_data_result['error']);
 							goto error;
@@ -283,6 +287,11 @@ reask_for_migration:
 			break;
 		// direct schema changes - mode: test, commit, drop
 		case 'schema':
+			// check settings to see if we can run this command
+			$temp = \Application::get('application.structure.db_migration');
+			if (!empty($temp) && $mode != 'drop') {
+				Throw new Exception('Direct schema changes are disabled, you must use migration commands!');
+			}
 			// get settings for default db_link
 			$settings = Numbers\Backend\Db\Common\Schemas::getSettings([
 				'db_link' => 'default'
