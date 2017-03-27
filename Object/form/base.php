@@ -1376,7 +1376,7 @@ convert_multiple_columns:
 			$this->list_rendered = true;
 			// create query object
 			if (!empty($this->form_parent->query_primary_model)) {
-				$this->query = call_user_func_array([$this->form_parent->query_primary_model, 'query_builder_static'], [])->select();
+				$this->query = call_user_func_array([$this->form_parent->query_primary_model, 'queryBuilderStatic'], [])->select();
 			}
 			// add filter
 			$where = [];
@@ -1804,7 +1804,7 @@ convert_multiple_columns:
 	final public function preload_collection_object() {
 		if (empty($this->collection)) return false;
 		if (empty($this->collection_object)) {
-			$this->collection_object = \Object\Collection::collection_to_model($this->collection);
+			$this->collection_object = \Object\Collection::collectionToModel($this->collection);
 			if (empty($this->collection_object)) {
 				return false;
 			}
@@ -1836,7 +1836,7 @@ convert_multiple_columns:
 					}
 				}
 				if (isset($values[$v])) {
-					$temp = \Object\Table_columns::process_single_column_type($v, $this->collection_object->primary_model->columns[$v], $values[$v]);
+					$temp = \Object\Table_columns::processSingleColumnType($v, $this->collection_object->primary_model->columns[$v], $values[$v]);
 					if (!empty($temp[$v])) { // pk can not be empty
 						$this->pk[$v] = $temp[$v];
 					} else {

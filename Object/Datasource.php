@@ -172,7 +172,7 @@ class Datasource extends \Object\Table\Options {
 			if (empty($this->pk)) $this->pk = $model->pk;
 			$this->cache_tags = array_merge($this->cache_tag ?? [], $model->cache_tags);
 			// query
-			$this->query = call_user_func_array([$this->primary_model, 'query_builder_static'], [$options])->select();
+			$this->query = call_user_func_array([$this->primary_model, 'queryBuilderStatic'], [$options])->select();
 		}
 		// we need to determine db link
 		if (empty($this->db_link)) {

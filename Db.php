@@ -63,7 +63,7 @@ class Db {
 			$ddl_class = str_replace('\\Base\\Abc123', '\\DDL', $class . '\\Abc123');
 			$ddl_object = new $ddl_class();
 			// backend
-			$this->backend = str_replace(['numbers_backend_db_', '_base'], '', $class);
+			$this->backend = $this->object->backend;
 			// putting every thing into factory
 			Factory::set(['db', $db_link], [
 				'object' => $this->object,

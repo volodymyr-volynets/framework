@@ -24,8 +24,8 @@ class Columns extends \Object\Data {
 		// php attributes
 		'php_type' => ['name' => 'PHP Type'],
 		// misc attributes
-		'format' => ['name' => 'Format'],
-		'format_options' => ['name' => 'Format Options'],
+		'format' => ['name' => '\Format'],
+		'format_options' => ['name' => '\Format Options'],
 		'align' => ['name' => 'Align'],
 		'validator_method' => ['name' => 'Validator Method'],
 		'validator_params' => ['name' => 'Validator Params'],
@@ -60,14 +60,14 @@ class Columns extends \Object\Data {
 		if (is_array($value)) {
 			$result2 = [];
 			foreach ($value as $k => $v) {
-				$temp = self::process_single_column_type($column_name, $column_options, $v, ['ignore_defaults' => $options['ignore_defaults'] ?? false]);
+				$temp = self::processSingleColumnType($column_name, $column_options, $v, ['ignore_defaults' => $options['ignore_defaults'] ?? false]);
 				if (array_key_exists($column_name, $temp) && $temp[$column_name] !== null) {
 					$result2[] = $temp[$column_name];
 				}
 			}
 			$result[$column_name] = $result2;
 		} else {
-			$result = self::process_single_column_type($column_name, $column_options, $value, ['ignore_defaults' => $options['ignore_defaults'] ?? false]);
+			$result = self::processSingleColumnType($column_name, $column_options, $value, ['ignore_defaults' => $options['ignore_defaults'] ?? false]);
 		}
 		return $result;
 	}
@@ -94,8 +94,8 @@ class Columns extends \Object\Data {
 		if ($column_options['type'] == 'boolean') { // booleans
 			$result[$column_name] = !empty($value) ? 1 : 0;
 		} else if (in_array($column_options['type'], ['smallserial', 'serial', 'bigserial'])) {
-			if (Format::read_intval($value, ['valid_check' => 1])) {
-				$temp = Format::read_intval($value);
+			if (\Format::readIntval($value, ['valid_check' => 1])) {
+				$temp = \Format::readIntval($value);
 				if ($temp !== 0) {
 					$result[$column_name] = $temp;
 				}
@@ -115,7 +115,7 @@ class Columns extends \Object\Data {
 					$result[$column_name] = $column_options['default'] ?? 0;
 				}
 			} else {
-				$result[$column_name] = Format::read_intval($value);
+				$result[$column_name] = \Format::readIntval($value);
 			}
 		} else if (in_array($column_options['type'], ['numeric', 'bcnumeric'])) { // numerics as floats or strings
 			// if we got empty string we say its null
@@ -129,10 +129,10 @@ class Columns extends \Object\Data {
 					$result[$column_name] = $column_options['default'] ?? ($column_options['type'] == 'bcnumeric' ? '0' : 0);
 				}
 			} else {
-				$result[$column_name] = Format::read_floatval($value, ['bcnumeric' => $column_options['type'] == 'bcnumeric']);
+				$result[$column_name] = \Format::readFloatval($value, ['bcnumeric' => $column_options['type'] == 'bcnumeric']);
 			}
 		} else if (in_array($column_options['type'], ['date', 'time', 'datetime', 'timestamp'])) {
-			$result[$column_name] = Format::read_date($value, $column_options['type']);
+			$result[$column_name] = \Format::readDate($value, $column_options['type']);
 			// for datetime we do additional processing
 			if (!empty($options['process_datetime'])) {
 				$result[$column_name . '_strtotime_value'] = 0;
@@ -154,7 +154,7 @@ class Columns extends \Object\Data {
 			} else {
 				// we need to convert numeric strings
 				if (($column_options['format'] ?? '') == 'id') {
-					$result[$column_name] = Format::number_to_from_native_language($value, [], true);
+					$result[$column_name] = \Format::numberToFromNativeLanguage($value, [], true);
 				} else {
 					$result[$column_name] = (string) $value;
 				}
@@ -179,7 +179,7 @@ class Columns extends \Object\Data {
 			'data' => null
 		];
 		// perform validation
-		$result['data'] = self::process_single_column_type($column_name, $column_options, $value, ['process_datetime' => true]);
+		$result['data'] = self::processSingleColumnType($column_name, $column_options, $value, ['process_datetime' => true]);
 		if (array_key_exists($column_name, $result['data'])) {
 			// validations
 			$error = false;
@@ -195,7 +195,7 @@ class Columns extends \Object\Data {
 					$error = true;
 				}
 			} else if ($column_options['php_type'] == 'integer') {
-				if ($value . '' !== '' && !Format::read_intval($value, ['valid_check' => 1])) {
+				if ($value . '' !== '' && !\Format::readIntval($value, ['valid_check' => 1])) {
 					$result['error'][] = i18n(null, 'Wrong integer value!');
 					$error = true;
 				}
@@ -206,7 +206,7 @@ class Columns extends \Object\Data {
 					}
 				}
 			} else if ($column_options['php_type'] == 'bcnumeric') { // accounting numbers
-				if ($value . '' !== '' && !Format::read_bcnumeric($value, ['valid_check' => 1])) {
+				if ($value . '' !== '' && !\Format::readBcnumeric($value, ['valid_check' => 1])) {
 					$result['error'][] = i18n(null, 'Wrong numeric value!');
 					$error = true;
 				}
@@ -230,7 +230,7 @@ class Columns extends \Object\Data {
 					}
 				}
 			} else if ($column_options['php_type'] == 'float') { // regular floats
-				if ($value . '' !== '' && !Format::read_floatval($value, ['valid_check' => 1])) {
+				if ($value . '' !== '' && !\Format::readFloatval($value, ['valid_check' => 1])) {
 					$result['error'][] = i18n(null, 'Wrong float value!');
 					$error = true;
 				}

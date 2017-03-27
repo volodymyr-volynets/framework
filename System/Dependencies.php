@@ -546,9 +546,9 @@ run_again:
 					foreach ($v2 as $k3 => $v3) {
 						// we need to make fk constraints last to sort MySQL issues
 						if ($k2 == 'new_constraints' && $v3['type'] == 'constraint_new' && $v3['data']['type'] == 'fk') {
-							$schema_diff[$k][$k2 . '_fks'][$k3]['sql'] = $ddl_object->render_sql($v3['type'], $v3);
+							$schema_diff[$k][$k2 . '_fks'][$k3]['sql'] = $ddl_object->renderSql($v3['type'], $v3);
 						} else {
-							$schema_diff[$k][$k2][$k3]['sql'] = $ddl_object->render_sql($v3['type'], $v3, ['mode' => $options['mode']]);
+							$schema_diff[$k][$k2][$k3]['sql'] = $ddl_object->renderSql($v3['type'], $v3, ['mode' => $options['mode']]);
 						}
 					}
 				}

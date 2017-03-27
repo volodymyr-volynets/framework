@@ -385,7 +385,7 @@ class Format {
 		// initialize default settings if not initialized
 		if (empty(self::$options)) self::init();
 		// convert numbers
-		$date = self::number_to_from_native_language($date . '', [], true);
+		$date = self::numberToFromNativeLanguage($date . '', [], true);
 		$date = str_replace([i18n(null, 'am'), i18n(null, 'pm')], ['am', 'pm'], $date);
 		// dates are accepted as is
 		if ($type == 'date') {
@@ -434,7 +434,7 @@ class Format {
 	 * @return mixed
 	 */
 	public static function readFloatval($amount, array $options = []) {
-		$amount = self::number_to_from_native_language($amount . '', $options, true);
+		$amount = self::numberToFromNativeLanguage($amount . '', $options, true);
 		$negative = strpos($amount, '-') !== false || strpos($amount, '(') !== false;
 		$amount = str_replace(self::$options['locale_options']['mon_thousands_sep'], '', $amount);
 		// handle decimal separator
@@ -474,7 +474,7 @@ class Format {
 	 */
 	public static function readBcnumeric($amount, array $options = []) {
 		$options['bcnumeric'] = true;
-		return self::read_floatval($amount, $options);
+		return self::readFloatval($amount, $options);
 	}
 
 	/**
@@ -487,7 +487,7 @@ class Format {
 	 */
 	public static function readIntval($amount, array $options = []) {
 		$options['valid_check_type'] = FILTER_VALIDATE_INT;
-		return self::read_floatval($amount, $options);
+		return self::readFloatval($amount, $options);
 	}
 
 	/**
@@ -592,7 +592,7 @@ class Format {
 	 * @param array $options
 	 */
 	public static function id($id, $options = []) {
-		return self::number_to_from_native_language($id . '', $options);
+		return self::numberToFromNativeLanguage($id . '', $options);
 	}
 
 	/**
@@ -608,7 +608,7 @@ class Format {
 			if (!$from) {
 				$number = $locale_override_class::amount($number . '', $options);
 			} else {
-				$number = $locale_override_class::read_floatval($number . '', $options);
+				$number = $locale_override_class::readFloatval($number . '', $options);
 			}
 		}
 		return $number;
@@ -681,7 +681,7 @@ class Format {
 			$number = $amount;
 		}
 		// translate characters
-		$number = self::number_to_from_native_language($number, $options);
+		$number = self::numberToFromNativeLanguage($number, $options);
 		// format based on settings
 		$cs_precedes = $negative ? $format['n_cs_precedes'] : $format['p_cs_precedes'];
 		$sep_by_space = $negative ? $format['n_sep_by_space'] : $format['p_sep_by_space'];

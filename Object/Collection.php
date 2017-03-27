@@ -58,13 +58,13 @@ class Collection extends \Object\Override\Data {
 	 */
 	public function __construct($options = []) {
 		// we need to handle overrrides
-		parent::override_handle($this);
+		parent::overrideHandle($this);
 		// data can be passed in constructor
 		if (!empty($options['data'])) {
 			$this->data = $options['data'];
 		}
 		// primary model & pk
-		$this->primary_model = Factory::model($this->data['model']);
+		$this->primary_model = \Factory::model($this->data['model']);
 		$this->data['model_object'] = & $this->primary_model;
 		$this->data['serial'] = false;
 		if (empty($this->data['pk'])) {
@@ -161,7 +161,7 @@ class Collection extends \Object\Override\Data {
 	 *
 	 * @see $this::get()
 	 */
-	public static function get_static(array $options = []) {
+	public static function getStatic(array $options = []) {
 		$class = get_called_class();
 		$object = new $class();
 		return $object->get($options);
@@ -179,7 +179,7 @@ class Collection extends \Object\Override\Data {
 	 * @param array $current_key
 	 * @param string $current_type
 	 */
-	private function get_all_child_keys($data, $maps, $parent_keys, $parent_types, & $result, & $keys, $current_key = [], $current_type = null) {
+	private function getAllChildKeys($data, $maps, $parent_keys, $parent_types, & $result, & $keys, $current_key = [], $current_type = null) {
 		if ($current_type == '11') {
 			$data = ['__11__' => $data];
 		}
@@ -229,7 +229,7 @@ class Collection extends \Object\Override\Data {
 	 * @param array $parent_settings
 	 * @return array
 	 */
-	private function process_details(& $details, & $parent_rows, $options, $parent_keys = [], $parent_types = [], $parent_maps = [], $parent_settings = []) {
+	private function processDetails(& $details, & $parent_rows, $options, $parent_keys = [], $parent_types = [], $parent_maps = [], $parent_settings = []) {
 		$result = [
 			'success' => false,
 			'error' => []
@@ -352,9 +352,9 @@ class Collection extends \Object\Override\Data {
 	 * @param mixed $collection
 	 * @return boolean|\\Object\Collection
 	 */
-	public static function collection_to_model($collection) {
+	public static function collectionToModel($collection) {
 		if (is_string($collection)) {
-			return Factory::model($this->collection);
+			return \Factory::model($this->collection);
 		} else if (!empty($collection['model'])) {
 			return new \Object\Collection(['data' => $collection]);
 		} else {
@@ -430,8 +430,8 @@ class Collection extends \Object\Override\Data {
 				}
 			}
 			// compare main row
-			$this->timestamp = Format::now('timestamp');
-			$temp = $this->compare_one_row($data, $original, $this->data, [
+			$this->timestamp = \Format::now('timestamp');
+			$temp = $this->compareOneRow($data, $original, $this->data, [
 				'flag_delete_row' => $options['flag_delete_row'] ?? false,
 				'flag_main_record' => true,
 				'skip_type_validation' => $options['skip_type_validation'] ?? false
@@ -496,7 +496,7 @@ error:
 	 *
 	 * @see \Object\Collection::merge()
 	 */
-	public function merge_multiple($data, $options = []) {
+	public function mergeMultiple($data, $options = []) {
 		$result = [
 			'success' => false,
 			'error' => [],
@@ -592,7 +592,7 @@ error:
 	 * @param array $parent_row
 	 * @return array
 	 */
-	final public function compare_one_row($data_row, $original_row, $collection, $options, $parent_pk = null, $parent_row = []) {
+	final public function compareOneRow($data_row, $original_row, $collection, $options, $parent_pk = null, $parent_row = []) {
 		$result = [
 			'success' => false,
 			'error' => [],
@@ -609,7 +609,7 @@ error:
 		$model = $collection['model_object'];
 		// important to reset cache
 		// todo - reset only if there's a change
-		$model->reset_cache();
+		$model->resetCache();
 		// process sql where
 		if (!empty($collection['sql']['where']) && !empty($data_row)) {
 			$data_row = array_merge_hard($data_row, $collection['sql']['where']);
@@ -628,7 +628,7 @@ error:
 			}
 		}
 		// process colums
-		$model->process_columns($data_row_final, [
+		$model->processColumns($data_row_final, [
 			'ignore_not_set_fields' => true,
 			'skip_type_validation' => $options['skip_type_validation'] ?? false
 		]);
@@ -649,7 +649,7 @@ error:
 			}
 		} else if (empty($original_row)) { // if we insert
 			// process who columns
-			$model->process_who_columns(['inserted', 'optimistic_lock'], $data_row_final, $this->timestamp);
+			$model->processWhoColumns(['inserted', 'optimistic_lock'], $data_row_final, $this->timestamp);
 			// handle serial types, empty only
 			foreach ($model->columns as $k => $v) {
 				if (strpos($v['type'], 'serial') !== false && empty($v['null']) && empty($data_row_final[$k])) {
@@ -690,7 +690,7 @@ error:
 				// create new object
 				$v['model_object'] = Factory::model($k, true);
 				if ($v['type'] == '11') {
-					$details_result = $this->compare_one_row($data_row[$k] ?? [], $original_row[$k] ?? [], $v, [
+					$details_result = $this->compareOneRow($data_row[$k] ?? [], $original_row[$k] ?? [], $v, [
 						'flag_delete_row' => !empty($delete)
 					], $pk, $data_row_final);
 					if (!empty($details_result['error'])) {
@@ -714,7 +714,7 @@ error:
 					$keys = array_unique($keys);
 					if (!empty($keys)) {
 						foreach ($keys as $v2) {
-							$details_result = $this->compare_one_row($data_row[$k][$v2] ?? [], $original_row[$k][$v2] ?? [], $v, [
+							$details_result = $this->compareOneRow($data_row[$k][$v2] ?? [], $original_row[$k][$v2] ?? [], $v, [
 								'flag_delete_row' => !empty($delete),
 								'skip_type_validation' => $options['skip_type_validation'] ?? false
 							], $pk, $data_row_final);
@@ -736,7 +736,7 @@ error:
 		// step 4 update record
 		if (!empty($update) || ($action == 'update' && $result['data']['total'] > 0)) {
 			// process who columns
-			$model->process_who_columns(['updated', 'optimistic_lock'], $update, $this->timestamp);
+			$model->processWhoColumns(['updated', 'optimistic_lock'], $update, $this->timestamp);
 			if (!empty($update)) {
 				// update record
 				$temp = $this->primary_model->db_object->update($model->full_table_name, $update, [], ['where' => $pk]);
@@ -769,7 +769,7 @@ error:
 		// step 6 history only if we updated or deleted
 		if ($model->history && (!empty($delete) || !empty($update))) {
 			$temp = $original_row;
-			$model->process_who_columns(['updated'], $temp, $this->timestamp);
+			$model->processWhoColumns(['updated'], $temp, $this->timestamp);
 			$result['data']['history'][$model->history_name][] = $temp;
 		}
 		// step 7 audit

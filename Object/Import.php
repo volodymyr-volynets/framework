@@ -89,7 +89,7 @@ class Import {
 			$flag_collection = false;
 			// regular model
 			if (is_a($object, '\Object\Table')) {
-				if (!$object->db_present()) continue;
+				if (!$object->dbPresent()) continue;
 				$db_object = $object->db_object;
 				// collection options
 				$collection_options = [];
@@ -98,7 +98,7 @@ class Import {
 				}
 				$collection_object = $model::collection_static($collection_options);
 			} else if (is_a($object, '\Object\Collection')) { // collections
-				if (!$object->primary_model->db_present()) continue;
+				if (!$object->primary_model->dbPresent()) continue;
 				$db_object = $object->primary_model->db_object;
 				$collection_object = $object;
 				$flag_collection = true;

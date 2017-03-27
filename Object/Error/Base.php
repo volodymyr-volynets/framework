@@ -61,8 +61,8 @@ class Base {
 	 * Initialize error handler
 	 */
 	public static function init() {
-		set_error_handler(['\Object\Error\Base', 'error_handler']);
-		set_exception_handler(['\Object\Error\Base', 'exception_handler']);
+		set_error_handler(['\Object\Error\Base', 'errorHandler']);
+		set_exception_handler(['\Object\Error\Base', 'exceptionHandler']);
 		ini_set('display_errors', 0);
 	}
 
@@ -74,7 +74,7 @@ class Base {
 	 * @param string $file
 	 * @param int $line
 	 */
-	public static function error_handler($errno, $error, $file, $line) {
+	public static function errorHandler($errno, $error, $file, $line) {
 		// if its a javascript error submitted to backend
 		if ($errno == 'javascript') {
 			debug::$data['js'][] = [
@@ -91,8 +91,8 @@ class Base {
 				'error' => [$error],
 				'file' => $file,
 				'line' => $line,
-				'code' => self::get_code($file, $line),
-				'backtrace' => self::debug_backtrace_string()
+				'code' => self::getCode($file, $line),
+				'backtrace' => self::debugBacktraceString()
 			];
 		} else if (debug::$debug) {
 			debug::$data['suppressed'][] = [
@@ -100,8 +100,8 @@ class Base {
 				'error' => [$error],
 				'file' => $file,
 				'line' => $line,
-				'code' => self::get_code($file, $line),
-				'backtrace' => self::debug_backtrace_string()
+				'code' => self::getCode($file, $line),
+				'backtrace' => self::debugBacktraceString()
 			];
 		}
 		// hashing errors
@@ -118,14 +118,14 @@ class Base {
 	 *
 	 * @param Exception $e
 	 */
-	public static function exception_handler(\Throwable $e) {
+	public static function exceptionHandler(\Throwable $e) {
 		self::$errors[] = [
 			'errno' => $e->getCode(),
 			'error' => [$e->getMessage()],
 			'file' => $e->getFile(),
 			'line' => $e->getLine(),
-			'code' => self::get_code($e->getFile(), $e->getLine()),
-			'backtrace' => self::debug_backtrace_string($e->getTrace())
+			'code' => self::getCode($e->getFile(), $e->getLine()),
+			'backtrace' => self::debugBacktraceString($e->getTrace())
 		];
 		self::$flag_exception = true;
 		exit;
@@ -138,7 +138,7 @@ class Base {
 	 * @param int $line
 	 * @return string
 	 */
-	public static function get_code($file, $line) {
+	public static function getCode($file, $line) {
 		if (empty($file)) {
 			return '';
 		}
@@ -162,7 +162,7 @@ class Base {
 	 * @param array $trace
 	 * @return array
 	 */
-	public static function debug_backtrace_string($trace = null) {
+	public static function debugBacktraceString($trace = null) {
 		$result = [];
 		$i = 1;
 		// if trace is not provided

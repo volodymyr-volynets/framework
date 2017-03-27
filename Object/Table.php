@@ -399,7 +399,7 @@ class Table extends \Object\Table\Options {
 	public function processWhoColumns($types, & $row, $timestamp = null) {
 		if ($types === 'all') $types = array_keys($this->who);
 		if (!is_array($types)) $types = [$types];
-		if (empty($timestamp)) $timestamp = Format::now('timestamp');
+		if (empty($timestamp)) $timestamp = \Format::now('timestamp');
 		foreach ($types as $type) {
 			if (!empty($this->who[$type])) {
 				// timestamp
@@ -467,7 +467,7 @@ class Table extends \Object\Table\Options {
 				continue;
 			}
 			if (empty($options['skip_type_validation'])) {
-				$temp = \Object\Table_columns::process_single_column_type($k, $v, $data[$k] ?? null);
+				$temp = \Object\Table\Columns::processSingleColumnType($k, $v, $data[$k] ?? null);
 				if (array_key_exists($k, $temp)) {
 					$save[$k] = $temp[$k];
 				}
@@ -515,7 +515,7 @@ class Table extends \Object\Table\Options {
 		// pk
 		$pk = array_key_exists('pk', $options) ? $options['pk'] : $this->pk;
 		// query
-		$query = self::query_builder_static(['skip_tenant' => $options['skip_tenant'] ?? false])->select();
+		$query = self::queryBuilderStatic(['skip_tenant' => $options['skip_tenant'] ?? false])->select();
 		// skip filtering by tenant twice
 		if (!empty($query->options['tenant']) && $this->tenant) {
 			unset($options['where'][$this->tenant_column]);
@@ -760,7 +760,7 @@ TTT;
 	 */
 	public static function collectionStatic(array $options = []) : \Object\Collection {
 		$options['model'] = get_called_class();
-		return \Object\Collection::collection_to_model($options);
+		return \Object\Collection::collectionToModel($options);
 	}
 
 	/**

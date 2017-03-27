@@ -165,7 +165,7 @@ reask_for_migration:
 					$db_migration_count = 0;
 					$db_migrations = [];
 					$migration_model = new \Numbers\Backend\Db\Common\Model\Migrations();
-					if ($migration_model->db_present()) {
+					if ($migration_model->dbPresent()) {
 						$temp = $migration_model->get(['where' => [
 								'sm_migration_db_link' => 'default',
 								'sm_migration_type' => 'migration',
@@ -250,7 +250,7 @@ reask_for_migration:
 						}
 						// set permissions
 						if (!empty($permissions)) {
-							$permission_result = Numbers\Backend\Db\Common\Schemas::set_permissions('default', $settings['db_query_owner'], $permissions, ['database' => $v]);
+							$permission_result = Numbers\Backend\Db\Common\Schemas::setPermissions('default', $settings['db_query_owner'], $permissions, ['database' => $v]);
 							if (!$permission_result['success']) {
 								$result['error'] = array_merge($result['error'], $permission_result['error']);
 								goto error;
@@ -342,7 +342,7 @@ reask_for_migration:
 					}
 					// make schema changes
 					if ($compare_result['count'] > 0 && ($mode == 'drop' || $mode == 'commit')) {
-						$sql_result = Numbers\Backend\Db\Common\Schemas::generate_sql_from_diff_and_execute('default', $compare_result['up'], [
+						$sql_result = Numbers\Backend\Db\Common\Schemas::generateSqlFromDiffAndExecute('default', $compare_result['up'], [
 							'mode' => $mode,
 							'execute' => true,
 							'legend' => $compare_result['legend']['up']
@@ -355,7 +355,7 @@ reask_for_migration:
 						$result['hint'][] = "   -> SQL changes: {$sql_result['count']};";
 						// set permissions to allow access for query user
 						if ($mode == 'commit' && !empty($code_result['permissions']['default'])) {
-							$permission_result = Numbers\Backend\Db\Common\Schemas::set_permissions('default', $settings['db_query_owner'], $code_result['permissions']['default'], ['database' => $v]);
+							$permission_result = Numbers\Backend\Db\Common\Schemas::setPermissions('default', $settings['db_query_owner'], $code_result['permissions']['default'], ['database' => $v]);
 							if (!$permission_result['success']) {
 								$result['error'] = array_merge($result['error'], $permission_result['error']);
 								goto error;
