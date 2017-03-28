@@ -45,10 +45,8 @@ class Db {
 		// if we have class
 		if (!empty($class) && !empty($db_link)) {
 			// check if backend has been enabled
-			$parts = explode('\\', trim($class, '\\'));
-			array_pop($parts);
-			if (!\Application::get('dep.submodule.' . implode('.', $parts))) {
-				Throw new Exception('You must enable ' . implode('\\', $parts) . ' first!');
+			if (!\Application::get($class, ['submodule_exists' => true])) {
+				Throw new Exception('You must enable ' . $class . ' first!');
 			}
 			// if we are replacing database connection with the same link we
 			// need to manually close database connection

@@ -420,7 +420,7 @@ class object_form_base extends object_form_parent {
 		if (!empty($options['options']['validator_method']) && !empty($value) && empty($options['options']['multiple_column'])) {
 			$neighbouring_values_key = $options['options']['values_key'];
 			array_pop($neighbouring_values_key);
-			$temp = object_validator_base::method(
+			$temp = \Object\Validator\Base::method(
 				$options['options']['validator_method'],
 				$value,
 				$options['options']['validator_params'] ?? [],
@@ -1148,7 +1148,7 @@ class object_form_base extends object_form_parent {
 					$options['__ajax_autocomplete'] = $this->options['input']['__ajax_autocomplete'];
 					$temp = explode('::', $this->fields[$this->options['input']['__ajax_autocomplete']['name']]['options']['method']);
 					if (count($temp) == 1) {
-						return Html::{$temp[0]}($options);
+						return \HTML::{$temp[0]}($options);
 					} else {
 						return Factory::model($temp[0])->{$temp[1]}($options);
 					}
@@ -1277,11 +1277,11 @@ class object_form_base extends object_form_parent {
 						$mvc = Application::get('mvc');
 						// save and new
 						if (!empty($this->process_submit[self::button_submit_save_and_new])) {
-							request::redirect($mvc['full']);
+							\Request::redirect($mvc['full']);
 						}
 						// save and close
 						if (!empty($this->process_submit[self::button_submit_save_and_close])) {
-							request::redirect($mvc['controller'] . '/_index');
+							\Request::redirect($mvc['controller'] . '/_index');
 						}
 						// we reload form values
 						goto load_values;
@@ -2075,7 +2075,7 @@ convert_multiple_columns:
 				$options['order'] = PHP_INT_MAX - 1000;
 			}
 			// validating row type
-			$types = object_html_form_row_types::get_static();
+			$types = object_html_form_row_types::getStatic();
 			if (!isset($options['type']) || !isset($types[$options['type']])) {
 				$options['type'] = $this->data[$container_link]['default_row_type'] ?? 'grid';
 			}
@@ -2327,7 +2327,7 @@ convert_multiple_columns:
 			foreach ($sorted as $k => $v) {
 				if (empty($v)) continue;
 				foreach ($v as $k2 => $v2) {
-					$result['message'].= Html::text(['tag' => 'div', 'class' => 'numbers_field_error_messages', 'field_value_hash' => $k2, 'type' => $k, 'value' => $v2]);
+					$result['message'].= \HTML::text(['tag' => 'div', 'class' => 'numbers_field_error_messages', 'field_value_hash' => $k2, 'type' => $k, 'value' => $v2]);
 				}
 			}
 			return $result;
@@ -2388,7 +2388,7 @@ convert_multiple_columns:
 				}
 			}
 		}
-		return Html::table($data);
+		return \HTML::table($data);
 		*/
 	}
 

@@ -85,7 +85,7 @@ class Controller {
 	public function __construct() {
 		// load all controllers from datasource
 		if (is_null(self::$controllers)) {
-			self::$controllers = object_acl_resources::get_static('controllers', 'primary');
+			self::$controllers = \Object\ACL\Resources::getStatic('controllers', 'primary');
 		}
 		// find yourself
 		$class = get_called_class();
@@ -128,7 +128,7 @@ class Controller {
 					foreach ($controller_object->actions['by_id'] as $k => $v) {
 						$permission_list[$k] = true;
 					}
-					Application::set(['controller', 'acl', 'permissions'], $permission_list);
+					\Application::set(['controller', 'acl', 'permissions'], $permission_list);
 					return true;
 				}
 				// see if we have this action code registered
@@ -151,12 +151,12 @@ class Controller {
 					return false;
 				}
 				// we need to put permission into controller
-				Application::set(['controller', 'acl', 'permissions'], self::$permissions[$controller_object->controller_id]);
+				\Application::set(['controller', 'acl', 'permissions'], self::$permissions[$controller_object->controller_id]);
 			}
 		} else {
 			// we need to redirect to login controller if not authorized
-			if (($options['redirect'] ?? false) && !empty($this->acl['authorized']) && empty($this->acl['public']) && !Application::get('flag.global.__skip_session')) {
-				request::redirect(object_acl_resources::get_static('authorization', 'login', 'url'));
+			if (($options['redirect'] ?? false) && !empty($this->acl['authorized']) && empty($this->acl['public']) && !\Application::get('flag.global.__skip_session')) {
+				\Request::redirect(\Object\ACL\Resources::getStatic('authorization', 'login', 'url'));
 			}
 			// public permission
 			if (empty($this->acl['public'])) {
@@ -192,12 +192,12 @@ class Controller {
 			Throw new Exception('Unknown action!');
 		}
 		// public controllers have access to all actions
-		$temp = Application::get(['controller', 'acl']);
+		$temp = \Application::get(['controller', 'acl']);
 		if (!empty($temp['public'])) {
 			return true;
 		}
 		// process permissions
-		$permissions = Application::get(['controller', 'acl', 'permissions']);
+		$permissions = \Application::get(['controller', 'acl', 'permissions']);
 		$start = $action_code_or_id;
 		do {
 			// see if we have permission
@@ -221,9 +221,9 @@ class Controller {
 	 * @return string
 	 */
 	public static function render_menu() : string {
-		$data = object_acl_resources::get_static('menu', 'primary');
-		return Html::menu([
-			'brand' => Application::get('application.layout.name'),
+		$data = \Object\ACL\Resources::getStatic('menu', 'primary');
+		return \HTML::menu([
+			'brand' => \Application::get('application.layout.name'),
 			'options' => $data[200] ?? [],
 			'options_right' => $data[210] ?? []
 		]);

@@ -237,8 +237,8 @@ class Datasource extends \Object\Table\Options {
 				$cached_result = $cache_object->get($cache_id, true);
 				if ($cached_result !== false) {
 					// if we are debugging
-					if (debug::$debug) {
-						debug::$data['sql'][] = [
+					if (\Debug::$debug) {
+						\Debug::$data['sql'][] = [
 							'success' => true,
 							'error' => [],
 							'errno' => 0,

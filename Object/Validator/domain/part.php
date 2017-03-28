@@ -1,9 +1,10 @@
 <?php
 
-class object_validator_domain_part extends object_validator_base {
+namespace Object\Validator\Domain;
+class Part extends \Object\Validator\Base {
 
 	/**
-	 * @see object_validator_base::validate()
+	 * @see \Object\Validator\Base::validate()
 	 */
 	public function validate($value, $options = []) {
 		$result = $this->result;

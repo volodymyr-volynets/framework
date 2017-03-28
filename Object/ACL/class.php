@@ -47,10 +47,10 @@ class object_acl_class extends \Object\Override\Data {
 			$method = Factory::method($v['method'], null, true);
 			$result = $method[0]->{$method[1]}($acl_key, $acl_type, $data, $options);
 			if (!$result) {
-				debug::$data['acls'][$acl_key][$acl_type] = 'Failed';
+				\Debug::$data['acls'][$acl_key][$acl_type] = 'Failed';
 				return false;
 			} else {
-				debug::$data['acls'][$acl_key][$acl_type] = 'Success';
+				\Debug::$data['acls'][$acl_key][$acl_type] = 'Success';
 			}
 		}
 		return true;

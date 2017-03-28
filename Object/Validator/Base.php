@@ -1,6 +1,7 @@
 <?php
 
-abstract class object_validator_base {
+namespace Object\Validator;
+abstract class Base {
 
 	/**
 	 * Result
@@ -38,6 +39,6 @@ abstract class object_validator_base {
 		$params = $params ?? [];
 		$params['options'] = $options;
 		$params['neighbouring_values'] = $neighbouring_values;
-		return Factory::model($method[0], true)->{$method[1]}($value, $params);
+		return \Factory::model($method[0], true)->{$method[1]}($value, $params);
 	}
 }

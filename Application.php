@@ -45,12 +45,10 @@ class Application {
 		$result = array_key_get(self::$settings, $key);
 		// submodule exists
 		if (!empty($options['submodule_exists'])) {
-			$temp = explode('.', $result);
-			array_pop($temp);
-			array_unshift($temp, 'submodule');
-			array_unshift($temp, 'dep');
-			$exists = array_key_get(self::$settings, $temp);
-			if (empty($exists)) return false;
+			$parts = explode('\\', trim($key, '\\'));
+			array_pop($parts);
+			$temp = \Application::get('dep.submodule.' . implode('.', $parts));
+			return !empty($temp);
 		}
 		// if we need to fix class name
 		if (!empty($options['class'])) {
@@ -153,7 +151,7 @@ class Application {
 		$bootstrap = new Bootstrap();
 		$bootstrap_methods = get_class_methods($bootstrap);
 		foreach ($bootstrap_methods as $method) {
-			if (strpos($method, 'init')===0) call_user_func(array($bootstrap, $method), $options);
+			if (strpos($method, 'init')===0) call_user_func([$bootstrap, $method], $options);
 		}
 		// if we are calling application from the command line
 		if (!empty($options['__run_only_bootstrap'])) {
@@ -302,7 +300,7 @@ class Application {
 		}
 		// full string
 		$result['full'] = $result['controller'] . '/_' . $result['action'];
-		$result['full_with_host'] = rtrim(request::host(), '/') . $result['controller'] . '/_' . $result['action'];
+		$result['full_with_host'] = rtrim(\Request::host(), '/') . $result['controller'] . '/_' . $result['action'];
 		return $result;
 	}
 
@@ -327,24 +325,25 @@ class Application {
 		$data = self::mvc($request_uri);
 		// forming class name and file
 		// todo: add full path here instead of relative
-		if (in_array('controller', $data['controllers'])) {
+		if (in_array('Controller', $data['controllers'])) {
 			// todo: custom modules handling
-			$controller_class = str_replace(' ', '_', implode(' ', $data['controllers']));
-			$file = './../libraries/vendor/' . str_replace('_', '/', $controller_class . '.php');
+			$controller_class = str_replace(' ', '\\', implode(' ', $data['controllers']));
+			$file = './../libraries/vendor/' . str_replace('\\', '/', $controller_class . '.php');
 		} else {
-			$controller_class = 'controller_' . str_replace(' ', '_', implode(' ', $data['controllers']));
-			$file = './' . str_replace('_', '/', $controller_class . '.php');
+			$controller_class = 'Controller\\' . str_replace(' ', '\\', implode(' ', $data['controllers']));
+			$file = './' . str_replace('\\', '/', $controller_class . '.php');
 		}
+		$controller_class = '\\' . $controller_class;
 		// assembling everything into settings
 		self::$settings['mvc'] = $data;
 		self::$settings['mvc']['controller_class'] = $controller_class;
-		self::$settings['mvc']['controller_action'] = 'action_' . $data['action'];
+		self::$settings['mvc']['controller_action'] = 'action' . str_replace('_', ' ', $data['action']);
 		self::$settings['mvc']['controller_action_code'] = $data['action'];
 		self::$settings['mvc']['controller_id'] = $data['id'];
 		self::$settings['mvc']['controller_view'] = $data['action'];
 		self::$settings['mvc']['controller_layout'] = self::$settings['application']['layout']['layout'] ?? 'index';
 		self::$settings['mvc']['controller_layout_extension'] = (self::$settings['application']['layout']['extension'] ?? 'html');
-		self::$settings['mvc']['controller_layout_file'] = Application::get(['application', 'path_full']) . 'layout/' . self::$settings['mvc']['controller_layout'] . '.' . self::$settings['mvc']['controller_layout_extension'];
+		self::$settings['mvc']['controller_layout_file'] = Application::get(['application', 'path_full']) . 'Layout/' . self::$settings['mvc']['controller_layout'] . '.' . self::$settings['mvc']['controller_layout_extension'];
 		self::$settings['mvc']['controller_file'] = $file;
 	}
 
@@ -355,7 +354,7 @@ class Application {
 	 */
 	public static function process($options = []) {
 		// start buffering
-		Helper_Ob::start(true);
+		\Helper\Ob::start(true);
 		$controller_class = self::$settings['mvc']['controller_class'];
 		// if we are handling error message and controller class has not been loaded
 		if ($controller_class == 'controller_error' && \Object\Error\Base::$flag_error_already && !class_exists('controller_error')) {
@@ -378,7 +377,7 @@ class Application {
 		}
 		// auto populating input property in controller
  		if (!empty(self::$settings['application']['controller']['input'])) {
-			self::$controller->input = request::input(null, true, true);
+			self::$controller->input = \Request::input(null, true, true);
  		}
 		// init method
 		if (method_exists(self::$controller, 'init')) {
@@ -412,24 +411,24 @@ class Application {
 			}
 		}
 		// autoloading media files
-		Layout::include_media($controller_dir, $controller_file, $view, $controller_class);
+		\Layout::includeMedia($controller_dir, $controller_file, $view, $controller_class);
 		// appending view after controllers output
-		self::$controller->view = (self::$controller->view ?? '') . Helper_Ob::clean();
+		self::$controller->view = (self::$controller->view ?? '') . \Helper\Ob::clean();
 		// if we have to render debug toolbar
-		if (debug::$toolbar) {
-			Helper_Ob::start();
+		if (\Debug::$toolbar) {
+			\Helper\Ob::start();
 		}
 		// call pre rendering method in bootstrap
-		bootstrap::pre_render();
+		\Bootstrap::preRender();
 		// rendering layout
 		$__skip_layout = self::get('flag.global.__skip_layout');
 		if (!empty(self::$settings['mvc']['controller_layout']) && empty($__skip_layout)) {
-			Helper_Ob::start();
+			\Helper\Ob::start();
 			if (file_exists(self::$settings['mvc']['controller_layout_file'])) {
-				self::$controller = new layout(self::$controller, self::$settings['mvc']['controller_layout_file'], self::$settings['mvc']['controller_layout_extension']);
+				self::$controller = new \Layout(self::$controller, self::$settings['mvc']['controller_layout_file'], self::$settings['mvc']['controller_layout_extension']);
 			}
 			// session expiry dialog before replaces
-			Session::expiry_dialog();
+			\Session::expiryDialog();
 			// buffer output and handling javascript files, chicken and egg problem
 			$from = [
 				'<!-- [numbers: messages] -->',
@@ -444,24 +443,24 @@ class Application {
 				'<!-- [numbers: layout onhtml] -->'
 			];
 			$to = [
-				Layout::render_messages(),
-				Layout::render_title(),
-				Layout::render_document_title(),
-				Layout::render_actions(),
-				Layout::render_breadcrumbs(),
-				Layout::render_js(),
-				Layout::render_js_data(),
-				Layout::render_css(),
-				Layout::render_onload(),
-				Layout::$onhtml
+				\Layout::renderMessages(),
+				\Layout::renderTitle(),
+				\Layout::renderDocumentTitle(),
+				\Layout::renderActions(),
+				\Layout::renderBreadcrumbs(),
+				\Layout::renderJs(),
+				\Layout::renderJsData(),
+				\Layout::renderCss(),
+				\Layout::renderOnload(),
+				\Layout::$onhtml
 			];
-			echo str_replace($from, $to, Helper_Ob::clean());
+			echo str_replace($from, $to, \Helper\Ob::clean());
 		} else {
 			echo self::$controller->view;
 		}
 		// ajax calls that has not been processed by application
 		if (self::get('flag.global.__ajax')) {
-			Layout::render_as(['success' => false, 'error' => [i18n(null, 'Could not process ajax call!')]], 'application/json');
+			\Layout::renderAs(['success' => false, 'error' => [\I18n(null, 'Could not process ajax call!')]], 'application/json');
 		}
 	}
 
@@ -507,13 +506,13 @@ class Application {
 	public static function processMagicVariables() {
 		$variables_object = new \Object\Magic\Variables();
 		$variables = $variables_object->get();
-		$input = request::input(null, true, true);
+		$input = \Request::input(null, true, true);
 		foreach ($variables as $k => $v) {
 			if (!array_key_exists($k, $input)) {
 				continue;
 			}
 			if ($k == '__content_type') {
-				$object = new object_content_types();
+				$object = new \Object\Content\Types();
 				$data = $object->get();
 				if (isset($data[$input[$k]])) {
 					self::$settings['flag']['global'][$k] = $input[$k];

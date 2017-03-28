@@ -62,6 +62,10 @@ class Session {
 			self::$object = new $class();
 			self::$object->init();
 		}
+		// check if backend has been enabled
+		if (!\Application::get($class, ['submodule_exists' => true])) {
+			Throw new Exception('You must enable ' . $class . ' first!');
+		}
 		// starting session
 		session_start();
 		// session fixation prevention
@@ -71,7 +75,7 @@ class Session {
 			$_SESSION['numbers']['flag_generated_by_system'] = true;
 		}
 		// processing IP address
-		$ip = request::ip();
+		$ip = \Request::ip();
 		// we need to reset ip address details if we have different ip
 		if (!empty($_SESSION['numbers']['ip']['ip']) && $_SESSION['numbers']['ip']['ip'] != $ip) {
 			$_SESSION['numbers']['ip'] = [];
@@ -95,7 +99,7 @@ class Session {
 		}
 		// add anonymous role
 		if (!user::authorized()) {
-			user::role_grant(object_acl_resources::get_static('user_roles', 'anonymous'));
+			user::roleGrant(\Object\ACL\Resources::getStatic('user_roles', 'anonymous'));
 		}
 	}
 
@@ -187,9 +191,9 @@ class Session {
 		 *		1. Session exists and user is authorized
 		 *		2. Controller requires login and not public
 		 */
-		$acl = Application::get('controller.acl');
-		if (!empty(self::$object) && Application::get('flag.global.session.expiry_dialog') && !empty($_SESSION['numbers']['authorized']) && !empty($acl['authorized']) && empty($acl['public'])) {
-			Layout::onhtml(self::$object->expiry_dialog());
+		$acl = \Application::get('controller.acl');
+		if (!empty(self::$object) && \Application::get('flag.global.session.expiry_dialog') && !empty($_SESSION['numbers']['authorized']) && !empty($acl['authorized']) && empty($acl['public'])) {
+			\Layout::onhtml(self::$object->expiryDialog());
 		}
 	}
 }

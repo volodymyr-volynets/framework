@@ -1,9 +1,9 @@
 <?php
 
-class object_validator_phone extends object_validator_base {
+class object_validator_phone extends \Object\Validator\Base {
 
 	/**
-	 * @see object_validator_base::validate()
+	 * @see \Object\Validator\Base::validate()
 	 */
 	public function validate($value, $options = []) {
 		$result = $this->result;

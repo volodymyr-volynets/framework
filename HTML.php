@@ -1,6 +1,6 @@
 <?php
 
-class Html {
+class HTML {
 
 	/**
 	 * Generate name
@@ -14,7 +14,7 @@ class Html {
 			$name = i18n(null, $name);
 		}
 		if (!empty($icon)) {
-			$name = Html::icon(['type' => $icon]) . ' ' . $name;
+			$name = \HTML::icon(['type' => $icon]) . ' ' . $name;
 		}
 		return $name;
 	}
@@ -323,7 +323,7 @@ class Html {
 	}
 
 	/**
-	 * see Html::select() with multiple
+	 * see \HTML::select() with multiple
 	 */
 	public static function multiselect(array $options = []) : string {
 		$options['multiple'] = true;

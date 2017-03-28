@@ -59,13 +59,13 @@ class Config {
 		$file = $ini_folder . 'environment.ini';
 		if (file_exists($file)) {
 			$ini_data = self::ini($file);
-			$result = array_merge($result, $ini_data);
+			$result = array_merge2($result, $ini_data);
 		}
 		// application.ini file second
 		$file = $ini_folder . 'application.ini';
 		if (file_exists($file)) {
 			$ini_data = self::ini($file, $result['environment']);
-			$result = array_merge($result, $ini_data);
+			$result = array_merge2($result, $ini_data);
 		}
 		return $result;
 	}

@@ -74,7 +74,7 @@ class Bootstrap {
 				if (!$connected) {
 					// if wrong database name is provided we redirect to special url
 					if (!empty($application_structure['db_not_found_url']) && isset($application_structure['settings']['db'][$db_link])) {
-						request::redirect($application_structure['db_not_found_url']);
+						\Request::redirect($application_structure['db_not_found_url']);
 					} else {
 						Throw new Exception('Unable to open database connection!');
 					}
@@ -86,7 +86,7 @@ class Bootstrap {
 		if (!empty($cache) && $backend) {
 			foreach ($cache as $cache_link => $cache_settings) {
 				if (empty($cache_settings['submodule']) || empty($cache_settings['autoconnect'])) continue;
-				$cache_result = cache::connect_to_servers($cache_link, $cache_settings);
+				$cache_result = \Cache::connectToServers($cache_link, $cache_settings);
 				if (!$cache_result['success']) {
 					Throw new Exception(implode(', ', $cache_result['error']));
 				}
@@ -114,28 +114,28 @@ class Bootstrap {
 		// format
 		Format::init();
 		// default actions
-		Layout::add_action('refresh', ['value' => 'Refresh', 'icon' => 'refresh', 'onclick' => 'location.reload();', 'order' => -32000]);
-		Layout::add_action('print', ['value' => 'Print', 'icon' => 'print', 'onclick' => 'window.print();', 'order' => -31000]);
+		Layout::addAction('refresh', ['value' => 'Refresh', 'icon' => 'refresh', 'onclick' => 'location.reload();', 'order' => -32000]);
+		Layout::addAction('print', ['value' => 'Print', 'icon' => 'print', 'onclick' => 'window.print();', 'order' => -31000]);
 	}
 
 	/**
 	 * Pre render processing
 	 */
 	public static function preRender() {
-		$crypt_class = new crypt();
-		$token = urldecode($crypt_class->token_create('general'));
-		Layout::js_data([
+		$crypt_class = new Crypt();
+		$token = urldecode($crypt_class->tokenCreate('general'));
+		\Layout::jsData([
 			'token' => $token, // generating token to receive data from frontend
-			'controller_full' => Application::get(['mvc', 'full']), // full controller path
+			'controller_full' => \Application::get(['mvc', 'full']), // full controller path
 			// flags set in configuration files
 			'flag' => [
 				'global' => [
-					'format' => Format::$options // format options
+					'format' => \Format::$options // format options
 				]
 			],
 			// domains
 			'\Object\Data\Domains' => [
-				'data' => \Object\Data\Domains::get_static()
+				'data' => \Object\Data\Domains::getStatic()
 			]
 		]);
 	}
@@ -146,7 +146,7 @@ class Bootstrap {
 	public static function destroy() {
 		$__run_only_bootstrap = Application::get(['flag', 'global', '__run_only_bootstrap']);
 		// we need to set working directory again
-		chdir(Application::get(['application', 'path_full']));
+		chdir(\Application::get(['application', 'path_full']));
 		// error processing
 		if (empty(\Object\Error\Base::$flag_error_already)) {
 			$last_error = error_get_last();
@@ -163,26 +163,26 @@ class Bootstrap {
 					print_r(\Object\Error\Base::$errors);
 				} else {
 					// set mvc + process
-					Application::set_mvc('/error/_error/500');
-					Application::$controller = new controller_error();
-					Application::process();
+					\Application::setMvc('/Errors/_Error/500');
+					\Application::$controller = new \Controller\Errors();
+					\Application::process();
 				}
 			}
 		}
 		// write sessions
 		session_write_close();
 		// final benchmark
-		if (debug::$debug) {
-			debug::benchmark('application end');
+		if (\Debug::$debug) {
+			\Debug::benchmark('application end');
 		}
 		// debugging toolbar last
-		if (debug::$toolbar && !$__run_only_bootstrap) {
-			echo str_replace('<!-- [numbers: debug toolbar] -->', debug::render(), Helper_Ob::clean());
+		if (\Debug::$toolbar && !$__run_only_bootstrap) {
+			echo str_replace('<!-- [numbers: debug toolbar] -->', \Debug::render(), \Helper\Ob::clean());
 		}
 		// flush data to client
 		flush();
 		// closing caches before db
-		$cache = Factory::get(['cache']);
+		$cache = \Factory::get(['cache']);
 		if (!empty($cache)) {
 			foreach ($cache as $k => $v) {
 				if (!empty(cache::$reset_caches[$k])) {
@@ -192,19 +192,19 @@ class Bootstrap {
 			}
 		}
 		// destroy i18n
-		if (I18n::$initialized) {
-			I18n::destroy();
+		if (\I18n::$initialized) {
+			\I18n::destroy();
 		}
 		// close db connections
-		$dbs = Factory::get(['db']);
+		$dbs = \Factory::get(['db']);
 		if (!empty($dbs)) {
 			foreach ($dbs as $k => $v) {
 				$v['object']->close();
 			}
 		}
 		// emails with erros
-		if (debug::$debug && !empty(debug::$email) && Application::get('Numbers.Backend', ['backend_exists' => true]) && Application::get('Numbers.Frontend', ['backend_exists' => true])) {
-			debug::sendErrorsToAdmin();
+		if (\Debug::$debug && !empty(\Debug::$email) && \Application::get('Numbers.Backend', ['backend_exists' => true]) && \Application::get('Numbers.Frontend', ['backend_exists' => true])) {
+			\Debug::sendErrorsToAdmin();
 		}
 	}
 }

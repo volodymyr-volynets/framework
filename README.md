@@ -6,6 +6,9 @@ Framework is designed for Enterpeise applications and is a group of multiple com
 	[https://github.com/volodymyr-volynets/skeleton](https://github.com/volodymyr-volynets/skeleton)
 
 2) Available repositories:
+
 	a) [Numbers\Framework](https://github.com/volodymyr-volynets/framework) - framework itself;
+
 	b) [Numbers\Backend](https://github.com/volodymyr-volynets/backend) - backend components to handle database, cache, cryptography and other;
+
 	c) [Numbers\Frontend](https://github.com/volodymyr-volynets/frontend) - frontend components;

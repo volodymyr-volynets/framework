@@ -61,7 +61,7 @@ class File {
 	 * @return boolean
 	 */
 	public static function delete(string $dir, array $options = []) : bool {
-		if (is_dir($dir)) {
+		if (is_dir($dir) && !is_link($dir)) {
 			$skip_files = [];
 			if (!empty($options['skip_files'])) {
 				$skip_files = $options['skip_files'];

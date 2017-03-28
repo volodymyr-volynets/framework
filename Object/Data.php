@@ -143,7 +143,7 @@ class Data extends \Object\Table\Options {
 		if (get_called_class() == 'Object\Data\Types') {
 			$types = $this->data;
 		} else {
-			$types = \Object\Data\Types::get_static();
+			$types = \Object\Data\Types::getStatic();
 		}
 		// transform data
 		$result = [];
@@ -208,8 +208,8 @@ class Data extends \Object\Table\Options {
 	 * @param string $property
 	 * @return mixed
 	 */
-	public static function get_setting($setting = null, $property = null) {
-		$data = self::get_static();
+	public static function getSetting($setting = null, $property = null) {
+		$data = self::getStatic();
 		$keys = [];
 		if (isset($setting)) {
 			$keys[] = $setting;
@@ -223,7 +223,7 @@ class Data extends \Object\Table\Options {
 	/**
 	 * @see $this->get()
 	 */
-	public static function get_static($options = []) {
+	public static function getStatic($options = []) {
 		$class = get_called_class();
 		$object = new $class();
 		return $object->get($options);
@@ -242,7 +242,7 @@ class Data extends \Object\Table\Options {
 	 * @see $this->get()
 	 * @return boolean
 	 */
-	public static function exists_static($options = []) {
+	public static function existsStatic($options = []) {
 		$class = get_called_class();
 		$object = new $class();
 		return $object->exists($options);

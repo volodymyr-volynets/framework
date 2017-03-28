@@ -24,13 +24,13 @@ class object_form_wrapper_wizard {
 	 * @return string
 	 */
 	public function render() {
-		$result = Html::wizard([
+		$result = \HTML::wizard([
 			'type' => $this->options['wizard']['type'] ?? null,
 			'step' => $this->options['input']['__wizard_step'] ?? null,
 			'options' => $this->options['wizard']['options'] ?? []
 		]);
 		if (!empty($result)) {
-			$result.= Html::hr();
+			$result.= \HTML::hr();
 		}
 		return $result;
 	}

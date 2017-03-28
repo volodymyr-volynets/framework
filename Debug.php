@@ -153,7 +153,7 @@ class Debug {
 					$result.= '<td>';
 						$result.= '<table width="100%">';
 							$result.= '<tr>';
-								$result.= '<td nowrap>&nbsp;' . Html::a(['value' => 'Hide All', 'href' => 'javascript:void(0);', 'onclick' => "$('.debuging_toolbar_class').hide();"]) . '&nbsp;</td>';
+								$result.= '<td nowrap>&nbsp;' . \HTML::a(['value' => 'Hide All', 'href' => 'javascript:void(0);', 'onclick' => "$('.debuging_toolbar_class').hide();"]) . '&nbsp;</td>';
 								foreach (self::$data as $k => $v) {
 									if ($k == 'errors') {
 										$count = count(\Object\Error\Base::$errors);
@@ -166,9 +166,9 @@ class Debug {
 									} else {
 										$count = count($v);
 									}
-									$result.= '<td nowrap>&nbsp;' . Html::a(['value' => ucwords($k) . ' (' . $count . ')', 'id' => "debuging_toolbar_{$k}_a", 'href' => 'javascript:void(0);', 'onclick' => "$('#debuging_toolbar_{$k}').toggle();"]) . '&nbsp;</td>';
+									$result.= '<td nowrap>&nbsp;' . \HTML::a(['value' => ucwords($k) . ' (' . $count . ')', 'id' => "debuging_toolbar_{$k}_a", 'href' => 'javascript:void(0);', 'onclick' => "$('#debuging_toolbar_{$k}').toggle();"]) . '&nbsp;</td>';
 								}
-								$result.= '<td width="50%" align="right">' . Html::a(['href' => '/numbers/frontend/system/controller/dev', 'value' => 'Dev. Portal']) . '</td>';
+								$result.= '<td width="50%" align="right">' . \HTML::a(['href' => '/numbers/frontend/system/controller/dev', 'value' => 'Dev. Portal']) . '</td>';
 							$result.= '</tr>';
 						$result.= '</table>';
 					$result.= '</td>';
@@ -296,7 +296,7 @@ class Debug {
 								$result.= '</tr>';
 								$result.= '<tr>';
 									$result.= '<td valign="top">' . $temp . '</td>';
-									$result.= '<td valign="top">' . Html::table(['options' => $v['structure']]) . '</td>';
+									$result.= '<td valign="top">' . \HTML::table(['options' => $v['structure']]) . '</td>';
 									$result.= '<td valign="top">' . ($v['cache'] ? 'Yes' : 'No') . '</td>';
 									$result.= '<td valign="top">' . $v['time'] . '</td>';
 								$result.= '</tr>';
@@ -306,7 +306,7 @@ class Debug {
 									$header = array_combine($temp, $temp);
 									if (!empty($header)) {
 										$result.= '<tr>';
-											$result.= '<td valign="top" colspan="8" style="max-width: 1000px; overflow: scroll;">' . Html::table(['header' => $header, 'options' => $v['rows']]) . '</td>';
+											$result.= '<td valign="top" colspan="8" style="max-width: 1000px; overflow: scroll;">' . \HTML::table(['header' => $header, 'options' => $v['rows']]) . '</td>';
 										$result.= '</tr>';
 									}
 								}
@@ -411,7 +411,7 @@ class Debug {
 								$result.= '<tr>';
 									$result.= '<td><b>' . $v['class'] . '</b></td>';
 									$result.= '<td>' . $v['file'] . '</td>';
-									$result.= '<td>' . Html::table(['options' => $v['media']]) . '</td>';
+									$result.= '<td>' . \HTML::table(['options' => $v['media']]) . '</td>';
 								$result.= '</tr>';
 							}
 						$result.= '</table>';
@@ -451,8 +451,8 @@ TTT;
 				// acls
 				$result.= '<tr id="debuging_toolbar_acls" class="debuging_toolbar_class" style="display: none;">';
 					$result.= '<td>';
-						$result.= '<h3>Acls (' . count(debug::$data['acls']) . ')</h3>';
-						$result.= print_r2(debug::$data['acls'], 'Acls', true);
+						$result.= '<h3>Acls (' . count(\Debug::$data['acls']) . ')</h3>';
+						$result.= print_r2(\Debug::$data['acls'], 'Acls', true);
 					$result.= '</td>';
 				$result.= '</tr>';
 

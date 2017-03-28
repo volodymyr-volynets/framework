@@ -542,7 +542,7 @@ class Table extends \Object\Table\Options {
 			$query->where_multiple('AND', $options['where']);
 		}
 		// todo
-		//$sql.= !empty($options['search']) ? (' AND (' . $this->db_object->prepare_condition($options['search'], 'OR') . ')') : '';
+		//$sql.= !empty($options['search']) ? (' AND (' . $this->db_object->prepareCondition($options['search'], 'OR') . ')') : '';
 		// order by
 		$orderby = $options['orderby'] ?? (!empty($this->orderby) ? $this->orderby : null);
 		if (!empty($orderby)) {

@@ -71,7 +71,7 @@ class Request {
 	 */
 	public static function host(array $params = []) : string {
 		$protocol = !empty($params['protocol']) ? $params['protocol'] : '';
-		if (!$protocol) $protocol = self::is_ssl() ? 'https' : 'http';
+		if (!$protocol) $protocol = self::isSSL() ? 'https' : 'http';
 		if (!empty($params['host_parts'])) {
 			$host = implode('.', $params['host_parts']);
 		} else {
@@ -120,7 +120,7 @@ class Request {
 	 * 
 	 * @return boolean
 	 */
-	public static function isSsl() : bool {
+	public static function isSSL() : bool {
 		if (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && strtolower($_SERVER['HTTP_X_FORWARDED_PROTO'])=='https') {
 			return true;
 		} else if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off') {

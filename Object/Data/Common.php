@@ -190,7 +190,7 @@ class Common {
 		$data = remap($data, $options_map_new);
 		foreach ($data as $k => $v) {
 			if (!empty($v['icon_class'])) {
-				$data[$k]['icon_class'] = Html::icon(['type' => $v['icon_class'], 'class_only' => true]);
+				$data[$k]['icon_class'] = \HTML::icon(['type' => $v['icon_class'], 'class_only' => true]);
 			}
 		}
 		return $data;
@@ -355,7 +355,7 @@ class Common {
 					// icon
 					$temp_result['icon_class'] = null;
 					if (isset($optmultis_map[$v2]['icon_column']) && !empty($v[$optmultis_map[$v2]['icon_column']])) {
-						$temp_result['icon_class'] = Html::icon(['type' => $v[$optmultis_map[$v2]['icon_column']], 'class_only' => true]);
+						$temp_result['icon_class'] = \HTML::icon(['type' => $v[$optmultis_map[$v2]['icon_column']], 'class_only' => true]);
 					}
 					// only this value flag
 					if (!empty($optmultis_map[$v2]['only_this_value'])) {

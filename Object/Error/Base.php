@@ -77,7 +77,7 @@ class Base {
 	public static function errorHandler($errno, $error, $file, $line) {
 		// if its a javascript error submitted to backend
 		if ($errno == 'javascript') {
-			debug::$data['js'][] = [
+			\Debug::$data['js'][] = [
 				'errno' => $errno,
 				'error' => [$error],
 				'file' => $file,
@@ -94,8 +94,8 @@ class Base {
 				'code' => self::getCode($file, $line),
 				'backtrace' => self::debugBacktraceString()
 			];
-		} else if (debug::$debug) {
-			debug::$data['suppressed'][] = [
+		} else if (\Debug::$debug) {
+			\Debug::$data['suppressed'][] = [
 				'errno' => $errno,
 				'error' => [$error],
 				'file' => $file,

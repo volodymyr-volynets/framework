@@ -1,6 +1,7 @@
 <?php
 
-class object_acl_resources extends \Object\Override\Data {
+namespace Object\ACL;
+class Resources extends \Object\Override\Data {
 
 	/**
 	 * Data
@@ -24,7 +25,7 @@ class object_acl_resources extends \Object\Override\Data {
 	 */
 	public function __construct() {
 		// we need to handle overrrides
-		parent::override_handle($this);
+		parent::overrideHandle($this);
 	}
 
 	/**
@@ -60,7 +61,7 @@ class object_acl_resources extends \Object\Override\Data {
 	 *
 	 * @see $this::get()
 	 */
-	public static function get_static(string $type = '', string $module = '') {
-		return Factory::model(get_called_class())->get($type, $module);
+	public static function getStatic(string $type = '', string $module = '') {
+		return \Factory::model(get_called_class())->get($type, $module);
 	}
 }

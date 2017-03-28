@@ -27,11 +27,15 @@ class Mail {
 			'error' => []
 		];
 		// mail delivery first
-		$mail_delivery_class = Application::get('flag.global.mail.delivery.submodule', ['class' => 1]);
-		if (empty($mail_delivery_class)) {
+		$class = \Application::get('flag.global.mail.delivery.submodule', ['class' => true]);
+		if (empty($class)) {
 			Throw new Exception('You need to specify mail delivery submodule');
 		}
-		$mail_delivery_object = new $mail_delivery_class();
+		// check if backend has been enabled
+		if (!\Application::get($class, ['submodule_exists' => true])) {
+			Throw new Exception('You must enable ' . $class . ' first!');
+		}
+		$mail_delivery_object = new $class();
 		$temp = $mail_delivery_object->send($options);
 		if (!$temp['success']) {
 			array_merge3($result['error'], $temp['error']);

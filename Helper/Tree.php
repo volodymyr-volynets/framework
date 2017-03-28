@@ -85,7 +85,7 @@ class Tree {
 
 			$value['level'] = $level;
 			if (!empty($options['icon_field'])) {
-				$value['icon_class'] = Html::icon(['type' => $v[$options['icon_field']], 'class_only' => true]);
+				$value['icon_class'] = \HTML::icon(['type' => $v[$options['icon_field']], 'class_only' => true]);
 			}
 			if (!empty($options['disabled_field'])) {
 				$value['disabled'] = !empty($v[$options['disabled_field']]);

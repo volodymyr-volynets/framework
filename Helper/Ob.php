@@ -8,7 +8,7 @@ class Ob {
 	 */
 	public static function start(bool $clean = false) {
 		if ($clean) {
-			self::clean_all();
+			self::cleanAll();
 		}
 		ob_start();
 	}

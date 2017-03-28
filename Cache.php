@@ -104,8 +104,8 @@ class Cache {
 	public function get($cache_id, $return_data_only = false) {
 		$result = $this->object->get($cache_id);
 		// if we are debugging
-		if (debug::$debug) {
-			debug::$data['cache'][] = array(
+		if (\Debug::$debug) {
+			\Debug::$data['cache'][] = array(
 				'type' => 'get',
 				'link' => $this->object->cache_link,
 				'cache_id' => $cache_id,
@@ -137,8 +137,8 @@ class Cache {
 	public function set($cache_id, $data, $expire = null, $tags = []) {
 		$result = $this->object->set($cache_id, $data, $expire, $tags);
 		// if we are debugging
-		if (debug::$debug) {
-			debug::$data['cache'][] = array(
+		if (\Debug::$debug) {
+			\Debug::$data['cache'][] = array(
 				'type' => 'set',
 				'link' => $this->object->cache_link,
 				'cache_id' => $cache_id,

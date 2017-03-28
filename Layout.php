@@ -78,7 +78,7 @@ class Layout extends View {
 		if (!empty($css)) {
 			asort($css);
 			foreach ($css as $k=>$v) {
-				$script = $k . (strpos($k, '?') !== false ? '&' : '?') . self::get_version();
+				$script = $k . (strpos($k, '?') !== false ? '&' : '?') . self::getVersion();
 				$result.= '<link href="' . $script . '" rel="stylesheet" type="text/css" />';
 			}
 		}
@@ -107,7 +107,7 @@ class Layout extends View {
 		if (!empty($js)) {
 			asort($js);
 			foreach ($js as $k=>$v) {
-				$script = $k . (strpos($k, '?') !== false ? '&' : '?') . self::get_version();
+				$script = $k . (strpos($k, '?') !== false ? '&' : '?') . self::getVersion();
 				$result.= '<script type="text/javascript" src="' . $script . '"></script>';
 			}
 		}
@@ -139,7 +139,7 @@ class Layout extends View {
 	 */
 	public static function renderOnLoad() {
 		if (!empty(self::$onload)) {
-			return Html::script(array('value'=>'$(document).ready(function(){ ' . self::$onload . ' });'));
+			return \HTML::script(array('value'=>'$(document).ready(function(){ ' . self::$onload . ' });'));
 		}
 	}
 
@@ -156,7 +156,7 @@ class Layout extends View {
 	 * Render JavaScript data
 	 */
 	public static function renderJsData() {
-		return Html::script(['value' => 'var numbers_js_data = ' . json_encode(self::$js_data) . '; $.extend(true, numbers, numbers_js_data); numbers_js_data = null;']);
+		return \HTML::script(['value' => 'var numbers_js_data = ' . json_encode(self::$js_data) . '; $.extend(true, numbers, numbers_js_data); numbers_js_data = null;']);
 	}
 
 	/**
@@ -168,7 +168,7 @@ class Layout extends View {
 		$title = self::$title_override ?? Application::$controller->title ?? null;
 		if (!empty($title)) {
 			$icon = self::$icon_override ?? Application::$controller->icon ?? null;
-			return (!empty($icon) ? (Html::icon(['type' => $icon]) . ' ') : '') . i18n(null, $title);
+			return (!empty($icon) ? (\HTML::icon(['type' => $icon]) . ' ') : '') . i18n(null, $title);
 		}
 	}
 
@@ -178,7 +178,7 @@ class Layout extends View {
 	 * @return string
 	 */
 	public static function renderDocumentTitle() {
-		$title = strip_tags(self::render_title());
+		$title = strip_tags(self::renderTitle());
 		return '<title>' . $title . '</title>';
 	}
 
@@ -227,14 +227,14 @@ class Layout extends View {
 		if (!empty($postponed)) {
 			Session::set(['numbers', 'messages'], []);
 			foreach ($postponed as $k => $v) {
-				$result.= Html::message(['options' => $v, 'type' => $k]);
+				$result.= \HTML::message(['options' => $v, 'type' => $k]);
 			}
 		}
 		// regular messages
 		$messages = Application::get(array('messages'));
 		if (!empty($messages)) {
 			foreach ($messages as $k => $v) {
-				$result.= Html::message(['options' => $v, 'type' => $k]);
+				$result.= \HTML::message(['options' => $v, 'type' => $k]);
 			}
 		}
 		return $result;
@@ -266,11 +266,11 @@ class Layout extends View {
 			$temp = [];
 			foreach ($data as $k => $v) {
 				if (empty($v)) continue;
-				$icon = !empty($v['icon']) ? (Html::icon(['type' => $v['icon']]) . ' ') : '';
+				$icon = !empty($v['icon']) ? (\HTML::icon(['type' => $v['icon']]) . ' ') : '';
 				$onclick = !empty($v['onclick']) ? $v['onclick'] : '';
 				$value = !empty($v['value']) ? i18n(null, $v['value']) : '';
 				$href = $v['href'] ?? 'javascript:void(0);';
-				$temp[] = Html::a(array('value' => $icon . $value, 'href' => $href, 'onclick' => $onclick));
+				$temp[] = \HTML::a(array('value' => $icon . $value, 'href' => $href, 'onclick' => $onclick));
 			}
 			$result = implode(' ', $temp);
 		}
@@ -284,7 +284,9 @@ class Layout extends View {
 	 */
 	public static function renderBreadcrumbs() : string {
 		if (!empty(Application::$controller->breadcrumbs)) {
-			return Html::breadcrumbs(Application::$controller->breadcrumbs);
+			return \HTML::breadcrumbs(Application::$controller->breadcrumbs);
+		} else {
+			return '';
 		}
 	}
 
@@ -296,7 +298,7 @@ class Layout extends View {
 	 */
 	public static function renderAs($data, string $content_type) {
 		// clena up output buffer
-		Helper_Ob::cleanAll();
+		\Helper\Ob::cleanAll();
 		Application::set('flag.global.__content_type', $content_type);
 		Application::set('flag.global.__skip_layout', 1);
 		header("Content-type: " . $content_type);
@@ -305,7 +307,7 @@ class Layout extends View {
 				echo json_encode($data);
 				break;
 			case 'text/html':
-				Helper_Ob::start();
+				\Helper\Ob::start();
 				require(Application::get(['application', 'path_full']) . 'layout/blank.html');
 				$from = [
 					'<!-- [numbers: document title] -->',
@@ -315,7 +317,7 @@ class Layout extends View {
 					Layout::renderDocumentTitle(),
 					$data
 				];
-				echo str_replace($from, $to, Helper_Ob::clean());
+				echo str_replace($from, $to, \Helper\Ob::clean());
 				break;
 			default:
 				echo $data;

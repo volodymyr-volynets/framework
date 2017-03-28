@@ -89,7 +89,7 @@ class Crypt {
 	 * @return string - erlencoded
 	 */
 	public function tokenCreate($id, $token = null, $data = null){
-		return $this->object->token_create($id, $token, $data);
+		return $this->object->tokenCreate($id, $token, $data);
 	}
 
 	/**
@@ -101,7 +101,7 @@ class Crypt {
 	 * @return array or false on error
 	 */
 	public function tokenValidate($token, $options = []) {
-		return $this->object->token_validate($token, $options = []);
+		return $this->object->tokenValidate($token, $options = []);
 	}
 
 	/**
@@ -111,7 +111,7 @@ class Crypt {
 	 * @return string
 	 */
 	public function passwordHash($password) {
-		return $this->object->password_hash($password);
+		return $this->object->passwordHash($password);
 	}
 
 	/**
@@ -122,6 +122,6 @@ class Crypt {
 	 * @return boolean
 	 */
 	public function passwordVerify($password, $hash) {
-		return $this->object->password_verify($password, $hash);
+		return $this->object->passwordVerify($password, $hash);
 	}
 }

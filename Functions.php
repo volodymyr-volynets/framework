@@ -226,13 +226,43 @@ function pk($pk, & $data, $return_extracted = false) {
 }
 
 /**
+ * Merge multiple arrays recursively
+ * 
+ * @param array $arr1
+ * @param array $arr2
+ * @return array
+ */
+function array_merge2($arr1, $arr2) {
+	$arrays = func_get_args();
+	$merged = array();
+	while ($arrays) {
+		$array = array_shift($arrays);
+		if (!is_array($array) || empty($array)) {
+			continue;
+		}
+		foreach ($array as $key => $value) {
+			if (is_string($key)) {
+				if (is_array($value) && array_key_exists($key, $merged) && is_array($merged[$key])) {
+					$merged[$key] = array_merge2($merged[$key], $value);
+				} else {
+					$merged[$key] = $value;
+				}
+			} else {
+				$merged[] = $value;
+			}
+		}
+	}
+	return $merged;
+}
+
+/**
  * Merge multiple arrays, result is first array in parameters
  * 
  * @param array $arr1
  * @param array $arr2
  */
 function array_merge3(& $arr1, $arr2) {
-	$arr1 = call_user_func_array('array_merge', func_get_args());
+	$arr1 = call_user_func_array('array_merge2', func_get_args());
 }
 
 /**
