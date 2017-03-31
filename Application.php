@@ -219,8 +219,8 @@ class Application {
 			'media' => []
 		];
 		// debuging
-		if (class_exists('Debug', false) && Debug::$debug) {
-			Debug::$data['classes'][] = ['class' => $class, 'file' => $file];
+		if (class_exists('Debug', false) && \Debug::$debug) {
+			\Debug::$data['classes'][] = ['class' => $class, 'file' => $file];
 		}
 		require_once($file);
 	}

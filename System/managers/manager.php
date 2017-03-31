@@ -378,7 +378,7 @@ reask_for_migration:
 					}
 					// import data
 					if ($mode == 'commit' && !empty($code_result['data']['\Object\Import'])) {
-						$import_data_result = Numbers\Backend\Db\Common\Schemas::import_data('default', $code_result['data'], []);
+						$import_data_result = Numbers\Backend\Db\Common\Schemas::importData('default', $code_result['data'], []);
 						if (!$import_data_result['success']) {
 							$result['error'] = array_merge($result['error'], $import_data_result['error']);
 							goto error;

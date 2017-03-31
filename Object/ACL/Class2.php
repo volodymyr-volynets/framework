@@ -1,6 +1,7 @@
 <?php
 
-class object_acl_class extends \Object\Override\Data {
+namespace Object\ACL;
+class Class2 extends \Object\Override\Data {
 
 	/**
 	 * Data
@@ -25,7 +26,7 @@ class object_acl_class extends \Object\Override\Data {
 	 */
 	public function __construct() {
 		// we need to handle overrrides
-		parent::override_handle($this);
+		parent::overrideHandle($this);
 	}
 
 	/**

@@ -58,13 +58,14 @@ class Session {
 		}
 		// starting session submodule if we have one
 		$class = Application::get('flag.global.session.submodule', ['class' => 1]);
-		if (!empty($class)) {
-			self::$object = new $class();
-			self::$object->init();
-		}
 		// check if backend has been enabled
 		if (!\Application::get($class, ['submodule_exists' => true])) {
 			Throw new Exception('You must enable ' . $class . ' first!');
+		}
+		// initialize
+		if (!empty($class)) {
+			self::$object = new $class();
+			self::$object->init();
 		}
 		// starting session
 		session_start();
@@ -81,14 +82,12 @@ class Session {
 			$_SESSION['numbers']['ip'] = [];
 		}
 		// we need to try to decode ip address
-		if (!empty($options['ip_link']) && !isset($_SESSION['numbers']['ip']['ip'])) {
-			$ip_submodule = Application::get("ip.{$options['ip_link']}.submodule", ['submodule_exists' => 1, 'class' => 1]);
-			if (!empty($ip_submodule)) {
-				$ip_object = new $ip_submodule($options['ip_link'], Application::get("ip.{$options['ip_link']}") ?? []);
-				$ip_data = $ip_object->get($ip);
-				if ($ip_data['success']) {
-					$_SESSION['numbers']['ip'] = $ip_data['data'];
-				}
+		$ip_decoder_submodule = \Application::get('flag.global.ip.submodule');
+		if (!empty($ip_decoder_submodule) && !isset($_SESSION['numbers']['ip']['ip'])) {
+			$ip_object = new \Object\Miscellaneous\IP();
+			$ip_data = $ip_object->get($ip);
+			if ($ip_data['success']) {
+				$_SESSION['numbers']['ip'] = array_merge2(['ip' => $ip], $ip_data['data']);
 			}
 			// we only store ip address if its not set
 			if (!isset($_SESSION['numbers']['ip']['ip'])) {
@@ -98,8 +97,8 @@ class Session {
 			}
 		}
 		// add anonymous role
-		if (!user::authorized()) {
-			user::roleGrant(\Object\ACL\Resources::getStatic('user_roles', 'anonymous'));
+		if (!\User::authorized()) {
+			\User::roleGrant(\Object\ACL\Resources::getStatic('user_roles', 'anonymous'));
 		}
 	}
 

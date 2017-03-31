@@ -1,7 +1,7 @@
 <?php
 
 namespace Object;
-class Datasource extends \Object\Table\Options {
+class DataSource extends \Object\Table\Options {
 
 	/**
 	 * Db link
@@ -126,7 +126,7 @@ class Datasource extends \Object\Table\Options {
 	 *
 	 * @param array $options
 	 * @return mixed
-	 * @throws Exception
+	 * @throws \Exception
 	 */
 	final public function get($options = []) {
 		// process parameters
@@ -141,17 +141,17 @@ class Datasource extends \Object\Table\Options {
 						if (!is_array($options['where'][$k])) $options['where'][$k] = [$options['where'][$k]];
 						$parameters[$k] = [];
 						foreach ($options['where'][$k] as $v2) {
-							$result = \Object\Table_columns::validate_single_column($k, $v, $v2);
+							$result = \Object\Table\Columns::validateSingleColumn($k, $v, $v2);
 							if (!$result['success']) {
-								Throw new Exception("Datasource: " . get_called_class() . " parameter: {$k} error" . implode(', ', $result['error']));
+								Throw new \Exception("Datasource: " . get_called_class() . " parameter: {$k} error" . implode(', ', $result['error']));
 							} else {
 								$parameters[$k][] = $result['data'][$k];
 							}
 						}
 					} else {
-						$result = \Object\Table_columns::validate_single_column($k, $v, $options['where'][$k]);
+						$result = \Object\Table\Columns::validateSingleColumn($k, $v, $options['where'][$k]);
 						if (!$result['success']) {
-							Throw new Exception("Datasource: " . get_called_class() . " parameter: {$k} error" . implode(', ', $result['error']));
+							Throw new \Exception("Datasource: " . get_called_class() . " parameter: {$k} error" . implode(', ', $result['error']));
 						} else {
 							$parameters[$k] = $result['data'][$k];
 						}
@@ -160,7 +160,7 @@ class Datasource extends \Object\Table\Options {
 				// required
 				if (!empty($v['required']) && empty($parameters[$k])) {
 					return [];
-					//Throw new Exception("Datasource: " . get_called_class() . " parameter: {$k} error" . i18n(null, object_content_messages::required_field));
+					//Throw new \Exception("Datasource: " . get_called_class() . " parameter: {$k} error" . i18n(null, \Object\Content\Messages::required_field));
 				}
 			}
 		}
@@ -186,7 +186,7 @@ class Datasource extends \Object\Table\Options {
 			}
 			// if we could not determine the link we throw exception
 			if (empty($this->db_link)) {
-				Throw new Exception('Could not determine db link in datasource!');
+				Throw new \Exception('Could not determine db link in datasource!');
 			}
 		}
 		// create empty query object
@@ -212,7 +212,7 @@ class Datasource extends \Object\Table\Options {
 		if (empty($this->cache_tags)) $this->cache_tags = [];
 		// check if we have query method
 		if (!method_exists($this, 'query')) {
-			Throw new Exception('You must specify sql in query method!');
+			Throw new \Exception('You must specify sql in query method!');
 		}
 		// process query
 		$sql = $this->query($parameters, $options);
@@ -233,7 +233,7 @@ class Datasource extends \Object\Table\Options {
 			if ($this->cache && !empty($db_object->object->options['cache_link'])) {
 				$cache_id = !empty($options['cache_id']) ? $options['cache_id'] : 'db_datasource_' . sha1($this->sql_last_query . serialize($query_settings['pk']));
 				// if we cache this query
-				$cache_object = new cache($db_object->object->options['cache_link']);
+				$cache_object = new \Cache($db_object->object->options['cache_link']);
 				$cached_result = $cache_object->get($cache_id, true);
 				if ($cached_result !== false) {
 					// if we are debugging
@@ -272,7 +272,9 @@ class Datasource extends \Object\Table\Options {
 			$result = $this->query->query($query_settings['pk'], $query_options);
 		}
 		if (!$result['success']) {
-			Throw new Exception(implode(", ", $result['error']));
+			echo $this->query->sql();
+			exit;
+			Throw new \Exception(implode(", ", $result['error']));
 		}
 		// process data
 		if (method_exists($this, 'process')) {

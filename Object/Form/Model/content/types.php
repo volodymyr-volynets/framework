@@ -1,6 +1,7 @@
 <?php
 
-class numbers_framework_object_form_model_content_types extends \Object\Data {
+namespace Object\Form\Model\Content;
+class Types extends \Object\Data {
 	public $column_key = 'no_form_content_type_code';
 	public $column_prefix = 'no_form_content_type_';
 	public $orderby = ['no_form_content_type_order' => SORT_ASC];
@@ -11,6 +12,6 @@ class numbers_framework_object_form_model_content_types extends \Object\Data {
 		'no_form_content_type_order' => ['name' => 'Order', 'type' => 'smallint', 'default' => 0]
 	];
 	public $data = [
-		'text/html' => ['no_form_content_type_name' => 'Screen (HTML)', 'no_form_content_type_model' => 'numbers_frontend_html_form_renderers_html_base', 'no_form_content_type_order' => -32000],
+		'text/html' => ['no_form_content_type_name' => 'Screen (HTML)', 'no_form_content_type_model' => '\Numbers\Frontend\HTML\Form\Renderers\HTML\Base', 'no_form_content_type_order' => -32000],
 	];
 }

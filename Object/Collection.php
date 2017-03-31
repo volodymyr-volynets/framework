@@ -137,7 +137,7 @@ class Collection extends \Object\Override\Data {
 			}
 			// processing details
 			if (!empty($query_result['rows']) && !empty($this->data['details'])) {
-				$detail_result = $this->process_details($this->data['details'], $query_result['rows'], $options);
+				$detail_result = $this->processDetails($this->data['details'], $query_result['rows'], $options);
 				if (!$detail_result['success']) {
 					$result['error'] = array_merge($result['error'], $detail_result['error']);
 					break;
@@ -213,7 +213,7 @@ class Collection extends \Object\Override\Data {
 				array_shift($maps_temp);
 				// generate key
 				$new_key[] = $v2;
-				$this->get_all_child_keys($v[$v2], $maps_temp, $parent_keys_temp, $parent_types_temp, $result, $keys, $new_key, $parent_types[0]);
+				$this->getAllChildKeys($v[$v2], $maps_temp, $parent_keys_temp, $parent_types_temp, $result, $keys, $new_key, $parent_types[0]);
 			}
 		}
 	}
@@ -235,7 +235,7 @@ class Collection extends \Object\Override\Data {
 			'error' => []
 		];
 		foreach ($details as $k => $v) {
-			$details[$k]['model_object'] = $model = Factory::model($k, true);
+			$details[$k]['model_object'] = $model = \Factory::model($k, true);
 			$pk = $v['pk'] ?? $model->pk;
 			// generate keys from parent array
 			$keys = [];
@@ -256,7 +256,7 @@ class Collection extends \Object\Override\Data {
 			$parent_maps2[] = $v['map'];
 			// create empty arrays
 			$result_keys = [];
-			$this->get_all_child_keys($parent_rows, $parent_maps2, $parent_keys2, $parent_types2, $result_keys, $keys);
+			$this->getAllChildKeys($parent_rows, $parent_maps2, $parent_keys2, $parent_types2, $result_keys, $keys);
 			foreach ($result_keys as $k0 => $v0) {
 				array_key_set($parent_rows, $v0, []);
 			}
@@ -334,7 +334,7 @@ class Collection extends \Object\Override\Data {
 				}
 				// if we have more details
 				if (!empty($v['details'])) {
-					$detail_result = $this->process_details($v['details'], $parent_rows, $options, $parent_keys2, $parent_types2, $parent_maps2, $v);
+					$detail_result = $this->processDetails($v['details'], $parent_rows, $options, $parent_keys2, $parent_types2, $parent_maps2, $v);
 					if (!$detail_result['success']) {
 						$result['error'] = array_merge($result['error'], $detail_result['error']);
 						return $result;
@@ -393,7 +393,7 @@ class Collection extends \Object\Override\Data {
 			$this->primary_model->db_object->begin();
 			// preset tenant
 			if ($this->primary_model->tenant && !isset($data[$this->primary_model->tenant_column])) {
-				$data[$this->primary_model->tenant_column] = tenant::tenant_id();
+				$data[$this->primary_model->tenant_column] = Tenant::id();
 			}
 			// load data from database
 			$original = [];
@@ -425,7 +425,7 @@ class Collection extends \Object\Override\Data {
 			if ($this->primary_model->optimistic_lock && !empty($original) && empty($options['skip_optimistic_lock'])) {
 				if (($data[$this->primary_model->optimistic_lock_column] ?? '') !== $original[$this->primary_model->optimistic_lock_column]) {
 					$this->primary_model->db_object->rollback();
-					$result['error'][] = object_content_messages::optimistic_lock;
+					$result['error'][] = \Object\Content\Messages::optimistic_lock;
 					break;
 				}
 			}
@@ -444,7 +444,7 @@ class Collection extends \Object\Override\Data {
 			}
 			// we display warning if form has not been changed
 			if (empty($temp['data']['total'])) {
-				$result['warning'][] = object_content_messages::no_changes;
+				$result['warning'][] = \Object\Content\Messages::NO_CHANGES;
 			} else { // number of changes
 				$result['count'] = $temp['data']['total'];
 			}
@@ -472,7 +472,7 @@ class Collection extends \Object\Override\Data {
 					}
 				}
 				// merge
-				$temp2 = Factory::model($this->primary_model->audit_model, true)->merge($temp['data']['audit'], ['changes' => $temp['data']['total']]);
+				$temp2 = \Factory::model($this->primary_model->audit_model, true)->merge($temp['data']['audit'], ['changes' => $temp['data']['total']]);
 				if (!$temp2['success']) {
 					$result['error'] = array_merge($result['error'], $temp2['error']);
 					break;
@@ -504,6 +504,7 @@ error:
 		];
 		do {
 			if (empty($data)) {
+				print_r2($this->data);
 				$result['error'][] = 'No data to merge!';
 				break;
 			}
@@ -518,7 +519,7 @@ error:
 			foreach ($data as $k0 => $v0) {
 				// injecting tenant
 				if ($this->primary_model->tenant && empty($options['skip_tenant'])) {
-					$data[$k0][$this->primary_model->tenant_column] = $v0[$this->primary_model->tenant_column] = tenant::tenant_id();
+					$data[$k0][$this->primary_model->tenant_column] = $v0[$this->primary_model->tenant_column] = Tenant::id();
 				}
 				// assemble primary key
 				$pk = [];
@@ -688,7 +689,7 @@ error:
 		if (!empty($collection['details'])) {
 			foreach ($collection['details'] as $k => $v) {
 				// create new object
-				$v['model_object'] = Factory::model($k, true);
+				$v['model_object'] = \Factory::model($k, true);
 				if ($v['type'] == '11') {
 					$details_result = $this->compareOneRow($data_row[$k] ?? [], $original_row[$k] ?? [], $v, [
 						'flag_delete_row' => !empty($delete)

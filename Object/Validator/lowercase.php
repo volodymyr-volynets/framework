@@ -10,7 +10,7 @@ class object_validator_lowercase extends \Object\Validator\Base {
 		$result['placeholder'] = 'lowercase only';
 		$value.= '';
 		if (strtolower($value) !== $value) {
-			$result['error'][] = object_content_messages::string_lowercase;
+			$result['error'][] = \Object\Content\Messages::string_lowercase;
 		} else {
 			$result['success'] = true;
 			$result['data'] = $value;

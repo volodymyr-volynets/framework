@@ -264,7 +264,7 @@ class Columns extends \Object\Data {
 				$result['data']['flag_error'] = true;
 			}
 		} else {
-			$result['error'][] = i18n(null, object_content_messages::unknown_value);
+			$result['error'][] = i18n(null, \Object\Content\Messages::unknown_value);
 			$result['data']['flag_error'] = true;
 		}
 		if (empty($result['error'])) $result['success'] = true;

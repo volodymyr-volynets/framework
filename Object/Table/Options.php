@@ -53,7 +53,7 @@ class Options extends \Object\Override\Data {
 	 */
 	public function options($options = []) {
 		$options['__options'] = true;
-		$data = $this->options_query_data($options);
+		$data = $this->optionsQueryData($options);
 		// process options_map
 		if (isset($options['options_map'])) {
 			$options_map = $options['options_map'];
@@ -78,7 +78,7 @@ class Options extends \Object\Override\Data {
 		}
 		// build options
 		$options['column_prefix'] = $this->column_prefix;
-		return \Object\Data\Common::build_options($data, $options_map, $this->orderby, $options);
+		return \Object\Data\Common::buildOptions($data, $options_map, $this->orderby, $options);
 	}
 
 	/**
@@ -134,9 +134,9 @@ class Options extends \Object\Override\Data {
 			}
 		}
 		// convert to tree
-		$values_found = helper_tree::convert_by_parent($values_found, '__parent');
+		$values_found = \Helper\Tree::convertByParent($values_found, '__parent');
 		$result = [];
-		helper_tree::convert_tree_to_options_multi($values_found, 0, ['name_field' => 'name'], $result);
+		\Helper\Tree::convertTreeToOptionsMulti($values_found, 0, ['name_field' => 'name'], $result);
 		return $result;
 	}
 
@@ -168,7 +168,7 @@ class Options extends \Object\Override\Data {
 		$pk = $options['pk'];
 		// inject tenant
 		if ($this->tenant && !isset($options['where'][$this->tenant_column])) {
-			$options['where'][$this->tenant_column] = tenant::tenant_id();
+			$options['where'][$this->tenant_column] = Tenant::id();
 		}
 		// if compound key
 		if (count($pk) > 1) {

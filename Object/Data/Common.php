@@ -122,7 +122,7 @@ class Common {
 			if ($model == 'this' && !empty($existing_object)) {
 				$object = $existing_object;
 			} else {
-				$object = Factory::model($model, true);
+				$object = \Factory::model($model, true);
 			}
 			self::$cached_options[$hash] = $object->{$method}($options);
 			return self::$cached_options[$hash];
@@ -150,7 +150,7 @@ class Common {
 				}
 				if (!empty($v['format'])) {
 					$format[$k] = $v;
-					$format_methods[$k] = Factory::method($v['format'], 'format');
+					$format_methods[$k] = \Factory::method($v['format'], 'format');
 				}
 			} else {
 				$options_map_new[$k] = $v;
@@ -179,7 +179,7 @@ class Common {
 			}
 		}
 		// inactive & icon_class
-		$i18n_inactive = !empty($options['i18n']) ? i18n(null, object_content_messages::info_inactive) : object_content_messages::info_inactive;
+		$i18n_inactive = !empty($options['i18n']) ? i18n(null, \Object\Content\Messages::INFO_INACTIVE) : \Object\Content\Messages::INFO_INACTIVE;
 		foreach ($data as $k => $v) {
 			if (!empty($options['column_prefix']) && !empty($v[$options['column_prefix'] . 'inactive'])) {
 				$options_map_new[$options['column_prefix'] . 'inactive'] = 'inactive';

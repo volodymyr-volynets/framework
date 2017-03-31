@@ -123,7 +123,7 @@ class Import {
 								if (is_numeric($k5)) continue;
 								// if we need id
 								if (strpos($v5, '::id::') === 0) {
-									$temp = $this->find_aliased_value($k5, $v5);
+									$temp = $this->findAliasedValue($k5, $v5);
 									if ($temp !== false) $v2[$k3][$k4][$k5] = $temp;
 								}
 							}
@@ -131,7 +131,7 @@ class Import {
 					} else if (is_string($v3)) {
 						// if we need id
 						if (strpos($v3, '::id::') === 0) {
-							$temp = $this->find_aliased_value($k3, $v3);
+							$temp = $this->findAliasedValue($k3, $v3);
 							if ($temp !== false) $v2[$k3] = $temp;
 							continue;
 						}
@@ -162,7 +162,7 @@ class Import {
 				// if buffer has 250 rows or we have no data
 				if (count($buffer) > 249 || (count($buffer) > 0 && count($this->data[$k]['data']) == 0)) {
 					// merge
-					$result_insert = $collection_object->merge_multiple($buffer, [
+					$result_insert = $collection_object->mergeMultiple($buffer, [
 						'skip_optimistic_lock' => true
 					]);
 					if (!$result_insert['success']) {

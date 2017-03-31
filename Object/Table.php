@@ -343,7 +343,7 @@ class Table extends \Object\Table\Options {
 		}
 		// cache tags
 		$this->cache_tags[] = $this->full_table_name;
-		if ($this->tenant) $this->cache_tags[] = '+numbers_tenant_' . tenant::tenant_id();
+		if ($this->tenant) $this->cache_tags[] = '+numbers_tenant_' . \Tenant::id();
 		// history table name
 		$this->history_name = $this->full_table_name . '__history';
 		// process relations
@@ -424,7 +424,7 @@ class Table extends \Object\Table\Options {
 	 */
 	final public function determineModelMap($class, $widget_name) {
 		$this->virtual_class_name = $class . '__virtual__' . $widget_name;
-		$model = Factory::model($class, true);
+		$model = \Factory::model($class, true);
 		if (empty($model->{$widget_name}) || empty($model->{$widget_name}['map'])) {
 			Throw new Exception("You must indicate {$widget_name} for {$class} map!");
 		}
@@ -496,12 +496,12 @@ class Table extends \Object\Table\Options {
 		$this->acl_get_options = $options;
 		// handle tenant
 		if ($this->tenant && empty($options['skip_tenant'])) {
-			$options['where'][$this->tenant_column] = tenant::tenant_id();
+			$options['where'][$this->tenant_column] = \Tenant::id();
 		}
 		// handle acl init
 		if (!empty($options['acl'])) {
 			$acl_key = get_called_class();
-			if (Factory::model('object_acl_class', true)->acl_init($acl_key, $data, $this->acl_get_options) === false) {
+			if (\Factory::model('\Object\ACL\Class2', true)->acl_init($acl_key, $data, $this->acl_get_options) === false) {
 				return $data;
 			}
 			$options = $this->acl_get_options;
@@ -581,7 +581,7 @@ class Table extends \Object\Table\Options {
 		}
 		// handle acl init
 		if (!empty($options['acl'])) {
-			if (Factory::model('object_acl_class', true)->acl_finish($acl_key, $data, $this->acl_get_options) === false) {
+			if (\Factory::model('\Object\ACL\Class2', true)->acl_finish($acl_key, $data, $this->acl_get_options) === false) {
 				return $data;
 			}
 		}
@@ -603,7 +603,7 @@ class Table extends \Object\Table\Options {
 		// add tenant
 		$tenant = null;
 		if ($this->tenant) {
-			$tenant = tenant::tenant_id();
+			$tenant = \Tenant::id();
 		}
 		$module = null;
 		$temp = $this->db_object->sequence($this->full_table_name . '_' . $column . '_seq', $type, $tenant, $module);
@@ -793,7 +793,7 @@ TTT;
 		$object->from($model, $alias);
 		// inject tenant into the query
 		if ($model->tenant && empty($options['skip_tenant'])) {
-			$object->where('AND', [$alias . '.' . $model->column_prefix . 'tenant_id', '=', tenant::tenant_id()]);
+			$object->where('AND', [$alias . '.' . $model->column_prefix . 'tenant_id', '=', \Tenant::id()]);
 		}
 		return $object;
 	}

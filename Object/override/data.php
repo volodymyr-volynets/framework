@@ -18,10 +18,11 @@ class Data {
 	 */
 	public function overrideHandle(& $object) {
 		$class = get_class($object);
+		$class = str_replace('\\', '_', trim($class, '\\'));
 		if (isset(self::$override_data[$class]) && self::$override_data[$class] === false) {
 			return false;
 		}
-		$filename = './overrides/class/override_' . $class . '.php';
+		$filename = './Overrides/Class/Override_' . $class . '.php';
 		if (!file_exists($filename)) {
 			self::$override_data[$class] = false;
 			return false;

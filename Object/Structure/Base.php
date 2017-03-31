@@ -66,26 +66,28 @@ class Base {
 		if (!empty($tenant_datasource_settings['tenant_datasource'])) {
 			// prepare to query tenant
 			$tenant_input = \Application::get('application.structure.settings.tenant');
-			$tenant_where = [];
-			if (!empty($tenant_datasource_settings['column_prefix'])) {
-				array_key_prefix_and_suffix($tenant_input, $tenant_datasource_settings['column_prefix']);
-			}
-			// find tenant
-			$class = $tenant_datasource_settings['tenant_datasource'];
-			$datasource = new $class();
-			$tenant_result = $datasource->get(['where' => $tenant_input, 'single_row' => true]);
-			if (empty($tenant_result)) {
-				$structure = \Application::get('application.structure') ?? [];
-				if (!empty($structure['tenant_not_found_url'])) {
-					\Request::redirect($structure['tenant_not_found_url']);
-				} else {
-					Throw new Exception('Invalid URL!');
-				}
-			} else {
+			if (!empty($tenant_input)) {
+				$tenant_where = [];
 				if (!empty($tenant_datasource_settings['column_prefix'])) {
-					array_key_prefix_and_suffix($tenant_result, $tenant_datasource_settings['column_prefix'], null, true);
+					array_key_prefix_and_suffix($tenant_input, $tenant_datasource_settings['column_prefix']);
 				}
-				\Application::set('application.structure.settings.tenant', $tenant_result);
+				// find tenant
+				$class = $tenant_datasource_settings['tenant_datasource'];
+				$datasource = new $class();
+				$tenant_result = $datasource->get(['where' => $tenant_input, 'single_row' => true]);
+				if (empty($tenant_result)) {
+					$structure = \Application::get('application.structure') ?? [];
+					if (!empty($structure['tenant_not_found_url'])) {
+						\Request::redirect($structure['tenant_not_found_url']);
+					} else {
+						Throw new Exception('Invalid URL!');
+					}
+				} else {
+					if (!empty($tenant_datasource_settings['column_prefix'])) {
+						array_key_prefix_and_suffix($tenant_result, $tenant_datasource_settings['column_prefix'], null, true);
+					}
+					\Application::set('application.structure.settings.tenant', $tenant_result);
+				}
 			}
 		}
 	}

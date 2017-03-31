@@ -1,11 +1,12 @@
 <?php
 
-class object_form_wrapper_list extends object_form_wrapper_base {
+namespace Object\Form\Wrapper;
+class List2 extends \Object\Form\Wrapper\Base {
 
 	/**
 	 * Constructor
 	 *
-	 * @see object_form_wrapper_base::construct()
+	 * @see \Object\Form\Wrapper\Base::construct()
 	 */
 	public function __construct($options = []) {
 		$options['initiator_class'] = 'list';

@@ -1,6 +1,7 @@
 <?php
 
-class object_form_base extends object_form_parent {
+namespace Object\Form;
+class Base extends \Object\Form\Parent2 {
 
 	/**
 	 * Form link
@@ -312,11 +313,11 @@ class object_form_base extends object_form_parent {
 		$this->form_link = $form_link . '';
 		$this->options = $options;
 		// overrides from ini files
-		$overrides = Application::get('flag.numbers.frontend.html.form');
+		$overrides = \Application::get('flag.numbers.frontend.html.form');
 		if (!empty($overrides)) {
 			$this->options = array_merge_hard($this->options, $overrides);
 		}
-		$this->error_reset_all();
+		$this->errorResetAll();
 	}
 
 	/**
@@ -324,7 +325,7 @@ class object_form_base extends object_form_parent {
 	 *
 	 * @param string $method
 	 */
-	public function trigger_method($method) {
+	public function triggerMethod($method) {
 		$result = null;
 		// handling actual method
 		if (!empty($this->wrapper_methods[$method])) {
@@ -340,13 +341,13 @@ class object_form_base extends object_form_parent {
 	 *
 	 * @param array $input
 	 */
-	private function get_original_values($input, $for_update) {
+	private function getOriginalValues($input, $for_update) {
 		// process primary key
 		$this->full_pk = false;
-		$this->load_pk($input);
+		$this->loadPk($input);
 		// load values if we have full pk
 		if ($this->full_pk) {
-			$temp = $this->load_values($for_update);
+			$temp = $this->loadValues($for_update);
 			if ($temp !== false) {
 				$this->original_values = $temp;
 				$this->values_loaded = true;
@@ -360,12 +361,12 @@ class object_form_base extends object_form_parent {
 	 * @param array $fields
 	 * @return int
 	 */
-	public function sort_fields_for_processing($fields, $options = []) {
+	public function sortFieldsForProcessing($fields, $options = []) {
 		if (!empty($this->collection_object)) {
 			$collection = array_key_get($this->collection_object->data, $options['details_collection_key'] ?? null);
 			foreach ($fields as $k => $v) {
 				// skip certain values
-				if ($k == $this::separator_horisontal || $k == $this::separator_vertical || !empty($v['options']['process_submit'])) {
+				if ($k == $this::SEPARATOR_HORIZONTAL || $k == $this::SEPARATOR_VERTICAL || !empty($v['options']['process_submit'])) {
 					unset($fields[$k]);
 					continue;
 				}
@@ -393,26 +394,26 @@ class object_form_base extends object_form_parent {
 	 * @param string $error_name
 	 * @param array $options
 	 */
-	public function validate_required_one_field(& $value, $error_name, $options) {
+	public function validateRequiredOneField(& $value, $error_name, $options) {
 		// if we have type errors we skip required validation
-		if ($this->has_errors($error_name)) return;
+		if ($this->hasErrors($error_name)) return;
 		// check if its required field
 		if (isset($options['options']['required']) && ($options['options']['required'] === true || ($options['options']['required'] . '') === '1')) {
 			if ($options['options']['php_type'] == 'integer' || $options['options']['php_type'] == 'float') {
 				if (empty($value)) {
-					$this->error('danger', object_content_messages::required_field, $error_name);
+					$this->error('danger', \Object\Content\Messages::required_field, $error_name);
 				}
 			} else if ($options['options']['php_type'] == 'bcnumeric') { // accounting numbers
 				if (math::compare($value, '0', $options['options']['scale']) == 0) {
-					$this->error('danger', object_content_messages::required_field, $error_name);
+					$this->error('danger', \Object\Content\Messages::required_field, $error_name);
 				}
 			} else if (!empty($options['options']['multiple_column'])) {
 				if (empty($value)) {
-					$this->error('danger', object_content_messages::required_field, $error_name);
+					$this->error('danger', \Object\Content\Messages::required_field, $error_name);
 				}
 			} else {
 				if ($value . '' == '') {
-					$this->error('danger', object_content_messages::required_field, $error_name);
+					$this->error('danger', \Object\Content\Messages::required_field, $error_name);
 				}
 			}
 		}
@@ -443,7 +444,7 @@ class object_form_base extends object_form_parent {
 	 * @param mixed $parent_keys
 	 * @return string
 	 */
-	public function parent_keys_to_error_name($parent_keys) {
+	public function parentHeysToErrorName($parent_keys) {
 		$result = [];
 		if (!is_array($parent_keys)) {
 			$parent_keys = [$parent_keys];
@@ -467,7 +468,7 @@ class object_form_base extends object_form_parent {
 	 * @param array $parent_keys
 	 * @param array $options
 	 */
-	public function generate_details_primary_key(& $holder, $type = 'reset', $values = null, $parent_keys = null, $options = []) {
+	public function generateDetailsPrimaryKey(& $holder, $type = 'reset', $values = null, $parent_keys = null, $options = []) {
 		// generate holder
 		if ($type == 'reset') {
 			$collection = [];
@@ -516,14 +517,14 @@ class object_form_base extends object_form_parent {
 					$holder['pk'] = '__duplicate_key_' . $holder['new_pk_counter'];
 					$holder['new_pk_counter']++;
 					$error_pk = !empty($options['options']['details_11']) ? ($parent_keys ?? []) : array_merge($parent_keys ?? [], [$holder['pk']]);
-					$holder['error_name'] = $this->parent_keys_to_error_name($error_pk);
+					$holder['error_name'] = $this->parentHeysToErrorName($error_pk);
 					foreach ($options['options']['details_pk'] as $v) {
-						$this->error('danger', object_content_messages::duplicate_value, "{$holder['error_name']}[{$v}]");
+						$this->error('danger', \Object\Content\Messages::duplicate_value, "{$holder['error_name']}[{$v}]");
 					}
 				}
 			} else {
 				$error_pk = !empty($options['options']['details_11']) ? ($parent_keys ?? []) : array_merge($parent_keys ?? [], [$holder['pk']]);
-				$holder['error_name'] = $this->parent_keys_to_error_name($error_pk);
+				$holder['error_name'] = $this->parentHeysToErrorName($error_pk);
 				$holder['new_pk_locks'][$holder['pk']] = true;
 			}
 		}
@@ -539,16 +540,16 @@ class object_form_base extends object_form_parent {
 	 * @param array $options
 	 * @return array
 	 */
-	public function generate_multiple_columns($value, $error_name, $values, $parent_keys, $options = []) {
+	public function generateMultipleColumns($value, $error_name, $values, $parent_keys, $options = []) {
 		if (!empty($value)) {
 			if (!is_array($value)) {
 				$value = [$value];
 			}
 			$result = [];
 			$fields_key_holder = [];
-			$this->generate_details_primary_key($fields_key_holder, 'reset', $values, $parent_keys, $options);
+			$this->generateDetailsPrimaryKey($fields_key_holder, 'reset', $values, $parent_keys, $options);
 			foreach ($value as $k2 => $v2) {
-				$temp = $this->validate_data_types_single_value($options['options']['multiple_column'], $options, $v2, $error_name);
+				$temp = $this->validateDataTypesSingleValue($options['options']['multiple_column'], $options, $v2, $error_name);
 				if (empty($temp['flag_error'])) {
 					$temp_value_new = [
 						$options['options']['multiple_column'] => $temp[$options['options']['multiple_column']]
@@ -559,7 +560,7 @@ class object_form_base extends object_form_parent {
 					];
 				}
 				// process pk
-				$this->generate_details_primary_key($fields_key_holder, 'pk', $temp_value_new, $parent_keys, $options);
+				$this->generateDetailsPrimaryKey($fields_key_holder, 'pk', $temp_value_new, $parent_keys, $options);
 				$k2 = $fields_key_holder['pk'];
 				$result[$k2] = array_merge_hard($fields_key_holder['parent_pks'], $temp_value_new);
 			}
@@ -577,14 +578,14 @@ class object_form_base extends object_form_parent {
 	 *		validate_required
 	 * @return array
 	 */
-	private function get_all_values($input, $options = []) {
+	private function getAllValues($input, $options = []) {
 		// reset values
 		$this->values = [];
 		// sort fields
-		$fields = $this->sort_fields_for_processing($this->fields);
+		$fields = $this->sortFieldsForProcessing($this->fields);
 		// inject tenant #
 		if (!empty($this->collection_object->primary_model->tenant)) {
-			$this->values[$this->collection_object->primary_model->tenant_column] = tenant::tenant_id();
+			$this->values[$this->collection_object->primary_model->tenant_column] = Tenant::id();
 		}
 		// if we delete we only allow pk and optimistic lock
 		$allowed = [];
@@ -631,9 +632,9 @@ class object_form_base extends object_form_parent {
 			// multiple column
 			if (!empty($v['options']['multiple_column'])) {
 				// todo - validate
-				$value = $this->generate_multiple_columns($value, $error_name, $this->values, null, $v);
+				$value = $this->generateMultipleColumns($value, $error_name, $this->values, null, $v);
 			} else {
-				$temp = $this->validate_data_types_single_value($k, $v, $value, $error_name);
+				$temp = $this->validateDataTypesSingleValue($k, $v, $value, $error_name);
 				if (empty($temp['flag_error'])) {
 					if (empty($temp[$k]) && !empty($temp[$k . '_is_serial'])) {
 						// we do not create empty serial keys
@@ -656,22 +657,22 @@ class object_form_base extends object_form_parent {
 			$v['options']['error_name_no_field'] = $error_name;
 			// default
 			if (array_key_exists('default', $v['options'])) {
-				if ($this->can_process_default_value($value, $v)) {
-					$value = $this->process_default_value($k, $v['options']['default'], $value, $this->values, false, $changed_field, $v);
+				if ($this->canProcessDefaultValue($value, $v)) {
+					$value = $this->processDefaultValue($k, $v['options']['default'], $value, $this->values, false, $changed_field, $v);
 				}
 			}
 			// put into values
 			array_key_set($this->values, $v['options']['values_key'], $value);
 			// options_model validation
 			if (isset($value) && !empty($v['options']['options_model']) && empty($v['options']['options_manual_validation'])) {
-				$this->check_options_model($v['options'], $value, $error_name, $this->values);
+				$this->checkOptionsModel($v['options'], $value, $error_name, $this->values);
 			}
 			// options validation
 			if (isset($value) && !empty($v['options']['options']) && empty($v['options']['options_manual_validation'])) {
 				$temp_value = is_array($value) ? $value : [$value];
 				foreach ($temp_value as $v54) {
 					if (empty($v['options']['options'][$v54])) {
-						$this->error('danger', object_content_messages::invalid_value, $error_name);
+						$this->error('danger', \Object\Content\Messages::invalid_value, $error_name);
 					}
 				}
 			}
@@ -679,7 +680,7 @@ class object_form_base extends object_form_parent {
 		// check optimistic lock
 		if ($this->values_loaded && $this->collection_object->primary_model->optimistic_lock && $this->initiator_class != 'numbers_frontend_html_form_wrapper_report') {
 			if (($this->values[$this->collection_object->primary_model->optimistic_lock_column] ?? '') !== $this->original_values[$this->collection_object->primary_model->optimistic_lock_column]) {
-				$this->error('danger', object_content_messages::optimistic_lock);
+				$this->error('danger', \Object\Content\Messages::optimistic_lock);
 			}
 		}
 		// process details & subdetails
@@ -692,17 +693,17 @@ class object_form_base extends object_form_parent {
 					$details = [$details];
 				}
 				// sort fields
-				$fields = $this->sort_fields_for_processing($v['elements'], $v['options']);
+				$fields = $this->sortFieldsForProcessing($v['elements'], $v['options']);
 				// if we have custom data processor
-				if (!empty($v['options']['details_process_widget_data'])) {
-					$widget_model = Factory::model($k, true);
+				if (!empty($v['options']['details_processWidget_data'])) {
+					$widget_model = \Factory::model($k, true);
 					$v['validate_required'] = $options['validate_required'] ?? false;
-					$this->values[$k] = $widget_model->process_widget_data($this, [$k], $details, $this->values, $fields, $v);
+					$this->values[$k] = $widget_model->processWidget_data($this, [$k], $details, $this->values, $fields, $v);
 					continue;
 				}
 				// start processing of keys
 				$detail_key_holder = [];
-				$this->generate_details_primary_key($detail_key_holder, 'reset', $this->values, [$k], $v);
+				$this->generateDetailsPrimaryKey($detail_key_holder, 'reset', $this->values, [$k], $v);
 				// autoincrement
 				$autoincrement_details = [];
 				if (!empty($v['options']['details_autoincrement']) && empty($v['options']['details_11'])) {
@@ -762,7 +763,7 @@ class object_form_base extends object_form_parent {
 						}
 					}
 					// process pk
-					$this->generate_details_primary_key($detail_key_holder, 'pk', $v2, [$k], $v);
+					$this->generateDetailsPrimaryKey($detail_key_holder, 'pk', $v2, [$k], $v);
 					$error_name = $detail_key_holder['error_name'];
 					$k2 = $detail_key_holder['pk'];
 					// process fields
@@ -775,9 +776,9 @@ class object_form_base extends object_form_parent {
 						$value = $detail[$k3] ?? $v2[$k3] ?? null;
 						// validate data type
 						if (!empty($v3['options']['multiple_column'])) {
-							$value = $this->generate_multiple_columns($value, $error_name, $detail, [$k], $v3);
+							$value = $this->generateMultipleColumns($value, $error_name, $detail, [$k], $v3);
 						} else {
-							$temp = $this->validate_data_types_single_value($k3, $v3, $value, "{$error_name}[{$k3}]");
+							$temp = $this->validateDataTypesSingleValue($k3, $v3, $value, "{$error_name}[{$k3}]");
 							if (empty($temp['flag_error'])) {
 								if (empty($temp[$k3]) && !empty($temp[$k3 . '_is_serial'])) {
 									// we do not create empty serial keys
@@ -806,8 +807,8 @@ class object_form_base extends object_form_parent {
 						// default
 						$default = null;
 						if (array_key_exists('default', $v3['options'])) {
-							$default = $this->process_default_value($k3, $v3['options']['default'], $value, $detail, false, $changed_field_details, $v3);
-							if ($this->can_process_default_value($value, $v3)) {
+							$default = $this->processDefaultValue($k3, $v3['options']['default'], $value, $detail, false, $changed_field_details, $v3);
+							if ($this->canProcessDefaultValue($value, $v3)) {
 								$value = $default;
 							}
 						}
@@ -817,14 +818,14 @@ class object_form_base extends object_form_parent {
 						}
 						// options_model validation
 						if (isset($value) && !empty($v3['options']['options_model']) && empty($v3['options']['options_manual_validation'])) {
-							$this->check_options_model($v3['options'], $value, "{$error_name}[{$k3}]", array_merge($v2, $detail));
+							$this->checkOptionsModel($v3['options'], $value, "{$error_name}[{$k3}]", array_merge($v2, $detail));
 						}
 						// options validation
 						if (isset($value) && !empty($v3['options']['options']) && empty($v3['options']['options_manual_validation'])) {
 							$temp_value = is_array($value) ? $value : [$value];
 							foreach ($temp_value as $v54) {
 								if (empty($v3['options']['options'][$v54])) {
-									$this->error('danger', object_content_messages::invalid_value, "{$error_name}[{$k3}]");
+									$this->error('danger', \Object\Content\Messages::invalid_value, "{$error_name}[{$k3}]");
 								}
 							}
 						}
@@ -836,12 +837,12 @@ class object_form_base extends object_form_parent {
 							// make empty array
 							$detail[$k0] = [];
 							// sort fields
-							$subdetail_fields = $this->sort_fields_for_processing($v0['elements']);
+							$subdetail_fields = $this->sortFieldsForProcessing($v0['elements']);
 							// if we have custom data processor
-							if (!empty($v0['options']['details_process_widget_data'])) {
-								$widget_model = Factory::model($k0, true);
+							if (!empty($v0['options']['details_processWidget_data'])) {
+								$widget_model = \Factory::model($k0, true);
 								$v0['validate_required'] = $options['validate_required'] ?? false;
-								$detail[$k0] = $widget_model->process_widget_data($this, [$k, $k2, $k0], $v2[$k0] ?? [], $detail, $subdetail_fields, $v0);
+								$detail[$k0] = $widget_model->processWidget_data($this, [$k, $k2, $k0], $v2[$k0] ?? [], $detail, $subdetail_fields, $v0);
 								// change detected
 								if (!empty($detail[$k0])) {
 									$flag_change_detected = true;
@@ -850,7 +851,7 @@ class object_form_base extends object_form_parent {
 							}
 							// start processing of keys
 							$subdetail_key_holder = [];
-							$this->generate_details_primary_key($subdetail_key_holder, 'reset', $detail, [$k, $k2, $k0], $v0);
+							$this->generateDetailsPrimaryKey($subdetail_key_holder, 'reset', $detail, [$k, $k2, $k0], $v0);
 							// go through data
 							$subdetail_data = $v2[$k0] ?? [];
 							if (!empty($subdetail_data)) {
@@ -859,7 +860,7 @@ class object_form_base extends object_form_parent {
 									// put pk into detail
 									$subdetail = $subdetail_key_holder['parent_pks'];
 									// process pk
-									$this->generate_details_primary_key($subdetail_key_holder, 'pk', $v5, [$k, $k2, $k0], $v0);
+									$this->generateDetailsPrimaryKey($subdetail_key_holder, 'pk', $v5, [$k, $k2, $k0], $v0);
 									$subdetail_error_name = $subdetail_key_holder['error_name'];
 									$k5 = $subdetail_key_holder['pk'];
 									// process fields
@@ -871,7 +872,7 @@ class object_form_base extends object_form_parent {
 										// get value
 										$value = $v5[$k6] ?? null;
 										// validate data type
-										$temp = $this->validate_data_types_single_value($k6, $v6, $value, "{$subdetail_error_name}[{$k6}]");
+										$temp = $this->validateDataTypesSingleValue($k6, $v6, $value, "{$subdetail_error_name}[{$k6}]");
 										if (empty($temp['flag_error'])) {
 											if (empty($temp[$k6]) && !empty($temp[$k6 . '_is_serial'])) {
 												// we do not create empty serial keys
@@ -898,7 +899,7 @@ class object_form_base extends object_form_parent {
 										// default
 										$default = null;
 										if (array_key_exists('default', $v6['options'])) {
-											$default = $this->process_default_value($k6, $v6['options']['default'], $value, $subdetail, false);
+											$default = $this->processDefaultValue($k6, $v6['options']['default'], $value, $subdetail, false);
 											if (strpos($v6['options']['default'], 'static::') !== false || is_null($value)) {
 												$value = $default;
 											}
@@ -949,7 +950,7 @@ class object_form_base extends object_form_parent {
 	 * @param string $error_name
 	 * @param array $neighbouring_values
 	 */
-	private function check_options_model(array $field, $value, string $error_name, array $neighbouring_values) {
+	private function checkOptionsModel(array $field, $value, string $error_name, array $neighbouring_values) {
 		// we need to convert value
 		if (!empty($field['json_contains'])) {
 			$temp = [];
@@ -967,13 +968,13 @@ class object_form_base extends object_form_parent {
 		if (empty($field['options_depends'])) $field['options_depends'] = [];
 		// options depends & params
 		$options = [];
-		$this->process_params_and_depends($field['options_depends'], $neighbouring_values, $options, true);
-		$this->process_params_and_depends($field['options_params'], $neighbouring_values, $options, false);
+		$this->processParamsAndDepends($field['options_depends'], $neighbouring_values, $options, true);
+		$this->processParamsAndDepends($field['options_params'], $neighbouring_values, $options, false);
 		$field['options_params'] = array_merge_hard($field['options_params'], $field['options_depends']);
 		// we do not need options for autocomplete
 		if (strpos(($field['method'] ?? ''), 'autocomplete') === false) {
 			$skip_values = [];
-			$field['options'] = \Object\Data\Common::process_options($field['options_model'], $this, $field['options_params'], $value, $skip_values, $field['options_options']);
+			$field['options'] = \Object\Data\Common::processOptions($field['options_model'], $this, $field['options_params'], $value, $skip_values, $field['options_options']);
 		} else {
 			$field['options'] = [];
 		}
@@ -981,7 +982,7 @@ class object_form_base extends object_form_parent {
 		if (!is_array($value)) $value = [$value];
 		foreach ($value as $v) {
 			if (empty($field['options'][$v])) {
-				$this->error('danger', object_content_messages::invalid_value, $error_name);
+				$this->error('danger', \Object\Content\Messages::invalid_value, $error_name);
 			}
 		}
 	}
@@ -991,14 +992,14 @@ class object_form_base extends object_form_parent {
 	 *
 	 * @param array $options
 	 */
-	private function validate_required_fields($options = []) {
+	private function validateRequiredFields($options = []) {
 		// sort fields
-		$fields = $this->sort_fields_for_processing($this->fields);
+		$fields = $this->sortFieldsForProcessing($this->fields);
 		// process fields
 		foreach ($fields as $k => $v) {
 			if (!empty($options['only_columns']) && !in_array($k, $options['only_columns'])) continue;
 			// validate required
-			$this->validate_required_one_field($this->values[$k], $v['options']['error_name'], $v);
+			$this->validateRequiredOneField($this->values[$k], $v['options']['error_name'], $v);
 		}
 		// process details
 		if (!empty($this->detail_fields)) {
@@ -1009,7 +1010,7 @@ class object_form_base extends object_form_parent {
 					$details = [$details];
 				}
 				// sort fields
-				$fields = $this->sort_fields_for_processing($v['elements'], $v['options']);
+				$fields = $this->sortFieldsForProcessing($v['elements'], $v['options']);
 				// process details one by one
 				foreach ($details as $k2 => $v2) {
 					foreach ($fields as $k3 => $v3) {
@@ -1017,10 +1018,10 @@ class object_form_base extends object_form_parent {
 						if (!empty($v['options']['details_11'])) {
 							$error_name = "{$k}";
 							$v3['options']['values_key'] = [$k, $k3];
-							$this->validate_required_one_field($v2[$k3], "{$k}[{$k3}]", $v3);
+							$this->validateRequiredOneField($v2[$k3], "{$k}[{$k3}]", $v3);
 						} else { // 1 to M
 							$v3['options']['values_key'] = [$k, $k2, $k3];
-							$this->validate_required_one_field($v2[$k3], "{$k}[{$k2}][{$k3}]", $v3);
+							$this->validateRequiredOneField($v2[$k3], "{$k}[{$k2}][{$k3}]", $v3);
 						}
 					}
 					// process subdetails
@@ -1031,8 +1032,8 @@ class object_form_base extends object_form_parent {
 					// add error to pk
 					$counter = 1;
 					foreach ($v['options']['details_pk'] as $v8) {
-						if (empty($v['elements'][$v8]['options']['row_link']) || $v['elements'][$v8]['options']['row_link'] == $this::hidden) continue;
-						$this->error('danger', object_content_messages::required_field, "{$k}[1][{$v8}]");
+						if (empty($v['elements'][$v8]['options']['row_link']) || $v['elements'][$v8]['options']['row_link'] == $this::HIDDEN) continue;
+						$this->error('danger', \Object\Content\Messages::required_field, "{$k}[1][{$v8}]");
 						$counter++;
 					}
 					// sometimes pk can be hidden, so we add error to two more
@@ -1040,7 +1041,7 @@ class object_form_base extends object_form_parent {
 						array_key_sort($v['elements'], ['row_order' => SORT_ASC, 'order' => SORT_ASC]);
 						foreach ($v['elements'] as $k8 => $v8) {
 							if (($v8['options']['required'] ?? '') . '' == '1' && !in_array($k8, $v['options']['details_pk']) && $counter == 1) {
-								$this->error('danger', object_content_messages::required_field, "{$k}[1][{$k8}]");
+								$this->error('danger', \Object\Content\Messages::required_field, "{$k}[1][{$k8}]");
 								$counter++;
 							}
 						}
@@ -1069,26 +1070,26 @@ class object_form_base extends object_form_parent {
 		$this->list_rendered = false;
 		// preload collection, must be first
 		// fix here
-		if ($this->preload_collection_object() && $this->initiator_class != 'numbers_frontend_html_form_wrapper_report') {
+		if ($this->preloadCollectionObject() && $this->initiator_class != 'numbers_frontend_html_form_wrapper_report') {
 			// if we have relation
 			if (!empty($this->collection_object->primary_model->relation['field']) && !in_array($this->collection_object->primary_model->relation['field'], $this->collection_object->primary_model->pk)) {
-				$this->element($this::hidden, $this::hidden, $this->collection_object->primary_model->relation['field'], ['label_name' => 'Relation #', 'domain' => 'relation_id_sequence', 'persistent' => true]);
+				$this->element($this::HIDDEN, $this::HIDDEN, $this->collection_object->primary_model->relation['field'], ['label_name' => 'Relation #', 'domain' => 'relation_id_sequence', 'persistent' => true]);
 			}
 			// optimistic lock
 			if (!empty($this->collection_object->primary_model->optimistic_lock)) {
-				$this->element($this::hidden, $this::hidden, $this->collection_object->primary_model->optimistic_lock_column, ['label_name' => 'Optimistic Lock', 'type' => 'text', 'null' => true, 'default' => null, 'method'=> 'hidden']);
+				$this->element($this::HIDDEN, $this::HIDDEN, $this->collection_object->primary_model->optimistic_lock_column, ['label_name' => 'Optimistic Lock', 'type' => 'text', 'null' => true, 'default' => null, 'method'=> 'hidden']);
 			}
 		}
 		// hidden buttons to handle form though javascript
-		$this->element($this::hidden, $this::hidden, $this::button_submit_refresh, $this::button_submit_refresh_data);
-		if (!isset($this->process_submit_all[$this::button_submit_blank])) {
-			$this->element($this::hidden, $this::hidden, $this::button_submit_blank, $this::button_submit_blank_data);
+		$this->element($this::HIDDEN, $this::HIDDEN, $this::BUTTON_SUBMIT_REFRESH, $this::BUTTON_SUBMIT_REFRESH_DATA);
+		if (!isset($this->process_submit_all[$this::BUTTON_SUBMIT_BLANK])) {
+			$this->element($this::HIDDEN, $this::HIDDEN, $this::BUTTON_SUBMIT_BLANK, $this::BUTTON_SUBMIT_BLANK_DATA);
 		}
 		// extra elements for list
 		if ($this->initiator_class == 'list') {
-			$this->element($this::hidden, $this::hidden, '__limit', ['label_name' => 'Limit', 'type' => 'integer', 'default' => $this->form_parent->list_options['default_limit'] ?? 30, 'method'=> 'hidden']);
-			$this->element($this::hidden, $this::hidden, '__offset', ['label_name' => 'Offset', 'type' => 'integer', 'default' => 0, 'method'=> 'hidden']);
-			$this->element($this::hidden, $this::hidden, '__preview', ['label_name' => 'Preview', 'type' => 'integer', 'default' => 0, 'method'=> 'hidden']);
+			$this->element($this::HIDDEN, $this::HIDDEN, '__limit', ['label_name' => 'Limit', 'type' => 'integer', 'default' => $this->form_parent->list_options['default_limit'] ?? 30, 'method'=> 'hidden']);
+			$this->element($this::HIDDEN, $this::HIDDEN, '__offset', ['label_name' => 'Offset', 'type' => 'integer', 'default' => 0, 'method'=> 'hidden']);
+			$this->element($this::HIDDEN, $this::HIDDEN, '__preview', ['label_name' => 'Preview', 'type' => 'integer', 'default' => 0, 'method'=> 'hidden']);
 			// default sort
 			if (empty($this->options['input']['numbers_framework_object_form_model_dummy_sort']) && !empty($this->form_parent->list_options['default_sort'])) {
 				$this->options['input']['numbers_framework_object_form_model_dummy_sort'] = [];
@@ -1121,8 +1122,8 @@ class object_form_base extends object_form_parent {
 				'default_row_type' => 'grid',
 				'order' => PHP_INT_MAX - 2000
 			]);
-			foreach (self::report_buttons_data_group as $k => $v) {
-				$this->element('buttons', self::buttons, $k, $v);
+			foreach (self::REPORT_BUTTONS_DATA_GROUP as $k => $v) {
+				$this->element('buttons', self::BUTTONS, $k, $v);
 			}
 			// add report container
 			$this->container('__report_container', [
@@ -1138,7 +1139,7 @@ class object_form_base extends object_form_parent {
 			if (($this->options['input']['__ajax_form_id'] ?? '') == "form_{$this->form_link}_form") {
 				// it its a call to auto complete
 				if ($this->attributes && !empty($this->options['input']['__ajax_autocomplete']['rn_attrattr_id'])) {
-					return Factory::model('numbers_data_relations_model_attribute_form', true)->autocomplete($this, $this->options['input']);
+					return \Factory::model('numbers_data_relations_model_attribute_form', true)->autocomplete($this, $this->options['input']);
 				} else if (!empty($this->options['input']['__ajax_autocomplete']['name'])
 					&& !empty($this->fields[$this->options['input']['__ajax_autocomplete']['name']]['options']['method'])
 					&& strpos($this->fields[$this->options['input']['__ajax_autocomplete']['name']]['options']['method'], 'autocomplete') !== false
@@ -1150,24 +1151,24 @@ class object_form_base extends object_form_parent {
 					if (count($temp) == 1) {
 						return \HTML::{$temp[0]}($options);
 					} else {
-						return Factory::model($temp[0])->{$temp[1]}($options);
+						return \Factory::model($temp[0])->{$temp[1]}($options);
 					}
 				}
 			} else {
 				// load pk
-				$this->load_pk($this->options['input']);
+				$this->loadPk($this->options['input']);
 				// we need to set this flag so ajax calls can go through
 				//$this->values_loaded = true;
 				$this->flag_another_ajax_call = true;
 				return;
 			}
 		} else if (!empty($this->options['input']['__form_link']) && $this->options['input']['__form_link'] != $this->form_link) { // it its a call from another form
-			$this->trigger_method('refresh');
-			goto load_values;
+			$this->triggerMethod('refresh');
+			goto loadValues;
 		}
 		// navigation
 		if (!empty($this->options['input']['navigation'])) {
-			$this->process_navigation($this->options['input']['navigation']);
+			$this->processNavigation($this->options['input']['navigation']);
 		}
 		// onchange fields
 		$this->misc_settings['__form_onchange_field_values_key'] = null;
@@ -1176,15 +1177,15 @@ class object_form_base extends object_form_parent {
 		}
 		// we need to see if form has been submitted
 		$this->process_submit = [];
-		if (isset($this->process_submit_all[$this::button_submit_blank]) && !empty($this->options['input'][$this::button_submit_blank])) {
+		if (isset($this->process_submit_all[$this::BUTTON_SUBMIT_BLANK]) && !empty($this->options['input'][$this::BUTTON_SUBMIT_BLANK])) {
 			$this->blank = true;
 			$this->process_submit = [
-				$this::button_submit_blank => true
+				$this::BUTTON_SUBMIT_BLANK => true
 			];
-		} else if (isset($this->process_submit_all[$this::button_submit_refresh]) && !empty($this->options['input'][$this::button_submit_refresh])) {
+		} else if (isset($this->process_submit_all[$this::BUTTON_SUBMIT_REFRESH]) && !empty($this->options['input'][$this::BUTTON_SUBMIT_REFRESH])) {
 			$this->refresh = true;
 			$this->process_submit = [
-				$this::button_submit_refresh => true
+				$this::BUTTON_SUBMIT_REFRESH => true
 			];
 		} else {
 			foreach ($this->process_submit_all as $k => $v) {
@@ -1195,13 +1196,13 @@ class object_form_base extends object_form_parent {
 			}
 		}
 		// if we delete
-		if (!empty($this->process_submit[self::button_submit_delete])) {
+		if (!empty($this->process_submit[self::BUTTON_SUBMIT_DELETE])) {
 			$this->delete = true;
 		}
 		// if we are blanking the form
 		if ($this->blank) {
-			$this->get_all_values([]);
-			$this->trigger_method('refresh');
+			$this->getAllValues([]);
+			$this->triggerMethod('refresh');
 			goto convert_multiple_columns;
 		}
 		// we need to start transaction
@@ -1210,34 +1211,34 @@ class object_form_base extends object_form_parent {
 			$this->transaction = true;
 		}
 		// load original values
-		$this->get_original_values($this->options['input'] ?? [], $this->transaction);
+		$this->getOriginalValues($this->options['input'] ?? [], $this->transaction);
 		// if we do not submit the form and have no values
 		if (!$this->submitted && !$this->refresh) {
 			if ($this->values_loaded) {
-				goto load_values;
+				goto loadValues;
 			} else { // if we have no values its blank
 				$this->blank = true;
-				$this->get_all_values($this->options['input'] ?? []);
-				$this->trigger_method('refresh');
+				$this->getAllValues($this->options['input'] ?? []);
+				$this->triggerMethod('refresh');
 				goto convert_multiple_columns;
 			}
 		}
 		// get all values
-		$this->get_all_values($this->options['input'] ?? [], [
+		$this->getAllValues($this->options['input'] ?? [], [
 			'validate_required' => $this->submitted, // a must, used for widget data processing
 			'validate_for_delete' => $this->delete
 		]);
 		// validate submits
 		if ($this->submitted) {
-			if (!$this->validate_submit_buttons()) {
+			if (!$this->validateSubmitButtons()) {
 				goto process_errors;
 			}
 		}
 		// handling form refresh
-		$this->trigger_method('refresh');
+		$this->triggerMethod('refresh');
 		// validate required fields after refresh
 		if ($this->submitted && !$this->delete) {
-			$this->validate_required_fields();
+			$this->validateRequiredFields();
 		}
 		// convert columns on refresh
 		if ($this->refresh) {
@@ -1253,11 +1254,11 @@ class object_form_base extends object_form_parent {
 				if (method_exists($this, 'validate')) {
 					$this->validate($this);
 				} else if (!empty($this->wrapper_methods['validate'])) {
-					$this->trigger_method('validate');
+					$this->triggerMethod('validate');
 				}
 			}
 			// save for regular forms
-			if (!$this->has_errors() && !empty($this->process_submit[$this::button_submit_save])) {
+			if (!$this->hasErrors() && !empty($this->process_submit[$this::BUTTON_SUBMIT_SAVE])) {
 				// if it is a report we would skip save
 				if ($this->initiator_class == 'numbers_frontend_html_form_wrapper_report') {
 					goto convert_multiple_columns;
@@ -1266,7 +1267,7 @@ class object_form_base extends object_form_parent {
 				if (method_exists($this, 'save')) {
 					$this->values_saved = $this->save($this);
 				} else if (!empty($this->wrapper_methods['save'])) {
-					$this->values_saved = $this->trigger_method('save');
+					$this->values_saved = $this->triggerMethod('save');
 				} else if (!empty($this->collection_object)) {
 					// native save based on collection
 					$this->values_saved = $this->save_values();
@@ -1274,28 +1275,28 @@ class object_form_base extends object_form_parent {
 					 * todo
 					if ($this->save_values() || empty($this->errors['general']['danger'])) {
 						// we need to redirect for certain buttons
-						$mvc = Application::get('mvc');
+						$mvc = \Application::get('mvc');
 						// save and new
-						if (!empty($this->process_submit[self::button_submit_save_and_new])) {
+						if (!empty($this->process_submit[self::BUTTON_SUBMIT_SAVE_AND_NEW])) {
 							\Request::redirect($mvc['full']);
 						}
 						// save and close
-						if (!empty($this->process_submit[self::button_submit_save_and_close])) {
+						if (!empty($this->process_submit[self::BUTTON_SUBMIT_SAVE_AND_CLOSE])) {
 							\Request::redirect($mvc['controller'] . '/_index');
 						}
 						// we reload form values
-						goto load_values;
+						goto loadValues;
 					} else {
 						goto convert_multiple_columns;
 					}
 					*/
 				}
 				// if save was successfull we post
-				if (!$this->has_errors()) {
-					$temp = $this->trigger_method('post');
+				if (!$this->hasErrors()) {
+					$temp = $this->triggerMethod('post');
 				}
 				// rollback changes maid in validate method
-				if ($this->has_errors()) {
+				if ($this->hasErrors()) {
 					$this->values = $this->snapshot_values;
 					if (!$this->rollback) {
 						$this->values_saved = false;
@@ -1306,13 +1307,13 @@ class object_form_base extends object_form_parent {
 		// adding general error
 process_errors:
 		if ($this->errors['flag_error_in_fields'] && empty($this->errors['general']['danger'])) {
-			$this->error('danger', object_content_messages::submission_problem);
+			$this->error('danger', \Object\Content\Messages::submission_problem);
 		}
 		if ($this->errors['flag_warning_in_fields']) {
-			$this->error('warning', object_content_messages::submission_warning);
+			$this->error('warning', \Object\Content\Messages::submission_warning);
 		}
 		// close transaction
-		$this->close_transaction();
+		$this->closeTransaction();
 		// reindex errors and warnings when pk is a serial type
 		if (!empty($this->new_serials) && !empty($this->errors['fields'])) {
 			$intersect = array_intersect($this->collection_object->data['pk'], array_keys($this->new_serials));
@@ -1330,17 +1331,17 @@ process_errors:
 			}
 		}
 		// if we are deleting and have an error we need to pull the data
-		if ($this->delete && $this->has_errors()) goto load_values2;
-load_values:
-		if (!$this->has_errors()) {
+		if ($this->delete && $this->hasErrors()) goto loadValues2;
+loadValues:
+		if (!$this->hasErrors()) {
 			if ($this->values_deleted) { // we need to provide default values
 				$this->values_loaded = false;
 				$this->original_values = [];
-				$this->get_all_values([]);
+				$this->getAllValues([]);
 			} else if ($this->values_saved) { // if saved we need to reload from database
-				$this->trigger_method('success');
-load_values2:
-				$this->original_values = $this->values = $this->load_values();
+				$this->triggerMethod('success');
+loadValues2:
+				$this->original_values = $this->values = $this->loadValues();
 				$this->values_loaded = true;
 			} else if ($this->values_loaded) { // otherwise set loaded values
 				$this->values = $this->original_values;
@@ -1352,27 +1353,27 @@ load_values2:
 		}
 convert_multiple_columns:
 		// close transaction
-		$this->close_transaction();
+		$this->closeTransaction();
 		// convert multiple column to a form renderer can accept
-		$this->convert_multiple_columns($this->values);
+		$this->convertMultipleColumns($this->values);
 		// assuming save has been executed without errors we need to process on_success_js
-		if (!$this->has_errors() && !empty($this->options['on_success_js'])) {
+		if (!$this->hasErrors() && !empty($this->options['on_success_js'])) {
 			Layout::onload($this->options['on_success_js']);
 		}
 		// we need to hide buttons
-		$this->validate_submit_buttons(['skip_validation' => true]);
+		$this->validateSubmitButtons(['skip_validation' => true]);
 		// add success messages
-		if (!$this->has_errors()) {
+		if (!$this->hasErrors()) {
 			if (isset($this->misc_settings['success_message_if_no_errors'])) {
 				$this->error('success', $this->misc_settings['success_message_if_no_errors']);
 			} else {
-				if ($this->values_deleted) $this->error('success', object_content_messages::record_deleted);
-				if ($this->values_inserted) $this->error('success', object_content_messages::record_inserted);
-				if ($this->values_updated) $this->error('success', object_content_messages::recort_updated);
+				if ($this->values_deleted) $this->error('success', \Object\Content\Messages::Record_Deleted);
+				if ($this->values_inserted) $this->error('success', \Object\Content\Messages::record_inserted);
+				if ($this->values_updated) $this->error('success', \Object\Content\Messages::recort_updated);
 			}
 		}
 		// query for list
-		if ($this->initiator_class == 'list' && !$this->has_errors() && ($this->submitted || (!$this->refresh && !$this->submitted))) {
+		if ($this->initiator_class == 'list' && !$this->hasErrors() && ($this->submitted || (!$this->refresh && !$this->submitted))) {
 			$this->list_rendered = true;
 			// create query object
 			if (!empty($this->form_parent->query_primary_model)) {
@@ -1396,7 +1397,7 @@ convert_multiple_columns:
 				$this->query->where_multiple('AND', $where);
 			}
 			// execute custom query processor
-			$result = $this->trigger_method('list_query');
+			$result = $this->triggerMethod('list_query');
 			if (is_array($result) && !empty($result['success'])) {
 				$this->misc_settings['list']['total'] = $result['total'];
 				$this->misc_settings['list']['num_rows'] = count($result['rows']);
@@ -1426,14 +1427,14 @@ convert_multiple_columns:
 			$this->misc_settings['list']['limit'] = $this->values['__limit'];
 			$this->misc_settings['list']['offset'] = $this->values['__offset'];
 			$this->misc_settings['list']['preview'] = $this->values['__preview'];
-			$this->misc_settings['list']['columns'] = $this->data[$this::list_container]['rows'];
+			$this->misc_settings['list']['columns'] = $this->data[$this::LIST_CONTAINER]['rows'];
 		}
 	}
 
 	/**
 	 * Close transaction
 	 */
-	public function close_transaction() {
+	public function closeTransaction() {
 		if ($this->transaction) {
 			if ($this->values_saved) { // we commit
 				$this->collection_object->primary_model->db_object->commit();
@@ -1450,7 +1451,7 @@ convert_multiple_columns:
 	 *
 	 * @param array $navigation
 	 */
-	private function process_navigation($navigation) {
+	private function processNavigation($navigation) {
 		do {
 			$column = key($navigation);
 			if (empty($this->fields[$column]['options']['navigation'])) break;
@@ -1468,13 +1469,13 @@ convert_multiple_columns:
 				}
 			}
 			// get all values
-			$this->get_all_values($this->options['input'] ?? [], [
+			$this->getAllValues($this->options['input'] ?? [], [
 				'only_columns' => $navigation_columns
 			]);
 			// if we have errors we need to refresh
-			if ($this->has_errors()) {
-				$this->error_reset_all();
-				$this->options['input'][$this::button_submit_refresh] = true;
+			if ($this->hasErrors()) {
+				$this->errorResetAll();
+				$this->options['input'][$this::BUTTON_SUBMIT_REFRESH] = true;
 				break;
 			}
 			$params = [
@@ -1509,11 +1510,11 @@ convert_multiple_columns:
 				$this->options['input'] = $result[0];
 			} else {
 				if ($navigation_type == 'refresh') {
-					$this->error('danger', object_content_messages::record_not_found, $column);
+					$this->error('danger', \Object\Content\Messages::record_not_found, $column);
 				} else {
-					$this->error('danger', object_content_messages::prev_or_next_record_not_found, $column);
+					$this->error('danger', \Object\Content\Messages::prev_or_next_record_not_found, $column);
 				}
-				$this->options['input'][$this::button_submit_refresh] = true;
+				$this->options['input'][$this::BUTTON_SUBMIT_REFRESH] = true;
 			}
 		} while(0);
 	}
@@ -1521,7 +1522,7 @@ convert_multiple_columns:
 	/**
 	 * Convert multiple columns
 	 */
-	private function convert_multiple_columns(& $values) {
+	private function convertMultipleColumns(& $values) {
 		// regular fields
 		foreach ($this->fields as $k => $v) {
 			if (!empty($v['options']['multiple_column'])) {
@@ -1535,8 +1536,8 @@ convert_multiple_columns:
 		foreach ($this->detail_fields as $k => $v) {
 			if (empty($values[$k]) || !is_array($values[$k])) continue;
 			if (!empty($v['options']['details_convert_multiple_columns'])) {
-				$widget_model = Factory::model($k, true);
-				$widget_model->convert_multiple_columns($this, $values[$k]);
+				$widget_model = \Factory::model($k, true);
+				$widget_model->convertMultipleColumns($this, $values[$k]);
 			} else if (!empty($values[$k])) { // convert fields
 				// 1 to 1
 				if (!empty($v['options']['details_11'])) {
@@ -1566,8 +1567,8 @@ convert_multiple_columns:
 				foreach ($values[$k] as $k11 => $v11) {
 					foreach ($v['subdetails'] as $k0 => $v0) {
 						if (!empty($v0['options']['details_convert_multiple_columns'])) {
-							$widget_model = Factory::model($k0, true);
-							$widget_model->convert_multiple_columns($this, $values[$k][$k11][$k0]);
+							$widget_model = \Factory::model($k0, true);
+							$widget_model->convertMultipleColumns($this, $values[$k][$k11][$k0]);
 						}
 					}
 				}
@@ -1580,14 +1581,14 @@ convert_multiple_columns:
 	 *
 	 * @param array $options
 	 */
-	public function validate_submit_buttons($options = []) {
+	public function validateSubmitButtons($options = []) {
 		$buttons_found = [];
 		$names = [];
-		$have_transaction_buttons = false;
+		$have_TRANSACTION_BUTTONS = false;
 		foreach ($this->data as $k => $v) {
 			foreach ($v['rows'] as $k2 => $v2) {
-				if ($k2 == $this::transaction_buttons) {
-					$have_transaction_buttons = true;
+				if ($k2 == $this::TRANSACTION_BUTTONS) {
+					$have_TRANSACTION_BUTTONS = true;
 				}
 				// find all process submit buttons
 				foreach ($v2['elements'] as $k3 => $v3) {
@@ -1605,7 +1606,7 @@ convert_multiple_columns:
 			}
 		}
 		// validations
-		if ($have_transaction_buttons) {
+		if ($have_TRANSACTION_BUTTONS) {
 			// make a call to master object
 			$result = $this->master_object->__process_buttons($this, [
 				'skip_validation' => $options['skip_validation'] ?? false
@@ -1615,38 +1616,38 @@ convert_multiple_columns:
 			$all_standard_buttons = $result['all_buttons'];
 		} else { // standard buttons
 			$all_standard_buttons = [
-				self::button_submit,
-				self::button_submit_save,
-				self::button_submit_save_and_new,
-				self::button_submit_save_and_close,
-				self::button_submit_reset,
-				self::button_submit_delete
+				self::BUTTON_SUBMIT,
+				self::BUTTON_SUBMIT_SAVE,
+				self::BUTTON_SUBMIT_SAVE_AND_NEW,
+				self::BUTTON_SUBMIT_SAVE_AND_CLOSE,
+				self::BUTTON_SUBMIT_RESET,
+				self::BUTTON_SUBMIT_DELETE
 			];
 			// process
 			$not_allowed = [];
 			// remove delete buttons if we do not have loaded values or do not have permission
-			if (!$this->values_loaded || !\Object\Controller::can('record_delete')) {
-				$not_allowed[] = self::button_submit_delete;
+			if (!$this->values_loaded || !\Object\Controller::can('Record_Delete')) {
+				$not_allowed[] = self::BUTTON_SUBMIT_DELETE;
 			}
 			// we need to check permissions
 			$show_save_buttons = false;
-			if (\Object\Controller::can('record_new') && !$this->values_loaded) {
+			if (\Object\Controller::can('Record_New') && !$this->values_loaded) {
 				$show_save_buttons = true;
 			}
-			if (\Object\Controller::can('record_edit') && $this->values_loaded) {
+			if (\Object\Controller::can('Record_Edit') && $this->values_loaded) {
 				$show_save_buttons = true;
 			}
 			if (!$show_save_buttons) {
-				$not_allowed[] = self::button_submit_save;
-				$not_allowed[] = self::button_submit_save_and_new;
-				$not_allowed[] = self::button_submit_save_and_close;
+				$not_allowed[] = self::BUTTON_SUBMIT_SAVE;
+				$not_allowed[] = self::BUTTON_SUBMIT_SAVE_AND_NEW;
+				$not_allowed[] = self::BUTTON_SUBMIT_SAVE_AND_CLOSE;
 			}
 			// these buttons are considered save
 			$also_set_save = [
-				self::button_submit,
-				self::button_submit_save_and_new,
-				self::button_submit_save_and_close,
-				self::button_submit_delete
+				self::BUTTON_SUBMIT,
+				self::BUTTON_SUBMIT_SAVE_AND_NEW,
+				self::BUTTON_SUBMIT_SAVE_AND_CLOSE,
+				self::BUTTON_SUBMIT_DELETE
 			];
 		}
 		// validate if we have that button
@@ -1667,7 +1668,7 @@ convert_multiple_columns:
 				if (!empty($buttons_found[$k]) && in_array($k, $not_allowed)) {
 					foreach ($buttons_found[$k] as $v2) {
 						// we disable buttons in test mode
-						if (Application::get('flag.numbers.frontend.html.form.show_field_settings')) {
+						if (\Application::get('flag.numbers.frontend.html.form.show_field_settings')) {
 							$temp = array_key_get($this->data, $v2['key']);
 							$temp['options']['class'] = ($temp['options']['class'] ?? '') . ' disabled';
 							array_key_set($this->data, $v2['key'], $temp);
@@ -1682,7 +1683,7 @@ convert_multiple_columns:
 		// fix for save
 		foreach ($also_set_save as $v) {
 			if (!empty($this->process_submit[$v])) {
-				$this->process_submit[self::button_submit_save] = true;
+				$this->process_submit[self::BUTTON_SUBMIT_SAVE] = true;
 			}
 		}
 		return $result;
@@ -1694,7 +1695,7 @@ convert_multiple_columns:
 	 * @param array $counters
 	 *		type => number
 	 */
-	public function error_in_tabs($counters) {
+	public function errorInTabs($counters) {
 		if (empty($this->current_tab) || empty($counters)) {
 			return;
 		}
@@ -1724,12 +1725,12 @@ convert_multiple_columns:
 	 * @param mixed $in_value
 	 * @param string $error_field
 	 */
-	final public function validate_data_types_single_value($k, $v, $in_value, $error_field = null) {
+	final public function validateDataTypesSingleValue($k, $v, $in_value, $error_field = null) {
 		// we set error field as main key
 		if (empty($error_field)) {
 			$error_field = $k;
 		}
-		$result = \Object\Table_columns::validate_single_column($k, $v['options'], $in_value);
+		$result = \Object\Table\Columns::validateSingleColumn($k, $v['options'], $in_value);
 		if (!$result['success']) {
 			$this->error('danger', $result['error'], $error_field, ['skip_i18n' => true]);
 		}
@@ -1741,13 +1742,13 @@ convert_multiple_columns:
 	 *
 	 * @return boolean
 	 */
-	final public function save_values() {
+	final public function saveValues() {
 		// double check if we have collection object
 		if (empty($this->collection_object)) {
 			Throw new Exception('You must provide collection object!');
 		}
 		$options = [
-			'flag_delete_row' => $this->process_submit[self::button_submit_delete] ?? false,
+			'flag_delete_row' => $this->process_submit[self::BUTTON_SUBMIT_DELETE] ?? false,
 			'skip_type_validation' => true
 		];
 		// we do not need to reload values from database because we locked them
@@ -1785,7 +1786,7 @@ convert_multiple_columns:
 				if (!empty($result['new_serials'])) {
 					$this->new_serials = $result['new_serials'];
 					$this->values = array_merge_hard($this->values, $result['new_serials']);
-					$this->load_pk($this->values);
+					$this->loadPk($this->values);
 				}
 			} else if (!empty($result['updated'])) { // updated
 				$this->values_updated = true;
@@ -1801,7 +1802,7 @@ convert_multiple_columns:
 	 *
 	 * @return boolean
 	 */
-	final public function preload_collection_object() {
+	final public function preloadCollectionObject() {
 		if (empty($this->collection)) return false;
 		if (empty($this->collection_object)) {
 			$this->collection_object = \Object\Collection::collectionToModel($this->collection);
@@ -1815,7 +1816,7 @@ convert_multiple_columns:
 	/**
 	 * Update collection object
 	 */
-	final public function update_collection_object() {
+	final public function updateCollectionObject() {
 		if (!empty($this->collection_object) && !empty($this->collection)) {
 			$this->collection_object->data = array_merge_hard($this->collection_object->data, $this->collection);
 		}
@@ -1824,7 +1825,7 @@ convert_multiple_columns:
 	/**
 	 * Load primary key from values
 	 */
-	final public function load_pk(& $values) {
+	final public function loadPk(& $values) {
 		$this->pk = [];
 		$this->full_pk = true;
 		if (!empty($this->collection_object)) {
@@ -1832,11 +1833,11 @@ convert_multiple_columns:
 				// inject tenant
 				if (!empty($this->collection_object->primary_model->tenant) && $v == $this->collection_object->primary_model->tenant_column) {
 					if (!isset($values[$this->collection_object->primary_model->tenant_column])) {
-						$values[$this->collection_object->primary_model->tenant_column] = tenant::tenant_id();
+						$values[$this->collection_object->primary_model->tenant_column] = Tenant::id();
 					}
 				}
 				if (isset($values[$v])) {
-					$temp = \Object\Table_columns::processSingleColumnType($v, $this->collection_object->primary_model->columns[$v], $values[$v]);
+					$temp = \Object\Table\Columns::processSingleColumnType($v, $this->collection_object->primary_model->columns[$v], $values[$v]);
 					if (!empty($temp[$v])) { // pk can not be empty
 						$this->pk[$v] = $temp[$v];
 					} else {
@@ -1856,7 +1857,7 @@ convert_multiple_columns:
 	 *
 	 * @return mixed
 	 */
-	final public function load_values($for_update = false) {
+	final public function loadValues($for_update = false) {
 		if ($this->full_pk) {
 			$result = $this->collection_object->get(['where' => $this->pk, 'single_row' => true, 'for_update' => $for_update]);
 			if ($result['success']) {
@@ -1934,7 +1935,7 @@ convert_multiple_columns:
 	 * @param mixed $error_names
 	 * @return boolean
 	 */
-	public function has_errors($error_names = null) {
+	public function hasErrors($error_names = null) {
 		if (empty($error_names)) {
 			return !empty($this->errors['flag_error_in_fields']) || !empty($this->errors['general']['danger']);
 		} else {
@@ -1953,7 +1954,7 @@ convert_multiple_columns:
 	/**
 	 * Reset all error messages
 	 */
-	public function error_reset_all() {
+	public function errorResetAll() {
 		$this->errors = [
 			'flag_error_in_fields' => false,
 			'flag_warning_in_fields' => false,
@@ -1966,16 +1967,16 @@ convert_multiple_columns:
 	 * @param array $options
 	 * @return boolean
 	 */
-	private function process_widget($options) {
+	private function processWidget($options) {
 		$property = str_replace('detail_', '', $options['widget']);
 		// determine object
 		if ($options['type'] == 'tabs' || $options['type'] == 'fields') {
 			$object = & $this->collection_object->primary_model;
 		} else if ($options['type'] == 'subdetails') {
-			$object = Factory::model($options['details_parent_key'], true);
+			$object = \Factory::model($options['details_parent_key'], true);
 		}
 		if (!empty($object->{$property})) {
-			return Factory::model($object->{"{$property}_model"}, true)->process_widget($this, $options);
+			return \Factory::model($object->{"{$property}_model"}, true)->processWidget($this, $options);
 		}
 		return false;
 	}
@@ -1991,7 +1992,7 @@ convert_multiple_columns:
 			$options['container_link'] = $container_link;
 			$type = $options['type'] = $options['type'] ?? 'fields';
 			// make hidden container last
-			if ($container_link == $this::hidden) {
+			if ($container_link == $this::HIDDEN) {
 				$options['order'] = PHP_INT_MAX - 1000;
 			}
 			// see if we adding a widget
@@ -2006,7 +2007,7 @@ convert_multiple_columns:
 					$options['type'] = $widget_data['type'];
 				}
 				// handling widgets
-				return $this->process_widget($options);
+				return $this->processWidget($options);
 			}
 			// processing details
 			if ($type == 'details') {
@@ -2037,18 +2038,18 @@ convert_multiple_columns:
 			];
 			// special handling for details
 			if ($type == 'details') {
-				$model = Factory::model($options['details_key'], true);
+				$model = \Factory::model($options['details_key'], true);
 				// if we have relation
 				if (!empty($model->relation['field']) && !in_array($model->relation['field'], $model->pk)) {
-					$this->element($container_link, $this::hidden, $model->relation['field'], ['label_name' => 'Relation #', 'domain' => 'relation_id_sequence', 'method'=> 'input', 'persistent' => true]);
+					$this->element($container_link, $this::HIDDEN, $model->relation['field'], ['label_name' => 'Relation #', 'domain' => 'relation_id_sequence', 'method'=> 'input', 'persistent' => true]);
 				}
 			}
 			if ($type == 'details' || $type == 'subdetails') {
 				// if we have autoincrement
 				if (!empty($options['details_autoincrement'])) {
-					$model = Factory::model($options['details_key'], true);
+					$model = \Factory::model($options['details_key'], true);
 					foreach ($options['details_autoincrement'] as $v) {
-						$this->element($container_link, $this::hidden, $v, $model->columns[$v]);
+						$this->element($container_link, $this::HIDDEN, $v, $model->columns[$v]);
 					}
 				}
 			}
@@ -2071,11 +2072,11 @@ convert_multiple_columns:
 		$this->container($container_link, array_key_extract_by_prefix($options, 'container_'));
 		if (!isset($this->data[$container_link]['rows'][$row_link])) {
 			// hidden rows
-			if ($row_link == $this::hidden) {
+			if ($row_link == $this::HIDDEN) {
 				$options['order'] = PHP_INT_MAX - 1000;
 			}
 			// validating row type
-			$types = object_html_form_row_types::getStatic();
+			$types = \Object\HTML\Form\Row\Types::getStatic();
 			if (!isset($options['type']) || !isset($types[$options['type']])) {
 				$options['type'] = $this->data[$container_link]['default_row_type'] ?? 'grid';
 			}
@@ -2092,7 +2093,7 @@ convert_multiple_columns:
 			if (($this->data[$container_link]['type'] ?? '') == 'tabs' && !empty($options['widget'])) {
 				$options['type'] = 'tabs';
 				// we skip if widgets are not enabled
-				if (!\Object\Widgets::enabled($options['widget']) || !$this->process_widget($options)) {
+				if (!\Object\Widgets::enabled($options['widget']) || !$this->processWidget($options)) {
 					unset($this->data[$container_link]['rows'][$row_link]);
 					return;
 				}
@@ -2115,7 +2116,7 @@ convert_multiple_columns:
 	 */
 	public function element($container_link, $row_link, $element_link, $options = []) {
 		// presetting options for buttons, making them last
-		if (in_array($row_link, [$this::buttons, $this::transaction_buttons])) {
+		if (in_array($row_link, [$this::BUTTONS, $this::TRANSACTION_BUTTONS])) {
 			$options['row_type'] = 'grid';
 			if (!isset($options['row_order'])) {
 				$options['row_order'] = PHP_INT_MAX - 500;
@@ -2163,14 +2164,14 @@ convert_multiple_columns:
 				$options['row_link'] = $row_link;
 				$options['container_link'] = $container_link;
 				// fixes for list container
-				if ($this->initiator_class == 'list' && $container_link == self::list_container) {
+				if ($this->initiator_class == 'list' && $container_link == self::LIST_CONTAINER) {
 					// add manual validation
 					if (!empty($options['options_model'])) {
 						$options['options_manual_validation'] = true;
 					}
 					// add options model for boolean type
 					if (($options['type'] ?? '') == 'boolean') {
-						if (Application::get('flag.numbers.frontend.html.form.revert_inactive') && ($options['label_name'] ?? '') == 'Inactive') {
+						if (\Application::get('flag.numbers.frontend.html.form.revert_inactive') && ($options['label_name'] ?? '') == 'Inactive') {
 							$options['label_name'] = 'Active';
 							$options['options_model'] = '\Object\Data\Model\Inactive2';
 						} else {
@@ -2180,14 +2181,14 @@ convert_multiple_columns:
 				} else if (($options['type'] ?? '') == 'boolean' && !isset($options['method'])) { // fix boolean type for forms
 					$options['method'] = 'checkbox';
 					// we revert inactive if set
-					if (Application::get('flag.numbers.frontend.html.form.revert_inactive') && ($options['label_name'] ?? '') == 'Inactive') {
+					if (\Application::get('flag.numbers.frontend.html.form.revert_inactive') && ($options['label_name'] ?? '') == 'Inactive') {
 						$options['label_name'] = 'Active';
 						$options['oposite_checkbox'] = true;
 					}
 				}
 				// validator method for captcha
 				if (($options['method'] ?? '') == 'captcha') {
-					$options['validator_method'] = Application::get('flag.numbers.framework.html.captcha.submodule', ['class' => true]) . '::validate';
+					$options['validator_method'] = \Application::get('flag.numbers.framework.html.captcha.submodule', ['class' => true]) . '::validate';
 				}
 				// type for buttons
 				if (in_array(($options['method'] ?? ''), ['button', 'button2', 'submit']) && empty($options['type'])) {
@@ -2283,7 +2284,7 @@ convert_multiple_columns:
 	 */
 	public function render($format = null) {
 		if (!isset($format)) $format = $this->options['input']['__content_type'] ?? 'text/html';
-		$content_types_model = new numbers_framework_object_form_model_content_types();
+		$content_types_model = new \Object\Form\Model\Content\Types();
 		$content_types = $content_types_model->get();
 		if (empty($content_types[$format])) $format = 'text/html';
 		$model =  new $content_types[$format]['no_form_content_type_model']();
@@ -2296,7 +2297,7 @@ convert_multiple_columns:
 	 * @param array $field
 	 * @return mixed
 	 */
-	public function get_field_errors($field) {
+	public function getFieldErrors($field) {
 		$existing = array_key_get($this->errors['fields'], $field['options']['name']);
 		if (!empty($existing)) {
 			$result = [
@@ -2336,63 +2337,6 @@ convert_multiple_columns:
 	}
 
 	/**
-	 * Render table rows
-	 *
-	 * @param array $rows
-	 * @return type
-	 */
-	public function render_row_table($rows) {
-
-		// todo
-		Throw new Exception('todo: make the same as render_row_grid!');
-
-		/*
-		$data = [
-			'header' => [],
-			'options' => [],
-			'skip_header' => true
-		];
-		foreach ($rows as $k => $v) {
-			$index = 0;
-			array_key_sort($v['value']['elements'], ['order' => SORT_ASC]);
-			// group by
-			$groupped = [];
-			foreach ($v['value']['elements'] as $k2 => $v2) {
-				$groupped[$v2['options']['label_name'] ?? ''][$k2] = $v2;
-			}
-			foreach ($groupped as $k2 => $v2) {
-				$first = current($v2);
-				if (!empty($first['options']['element_vertical_separator'])) {
-					$data['options'][$k][0] = [
-						// todo: add custom html and icon
-						'value' => '&nbsp;',
-						'colspan' => count($data['header'])
-					];
-				} else {
-					$elements = [];
-					foreach ($v2 as $k3 => $v3) {
-						$v3['options']['error_name'] = $k3;
-						$elements[] = $this->render_element_value($v3, $this->get_field_value($v3));
-					}
-					$first['prepend_to_field'] = ':';
-					$data['options'][$k][$index] = [
-						'value' => $this->render_element_name($first),
-						'width' => '1%',
-						'nowrap' => 'nowrap'
-					];
-					$data['header'][$index] = $index;
-					$index++;
-					$data['options'][$k][$index] = implode(' ', $elements);
-					$data['header'][$index] = $index;
-					$index++;
-				}
-			}
-		}
-		return \HTML::table($data);
-		*/
-	}
-
-	/**
 	 * Process depends and params
 	 *
 	 * @param array $params
@@ -2400,7 +2344,7 @@ convert_multiple_columns:
 	 * @param array $options
 	 * @param boolean $flag_params
 	 */
-	public function process_params_and_depends(& $params, & $neighbouring_values, $options, $flag_params = true) {
+	public function processParamsAndDepends(& $params, & $neighbouring_values, $options, $flag_params = true) {
 		foreach ($params as $k => $v) {
 			// if we have a parent
 			if (strpos($v, 'parent::') !== false) {
@@ -2428,7 +2372,7 @@ convert_multiple_columns:
 	 * @param array $options
 	 * @return mixed
 	 */
-	public function process_default_value($key, $default, $value, & $neighbouring_values, $set_neightbouring_values = true, $changed_field = [], $options = []) {
+	public function processDefaultValue($key, $default, $value, & $neighbouring_values, $set_neightbouring_values = true, $changed_field = [], $options = []) {
 		if (strpos($default, 'dependent::') !== false) {
 			// nothing
 		} else if (strpos($default, 'master_object::') !== false) {
@@ -2442,15 +2386,15 @@ convert_multiple_columns:
 			$value = $default;
 		}
 		// handling override_field_value method
-		if (!empty($this->wrapper_methods['process_default_value']['main'])) {
+		if (!empty($this->wrapper_methods['processDefaultValue']['main'])) {
 			// fix changed field
 			if (empty($changed_field)) $changed_field = [];
 			$changed_field['parent'] = $changed_field['parent'] ?? null;
 			$changed_field['detail'] = $changed_field['detail'] ?? null;
 			$changed_field['subdetail'] = $changed_field['subdetail'] ?? null;
 			// call override method
-			$model = $this->wrapper_methods['process_default_value']['main'][0];
-			$model->{$this->wrapper_methods['process_default_value']['main'][1]}($this, $key, $default, $value, $neighbouring_values, $changed_field, $options);
+			$model = $this->wrapper_methods['processDefaultValue']['main'][0];
+			$model->{$this->wrapper_methods['processDefaultValue']['main'][1]}($this, $key, $default, $value, $neighbouring_values, $changed_field, $options);
 		}
 		// if we need to set neightbouring values
 		if ($set_neightbouring_values) {
@@ -2466,7 +2410,7 @@ convert_multiple_columns:
 	 * @param array $options
 	 * @return boolean
 	 */
-	private function can_process_default_value($value, $options) {
+	private function canProcessDefaultValue($value, $options) {
 		if (strpos($options['options']['default'], 'static::') !== false || strpos($options['options']['default'], 'dependent::') !== false || (is_null($value) && empty($options['options']['null']))) {
 			return true;
 		} else {

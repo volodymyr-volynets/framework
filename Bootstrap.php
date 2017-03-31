@@ -16,10 +16,10 @@ class Bootstrap {
 			return;
 		}
 		// get flags & dependencies
-		$flags = Application::get('flag');
-		$backend = Application::get('Numbers.Backend', ['backend_exists' => true]);
+		$flags = \Application::get('flag');
+		$backend = \Application::get('Numbers.Backend', ['backend_exists' => true]);
 		// initialize cryptography
-		$crypt = Application::get('crypt');
+		$crypt = \Application::get('crypt');
 		if (!empty($crypt) && $backend) {
 			foreach ($crypt as $crypt_link => $crypt_settings) {
 				if (!empty($crypt_settings['submodule']) && !empty($crypt_settings['autoconnect'])) {
@@ -34,20 +34,20 @@ class Bootstrap {
 				if ($k == 'submodule' || $k == 'options') continue;
 				// we only include if autoconnect is on
 				if (!empty($v['autoconnect'])) {
-					Factory::submodule('flag.global.library.' . $k . '.submodule')->add();
+					\Factory::submodule('flag.global.library.' . $k . '.submodule')->add();
 				}
 			}
 		}
 		// check if we need to include system files from frontend
-		if (Application::get('dep.submodule.numbers.frontend.system')) {
-			numbers_frontend_system_model_base::start();
+		if (\Application::get('dep.submodule.Numbers.Frontend.System')) {
+			\Numbers\Frontend\System\Model\Base::start();
 		}
 		// application structure
-		$application_structure_model = Application::get('application.structure.model');
+		$application_structure_model = \Application::get('application.structure.model');
 		if (!empty($application_structure_model)) {
-			Factory::model($application_structure_model, true)->settings();
+			\Factory::model($application_structure_model, true)->settings();
 		}
-		$application_structure = Application::get('application.structure');
+		$application_structure = \Application::get('application.structure');
 		// create database connections
 		$db = Application::get('db');
 		if (!empty($db) && $backend) {
@@ -93,9 +93,9 @@ class Bootstrap {
 			}
 		}
 		// initialize session
-		$session = Application::get('flag.global.session');
-		if (!empty($session['start']) && $backend && !Application::get('flag.global.__skip_session')) {
-			Session::start($session['options'] ?? []);
+		$session = \Application::get('flag.global.session');
+		if (!empty($session['start']) && $backend && !\Application::get('flag.global.__skip_session')) {
+			\Session::start($session['options'] ?? []);
 		}
 		// load tenant
 		if (!empty($application_structure_model)) {
@@ -144,9 +144,9 @@ class Bootstrap {
 	 * Destroy everything
 	 */
 	public static function destroy() {
-		$__run_only_bootstrap = Application::get(['flag', 'global', '__run_only_bootstrap']);
+		$__run_only_bootstrap = \Application::get('flag.global.__run_only_bootstrap');
 		// we need to set working directory again
-		chdir(\Application::get(['application', 'path_full']));
+		chdir(\Application::get('application.path_full'));
 		// error processing
 		if (empty(\Object\Error\Base::$flag_error_already)) {
 			$last_error = error_get_last();

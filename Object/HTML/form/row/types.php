@@ -1,6 +1,7 @@
 <?php
 
-class object_html_form_row_types extends \Object\Data {
+namespace Object\HTML\Form\Row;
+class Types extends \Object\Data {
 	public $column_key = 'no_html_form_row_type_code';
 	public $column_prefix = 'no_html_form_row_type_';
 	public $columns = [

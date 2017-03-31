@@ -104,16 +104,16 @@ class Debug {
 			$total+= $benchmark;
 			self::$data['benchmark'][] = [
 				'name' => $name,
-				'time' => Format::timeSeconds($benchmark) . '',
-				'total' => Format::timeSeconds($total),
-				'start' => Format::datetime($start, ['skip_user_timezone' => true]),
+				'time' => \Format::timeSeconds($benchmark) . '',
+				'total' => \Format::timeSeconds($total),
+				'start' => \Format::datetime($start, ['skip_user_timezone' => true]),
 				'memory' => memory_get_peak_usage(true)
 			];
 		}
 	}
 
 	/**
-	 * Send errors to admin
+	 * Send errors to administrator
 	 */
 	public static function sendErrorsToAdmin() {
 		// determine if we need to send anything
@@ -127,7 +127,7 @@ class Debug {
 		// we do not send suppresed errors to admin for now. !empty(self::$data['suppressed'])
 		if ($found || !empty(self::$data['js'])) {
 			$message = str_replace('display: none;', '', self::render());
-			return mail::send([
+			return \Mail::send([
 				'to' => self::$email,
 				'subject' => 'application error',
 				'message' => $message
@@ -141,12 +141,12 @@ class Debug {
 	 * @return string
 	 */
 	public static function render() {
-		$loaded_classes = Application::get(['application', 'loaded_classes']);
+		$loaded_classes = \Application::get(['application', 'loaded_classes']);
 		self::$data['session'] = [];
 		if (!empty($_SESSION)) {
 			self::$data['session'] = [$_SESSION];
 		}
-		$application = Application::get();
+		$application = \Application::get();
 		$result = '<div class="container" dir="ltr">';
 			$result.= '<table cellpadding="2" cellspacing="2" width="100%">';
 				$result.= '<tr>';

@@ -255,7 +255,7 @@ class Dependencies {
 				foreach ($data['override_processed'] as $k => $v) {
 					if (!isset($override_classes[$v])) {
 						$override_classes[$v] = [
-							'object' => new Object_Override_Blank(),
+							'object' => new \Object\Override\Blank(),
 							'found' => false
 						];
 					}
@@ -273,7 +273,8 @@ class Dependencies {
 					foreach ($override_classes as $k => $v) {
 						if ($v['found']) {
 							$class_code = "<?php\n\n" . '$object_override_blank_object = ' . var_export($v['object'], true) . ';';
-							\Helper\File::write('./Overrides/Class/Override_' . $k . '.php', $class_code);
+							$temp_name = str_replace('\\', '_', trim($k, '\\'));
+							\Helper\File::write('./Overrides/Class/Override_' . $temp_name . '.php', $class_code);
 						}
 					}
 				}

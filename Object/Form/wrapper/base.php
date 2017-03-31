@@ -1,6 +1,7 @@
 <?php
 
-class object_form_wrapper_base extends object_form_parent {
+namespace Object\Form\Wrapper;
+class Base extends \Object\Form\Parent2 {
 
 	/**
 	 * Form link
@@ -99,7 +100,7 @@ class object_form_wrapper_base extends object_form_parent {
 	 */
 	public function __construct($options = []) {
 		// we need to handle overrrides
-		parent::override_handle($this);
+		parent::overrideHandle($this);
 		// step 0: apply data fixes
 		if (method_exists($this, 'overrides')) {
 			$this->overrides($this);
@@ -112,7 +113,7 @@ class object_form_wrapper_base extends object_form_parent {
 			$this->form_link = $options['form_link'];
 		}
 		// step 1: create form object
-		$this->form_object = new object_form_base($this->form_link, array_merge_hard($this->options, $options));
+		$this->form_object = new \Object\Form\Base($this->form_link, array_merge_hard($this->options, $options));
 		// class
 		$this->form_object->form_class = get_called_class();
 		$this->form_object->initiator_class = $options['initiator_class'] ?? 'form';
@@ -120,7 +121,7 @@ class object_form_wrapper_base extends object_form_parent {
 		$this->form_object->acl = $this->acl;
 		// add collection
 		$this->form_object->collection = $this->collection;
-		$this->form_object->preload_collection_object(); // must initialize it before calls to container/row/element
+		$this->form_object->preloadCollectionObject(); // must initialize it before calls to container/row/element
 		$this->form_object->column_prefix = $this->column_prefix ?? $this->form_object->collection_object->primary_model->column_prefix ?? null;
 		// master object
 		if (!empty($this->master_options['model'])) {
@@ -137,8 +138,8 @@ class object_form_wrapper_base extends object_form_parent {
 			$this->form_object->title = $this->title;
 		} else {
 			// we generate a title based on class name
-			$temp = explode('_form_', get_called_class());
-			$temp = explode('_', $temp[1]);
+			$temp = explode('\Form\\', get_called_class());
+			$temp = explode('\\', $temp[1]);
 			$this->title = $this->form_object->title = ucwords(implode(' ', $temp));
 		}
 		// step 2: create all containers
@@ -169,7 +170,7 @@ class object_form_wrapper_base extends object_form_parent {
 			}
 		}
 		// step 3: methods
-		foreach (['refresh', 'validate', 'save', 'post', 'success', 'override_field_value', 'override_tabs', 'process_default_value', 'list_query'] as $v) {
+		foreach (['refresh', 'validate', 'save', 'post', 'success', 'overrideFieldValue', 'overrideTabs', 'processDefaultValue', 'listQuery'] as $v) {
 			if (method_exists($this, $v)) {
 				$this->form_object->wrapper_methods[$v]['main'] = [& $this, $v];
 			}

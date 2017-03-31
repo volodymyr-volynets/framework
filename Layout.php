@@ -156,7 +156,7 @@ class Layout extends View {
 	 * Render JavaScript data
 	 */
 	public static function renderJsData() {
-		return \HTML::script(['value' => 'var numbers_js_data = ' . json_encode(self::$js_data) . '; $.extend(true, numbers, numbers_js_data); numbers_js_data = null;']);
+		return \HTML::script(['value' => 'var numbers_js_data = ' . json_encode(self::$js_data) . '; $.extend(true, Numbers, numbers_js_data); numbers_js_data = null;']);
 	}
 
 	/**

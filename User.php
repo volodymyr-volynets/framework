@@ -49,12 +49,12 @@ class User {
 	 * @param string|array $role
 	 */
 	public static function roleGrant($role) {
-		// initialize roles array
-		if (!isset($_SESSION['numbers']['user']['roles'])) {
-			$_SESSION['numbers']['user']['roles'] = [];
-		}
 		// add roles
 		if (!empty($role)) {
+			// initialize roles array
+			if (!isset($_SESSION['numbers']['user']['roles'])) {
+				$_SESSION['numbers']['user']['roles'] = [];
+			}
 			if (!is_array($role)) $role = [$role];
 			$_SESSION['numbers']['user']['roles'] = array_unique(array_merge($_SESSION['numbers']['user']['roles'], $role));
 		}
