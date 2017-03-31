@@ -1,6 +1,7 @@
 <?php
 
-class object_mask_email {
+namespace Object\Mask;
+class Email {
 
 	/**
 	 * Mask

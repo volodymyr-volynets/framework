@@ -101,7 +101,7 @@ class Collection extends \Object\Override\Data {
 				->from($this->primary_model, 'a');
 			// where
 			if (!empty($options['where'])) {
-				$query->where_multiple('AND', $options['where']);
+				$query->whereMultiple('AND', $options['where']);
 			}
 			// for update
 			if (!empty($options['for_update'])) {
@@ -282,7 +282,7 @@ class Collection extends \Object\Override\Data {
 			// where
 			$query->where('AND', [$column, 'IN', $keys]);
 			if (!empty($v['where'])) {
-				$query->where_multiple('AND', $v['where']);
+				$query->whereMultiple('AND', $v['where']);
 			}
 			// orderby
 			$orderby = $options['orderby'] ?? (!empty($model->orderby) ? $model->orderby : null);
@@ -393,7 +393,7 @@ class Collection extends \Object\Override\Data {
 			$this->primary_model->db_object->begin();
 			// preset tenant
 			if ($this->primary_model->tenant && !isset($data[$this->primary_model->tenant_column])) {
-				$data[$this->primary_model->tenant_column] = Tenant::id();
+				$data[$this->primary_model->tenant_column] = \Tenant::id();
 			}
 			// load data from database
 			$original = [];
@@ -519,7 +519,7 @@ error:
 			foreach ($data as $k0 => $v0) {
 				// injecting tenant
 				if ($this->primary_model->tenant && empty($options['skip_tenant'])) {
-					$data[$k0][$this->primary_model->tenant_column] = $v0[$this->primary_model->tenant_column] = Tenant::id();
+					$data[$k0][$this->primary_model->tenant_column] = $v0[$this->primary_model->tenant_column] = \Tenant::id();
 				}
 				// assemble primary key
 				$pk = [];

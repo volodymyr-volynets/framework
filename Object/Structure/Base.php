@@ -26,7 +26,8 @@ class Base {
 				if (!empty($structure['db_not_found_url'])) {
 					\Request::redirect($structure['db_not_found_url']);
 				} else {
-					Throw new Exception('Invalid URL!');
+					\Object\Error\Base::$flag_database_tenant_not_found = true;
+					Throw new \Exception('Invalid URL!');
 				}
 			}
 			// default settings are for default db and cache links
@@ -43,7 +44,8 @@ class Base {
 				if (!empty($structure['tenant_not_found_url'])) {
 					\Request::redirect($structure['tenant_not_found_url']);
 				} else {
-					Throw new Exception('Invalid URL!');
+					\Object\Error\Base::$flag_database_tenant_not_found = true;
+					Throw new \Exception('Invalid URL!');
 				}
 			}
 			// clenup tenant name

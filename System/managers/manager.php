@@ -407,7 +407,7 @@ reset_all_caches:
 				if (!empty($cache)) {
 					foreach ($cache as $cache_link => $cache_settings) {
 						if (empty($cache_settings['submodule']) || empty($cache_settings['autoconnect'])) continue;
-						$cache_result = cache::connect_to_servers($cache_link, $cache_settings);
+						$cache_result = cache::connectToServers($cache_link, $cache_settings);
 						if (!$cache_result['success']) {
 							Throw new Exception(implode(', ', $cache_result['error']));
 						}

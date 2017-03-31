@@ -35,7 +35,7 @@ abstract class Base {
 	 * @return array
 	 */
 	public static function method($method, $value, $params = [], $options = [], $neighbouring_values = []) {
-		$method = Factory::method($method);
+		$method = \Factory::method($method);
 		$params = $params ?? [];
 		$params['options'] = $options;
 		$params['neighbouring_values'] = $neighbouring_values;

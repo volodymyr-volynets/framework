@@ -401,19 +401,19 @@ class Base extends \Object\Form\Parent2 {
 		if (isset($options['options']['required']) && ($options['options']['required'] === true || ($options['options']['required'] . '') === '1')) {
 			if ($options['options']['php_type'] == 'integer' || $options['options']['php_type'] == 'float') {
 				if (empty($value)) {
-					$this->error('danger', \Object\Content\Messages::required_field, $error_name);
+					$this->error('danger', \Object\Content\Messages::REQUIRED_FIELD, $error_name);
 				}
 			} else if ($options['options']['php_type'] == 'bcnumeric') { // accounting numbers
 				if (math::compare($value, '0', $options['options']['scale']) == 0) {
-					$this->error('danger', \Object\Content\Messages::required_field, $error_name);
+					$this->error('danger', \Object\Content\Messages::REQUIRED_FIELD, $error_name);
 				}
 			} else if (!empty($options['options']['multiple_column'])) {
 				if (empty($value)) {
-					$this->error('danger', \Object\Content\Messages::required_field, $error_name);
+					$this->error('danger', \Object\Content\Messages::REQUIRED_FIELD, $error_name);
 				}
 			} else {
 				if ($value . '' == '') {
-					$this->error('danger', \Object\Content\Messages::required_field, $error_name);
+					$this->error('danger', \Object\Content\Messages::REQUIRED_FIELD, $error_name);
 				}
 			}
 		}
@@ -585,7 +585,7 @@ class Base extends \Object\Form\Parent2 {
 		$fields = $this->sortFieldsForProcessing($this->fields);
 		// inject tenant #
 		if (!empty($this->collection_object->primary_model->tenant)) {
-			$this->values[$this->collection_object->primary_model->tenant_column] = Tenant::id();
+			$this->values[$this->collection_object->primary_model->tenant_column] = \Tenant::id();
 		}
 		// if we delete we only allow pk and optimistic lock
 		$allowed = [];
@@ -672,7 +672,7 @@ class Base extends \Object\Form\Parent2 {
 				$temp_value = is_array($value) ? $value : [$value];
 				foreach ($temp_value as $v54) {
 					if (empty($v['options']['options'][$v54])) {
-						$this->error('danger', \Object\Content\Messages::invalid_value, $error_name);
+						$this->error('danger', \Object\Content\Messages::INVALID_VALUE, $error_name);
 					}
 				}
 			}
@@ -680,7 +680,7 @@ class Base extends \Object\Form\Parent2 {
 		// check optimistic lock
 		if ($this->values_loaded && $this->collection_object->primary_model->optimistic_lock && $this->initiator_class != 'numbers_frontend_html_form_wrapper_report') {
 			if (($this->values[$this->collection_object->primary_model->optimistic_lock_column] ?? '') !== $this->original_values[$this->collection_object->primary_model->optimistic_lock_column]) {
-				$this->error('danger', \Object\Content\Messages::optimistic_lock);
+				$this->error('danger', \Object\Content\Messages::OPTIMISTIC_LOCK);
 			}
 		}
 		// process details & subdetails
@@ -825,7 +825,7 @@ class Base extends \Object\Form\Parent2 {
 							$temp_value = is_array($value) ? $value : [$value];
 							foreach ($temp_value as $v54) {
 								if (empty($v3['options']['options'][$v54])) {
-									$this->error('danger', \Object\Content\Messages::invalid_value, "{$error_name}[{$k3}]");
+									$this->error('danger', \Object\Content\Messages::INVALID_VALUE, "{$error_name}[{$k3}]");
 								}
 							}
 						}
@@ -980,9 +980,14 @@ class Base extends \Object\Form\Parent2 {
 		}
 		// check if we have values
 		if (!is_array($value)) $value = [$value];
-		foreach ($value as $v) {
-			if (empty($field['options'][$v])) {
-				$this->error('danger', \Object\Content\Messages::invalid_value, $error_name);
+		foreach ($value as $k => $v) {
+			if (!empty($field['multiple_column'])) {
+				$temp = $v[$field['multiple_column']];
+			} else {
+				$temp = $v;
+			}
+			if (empty($field['options'][$temp])) {
+				$this->error('danger', \Object\Content\Messages::INVALID_VALUE, $error_name);
 			}
 		}
 	}
@@ -1033,7 +1038,7 @@ class Base extends \Object\Form\Parent2 {
 					$counter = 1;
 					foreach ($v['options']['details_pk'] as $v8) {
 						if (empty($v['elements'][$v8]['options']['row_link']) || $v['elements'][$v8]['options']['row_link'] == $this::HIDDEN) continue;
-						$this->error('danger', \Object\Content\Messages::required_field, "{$k}[1][{$v8}]");
+						$this->error('danger', \Object\Content\Messages::REQUIRED_FIELD, "{$k}[1][{$v8}]");
 						$counter++;
 					}
 					// sometimes pk can be hidden, so we add error to two more
@@ -1041,7 +1046,7 @@ class Base extends \Object\Form\Parent2 {
 						array_key_sort($v['elements'], ['row_order' => SORT_ASC, 'order' => SORT_ASC]);
 						foreach ($v['elements'] as $k8 => $v8) {
 							if (($v8['options']['required'] ?? '') . '' == '1' && !in_array($k8, $v['options']['details_pk']) && $counter == 1) {
-								$this->error('danger', \Object\Content\Messages::required_field, "{$k}[1][{$k8}]");
+								$this->error('danger', \Object\Content\Messages::REQUIRED_FIELD, "{$k}[1][{$k8}]");
 								$counter++;
 							}
 						}
@@ -1270,7 +1275,7 @@ class Base extends \Object\Form\Parent2 {
 					$this->values_saved = $this->triggerMethod('save');
 				} else if (!empty($this->collection_object)) {
 					// native save based on collection
-					$this->values_saved = $this->save_values();
+					$this->values_saved = $this->saveValues();
 					/*
 					 * todo
 					if ($this->save_values() || empty($this->errors['general']['danger'])) {
@@ -1307,10 +1312,10 @@ class Base extends \Object\Form\Parent2 {
 		// adding general error
 process_errors:
 		if ($this->errors['flag_error_in_fields'] && empty($this->errors['general']['danger'])) {
-			$this->error('danger', \Object\Content\Messages::submission_problem);
+			$this->error('danger', \Object\Content\Messages::SUBMISSION_PROBLEM);
 		}
 		if ($this->errors['flag_warning_in_fields']) {
-			$this->error('warning', \Object\Content\Messages::submission_warning);
+			$this->error('warning', \Object\Content\Messages::SUBMISSION_WARNING);
 		}
 		// close transaction
 		$this->closeTransaction();
@@ -1367,9 +1372,9 @@ convert_multiple_columns:
 			if (isset($this->misc_settings['success_message_if_no_errors'])) {
 				$this->error('success', $this->misc_settings['success_message_if_no_errors']);
 			} else {
-				if ($this->values_deleted) $this->error('success', \Object\Content\Messages::Record_Deleted);
-				if ($this->values_inserted) $this->error('success', \Object\Content\Messages::record_inserted);
-				if ($this->values_updated) $this->error('success', \Object\Content\Messages::recort_updated);
+				if ($this->values_deleted) $this->error('success', \Object\Content\Messages::RECORD_DELETED);
+				if ($this->values_inserted) $this->error('success', \Object\Content\Messages::RECORD_INSERTED);
+				if ($this->values_updated) $this->error('success', \Object\Content\Messages::RECORT_UPDATED);
 			}
 		}
 		// query for list
@@ -1394,7 +1399,7 @@ convert_multiple_columns:
 				];
 			}
 			if (!empty($where)) {
-				$this->query->where_multiple('AND', $where);
+				$this->query->whereMultiple('AND', $where);
 			}
 			// execute custom query processor
 			$result = $this->triggerMethod('list_query');
@@ -1833,7 +1838,7 @@ convert_multiple_columns:
 				// inject tenant
 				if (!empty($this->collection_object->primary_model->tenant) && $v == $this->collection_object->primary_model->tenant_column) {
 					if (!isset($values[$this->collection_object->primary_model->tenant_column])) {
-						$values[$this->collection_object->primary_model->tenant_column] = Tenant::id();
+						$values[$this->collection_object->primary_model->tenant_column] = \Tenant::id();
 					}
 				}
 				if (isset($values[$v])) {

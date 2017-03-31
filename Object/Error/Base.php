@@ -32,6 +32,13 @@ class Base {
 	public static $flag_error_already = false;
 
 	/**
+	 * Database/tenant not found
+	 *
+	 * @var boolean
+	 */
+	public static $flag_database_tenant_not_found = false;
+
+	/**
 	 * List of error codes
 	 *
 	 * @var array 

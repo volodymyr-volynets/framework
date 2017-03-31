@@ -405,7 +405,7 @@ class Table extends \Object\Table\Options {
 				// timestamp
 				$row[$this->column_prefix . $type . '_timestamp'] = $timestamp;
 				// user #
-				$row[$this->column_prefix . $type . '_user_id'] = user::user_id();
+				$row[$this->column_prefix . $type . '_user_id'] = \User::id();
 			} else if ($type == 'optimistic_lock') {
 				if ($this->optimistic_lock) {
 					$row[$this->optimistic_lock_column] = $timestamp;
@@ -539,7 +539,7 @@ class Table extends \Object\Table\Options {
 		}
 		// where
 		if (!empty($options['where'])) {
-			$query->where_multiple('AND', $options['where']);
+			$query->whereMultiple('AND', $options['where']);
 		}
 		// todo
 		//$sql.= !empty($options['search']) ? (' AND (' . $this->db_object->prepareCondition($options['search'], 'OR') . ')') : '';
@@ -631,7 +631,7 @@ class Table extends \Object\Table\Options {
 			$tags = array_unique($this->cache_tags);
 			sort($tags, SORT_STRING);
 			$hash = sha1(serialize($tags));
-			cache::$reset_caches[$this->db_object->object->options['cache_link']][$hash] = $tags;
+			\Cache::$reset_caches[$this->db_object->object->options['cache_link']][$hash] = $tags;
 		}
 	}
 

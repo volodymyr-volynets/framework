@@ -84,11 +84,11 @@ class Controller {
 	 */
 	public function __construct() {
 		// load all controllers from datasource
-		if (is_null(self::$controllers)) {
+		if (is_null(self::$controllers) && !\Object\Error\Base::$flag_database_tenant_not_found) {
 			self::$controllers = \Object\ACL\Resources::getStatic('controllers', 'primary');
 		}
 		// find yourself
-		$class = get_called_class();
+		$class = '\\' . get_called_class();
 		if (!empty(self::$controllers[$class])) {
 			$this->title = self::$controllers[$class]['name'];
 			$this->description = self::$controllers[$class]['description'];
@@ -221,11 +221,15 @@ class Controller {
 	 * @return string
 	 */
 	public static function render_menu() : string {
-		$data = \Object\ACL\Resources::getStatic('menu', 'primary');
-		return \HTML::menu([
-			'brand' => \Application::get('application.layout.name'),
-			'options' => $data[200] ?? [],
-			'options_right' => $data[210] ?? []
-		]);
+		if (!\Object\Error\Base::$flag_database_tenant_not_found) {
+			$data = \Object\ACL\Resources::getStatic('menu', 'primary');
+			return \HTML::menu([
+				'brand' => \Application::get('application.layout.name'),
+				'options' => $data[200] ?? [],
+				'options_right' => $data[210] ?? []
+			]);
+		} else {
+			return '';
+		}
 	}
 }

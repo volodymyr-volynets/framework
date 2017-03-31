@@ -62,15 +62,15 @@ class object_form_datasource_navigation extends \Object\Datasource {
 				}
 				$subquery->where('AND', ["a.{$column}", 'IS NOT', null]);
 				if (!empty($options['where']['depends'])) {
-					$subquery->where_multiple('AND', $parameters['depends']);
-					$this->query->where_multiple('AND', $parameters['depends']);
+					$subquery->whereMultiple('AND', $parameters['depends']);
+					$this->query->whereMultiple('AND', $parameters['depends']);
 				}
 				$this->query->where('AND', ["a.{$column}", '=', $subquery]);
 				break;
 			case 'previous':
 			case 'next':
 				if (!empty($options['where']['depends'])) {
-					$this->query->where_multiple('AND', $parameters['depends']);
+					$this->query->whereMultiple('AND', $parameters['depends']);
 				}
 				if ($parameters['type'] == 'previous') {
 					$this->query->orderby([$column => SORT_DESC]);
@@ -82,7 +82,7 @@ class object_form_datasource_navigation extends \Object\Datasource {
 			case 'refresh':
 			default:
 				if (!empty($options['where']['depends'])) {
-					$this->query->where_multiple('AND', $parameters['depends']);
+					$this->query->whereMultiple('AND', $parameters['depends']);
 				}
 				$this->query->limit(1);
 		}

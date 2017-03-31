@@ -1,6 +1,7 @@
 <?php
 
-abstract class object_form_wrapper_collection {
+namespace Object\Form\Wrapper;
+abstract class Collection {
 
 	/**
 	 * Collection link
@@ -47,37 +48,37 @@ abstract class object_form_wrapper_collection {
 	/**
 	 * Main screen
 	 */
-	const main_screen = '__collection_main_screen';
+	const MAIN_SCREEN = '__collection_main_screen';
 
 	/**
 	 * Rows
 	 */
-	const rows = '__collection_rows';
+	const ROWS = '__collection_rows';
 
 	/**
 	 * Forms
 	 */
-	const forms = '__collection_forms';
+	const FORMS = '__collection_forms';
 
 	/**
 	 * Header row
 	 */
-	const header_row = '__collection_header_row';
+	const HEADER_ROW = '__collection_header_row';
 
 	/**
 	 * Main row
 	 */
-	const main_row = '__collection_main_row';
+	const MAIN_ROW = '__collection_main_row';
 
 	/**
 	 * Widgets row
 	 */
-	const widgets_row = '__collection_widgets_row';
+	const WIDGETS_ROW = '__collection_widgets_row';
 
 	/**
 	 * Widgets row data
 	 */
-	const widgets_row_data = [
+	const WIDGETS_ROW_DATA = [
 		'options' => [
 			'type' => 'tabs',
 			'segment' => [
@@ -90,7 +91,7 @@ abstract class object_form_wrapper_collection {
 			'its_own_segment' => true
 		],
 		'order' => PHP_INT_MAX - 1000,
-		self::forms => [
+		self::FORMS => [
 			'__collection_widget_comments' => [
 				'model' => null,
 				'submodule' => 'flag.global.widgets.comments.submodule',
@@ -138,11 +139,11 @@ abstract class object_form_wrapper_collection {
 		$this->options['forms'] = [];
 		foreach ($this->data as $screen_k => $screen_v) {
 			$this->data[$screen_k]['order'] = $screen_v['order'] ?? 0;
-			foreach ($screen_v[$this::rows] as $row_k => $row_v) {
-				$this->data[$screen_k][$this::rows][$row_k]['order'] = $row_v['order'] ?? 0;
-				foreach ($row_v[$this::forms] as $form_k => $form_v) {
-					$this->data[$screen_k][$this::rows][$row_k][$this::forms][$form_k]['order'] = $form_v['order'] ?? 0;
-					$this->options['forms'][$screen_k][$form_k] = & $this->data[$screen_k][$this::rows][$row_k][$this::forms][$form_k];
+			foreach ($screen_v[$this::ROWS] as $row_k => $row_v) {
+				$this->data[$screen_k][$this::ROWS][$row_k]['order'] = $row_v['order'] ?? 0;
+				foreach ($row_v[$this::FORMS] as $form_k => $form_v) {
+					$this->data[$screen_k][$this::ROWS][$row_k][$this::FORMS][$form_k]['order'] = $form_v['order'] ?? 0;
+					$this->options['forms'][$screen_k][$form_k] = & $this->data[$screen_k][$this::ROWS][$row_k][$this::FORMS][$form_k];
 				}
 			}
 		}
@@ -201,10 +202,10 @@ abstract class object_form_wrapper_collection {
 		$result = [];
 		$index = 0;
 		// sort rows in a screen
-		$rows = $this->data[$this->collection_screen_link][$this::rows];
+		$rows = $this->data[$this->collection_screen_link][$this::ROWS];
 		array_key_sort($rows, ['order' => SORT_ASC]);
 		foreach ($rows as $row_k => $row_v) {
-			$forms = $row_v[$this::forms];
+			$forms = $row_v[$this::FORMS];
 			array_key_sort($forms, ['order' => SORT_ASC]);
 			// if its own segment
 			if (!empty($row_v['options']['its_own_segment'])) {
@@ -236,7 +237,7 @@ abstract class object_form_wrapper_collection {
 					$model_options['form_link'] = $form_k;
 					// input
 					$model_options['input'] = $this->values;
-					$model = Factory::model($class, false, [$model_options]);
+					$model = \Factory::model($class, false, [$model_options]);
 					// render to grid
 					$result[$index]['grid']['options'][$row_k][$form_k][$form_k] = [
 						'value' => $model->render(),

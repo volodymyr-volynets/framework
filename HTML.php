@@ -170,8 +170,8 @@ class HTML {
 	 *		value - center element
 	 * @return string
 	 */
-	public static function input_group(array $options = []) : string {
-		return Factory::delegate('flag.numbers.framework.html', 'input_group', [$options]);
+	public static function inputGroup(array $options = []) : string {
+		return Factory::delegate('flag.numbers.framework.html', 'inputGroup', [$options]);
 	}
 
 	/**

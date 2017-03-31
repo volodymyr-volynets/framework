@@ -65,7 +65,7 @@ class Options extends \Object\Override\Data {
 		// if we need to filter options_active
 		if (!empty($options['__options_active'])) {
 			$options_active = $this->options_active ? $this->options_active : [$this->column_prefix . 'inactive' => 0];
-			$data = \Object\Data\Common::filter_active_options($data, $options_active, $options['existing_values'] ?? [], $options['skip_values'] ?? []);
+			$data = \Object\Data\Common::filterActiveOptions($data, $options_active, $options['existing_values'] ?? [], $options['skip_values'] ?? []);
 		}
 		// if we need to prepend values based on pk
 		if (!empty($options['__prepend_if_key'])) {
@@ -168,7 +168,7 @@ class Options extends \Object\Override\Data {
 		$pk = $options['pk'];
 		// inject tenant
 		if ($this->tenant && !isset($options['where'][$this->tenant_column])) {
-			$options['where'][$this->tenant_column] = Tenant::id();
+			$options['where'][$this->tenant_column] = \Tenant::id();
 		}
 		// if compound key
 		if (count($pk) > 1) {

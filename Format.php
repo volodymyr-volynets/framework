@@ -263,7 +263,7 @@ class Format {
 	 * @param array $options
 	 * @return string
 	 */
-	public static function date($value, array $options = []) : string {
+	public static function date($value, array $options = []) {
 		return self::dateFormat($value, 'date', $options);
 	}
 
@@ -274,7 +274,7 @@ class Format {
 	 * @param array $options
 	 * @return string
 	 */
-	public static function time($value, array $options = []) : string {
+	public static function time($value, array $options = []) {
 		return self::dateFormat($value, 'time', $options);
 	}
 
@@ -285,7 +285,7 @@ class Format {
 	 * @param array $options
 	 * @return string
 	 */
-	public static function datetime($value, array $options = []) : string {
+	public static function datetime($value, array $options = []) {
 		return self::dateFormat($value, 'datetime', $options);
 	}
 
@@ -296,7 +296,7 @@ class Format {
 	 * @param array $options
 	 * @return string
 	 */
-	public static function timestamp($value, array $options = []) : string {
+	public static function timestamp($value, array $options = []) {
 		return self::dateFormat($value, 'timestamp', $options);
 	}
 
@@ -307,7 +307,7 @@ class Format {
 	 * @param array $options
 	 * @return string
 	 */
-	public static function timeSeconds($time, array $options = []) : string {
+	public static function timeSeconds($time, array $options = []) {
 		return number_format($time, 4);
 	}
 
