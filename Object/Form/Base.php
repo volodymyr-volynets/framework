@@ -519,7 +519,7 @@ class Base extends \Object\Form\Parent2 {
 					$error_pk = !empty($options['options']['details_11']) ? ($parent_keys ?? []) : array_merge($parent_keys ?? [], [$holder['pk']]);
 					$holder['error_name'] = $this->parentHeysToErrorName($error_pk);
 					foreach ($options['options']['details_pk'] as $v) {
-						$this->error('danger', \Object\Content\Messages::duplicate_value, "{$holder['error_name']}[{$v}]");
+						$this->error('danger', \Object\Content\Messages::DUPLICATE_VALUE, "{$holder['error_name']}[{$v}]");
 					}
 				}
 			} else {
@@ -614,6 +614,10 @@ class Base extends \Object\Form\Parent2 {
 				$value = json_decode($value, true);
 				foreach ($v['options']['json_contains'] as $k2 => $v2) {
 					array_key_set($input, $v2, $value[$k2] ?? null);
+				}
+			} else if (empty($value)) {
+				foreach ($v['options']['json_contains'] as $k2 => $v2) {
+					array_key_set($input, $v2, null);
 				}
 			}
 		}
@@ -759,6 +763,10 @@ class Base extends \Object\Form\Parent2 {
 							$value = json_decode($value, true);
 							foreach ($v3['options']['json_contains'] as $k31 => $v31) {
 								$v2[$v31] = $value[$k31] ?? null;
+							}
+						} else if (empty($value)) {
+							foreach ($v3['options']['json_contains'] as $k31 => $v31) {
+								$detail[$v31] = $v2[$v31] = null;
 							}
 						}
 					}
@@ -957,7 +965,7 @@ class Base extends \Object\Form\Parent2 {
 			foreach ($field['json_contains'] as $k31 => $v31) {
 				$temp[$k31] = $neighbouring_values[$v31];
 			}
-			$value = \Object\Table_options::options_json_format_key($temp);
+			$value = \Object\Table\Options::optionJsonFormatKey($temp);
 		}
 		if (is_string($value) && $value === '') return;
 		if (is_array($value) && empty($value)) return;

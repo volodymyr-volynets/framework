@@ -376,11 +376,11 @@ class Format {
 	/**
 	 * Read date
 	 * 
-	 * @param string $date
+	 * @param string|null $date
 	 * @param string $type
 	 * @return string|NULL
 	 */
-	public static function readDate(string $date, string $type = 'date') {
+	public static function readDate($date, string $type = 'date') {
 		if (empty($date)) return null;
 		// initialize default settings if not initialized
 		if (empty(self::$options)) self::init();

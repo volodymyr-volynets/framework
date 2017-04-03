@@ -212,7 +212,7 @@ class Options extends \Object\Override\Data {
 	 * @param array $key
 	 * @return string
 	 */
-	public static function optionsJsonFormatKey(array $key) : string {
+	public static function optionJsonFormatKey(array $key) : string {
 		ksort($key);
 		return json_encode($key);
 	}

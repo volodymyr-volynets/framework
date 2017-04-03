@@ -425,7 +425,7 @@ class Collection extends \Object\Override\Data {
 			if ($this->primary_model->optimistic_lock && !empty($original) && empty($options['skip_optimistic_lock'])) {
 				if (($data[$this->primary_model->optimistic_lock_column] ?? '') !== $original[$this->primary_model->optimistic_lock_column]) {
 					$this->primary_model->db_object->rollback();
-					$result['error'][] = \Object\Content\Messages::optimistic_lock;
+					$result['error'][] = \Object\Content\Messages::OPTIMISTIC_LOCK;
 					break;
 				}
 			}
