@@ -230,24 +230,22 @@ class Common {
 		if (!empty($existing_values) && !is_array($existing_values)) {
 			$existing_values = [$existing_values];
 		}
-		if (!empty($options_active)) {
-			foreach ($data as $k => $v) {
-				// existing values
-				if (!empty($existing_values) && in_array($k, $existing_values)) {
-					continue;
-				}
-				// skip values
-				if (!empty($skip_values) && in_array($k, $skip_values)) {
-					unset($data[$k]);
-					continue;
-				}
-				// options active
-				if (!empty($options_active)) {
-					foreach ($options_active as $k2 => $v2) {
-						if ($v[$k2] !== $v2) {
-							unset($data[$k]);
-							break;
-						}
+		foreach ($data as $k => $v) {
+			// existing values
+			if (!empty($existing_values) && in_array($k, $existing_values)) {
+				continue;
+			}
+			// skip values
+			if (!empty($skip_values) && in_array($k, $skip_values)) {
+				unset($data[$k]);
+				continue;
+			}
+			// options active
+			if (!empty($options_active)) {
+				foreach ($options_active as $k2 => $v2) {
+					if ($v[$k2] !== $v2) {
+						unset($data[$k]);
+						break;
 					}
 				}
 			}

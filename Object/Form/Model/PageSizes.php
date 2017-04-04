@@ -1,6 +1,7 @@
 <?php
 
-class numbers_framework_object_form_model_pagesizes extends \Object\Data {
+namespace Numbers\Framework\Object\Form\Model;
+class PageSizes extends \Object\Data {
 	public $column_key = 'number';
 	public $column_prefix = '';
 	public $orderby = ['number' => SORT_ASC];

@@ -272,8 +272,6 @@ class Collection extends \Object\Override\Data {
 				$sql_relation_join = ' INNER JOIN ' . $this->primary_model->full_table_name . ' b2 ON ' . implode(' AND ', $temp3);
 				$sql_relation_columns = ', ' . implode(',', $v['__relation_pk']);
 			}
-			// sql extensions
-			$v['sql']['where'] = $v['sql']['where'] ?? null;
 			// building query
 			$query = new \Object\Query\Builder($model->db_link);
 			$query->select()
@@ -283,6 +281,10 @@ class Collection extends \Object\Override\Data {
 			$query->where('AND', [$column, 'IN', $keys]);
 			if (!empty($v['where'])) {
 				$query->whereMultiple('AND', $v['where']);
+			}
+			// sql extensions
+			if (!empty($v['sql']['where'])) {
+				$query->whereMultiple('AND', $v['sql']['where']);
 			}
 			// orderby
 			$orderby = $options['orderby'] ?? (!empty($model->orderby) ? $model->orderby : null);

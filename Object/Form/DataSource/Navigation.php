@@ -1,6 +1,7 @@
 <?php
 
-class object_form_datasource_navigation extends \Object\Datasource {
+namespace Object\Form\DataSource;
+class Navigation extends \Object\Datasource {
 	public $db_link;
 	public $db_link_flag;
 	public $pk;
@@ -27,11 +28,11 @@ class object_form_datasource_navigation extends \Object\Datasource {
 	];
 
 	public function query($parameters, $options = []) {
-		$model = Factory::model($parameters['model'], true);
+		$model = \Factory::model($parameters['model'], true);
 		$this->db_link = $model->db_link;
 		//$this->pk = $parameters['pk'];
 		$column = $parameters['column'];
-		$this->query = $model->query_builder()->select();
+		$this->query = $model->queryBuilder()->select();
 		$this->query->columns($parameters['pk']);
 		// adjust type based on value
 		if (empty($parameters['value'])) {
@@ -54,7 +55,7 @@ class object_form_datasource_navigation extends \Object\Datasource {
 		switch ($parameters['type']) {
 			case 'first':
 			case 'last':
-				$subquery = $model->query_builder()->select();
+				$subquery = $model->queryBuilder()->select();
 				if ($parameters['type'] == 'first') {
 					$subquery->columns(['new_value' => "MIN({$column})"]);
 				} else {

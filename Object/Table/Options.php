@@ -66,6 +66,8 @@ class Options extends \Object\Override\Data {
 		if (!empty($options['__options_active'])) {
 			$options_active = $this->options_active ? $this->options_active : [$this->column_prefix . 'inactive' => 0];
 			$data = \Object\Data\Common::filterActiveOptions($data, $options_active, $options['existing_values'] ?? [], $options['skip_values'] ?? []);
+		} else {
+			$data = \Object\Data\Common::filterActiveOptions($data, false, $options['existing_values'] ?? [], $options['skip_values'] ?? []);
 		}
 		// if we need to prepend values based on pk
 		if (!empty($options['__prepend_if_key'])) {

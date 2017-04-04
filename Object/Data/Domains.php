@@ -33,9 +33,9 @@ class Domains extends \Object\Data {
 		'description' => ['name' => 'Description', 'type' => 'varchar', 'length' => 2000],
 		// codes
 		'code' => ['name' => 'Code', 'type' => 'varchar', 'length' => 255],
-		'short_code' => ['name' => 'Short Code', 'type' => 'varchar', 'length' => 6],
-		'type_code' => ['name' => 'Type Code', 'type' => 'varchar', 'length' => 15],
-		'group_code' => ['name' => 'Group Code', 'type' => 'varchar', 'length' => 30],
+		'short_code' => ['name' => 'Short Code', 'type' => 'varchar', 'length' => 6, 'validator_method' => 'object_validator_uppercase::validate'],
+		'type_code' => ['name' => 'Type Code', 'type' => 'varchar', 'length' => 15, 'validator_method' => 'object_validator_uppercase::validate'],
+		'group_code' => ['name' => 'Group Code', 'type' => 'varchar', 'length' => 30, 'validator_method' => 'object_validator_uppercase::validate'],
 		// types & groups
 		'type_id' => ['name' => 'Type #', 'type' => 'smallint', 'default' => null, 'format' => 'id'],
 		'type_id_sequence' => ['name' => 'Type #', 'type' => 'smallserial', 'placeholder' => 'Sequence', 'format' => 'id'],

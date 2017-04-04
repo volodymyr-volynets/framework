@@ -30,7 +30,11 @@ class User {
 		// flag as authorized
 		$_SESSION['numbers']['flag_authorized'] = true;
 		// add authorized role
-		self::roleGrant(\Object\ACL\Resources::getStatic('user_roles', 'authorized', 'data'));
+		$roles = \Object\ACL\Resources::getStatic('user_roles', 'authorized', 'data');
+		if (!empty($roles)) {
+			$roles = array_values($roles);
+		}
+		self::roleGrant($roles);
 	}
 
 	/**

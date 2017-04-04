@@ -1500,7 +1500,7 @@ convert_multiple_columns:
 			foreach ($navigation_depends as $v) {
 				$depends[$v] = $this->values[$v];
 			}
-			$model = new object_form_datasource_navigation();
+			$model = new \Object\Form\DataSource\Navigation();
 			$result = $model->get([
 				'where' => [
 					'model' => $this->collection['model'],
