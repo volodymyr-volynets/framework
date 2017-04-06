@@ -61,7 +61,7 @@ class Resources extends \Object\Override\Data {
 	 *
 	 * @see $this::get()
 	 */
-	public static function getStatic(string $type = '', string $module = '') {
-		return \Factory::model(get_called_class())->get($type, $module);
+	public static function getStatic(string $type = '', string $module = '', $key = null) {
+		return \Factory::model('\\' . get_called_class())->get($type, $module, $key);
 	}
 }

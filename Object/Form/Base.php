@@ -1639,15 +1639,15 @@ convert_multiple_columns:
 			// process
 			$not_allowed = [];
 			// remove delete buttons if we do not have loaded values or do not have permission
-			if (!$this->values_loaded || !\Object\Controller::can('Record_Delete')) {
+			if (!$this->values_loaded || !\Application::$controller->can('Record_Delete', 'Edit')) {
 				$not_allowed[] = self::BUTTON_SUBMIT_DELETE;
 			}
 			// we need to check permissions
 			$show_save_buttons = false;
-			if (\Object\Controller::can('Record_New') && !$this->values_loaded) {
+			if (!$this->values_loaded && \Application::$controller->can('Record_New', 'Edit')) {
 				$show_save_buttons = true;
 			}
-			if (\Object\Controller::can('Record_Edit') && $this->values_loaded) {
+			if ($this->values_loaded && \Application::$controller->can('Record_Edit', 'Edit')) {
 				$show_save_buttons = true;
 			}
 			if (!$show_save_buttons) {

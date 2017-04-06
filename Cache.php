@@ -71,7 +71,7 @@ class Cache {
 	 */
 	public function connect($options) {
 		// for deployed code the directory is different because we relate it based on code
-		if (!empty($options['dir']) && Application::is_deployed() && $options['dir'][0] != '/') {
+		if (!empty($options['dir']) && Application::isDeployed() && $options['dir'][0] != '/') {
 			if ($options['dir'][0] . $options['dir'][1] == './') {
 				$options['dir'] = './.' . $options['dir'];
 			} else {

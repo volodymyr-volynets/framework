@@ -31,9 +31,6 @@ class User {
 		$_SESSION['numbers']['flag_authorized'] = true;
 		// add authorized role
 		$roles = \Object\ACL\Resources::getStatic('user_roles', 'authorized', 'data');
-		if (!empty($roles)) {
-			$roles = array_values($roles);
-		}
 		self::roleGrant($roles);
 	}
 
@@ -45,6 +42,15 @@ class User {
 	public static function userSignOut() {
 		$_SESSION['numbers']['user'] = [];
 		$_SESSION['numbers']['flag_authorized'] = false;
+	}
+
+	/**
+	 * Roles
+	 *
+	 * @return array
+	 */
+	public static function roles() : array {
+		return $_SESSION['numbers']['user']['roles'] ?? [];
 	}
 
 	/**

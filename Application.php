@@ -162,7 +162,7 @@ class Application {
 			return;
 		}
 		// processing mvc settings
-		self::setMvc();
+		\Object\Controller\Front::setMvc();
 		// check if controller exists
 		if (!file_exists(self::$settings['mvc']['controller_file'])) {
 			Throw new Exception('Resource not found!', -1);
@@ -225,128 +225,6 @@ class Application {
 		require_once($file);
 	}
 
-	/**
-	 * Parse request string into readable array
-	 *
-	 * @param string $url
-	 * @return array
-	 */
-	public static function mvc($url = '') {
-		$result = array(
-			'controller' => '',
-			'controller_extension' => '',
-			'action' => '',
-			'id' => 0,
-			'controllers' => [],
-		);
-
-		// remove an extra backslashes from left side
-		$request_uri = explode('?', trim($url, '/'));
-		$request_uri = $request_uri[0];
-
-		// determine action and controller
-		$parts = explode('/', $request_uri);
-		// virtual controller
-		if (substr($parts[0], 0, 2) == '__') {
-			$virtual_object = new object_virtual_controllers();
-			$virtual_data = $virtual_object->get();
-			$key = substr($parts[0], 2);
-			if (isset($virtual_data[$key])) {
-				$temp = $parts;
-				unset($temp[0]);
-				$parts = explode('/', trim($virtual_data[$key]['no_virtual_controller_path'], '/'));
-				foreach ($temp as $v) {
-					$parts[] = $v;
-				}
-			}
-		}
-		$flag_action_found = false;
-		foreach ($parts as $v) {
-			if ($v . '' == '') {
-				continue;
-			}
-			if (isset($v[0]) && $v[0] == '_' && !$flag_action_found) {
-				$flag_action_found = true;
-				$result['action'] = substr($v, 1);
-				continue;
-			}
-			if (!$flag_action_found) {
-				$result['controllers'][] = $v;
-			}
-			if ($flag_action_found) {
-				$result['id'] = $v;
-				break;
-			}
-		}
-		// set default values for action and controller
-		if (empty($result['controllers'])) {
-			$result['controllers'][] = 'index';
-		} else {
-			// processing controller extension
-			end($result['controllers']);
-			$key = key($result['controllers']);
-			$last = $result['controllers'][$key];
-			if (strpos($last, '.')) {
-				$temp = explode('.', $last);
-				$result['controllers'][$key] = $temp[0];
-				unset($temp[0]);
-				$result['controller_extension'] = implode('.', $temp);
-			}
-		}
-		$result['controller'] = '/' . implode('/', $result['controllers']);
-		$result['controller'] = str_replace('_', '/', $result['controller']);
-		if (empty($result['action'])) {
-			$result['action'] = 'index';
-		}
-		// full string
-		$result['full'] = $result['controller'] . '/_' . $result['action'];
-		$result['full_with_host'] = rtrim(\Request::host(), '/') . $result['controller'] . '/_' . $result['action'];
-		return $result;
-	}
-
-	/**
-	 * Setting MVC
-	 *
-	 * @param string $request_uri
-	 */
-	public static function setMvc($request_uri = null) {
-		// storing previous mvc settings
-		if (!empty(self::$settings['mvc']['module'])) {
-			if (!isset(self::$settings['mvc_prev'])) {
-				self::$settings['mvc_prev'] = [];
-			}
-			self::$settings['mvc_prev'][] = self::$settings['mvc'];
-		}
-		// processing
-		$request_uri = !empty($request_uri) ? $request_uri : $_SERVER['REQUEST_URI'];
-		// routing based on rules
-		$request_uri = self::route($request_uri);
-		// parsing request
-		$data = self::mvc($request_uri);
-		// forming class name and file
-		// todo: add full path here instead of relative
-		if (in_array('Controller', $data['controllers'])) {
-			// todo: custom modules handling
-			$controller_class = str_replace(' ', '\\', implode(' ', $data['controllers']));
-			$file = './../libraries/vendor/' . str_replace('\\', '/', $controller_class . '.php');
-		} else {
-			$controller_class = 'Controller\\' . str_replace(' ', '\\', implode(' ', $data['controllers']));
-			$file = './' . str_replace('\\', '/', $controller_class . '.php');
-		}
-		$controller_class = '\\' . $controller_class;
-		// assembling everything into settings
-		self::$settings['mvc'] = $data;
-		self::$settings['mvc']['controller_class'] = $controller_class;
-		self::$settings['mvc']['controller_action'] = 'action' . str_replace('_', ' ', $data['action']);
-		self::$settings['mvc']['controller_action_code'] = $data['action'];
-		self::$settings['mvc']['controller_id'] = $data['id'];
-		self::$settings['mvc']['controller_view'] = $data['action'];
-		self::$settings['mvc']['controller_layout'] = self::$settings['application']['layout']['layout'] ?? 'index';
-		self::$settings['mvc']['controller_layout_extension'] = (self::$settings['application']['layout']['extension'] ?? 'html');
-		self::$settings['mvc']['controller_layout_file'] = Application::get(['application', 'path_full']) . 'Layout/' . self::$settings['mvc']['controller_layout'] . '.' . self::$settings['mvc']['controller_layout_extension'];
-		self::$settings['mvc']['controller_file'] = $file;
-	}
-
 	/*
 	 * Processing and generating layout
 	 * 
@@ -370,7 +248,7 @@ class Application {
 		self::$controller->action_code = self::$settings['mvc']['controller_action_code'];
 		self::$controller->action_method = self::$settings['mvc']['controller_action'];
 		// check ACL
-		if ($controller_class != 'controller_error') {
+		if ($controller_class != 'Controller\Error') {
 			if (!self::$controller->permitted(['redirect' => true])) {
 				Throw new Exception('Permission denied!', -1);
 			}
@@ -400,7 +278,7 @@ class Application {
 			foreach ($extensions as $extension) {
 				$file = $controller_dir  . $controller_file . '.' . $view . '.' . $extension;
 				if (file_exists($file)) {
-					self::$controller = new view(self::$controller, $file, $extension);
+					$view_object = new \View(self::$controller, $file, $extension);
 					$flag_view_found = true;
 					break;
 				}
@@ -413,7 +291,7 @@ class Application {
 		// autoloading media files
 		\Layout::includeMedia($controller_dir, $controller_file, $view, $controller_class);
 		// appending view after controllers output
-		self::$controller->view = (self::$controller->view ?? '') . \Helper\Ob::clean();
+		self::$controller->data->view = (self::$controller->data->view ?? '') . \Helper\Ob::clean();
 		// if we have to render debug toolbar
 		if (\Debug::$toolbar) {
 			\Helper\Ob::start();
@@ -425,7 +303,7 @@ class Application {
 		if (!empty(self::$settings['mvc']['controller_layout']) && empty($__skip_layout)) {
 			\Helper\Ob::start();
 			if (file_exists(self::$settings['mvc']['controller_layout_file'])) {
-				self::$controller = new \Layout(self::$controller, self::$settings['mvc']['controller_layout_file'], self::$settings['mvc']['controller_layout_extension']);
+				$layout_object = new \Layout(self::$controller, self::$settings['mvc']['controller_layout_file'], self::$settings['mvc']['controller_layout_extension']);
 			}
 			// session expiry dialog before replaces
 			\Session::expiryDialog();
@@ -482,25 +360,6 @@ class Application {
 	}
 
 	/**
-	 * Routing, allow re-routing
-	 *
-	 * @param string $uri
-	 * @return string
-	 */
-	private static function route($uri) {
-		$result = $uri;
-		if (!empty(self::$settings['routes'])) {
-			foreach (self::$settings['routes'] as $v) {
-				$regex = '#^' . $v['regex'] . '#i';
-				if (preg_match($regex, $result, $values)) {
-					$result = $v['new'];
-				}
-			}
-		}
-		return $result;
-	}
-
-	/**
 	 * Process magic variables
 	 */
 	public static function processMagicVariables() {
@@ -528,7 +387,7 @@ class Application {
 	 *
 	 * @return boolean
 	 */
-	public static function is_deployed() {
+	public static function isDeployed() {
 		return (strpos(__FILE__, '/deployments/build.') !== false);
 	}
 }

@@ -14,8 +14,7 @@ class View {
 	 */
 	public function __construct(& $controller, string $file, string $type = 'html') {
 		// get values from controller
-		$vars = get_object_vars($controller);
-		foreach ($vars as $k=>$v) {
+		foreach ((array) $controller->data as $k => $v) {
 			$this->{$k} = $v;
 		}
 		// process view file
@@ -32,9 +31,8 @@ class View {
 		}
 		// set values back into controller
 		$vars = get_object_vars($this);
-		foreach ($vars as $k=>$v) {
-			$controller->{$k} = $v;
+		foreach ($vars as $k => $v) {
+			$controller->data->{$k} = $v;
 		}
-		return $controller;
 	}
 }

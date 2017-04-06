@@ -51,7 +51,7 @@ class Layout extends View {
 	 */
 	public static function getVersion() {
 		if (empty(self::$version)) {
-			$filename = Application::get(['application', 'path_full']) . (Application::is_deployed() ? '../../../deployed' : '../../deployed');
+			$filename = Application::get(['application', 'path_full']) . (Application::isDeployed() ? '../../../deployed' : '../../deployed');
 			self::$version = filemtime($filename);
 		}
 		return self::$version;

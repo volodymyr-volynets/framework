@@ -163,7 +163,7 @@ class Bootstrap {
 					print_r(\Object\Error\Base::$errors);
 				} else {
 					// set mvc + process
-					\Application::setMvc('/Errors/_Error/500');
+					\Object\Controller\Front::setMvc('/Errors/_Error/500');
 					\Application::$controller = new \Controller\Errors();
 					\Application::process();
 				}

@@ -98,7 +98,7 @@ class Session {
 		}
 		// add anonymous role
 		if (!\User::authorized()) {
-			\User::roleGrant(\Object\ACL\Resources::getStatic('user_roles', 'anonymous'));
+			\User::roleGrant(\Object\ACL\Resources::getStatic('user_roles', 'anonymous', 'data'));
 		}
 	}
 
