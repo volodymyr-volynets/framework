@@ -1,6 +1,7 @@
 <?php
 
-class object_validator_uppercase extends \Object\Validator\Base {
+namespace Object\Validator;
+class UpperCase extends \Object\Validator\Base {
 
 	/**
 	 * @see \Object\Validator\Base::validate()
@@ -11,7 +12,7 @@ class object_validator_uppercase extends \Object\Validator\Base {
 		$result['placeholder_select'] = '';
 		$value.= '';
 		if (strtoupper($value) !== $value) {
-			$result['error'][] = \Object\Content\Messages::string_uppercase;
+			$result['error'][] = \Object\Content\Messages::STRING_UPPERCASE;
 		} else {
 			$result['success'] = true;
 			$result['data'] = $value;

@@ -220,6 +220,23 @@ class Options extends \Object\Override\Data {
 	}
 
 	/**
+	 * Extract key for JSON options
+	 *
+	 * @param string $key
+	 * @param array $columns
+	 * @param string $delimiter
+	 * @return string
+	 */
+	public static function optionJsonExtractKey(string $key, array $columns, string $delimiter = '::') : string {
+		$decoded = json_decode($key, true);
+		$temp = [];
+		foreach ($columns as $v) {
+			$temp[] = $decoded[$v];
+		}
+		return implode($delimiter, $temp);
+	}
+
+	/**
 	 * Multi level options
 	 *
 	 * @see $this->get()

@@ -1,6 +1,7 @@
 <?php
 
-class numbers_framework_object_form_model_dummy_sort extends \Object\Table {
+namespace Object\Form\Model\Dummy;
+class Sort extends \Object\Table {
 	public $db_link;
 	public $db_link_flag;
 	public $module_code = 'SM';

@@ -72,6 +72,7 @@ class Tree {
 		if (!empty($options['skip_keys']) && !is_array($options['skip_keys'])) {
 			$options['skip_keys'] = [$options['skip_keys']];
 		}
+		$inactive = i18n(null, \Object\Content\Messages::INFO_INACTIVE);
 		foreach ($data as $k => $v) {
 			// if we are skipping certain keys
 			if (!empty($options['skip_keys']) && in_array($k, $options['skip_keys'])) {
@@ -80,9 +81,10 @@ class Tree {
 			// assemble variable
 			$value = $v;
 			$value['name'] = !empty($options['i18n']) ? i18n(null, $v[$options['name_field']]) : $v[$options['name_field']];
-
-			// todo : process inactive
-
+			// handle inactive
+			if (!empty($v['inactive'])) {
+				$value['name'].= \Format::$symbol_comma . ' ' . $inactive;
+			}
 			$value['level'] = $level;
 			if (!empty($options['icon_field'])) {
 				$value['icon_class'] = \HTML::icon(['type' => $v[$options['icon_field']], 'class_only' => true]);

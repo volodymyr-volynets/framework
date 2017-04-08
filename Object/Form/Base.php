@@ -1104,10 +1104,10 @@ class Base extends \Object\Form\Parent2 {
 			$this->element($this::HIDDEN, $this::HIDDEN, '__offset', ['label_name' => 'Offset', 'type' => 'integer', 'default' => 0, 'method'=> 'hidden']);
 			$this->element($this::HIDDEN, $this::HIDDEN, '__preview', ['label_name' => 'Preview', 'type' => 'integer', 'default' => 0, 'method'=> 'hidden']);
 			// default sort
-			if (empty($this->options['input']['numbers_framework_object_form_model_dummy_sort']) && !empty($this->form_parent->list_options['default_sort'])) {
-				$this->options['input']['numbers_framework_object_form_model_dummy_sort'] = [];
+			if (empty($this->options['input']['\Object\Form\Model\Dummy\Sort']) && !empty($this->form_parent->list_options['default_sort'])) {
+				$this->options['input']['\Object\Form\Model\Dummy\Sort'] = [];
 				foreach ($this->form_parent->list_options['default_sort'] as $k => $v) {
-					$this->options['input']['numbers_framework_object_form_model_dummy_sort'][] = [
+					$this->options['input']['\Object\Form\Model\Dummy\Sort'][] = [
 						'__sort' => $k,
 						'__order' => $v
 					];
@@ -1410,37 +1410,44 @@ convert_multiple_columns:
 				$this->query->whereMultiple('AND', $where);
 			}
 			// execute custom query processor
-			$result = $this->triggerMethod('list_query');
+			$result = $this->triggerMethod('listQuery');
 			if (is_array($result) && !empty($result['success'])) {
 				$this->misc_settings['list']['total'] = $result['total'];
 				$this->misc_settings['list']['num_rows'] = count($result['rows']);
 				$this->misc_settings['list']['rows'] = $result['rows'];
 			} else if (!empty($this->query)) { // when we need to query
-				// query 1 get counter
+				// query #1 get counter
 				$counter_query = clone $this->query;
 				$counter_query->columns(['counter' => 'COUNT(*)'], ['empty_existing' => true]);
 				$temp = $counter_query->query();
 				$this->misc_settings['list']['total'] = $temp['rows'][0]['counter'];
-				// query 2 actual rows
-				if (!empty($this->values['numbers_framework_object_form_model_dummy_sort'])) {
-					foreach ($this->values['numbers_framework_object_form_model_dummy_sort'] as $k => $v) {
-						if (!empty($v['__sort'])) {
-							$name = $this->detail_fields['numbers_framework_object_form_model_dummy_sort']['elements']['__sort']['options']['options'][$v['__sort']]['name'];
-							$this->misc_settings['list']['sort'][$name] = $v['__order'];
-							$this->query->orderby([$v['__sort'] => $v['__order']]);
-						}
-					}
-				}
+				// query #2 get rows
+				$this->processListQueryOrderBy();
 				$this->query->offset($this->values['__offset'] ?? 0);
 				$this->query->limit($this->values['__limit']);
 				$temp = $this->query->query();
 				$this->misc_settings['list']['num_rows'] = count($temp['rows']);
-				$this->misc_settings['list']['rows'] = $temp['rows'];
+				$this->misc_settings['list']['rows'] = & $temp['rows'];
 			}
 			$this->misc_settings['list']['limit'] = $this->values['__limit'];
 			$this->misc_settings['list']['offset'] = $this->values['__offset'];
 			$this->misc_settings['list']['preview'] = $this->values['__preview'];
 			$this->misc_settings['list']['columns'] = $this->data[$this::LIST_CONTAINER]['rows'];
+		}
+	}
+
+	/**
+	 * Process list query order by clause
+	 */
+	public function processListQueryOrderBy() {
+		if (!empty($this->values['\Object\Form\Model\Dummy\Sort'])) {
+			foreach ($this->values['\Object\Form\Model\Dummy\Sort'] as $k => $v) {
+				if (!empty($v['__sort'])) {
+					$name = $this->detail_fields['\Object\Form\Model\Dummy\Sort']['elements']['__sort']['options']['options'][$v['__sort']]['name'];
+					$this->misc_settings['list']['sort'][$name] = $v['__order'];
+					$this->query->orderby([$v['__sort'] => $v['__order']]);
+				}
+			}
 		}
 	}
 
@@ -1523,9 +1530,9 @@ convert_multiple_columns:
 				$this->options['input'] = $result[0];
 			} else {
 				if ($navigation_type == 'refresh') {
-					$this->error('danger', \Object\Content\Messages::record_not_found, $column);
+					$this->error('danger', \Object\Content\Messages::RECORD_NOT_FOUND, $column);
 				} else {
-					$this->error('danger', \Object\Content\Messages::prev_or_next_record_not_found, $column);
+					$this->error('danger', \Object\Content\Messages::PREV_OR_NEXT_RECORD_NOT_FOUND, $column);
 				}
 				$this->options['input'][$this::BUTTON_SUBMIT_REFRESH] = true;
 			}

@@ -164,6 +164,10 @@ class DataSource extends \Object\Table\Options {
 				}
 			}
 		}
+		// we need to push existing values to parameters
+		if (!empty($options['existing_values']) && !empty($this->parameters['existing_values'])) {
+			$parameters['existing_values'] = $options['existing_values'];
+		}
 		unset($options['where']);
 		// process primary model
 		if (!empty($this->primary_model)) {
