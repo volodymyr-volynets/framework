@@ -96,16 +96,16 @@ class Collection extends \Object\Override\Data {
 		do {
 			$this->primary_model->db_object->begin();
 			// building query
-			$query = new \Object\Query\Builder($this->primary_model->db_link);
-			$query->select()
-				->from($this->primary_model, 'a');
+			$query = $this->primary_model->queryBuilder([
+				'initiator' => 'collection'
+			])->select();
 			// where
 			if (!empty($options['where'])) {
 				$query->whereMultiple('AND', $options['where']);
 			}
 			// for update
 			if (!empty($options['for_update'])) {
-				$query->for_update();
+				$query->forUpdate();
 			}
 			// single row
 			if (!empty($options['single_row'])) {
@@ -293,7 +293,7 @@ class Collection extends \Object\Override\Data {
 			}
 			// for update
 			if (!empty($options['for_update'])) {
-				$query->for_update();
+				$query->forUpdate();
 			}
 			$query_result = $query->query(null);
 			if (!$query_result['success']) {

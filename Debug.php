@@ -237,7 +237,7 @@ class Debug {
 					$result.= '</td>';
 				$result.= '</tr>';
 
-				// benchmark first
+				// benchmark
 				$result.= '<tr id="debuging_toolbar_benchmark" class="debuging_toolbar_class" style="display: none;">';
 					$result.= '<td>';
 						$result.= '<h3>Benchmark (' . count(self::$data['benchmark']) . ')' . '</h3>';
@@ -300,6 +300,13 @@ class Debug {
 									$result.= '<td valign="top">' . ($v['cache'] ? 'Yes' : 'No') . '</td>';
 									$result.= '<td valign="top">' . $v['time'] . '</td>';
 								$result.= '</tr>';
+								// cache tags
+								if (!empty($v['cache_tags'])) {
+									$result.= '<tr>';
+										$result.= '<th>Cache Tags</th>';
+										$result.= '<td valign="top" colspan="7" style="max-width: 1000px; overflow: scroll;">' . nl2br(implode("\n", $v['cache_tags']), true) . '</td>';
+									$result.= '</tr>';
+								}
 								// results second
 								if (!empty($v['rows'])) {
 									$temp = array_keys(current($v['rows']));
@@ -316,6 +323,10 @@ class Debug {
 										$result.= '<td valign="top" colspan="4"><pre style="width: 1130px;">' . $v['backtrace'] . '</pre></td>';
 									$result.= '</tr>';
 								}
+								// empty separator
+								$result.= '<tr>';
+									$result.= '<td valign="top" colspan="4">&nbsp;</td>';
+								$result.= '</tr>';
 							}
 						$result.= '</table>';
 					$result.= '</td>';

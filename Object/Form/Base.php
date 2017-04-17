@@ -1390,7 +1390,7 @@ convert_multiple_columns:
 			$this->list_rendered = true;
 			// create query object
 			if (!empty($this->form_parent->query_primary_model)) {
-				$this->query = call_user_func_array([$this->form_parent->query_primary_model, 'queryBuilderStatic'], [])->select();
+				$this->query = call_user_func_array([$this->form_parent->query_primary_model, 'queryBuilderStatic'], [['initiator' => 'list']])->select();
 			}
 			// add filter
 			$where = [];

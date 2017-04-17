@@ -58,7 +58,7 @@ class Common {
 			if (isset($v['domain'])) {
 				// check if domain exists
 				if (!isset(self::$domains[$v['domain']])) {
-					Throw new Exception('Domain: ' . $v['domain'] . '?');
+					Throw new \Exception('Domain: ' . $v['domain'] . '?');
 				}
 				// populate domain attributes
 				foreach ($domain_attributes as $v2) {

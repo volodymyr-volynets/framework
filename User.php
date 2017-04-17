@@ -21,6 +21,18 @@ class User {
 	}
 
 	/**
+	 * Get
+	 *
+	 * @param mixed $key
+	 * @return mixed
+	 */
+	public static function get($key) {
+		if (isset($_SESSION['numbers']['user'])) {
+			return array_key_get($_SESSION['numbers']['user'], $key);
+		}
+	}
+
+	/**
 	 * Authorize user
 	 *
 	 * @param array $data

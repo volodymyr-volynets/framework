@@ -499,13 +499,15 @@ class Table extends \Object\Table\Options {
 			$options['where'][$this->tenant_column] = \Tenant::id();
 		}
 		// handle acl init
+		/*
 		if (!empty($options['acl'])) {
 			$acl_key = get_called_class();
-			if (\Factory::model('\Object\ACL\Class2', true)->acl_init($acl_key, $data, $this->acl_get_options) === false) {
+			if (\Factory::model('\Object\ACL\Class2', true)->aclInit($acl_key, $data, $this->acl_get_options) === false) {
 				return $data;
 			}
 			$options = $this->acl_get_options;
 		}
+		*/
 		$options_query = [];
 		// if we are caching
 		if (!empty($this->cache) && empty($options['no_cache'])) {
@@ -515,7 +517,11 @@ class Table extends \Object\Table\Options {
 		// pk
 		$pk = array_key_exists('pk', $options) ? $options['pk'] : $this->pk;
 		// query
-		$query = self::queryBuilderStatic(['skip_tenant' => $options['skip_tenant'] ?? false])->select();
+		$query = self::queryBuilderStatic([
+			'skip_tenant' => $options['skip_tenant'] ?? false,
+			'skip_acl' => $options['skip_acl'] ?? false,
+			'initiator' => 'table'
+		])->select();
 		// skip filtering by tenant twice
 		if (!empty($query->options['tenant']) && $this->tenant) {
 			unset($options['where'][$this->tenant_column]);
@@ -568,6 +574,7 @@ class Table extends \Object\Table\Options {
 				return cache::$memory_storage[$sql_hash];
 			}
 		}
+		// query
 		$result = $query->query($pk, $options_query);
 		$this->sql_last_query = $query->sql();
 		if (!$result['success']) {
@@ -579,12 +586,14 @@ class Table extends \Object\Table\Options {
 		} else {
 			$data = $result['rows'];
 		}
-		// handle acl init
+		// handle acl
+		/*
 		if (!empty($options['acl'])) {
-			if (\Factory::model('\Object\ACL\Class2', true)->acl_finish($acl_key, $data, $this->acl_get_options) === false) {
+			if (\Factory::model('\Object\ACL\Class2', true)->aclFinish($acl_key, $data, $this->acl_get_options) === false) {
 				return $data;
 			}
 		}
+		*/
 		// memory caching
 		if ($this->cache_memory) {
 			cache::$memory_storage[$sql_hash] = & $data;
@@ -794,6 +803,12 @@ TTT;
 		// inject tenant into the query
 		if ($model->tenant && empty($options['skip_tenant'])) {
 			$object->where('AND', [$alias . '.' . $model->column_prefix . 'tenant_id', '=', \Tenant::id()]);
+		}
+		// registered ALC
+		if (empty($options['skip_acl'])) {
+			\Object\ACL\Registered::process('\\' . get_called_class(), $object, [
+				'initiator' => $options['initiator'] ?? null
+			]);
 		}
 		return $object;
 	}

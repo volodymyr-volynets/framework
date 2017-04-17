@@ -235,40 +235,25 @@ class DataSource extends \Object\Table\Options {
 		if (method_exists($this, 'process')) {
 			// retrive data from the cache
 			if ($this->cache && !empty($db_object->object->options['cache_link'])) {
-				$cache_id = !empty($options['cache_id']) ? $options['cache_id'] : 'db_datasource_' . sha1($this->sql_last_query . serialize($query_settings['pk']));
+				$cache_id = !empty($options['cache_id']) ? $options['cache_id'] : 'Db_DataSource_' . sha1($this->sql_last_query . serialize($query_settings['pk']));
 				// if we cache this query
 				$cache_object = new \Cache($db_object->object->options['cache_link']);
 				$cached_result = $cache_object->get($cache_id, true);
 				if ($cached_result !== false) {
 					// if we are debugging
 					if (\Debug::$debug) {
-						\Debug::$data['sql'][] = [
-							'success' => true,
-							'error' => [],
-							'errno' => 0,
-							'rows' => [],
-							'num_rows' => 0,
-							'affected_rows' => 0,
-							'structure' => [],
-							// debug attributes
-							'cache' => true,
-							'time' => 0,
-							'sql' => $this->sql_last_query,
-							'key' => $query_settings['pk']
-						];
+						\Debug::$data['sql'][] = $cached_result;
 					}
-					return $cached_result;
+					return $cached_result['rows'];
 				}
 			} else {
 				$this->cache = false;
 			}
-			$query_options = [];
-		} else {
-			$query_options = [
-				'cache' => $this->cache,
-				'cache_tags' => array_unique($this->cache_tags)
-			];
 		}
+		$query_options = [
+			'cache' => $this->cache,
+			'cache_tags' => array_unique($this->cache_tags)
+		];
 		// if we have SQL
 		if (!empty($sql)) {
 			$result = $db_object->query($sql, $query_settings['pk'], $query_options);
@@ -283,7 +268,28 @@ class DataSource extends \Object\Table\Options {
 			$data = $this->process($result['rows'], $options);
 			// if we are caching
 			if ($this->cache) {
-				$cache_object->set($cache_id, $data, null, $this->cache_tags);
+				// the same cache structure as in Db classes
+				$cache_data = [
+					'success' => true,
+					'error' => [],
+					'errno' => 0,
+					'rows' => $data,
+					'num_rows' => count($data),
+					'affected_rows' => 0,
+					'structure' => [],
+					// debug attributes
+					'cache' => true,
+					'cache_tags' => [],
+					'time' => microtime(true),
+					'sql' => $this->sql_last_query,
+					'key' => $query_settings['pk'],
+					'backtrace' => null
+				];
+				if (\Debug::$debug) {
+					$cache_data['backtrace']  = implode("\n", \Object\Error\Base::debugBacktraceString());
+					$cache_data['cache_tags'] = $this->cache_tags;
+				}
+				$cache_object->set($cache_id, $cache_data, null, $this->cache_tags);
 			}
 		} else {
 			$data = $result['rows'];

@@ -184,7 +184,9 @@ class Options extends \Object\Override\Data {
 		}
 		$data = $this->get($options);
 		// merge acl returned from get
-		$options = $this->acl_get_options;
+		if (!empty($this->acl_get_options)) {
+			$options = $this->acl_get_options;
+		}
 		// if compound key
 		if (!empty($temp)) {
 			foreach ($temp as $v) {

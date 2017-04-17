@@ -247,7 +247,6 @@ class Dependencies {
 			unset($data['__submodule_dependencies'], $data['__model_dependencies'], $data['model_import']);
 			// handling overrides, cleanup directory first
 			\Helper\File::delete('./Overrides/Class', ['only_contents' => true, 'skip_files' => ['.gitkeep']]);
-			$data['override'] = array_merge_hard($data['override'], $data['acl']);
 			if (!empty($data['override'])) {
 				array_keys_to_string($data['override'], $data['override_processed']);
 				$override_classes = [];
@@ -278,6 +277,19 @@ class Dependencies {
 						}
 					}
 				}
+			}
+			// acls
+			if (!empty($data['acl'])) {
+				$temp_models = [];
+				foreach ($data['acl'] as $k => $v) {
+					$object = new $k();
+					$models = $object->models;
+					foreach ($models as $k2 => $v2) {
+						$temp_models[$k2][$k] = $v2;
+					}
+				}
+				$class_code = "<?php\n\n" . '$object_override_blank_object = ' . var_export($temp_models, true) . ';';
+				\Helper\File::write('./Overrides/Class/Override_Object_ACL_Registered.php', $class_code);
 			}
 			// unit tests
 			\Helper\File::delete('./Overrides/Unit_Tests', ['only_contents' => true, 'skip_files' => ['.gitkeep']]);

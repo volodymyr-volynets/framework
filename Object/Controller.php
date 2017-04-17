@@ -85,6 +85,7 @@ class Controller {
 	 * @var array
 	 */
 	private static $cached_controllers;
+	private static $cached_controllers_by_ids;
 
 	/**
 	 * Cached actions
@@ -181,6 +182,15 @@ class Controller {
 	 * @throws Exception
 	 */
 	public function canExtended($resource_id, $method_code, $action, $roles = null) : bool {
+		// if resource is not present we return false
+		if (!isset(self::$cached_controllers_by_ids)) {
+			foreach (self::$cached_controllers as $k => $v) {
+				self::$cached_controllers_by_ids[$v['id']] = $k;
+			}
+		}
+		if (empty(self::$cached_controllers_by_ids[$resource_id])) return false;
+		// super admin
+		if (\User::get('super_admin')) return true;
 		// load user roles
 		if (is_null($roles)) $roles = \User::roles();
 		// load all actions from datasource

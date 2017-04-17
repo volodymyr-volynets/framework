@@ -1,5 +1,6 @@
 <?php
 
-abstract class object_activation_base {
+namespace Object\Activation;
+abstract class Base {
 	abstract public function activate(array $options = []) : array;
 }
