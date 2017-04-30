@@ -170,7 +170,7 @@ class Base extends \Object\Form\Parent2 {
 			}
 		}
 		// step 3: methods
-		foreach (['refresh', 'validate', 'save', 'post', 'success', 'overrideFieldValue', 'overrideTabs', 'processDefaultValue', 'listQuery'] as $v) {
+		foreach (['refresh', 'validate', 'save', 'post', 'success', 'overrideFieldValue', 'overrideTabs', 'processDefaultValue', 'processOptionsModels', 'listQuery'] as $v) {
 			if (method_exists($this, $v)) {
 				$this->form_object->wrapper_methods[$v]['main'] = [& $this, $v];
 			}

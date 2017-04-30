@@ -63,6 +63,8 @@ class Domains extends \Object\Data {
 		'ledger_id_sequence' => ['name' => 'Ledger #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'optimistic_lock' => ['name' => 'Optimistic Lock', 'type' => 'timestamp', 'null' => false, 'default' => 'now()', 'format' => '', 'validator_method' => '', 'placeholder' => ''],
 		'language_code' => ['name' => 'Language Code', 'type' => 'char', 'length' => 3, 'validator_method' => 'object_validator_lowercase::validate'],
+		'locale_code' => ['name' => 'Locale Code', 'type' => 'varchar', 'length' => 30],
+		'timezone_code' => ['name' => 'Timezone Code', 'type' => 'varchar', 'length' => 30],
 		'currency_code' => ['name' => 'Currency Code', 'type' => 'char', 'length' => 3, 'validator_method' => 'numbers_data_system_internalization_model_currency_validator_codes::validate', 'searchable' => true],
 		// C/M Country Management
 		'country_code' => ['name' => 'Country Code', 'type' => 'char', 'length' => 2, 'validator_method' => '\Object\Validator\UpperCase::validate', 'searchable' => true],

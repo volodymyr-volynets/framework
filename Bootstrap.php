@@ -23,7 +23,7 @@ class Bootstrap {
 		if (!empty($crypt) && $backend) {
 			foreach ($crypt as $crypt_link => $crypt_settings) {
 				if (!empty($crypt_settings['submodule']) && !empty($crypt_settings['autoconnect'])) {
-					$crypt_object = new crypt($crypt_link, $crypt_settings['submodule'], $crypt_settings);
+					$crypt_object = new \Crypt($crypt_link, $crypt_settings['submodule'], $crypt_settings);
 				}
 			}
 		}
@@ -57,7 +57,7 @@ class Bootstrap {
 				$db_options = $db_settings;
 				unset($db_options['servers']);
 				foreach ($db_settings['servers'] as $server_key => $server_values) {
-					$db_object = new db($db_link, $db_settings['submodule'], $db_options);
+					$db_object = new \Db($db_link, $db_settings['submodule'], $db_options);
 					// application structure
 					if (isset($application_structure['settings']['db'][$db_link])) {
 						$server_values = array_merge_hard($server_values, $application_structure['settings']['db'][$db_link]);

@@ -520,7 +520,8 @@ class Table extends \Object\Table\Options {
 		$query = self::queryBuilderStatic([
 			'skip_tenant' => $options['skip_tenant'] ?? false,
 			'skip_acl' => $options['skip_acl'] ?? false,
-			'initiator' => 'table'
+			'initiator' => 'table',
+			'existing_values' => $options['existing_values'] ?? null
 		])->select();
 		// skip filtering by tenant twice
 		if (!empty($query->options['tenant']) && $this->tenant) {
@@ -807,7 +808,8 @@ TTT;
 		// registered ALC
 		if (empty($options['skip_acl'])) {
 			\Object\ACL\Registered::process('\\' . get_called_class(), $object, [
-				'initiator' => $options['initiator'] ?? null
+				'initiator' => $options['initiator'] ?? null,
+				'existing_values' => $options['existing_values'] ?? null
 			]);
 		}
 		return $object;

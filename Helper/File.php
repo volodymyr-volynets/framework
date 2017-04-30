@@ -163,7 +163,7 @@ class File {
 				}
 			}
 			closedir($dir);
-			return true;
+			return chmod($dir_or_file, $permission);
 		} else {
 			return chmod($dir_or_file, $permission);
 		}

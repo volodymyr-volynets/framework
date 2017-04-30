@@ -301,7 +301,7 @@ reask_for_migration:
 				foreach ($settings['db_list'] as $v) {
 					$schema_temp = $settings['db_settings'];
 					$schema_temp['dbname'] = $v;
-					$db_object = new db('default', $schema_temp['submodule']);
+					$db_object = new \Db('default', $schema_temp['submodule']);
 					$db_status = $db_object->connect($schema_temp);
 					if (!($db_status['success'] && $db_status['status'])) {
 						Throw new Exception('Unable to open database connection!');

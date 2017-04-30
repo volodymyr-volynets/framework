@@ -572,7 +572,7 @@ run_again:
 			// executing sql
 			foreach ($total_per_db_link as $k => $v) {
 				if ($v == 0) continue;
-				$db_object = new db($k);
+				$db_object = new \Db($k);
 				// if we are dropping we need to disable foregn key checks
 				if ($options['mode'] == 'drop') {
 					if ($db_object->backend == 'mysqli') {

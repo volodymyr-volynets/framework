@@ -82,7 +82,7 @@ class Base {
 					if (!empty($structure['tenant_not_found_url'])) {
 						\Request::redirect($structure['tenant_not_found_url']);
 					} else {
-						Throw new Exception('Invalid URL!');
+						Throw new \Exception('Invalid URL!');
 					}
 				} else {
 					if (!empty($tenant_datasource_settings['column_prefix'])) {

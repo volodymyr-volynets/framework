@@ -308,6 +308,27 @@ function extract_keys($keys, $data) {
 }
 
 /**
+ * Extract values out of array by key
+ *
+ * @param array $array
+ * @param string $key
+ * @param array $options
+ *		boolean unique
+ * @return array
+ */
+function array_extract_values_by_key(array $array, string $key, array $options = []) : array {
+	$result = [];
+	foreach ($array as $v) {
+		$result[] = $v[$key];
+	}
+	// if unique
+	if (!empty($options['unique'])) {
+		$result = array_unique($result);
+	}
+	return $result;
+}
+
+/**
  * Process function
  * 
  * @param string $function

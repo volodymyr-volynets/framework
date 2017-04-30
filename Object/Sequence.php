@@ -132,7 +132,7 @@ class Sequence extends \Object\Override\Data {
 			'simple' => null,
 			'advanced' => null
 		];
-		$db = new db($this->db_link);
+		$db = new \Db($this->db_link);
 		$table_model = new \Numbers\Backend\Db\Common\Model\Sequences();
 		$temp = $db->sequence($this->full_sequence_name, $type);
 		if (!$temp['success']) {

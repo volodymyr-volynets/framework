@@ -221,7 +221,7 @@ class DataSource extends \Object\Table\Options {
 		// process query
 		$sql = $this->query($parameters, $options);
 		if (!empty($sql)) {
-			$db_object = new db($this->db_link);
+			$db_object = new \Db($this->db_link);
 			$this->sql_last_query = $sql;
 		} else {
 			$db_object = $this->query->db_object;

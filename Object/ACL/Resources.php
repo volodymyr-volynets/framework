@@ -44,7 +44,8 @@ class Resources extends \Object\Override\Data {
 				if (!empty($module) && $module != $k2) continue;
 				// if we have datasource
 				if (!empty($v2['datasource'])) {
-					$temp = \Factory::model($v2['datasource'], true)->get();
+					// acl is skipped intentionally
+					$temp = \Factory::model($v2['datasource'], true)->get(['skip_acl' => true]);
 					$result = array_merge_hard($result, $temp);
 				} else if (array_key_exists($key, $v2)) {
 					return $v2[$key];
