@@ -97,7 +97,8 @@ class Collection extends \Object\Override\Data {
 			$this->primary_model->db_object->begin();
 			// building query
 			$query = $this->primary_model->queryBuilder([
-				'initiator' => 'collection'
+				'initiator' => 'collection',
+				'skip_acl' => true
 			])->select();
 			// where
 			if (!empty($options['where'])) {

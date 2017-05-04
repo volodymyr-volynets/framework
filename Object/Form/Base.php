@@ -507,6 +507,12 @@ class Base extends \Object\Form\Parent2 {
 						$holder['new_pk_counter']++;
 					}
 				}
+			} else if (!empty($options['options']['details_pk'])) {
+				foreach ($options['options']['details_pk'] as $v) {
+					if (isset($values[$v])) {
+						$new_pk[] = $values[$v];
+					}
+				}
 			} else {
 				$new_pk[] = current($values);
 			}
@@ -1367,6 +1373,8 @@ loadValues2:
 convert_multiple_columns:
 		// close transaction
 		$this->closeTransaction();
+		// finilize
+		$this->triggerMethod('finalize');
 		// convert multiple column to a form renderer can accept
 		$this->convertMultipleColumns($this->values);
 		// assuming save has been executed without errors we need to process on_success_js
@@ -1434,6 +1442,8 @@ convert_multiple_columns:
 			$this->misc_settings['list']['preview'] = $this->values['__preview'];
 			$this->misc_settings['list']['columns'] = $this->data[$this::LIST_CONTAINER]['rows'];
 		}
+		// debug
+		//print_r2($this->errors);
 	}
 
 	/**

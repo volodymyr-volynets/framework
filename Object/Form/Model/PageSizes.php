@@ -18,7 +18,7 @@ class PageSizes extends \Object\Data {
 	 */
 	public function get($options = []) {
 		$this->data = [
-			1 => ['name' => 1], // for testing
+			// 1 => ['name' => 1], // for testing
 			10 => ['name' => 10],
 			20 => ['name' => 20],
 			30 => ['name' => 30],

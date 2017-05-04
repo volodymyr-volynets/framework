@@ -1,6 +1,7 @@
 <?php
 
-class object_format_locales_ar_sa_utf8 extends object_format_locales_locale {
+namespace Object\Format\Locales;
+class arSAUTF8 extends \Object\Format\Locales\Locale {
 
 	public static $symbol_defaults = [
 		'comma' => '،',
@@ -26,15 +27,15 @@ class object_format_locales_ar_sa_utf8 extends object_format_locales_locale {
 		return $options;
 	}
 
-	public static function read_floatval($amount, $options = []) {
-		return object_format_locales_arabic::read_floatval($amount);
+	public static function readFloatval($amount, $options = []) {
+		return \Object\Format\Locales\Arabic::readFloatval($amount);
 	}
 
 	public static function amount($amount, $options = []) {
-		return object_format_locales_arabic::amount($amount);
+		return \Object\Format\Locales\Arabic::amount($amount);
 	}
 
 	public static function js() {
-		object_format_locales_arabic::js();
+		\Object\Format\Locales\Arabic::js();
 	}
 }

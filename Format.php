@@ -154,11 +154,13 @@ class Format {
 		// grab settings
 		$result['locale_options'] = localeconv();
 		// form a class name from locale name
+		// todo: finilize locale
 		$class = str_replace('-', '', $locale);
 		$class = str_replace('.', '_', $class);
 		$class = strtolower($class);
+		print_r2($class);
 		// see if class exists
-		$override_format_filename = __DIR__ . '/object/format/locales/' . $class . '.php';
+		$override_format_filename = __DIR__ . '/Object/Format/Locales/' . $class . '.php';
 		if (file_exists($override_format_filename)) {
 			require_once($override_format_filename);
 			$class = 'object_format_locales_' . $class;

@@ -535,8 +535,8 @@ class Table extends \Object\Table\Options {
 				unset($temp[array_search('preset_value', $temp)]);
 				$query->columns($temp);
 			}
-			$query->columns(['preset_value' => "concat_ws(' ', " . $query->prepare_expression($options['columns']) . ")"]);
-			$query->where('AND', ["coalesce(" . $query->prepare_expression($options['columns']) . ")", 'IS NOT', null]);
+			$query->columns(['preset_value' => "concat_ws(' ', " . $query->db_object->prepareExpression($options['columns']) . ")"]);
+			$query->where('AND', ["coalesce(" . $query->db_object->prepareExpression($options['columns']) . ")", 'IS NOT', null]);
 			// if its a preset we cache
 			$options_query['cache'] = true;
 		} else { // regular columns
@@ -571,8 +571,8 @@ class Table extends \Object\Table\Options {
 		if ($this->cache_memory) {
 			// hash is query + primary key
 			$sql_hash = sha1($query->sql() . serialize($pk));
-			if (isset(cache::$memory_storage[$sql_hash])) {
-				return cache::$memory_storage[$sql_hash];
+			if (isset(\Cache::$memory_storage[$sql_hash])) {
+				return \Cache::$memory_storage[$sql_hash];
 			}
 		}
 		// query
@@ -597,7 +597,7 @@ class Table extends \Object\Table\Options {
 		*/
 		// memory caching
 		if ($this->cache_memory) {
-			cache::$memory_storage[$sql_hash] = & $data;
+			\Cache::$memory_storage[$sql_hash] = & $data;
 		}
 		return $data;
 	}
@@ -709,7 +709,8 @@ TTT;
 				$column => $value
 			],
 			'pk' => [$column],
-			'single_row' => true
+			'single_row' => true,
+			'skip_acl' => true
 		]);
 		if ($only_column) {
 			return $result[$only_column] ?? null;

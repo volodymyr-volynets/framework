@@ -1,6 +1,7 @@
 <?php
 
-class object_format_locales_locale {
+namespace Object\Format\Locales;
+class Locale {
 
 	/**
 	 * Get locale settings
@@ -17,7 +18,7 @@ class object_format_locales_locale {
 	 * @param string $amount
 	 * @param array $options
 	 */
-	public static function read_floatval($amount, $options = []) {
+	public static function readFloatval($amount, $options = []) {
 		return $amount;
 	}
 
