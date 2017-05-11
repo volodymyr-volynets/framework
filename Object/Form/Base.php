@@ -988,7 +988,11 @@ class Base extends \Object\Form\Parent2 {
 		// we do not need options for autocomplete
 		if (strpos(($field['method'] ?? ''), 'autocomplete') === false) {
 			$skip_values = [];
-			$field['options'] = \Object\Data\Common::processOptions($field['options_model'], $this, $field['options_params'], $value, $skip_values, $field['options_options']);
+			$existing_values = $value;
+			if (!empty($field['multiple_column'])) {
+				$existing_values = array_extract_values_by_key($value, $field['multiple_column']);
+			}
+			$field['options'] = \Object\Data\Common::processOptions($field['options_model'], $this, $field['options_params'], $existing_values, $skip_values, $field['options_options']);
 		} else {
 			$field['options'] = [];
 		}
@@ -1037,10 +1041,20 @@ class Base extends \Object\Form\Parent2 {
 						if (!empty($v['options']['details_11'])) {
 							$error_name = "{$k}";
 							$v3['options']['values_key'] = [$k, $k3];
-							$this->validateRequiredOneField($v2[$k3], "{$k}[{$k3}]", $v3);
+							$value = $v2[$k3];
+							$this->validateRequiredOneField($value, "{$k}[{$k3}]", $v3);
+							// put value back into values
+							if ($value !== $v2[$k3]) {
+								$this->values[$k][$k3] = $value;
+							}
 						} else { // 1 to M
 							$v3['options']['values_key'] = [$k, $k2, $k3];
-							$this->validateRequiredOneField($v2[$k3], "{$k}[{$k2}][{$k3}]", $v3);
+							$value = $v2[$k3];
+							$this->validateRequiredOneField($value, "{$k}[{$k2}][{$k3}]", $v3);
+							// put value back into values
+							if ($value !== $v2[$k3]) {
+								$this->values[$k][$k2][$k3] = $value;
+							}
 						}
 					}
 					// process subdetails
@@ -1820,6 +1834,8 @@ convert_multiple_columns:
 				}
 			} else if (!empty($result['updated'])) { // updated
 				$this->values_updated = true;
+				// merge updated pk
+				$this->pk = array_merge_hard($this->pk, $result['new_pk']);
 			} else { // if no update/insert/delete we rollback
 				return false;
 			}
@@ -2006,7 +2022,7 @@ convert_multiple_columns:
 			$object = \Factory::model($options['details_parent_key'], true);
 		}
 		if (!empty($object->{$property})) {
-			return \Factory::model($object->{"{$property}_model"}, true)->processWidget($this, $options);
+			return \Factory::model($object->{"{$property}_model"}, true)->formProcessWidget($this, $options);
 		}
 		return false;
 	}
@@ -2123,7 +2139,8 @@ convert_multiple_columns:
 			if (($this->data[$container_link]['type'] ?? '') == 'tabs' && !empty($options['widget'])) {
 				$options['type'] = 'tabs';
 				// we skip if widgets are not enabled
-				if (!\Object\Widgets::enabled($options['widget']) || !$this->processWidget($options)) {
+				$temp = \Object\ACL\Resources::getStatic('widgets', $options['widget']);
+				if (empty($temp) || empty($this->collection_object->primary_model->{$options['widget']}) || !$this->processWidget($options)) {
 					unset($this->data[$container_link]['rows'][$row_link]);
 					return;
 				}

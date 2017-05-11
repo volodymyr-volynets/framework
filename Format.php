@@ -158,7 +158,6 @@ class Format {
 		$class = str_replace('-', '', $locale);
 		$class = str_replace('.', '_', $class);
 		$class = strtolower($class);
-		print_r2($class);
 		// see if class exists
 		$override_format_filename = __DIR__ . '/Object/Format/Locales/' . $class . '.php';
 		if (file_exists($override_format_filename)) {

@@ -71,7 +71,7 @@ class Domains extends \Object\Data {
 		'country_code3' => ['name' => 'Country Code (3)', 'type' => 'char', 'length' => 3, 'validator_method' => '\Object\Validator\UpperCase::validate'],
 		'country_number' => ['name' => 'Country Numeric Code', 'type' => 'smallint', 'default' => null],
 		'province_code' => ['name' => 'Province Code', 'type' => 'varchar', 'length' => 30, 'validator_method' => '\Object\Validator\UpperCase::validate', 'searchable' => true],
-		'postal_code' => ['name' => 'Postal Code', 'type' => 'varchar', 'length' => 15, 'validator_method' => 'object_validator_postalcode::validate'],
+		'postal_code' => ['name' => 'Postal Code', 'type' => 'varchar', 'length' => 15, 'validator_method' => '\Object\Validator\PostalCode::validate'],
 		'geo_coordinate' => ['name' => 'Geo Coordinate', 'type' => 'numeric', 'precision' => 10, 'scale' => 6, 'null' => true],
 		// T/M Tenants
 		'tenant_id' => ['name' => 'Tenant #', 'type' => 'integer', 'default' => null, 'format' => 'id'],

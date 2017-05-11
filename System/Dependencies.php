@@ -176,7 +176,18 @@ class Dependencies {
 			if (!empty($data['apache']['module'])) {
 				if (function_exists('apache_get_modules')) {
 					$ext_have = array_map('strtolower', apache_get_modules());
+					foreach ($data['apache']['module'] as $k => $v) {
+						if (!in_array($k, $ext_have)) {
+							$result['error'][] = " - Apache module \"$k\" is not loaded!";
+						}
+					}
 				} else {
+					echo \Helper\Cmd::colorString('Make sure following Apache modules are enabled:', 'red') . "\n";
+					foreach ($data['apache']['module'] as $k => $v) {
+						echo $k . " ";
+					}
+					echo "\n";
+					/*
 					$temp = `apachectl -t -D DUMP_MODULES`;
 					$ext_have = array_map('strtolower', explode("\n", $temp));
 					$temp = array();
@@ -184,11 +195,7 @@ class Dependencies {
 						$temp[] = trim(str_replace(array('(shared)', '(static)'), '', $v));
 					}
 					$ext_have = $temp;
-				}
-				foreach ($data['apache']['module'] as $k => $v) {
-					if (!in_array($k, $ext_have)) {
-						$result['error'][] = " - Apache module \"$k\" is not loaded!";
-					}
+					*/
 				}
 			}
 			// processing models

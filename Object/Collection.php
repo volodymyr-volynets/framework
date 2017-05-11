@@ -488,6 +488,7 @@ class Collection extends \Object\Override\Data {
 			$result['inserted'] = $temp['data']['inserted'];
 			$result['updated'] = $temp['data']['updated'];
 			$result['new_serials'] = $temp['new_serials'];
+			$result['new_pk'] = $temp['new_pk'];
 		} while(0);
 		// we roll back on error
 error:
@@ -608,7 +609,8 @@ error:
 				'deleted' => false,
 				'inserted' => false
 			],
-			'new_serials' => []
+			'new_serials' => [],
+			'new_pk' => []
 		];
 		$model = $collection['model_object'];
 		// important to reset cache
@@ -677,6 +679,8 @@ error:
 			$audit = $data_row_final;
 		} else { // if we update
 			foreach ($data_row_final as $k => $v) {
+				// skip relation_id
+				if ($k == $this->primary_model->column_prefix . 'relation_id') continue;
 				// hard comparison
 				if ($v !== $original_row[$k]) {
 					$update[$k] = $v;
@@ -799,6 +803,7 @@ error:
 		if (!empty($result['data']['total'])) {
 			$result['success'] = true;
 		}
+		$result['new_pk'] = $pk;
 		return $result;
 	}
 }

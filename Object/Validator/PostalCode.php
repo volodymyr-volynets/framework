@@ -1,6 +1,7 @@
 <?php
 
-class object_validator_postalcode extends \Object\Validator\Base {
+namespace Object\Validator;
+class PostalCode extends \Object\Validator\Base {
 
 	/**
 	 * @see \Object\Validator\Base::validate()
@@ -19,8 +20,8 @@ class object_validator_postalcode extends \Object\Validator\Base {
 		// postal code is different based on country
 		switch ($country) {
 			case 'CA':
-				$result['placeholder'] = 'A#B #C#';
-				if (!preg_match('/^[a-z][0-9][a-z][- ]?[0-9][a-z][0-9]$/i', $value)) {
+				$result['placeholder'] = 'A#B#C#';
+				if (!preg_match('/^[a-z][0-9][a-z][0-9][a-z][0-9]$/i', $value)) {
 					$result['error'][] = 'Invalid postal code!';
 				} else {
 					$result['data'] = strtoupper($value);

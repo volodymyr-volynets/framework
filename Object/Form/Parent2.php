@@ -30,6 +30,18 @@ class Parent2 extends \Object\Override\Data {
 	];
 
 	/**
+	 * List sort container
+	 */
+	const LIST_SORT_CONTAINER = [
+		'type' => 'details',
+		'details_rendering_type' => 'table',
+		'details_new_rows' => 3,
+		'details_key' => '\Object\Form\Model\Dummy\Sort',
+		'details_pk' => ['__sort'],
+		'order' => 1600
+	];
+
+	/**
 	 * Row for buttons
 	 */
 	const BUTTONS = '__submit_buttons';

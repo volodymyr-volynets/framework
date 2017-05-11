@@ -380,12 +380,13 @@ class Table extends \Object\Table\Options {
 			$this->db_object = new \Db($this->db_link);
 		}
 		// process widgets
-		foreach (\Object\Widgets::WIDGET_MODELS as $widget) {
-			if (!\Object\Widgets::enabled($widget)) {
+		$widgets = \Object\ACL\Resources::getStatic('widgets');
+		$widgets = array_merge(['attributes' => false, 'addresses' => false, 'audit' => false], $widgets);
+		foreach ($widgets as $widget => $widget_data) {
+			if (!empty($this->{$widget}) && !empty($widget_data)) {
+				$this->{$widget . '_model'} = get_class($this) . '\0Virtual0\Widgets\\' . ucwords($widget);
+			} else {
 				$this->{$widget} = false;
-			} else if (!empty($this->{$widget})) {
-				$temp = $widget . '_model';
-				$this->{$temp} = get_class($this) . '__virtual__' . $widget;
 			}
 		}
 	}
@@ -419,11 +420,12 @@ class Table extends \Object\Table\Options {
 	 *
 	 * @param string $class
 	 * @param string $widget_name
+	 * @param string $virtual_class_name
 	 * @return boolean
 	 * @throws Exception
 	 */
-	final public function determineModelMap($class, $widget_name) {
-		$this->virtual_class_name = $class . '__virtual__' . $widget_name;
+	final public function determineModelMap($class, $widget_name, $virtual_class_name) {
+		$this->virtual_class_name = $virtual_class_name;
 		$model = \Factory::model($class, true);
 		if (empty($model->{$widget_name}) || empty($model->{$widget_name}['map'])) {
 			Throw new Exception("You must indicate {$widget_name} for {$class} map!");
@@ -432,6 +434,8 @@ class Table extends \Object\Table\Options {
 		$this->title = $model->title . ' ' . ucwords($widget_name);
 		$this->name = $model->name . '__' . $widget_name;
 		$this->full_table_name = $model->full_table_name . '__' . $widget_name;
+		$this->module_code = $model->module_code;
+		$this->data_asset = $model->data_asset;
 		// determine pk
 		$columns = [];
 		$this->map = $model->{$widget_name}['map'];

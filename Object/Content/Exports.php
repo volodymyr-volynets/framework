@@ -1,6 +1,7 @@
 <?php
 
-class object_content_exports extends \Object\Data {
+namespace Object\Content;
+class Exports extends \Object\Data {
 	public $column_key = 'no_content_export_code';
 	public $column_prefix = 'no_content_export_';
 	public $columns = [

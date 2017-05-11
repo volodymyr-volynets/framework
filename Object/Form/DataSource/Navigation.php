@@ -62,7 +62,7 @@ class Navigation extends \Object\Datasource {
 					$subquery->columns(['new_value' => "MAX({$column})"]);
 				}
 				$subquery->where('AND', ["a.{$column}", 'IS NOT', null]);
-				if (!empty($options['where']['depends'])) {
+				if (!empty($parameters['depends'])) {
 					$subquery->whereMultiple('AND', $parameters['depends']);
 					$this->query->whereMultiple('AND', $parameters['depends']);
 				}
@@ -70,7 +70,7 @@ class Navigation extends \Object\Datasource {
 				break;
 			case 'previous':
 			case 'next':
-				if (!empty($options['where']['depends'])) {
+				if (!empty($parameters['depends'])) {
 					$this->query->whereMultiple('AND', $parameters['depends']);
 				}
 				if ($parameters['type'] == 'previous') {
@@ -82,7 +82,7 @@ class Navigation extends \Object\Datasource {
 				break;
 			case 'refresh':
 			default:
-				if (!empty($options['where']['depends'])) {
+				if (!empty($parameters['depends'])) {
 					$this->query->whereMultiple('AND', $parameters['depends']);
 				}
 				$this->query->limit(1);

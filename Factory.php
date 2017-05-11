@@ -94,8 +94,8 @@ class Factory {
 			$object = & self::$class_objects['model'][$class];
 		} else {
 			// process virtual models
-			if (strpos($class, '__virtual__') !== false) {
-				self::$class_objects['model'][$class] = object_virtual_models::model($class);
+			if (strpos($class, '0Virtual0') !== false) {
+				self::$class_objects['model'][$class] = \Object\Virtual\Models::model($class);
 			} else {
 no_cache:
 				// if we need to pass options to an object
