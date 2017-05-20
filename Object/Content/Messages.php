@@ -21,6 +21,7 @@ class Messages {
 	const ERROR_500 = 'Internal Server Error!';
 	// warnings
 	const AMOUNT_RECALCULATED = 'The amount has been recalculated!';
+	const AMOUNT_ROUNDED = 'The amount has been rounded!';
 	// good messages
 	const RECORD_DELETED = 'Record has been successfully deleted!';
 	const RECORD_INSERTED = 'Record has been successfully created!';

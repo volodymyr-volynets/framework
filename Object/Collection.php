@@ -517,7 +517,7 @@ error:
 			// generate a list of primary keys to fetch data
 			$data_pks = [];
 			$data_pk_final = $this->data['pk'];
-			if ($this->primary_model->tenant && empty($options['skip_tenant'])) {
+			if ($this->primary_model->tenant && empty($options['skip_tenant']) && !in_array($this->primary_model->tenant_column, $data_pk_final)) {
 				array_unshift($data_pk_final, $this->primary_model->tenant_column);
 			}
 			foreach ($data as $k0 => $v0) {

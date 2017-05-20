@@ -404,7 +404,7 @@ class Base extends \Object\Form\Parent2 {
 					$this->error('danger', \Object\Content\Messages::REQUIRED_FIELD, $error_name);
 				}
 			} else if ($options['options']['php_type'] == 'bcnumeric') { // accounting numbers
-				if (math::compare($value, '0', $options['options']['scale']) == 0) {
+				if (\Math::compare($value, '0', $options['options']['scale']) == 0) {
 					$this->error('danger', \Object\Content\Messages::REQUIRED_FIELD, $error_name);
 				}
 			} else if (!empty($options['options']['multiple_column'])) {
@@ -444,7 +444,7 @@ class Base extends \Object\Form\Parent2 {
 	 * @param mixed $parent_keys
 	 * @return string
 	 */
-	public function parentHeysToErrorName($parent_keys) {
+	public function parentKeysToErrorName($parent_keys) {
 		$result = [];
 		if (!is_array($parent_keys)) {
 			$parent_keys = [$parent_keys];
@@ -523,14 +523,14 @@ class Base extends \Object\Form\Parent2 {
 					$holder['pk'] = '__duplicate_key_' . $holder['new_pk_counter'];
 					$holder['new_pk_counter']++;
 					$error_pk = !empty($options['options']['details_11']) ? ($parent_keys ?? []) : array_merge($parent_keys ?? [], [$holder['pk']]);
-					$holder['error_name'] = $this->parentHeysToErrorName($error_pk);
+					$holder['error_name'] = $this->parentKeysToErrorName($error_pk);
 					foreach ($options['options']['details_pk'] as $v) {
 						$this->error('danger', \Object\Content\Messages::DUPLICATE_VALUE, "{$holder['error_name']}[{$v}]");
 					}
 				}
 			} else {
 				$error_pk = !empty($options['options']['details_11']) ? ($parent_keys ?? []) : array_merge($parent_keys ?? [], [$holder['pk']]);
-				$holder['error_name'] = $this->parentHeysToErrorName($error_pk);
+				$holder['error_name'] = $this->parentKeysToErrorName($error_pk);
 				$holder['new_pk_locks'][$holder['pk']] = true;
 			}
 		}
@@ -705,10 +705,10 @@ class Base extends \Object\Form\Parent2 {
 				// sort fields
 				$fields = $this->sortFieldsForProcessing($v['elements'], $v['options']);
 				// if we have custom data processor
-				if (!empty($v['options']['details_processWidget_data'])) {
+				if (!empty($v['options']['details_process_widget_data'])) {
 					$widget_model = \Factory::model($k, true);
 					$v['validate_required'] = $options['validate_required'] ?? false;
-					$this->values[$k] = $widget_model->processWidget_data($this, [$k], $details, $this->values, $fields, $v);
+					$this->values[$k] = $widget_model->formProcessWidgetData($this, [$k], $details, $this->values, $fields, $v);
 					continue;
 				}
 				// start processing of keys
@@ -2044,13 +2044,10 @@ convert_multiple_columns:
 			// see if we adding a widget
 			if (!empty($options['widget'])) {
 				// we skip if widgets are not enabled
-				if (!\Object\Widgets::enabled(str_replace('detail_', '', $options['widget']))) return;
-				// process default widget options
-				$widget = constant('\Object\Widgets::'. $options['widget']);
-				$widget_data = constant('\Object\Widgets::'. $options['widget'] . '_data');
-				$options = array_merge_hard($widget_data, $options);
-				if (isset($widget_data['type'])) {
-					$options['type'] = $widget_data['type'];
+				$widget = str_replace('detail_', '', $options['widget']);
+				$temp = \Object\ACL\Resources::getStatic('widgets', $widget);
+				if (empty($temp) || empty($this->collection_object->primary_model->{$widget})) {
+					return;
 				}
 				// handling widgets
 				return $this->processWidget($options);
@@ -2393,6 +2390,7 @@ convert_multiple_columns:
 	 */
 	public function processParamsAndDepends(& $params, & $neighbouring_values, $options, $flag_params = true) {
 		foreach ($params as $k => $v) {
+			if (is_array($v)) continue;
 			// if we have a parent
 			if (strpos($v, 'parent::') !== false) {
 				$field = str_replace(['parent::', 'static::'], '', $v);

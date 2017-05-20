@@ -512,7 +512,7 @@ class Format {
 		}
 		// decimals
 		if (!isset($options['decimals'])) {
-			$options['decimals'] = \Object\Data\Domains::get_setting('amount', 'scale');
+			$options['decimals'] = \Object\Data\Domains::getSetting('amount', 'scale');
 		}
 		// user defined monetary options
 		if (empty($options['skip_user_settings'])) {
@@ -541,8 +541,8 @@ class Format {
 			}
 		}
 		// formatting if we use locale
-		if (self::use_locale()) {
-			$amount = self::money_format($amount, $options);
+		if (self::useLocale()) {
+			$amount = self::moneyFormat($amount, $options);
 		} else { // if we are not using locale
 			if (!empty($options['accounting']) && $amount < 0) {
 				$amount = '(' . number_format(abs($amount), $options['decimals'], self::$options['locale_options']['mon_decimal_point'], self::$options['locale_options']['mon_thousands_sep']) . ')';
@@ -571,7 +571,7 @@ class Format {
 	 * @return string
 	 */
 	public static function currencyRate($amount, $options = []) {
-		$options['decimals'] = \Object\Data\Domains::get_setting('currency_rate', 'scale');
+		$options['decimals'] = \Object\Data\Domains::getSetting('currency_rate', 'scale');
 		return self::amount($amount, $options);
 	}
 
@@ -582,7 +582,7 @@ class Format {
 	 */
 	public static function quantity($amount, $options = []) {
 		$options['symbol'] = false;
-		$options['decimals'] = \Object\Data\Domains::get_setting('quantity', 'scale');
+		$options['decimals'] = \Object\Data\Domains::getSetting('quantity', 'scale');
 		return self::amount($amount, $options);
 	}
 

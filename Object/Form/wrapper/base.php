@@ -112,7 +112,7 @@ class Base extends \Object\Form\Parent2 {
 		if (isset($options['form_link'])) {
 			$this->form_link = $options['form_link'];
 		}
-		// step 1: create form object
+		// step 0: create form object
 		$this->form_object = new \Object\Form\Base($this->form_link, array_merge_hard($this->options, $options));
 		// class
 		$this->form_object->form_class = get_called_class();
@@ -142,6 +142,22 @@ class Base extends \Object\Form\Parent2 {
 			$temp = explode('\\', $temp[1]);
 			$this->title = $this->form_object->title = ucwords(implode(' ', $temp));
 		}
+		// step 1: methods
+		foreach (['refresh', 'validate', 'save', 'post', 'success', 'finalize', 'owners', 'overrideFieldValue', 'overrideTabs', 'processDefaultValue', 'processOptionsModels', 'listQuery'] as $v) {
+			if (method_exists($this, $v)) {
+				$this->form_object->wrapper_methods[$v]['main'] = [& $this, $v];
+			}
+		}
+		// extensions can have their own verify methods
+		if (!empty($this->wrapper_methods)) {
+			foreach ($this->wrapper_methods as $k => $v) {
+				$index = 1;
+				foreach ($v as $k2 => $v2) {
+					$this->form_object->wrapper_methods[$k][$index] = [new $k2, $v2];
+					$index++;
+				}
+			}
+		}
 		// step 2: create all containers
 		foreach ($this->containers as $k => $v) {
 			if ($v === null) {
@@ -158,7 +174,7 @@ class Base extends \Object\Form\Parent2 {
 				$this->form_object->row($k, $k2, $v2);
 			}
 		}
-		// step 3: create all elements
+		// step 4: create all elements
 		foreach ($this->elements as $k => $v) {
 			foreach ($v as $k2 => $v2) {
 				foreach ($v2 as $k3 => $v3) {
@@ -166,22 +182,6 @@ class Base extends \Object\Form\Parent2 {
 						continue;
 					}
 					$this->form_object->element($k, $k2, $k3, $v3);
-				}
-			}
-		}
-		// step 3: methods
-		foreach (['refresh', 'validate', 'save', 'post', 'success', 'finalize', 'overrideFieldValue', 'overrideTabs', 'processDefaultValue', 'processOptionsModels', 'listQuery'] as $v) {
-			if (method_exists($this, $v)) {
-				$this->form_object->wrapper_methods[$v]['main'] = [& $this, $v];
-			}
-		}
-		// extensions can have their own verify methods
-		if (!empty($this->wrapper_methods)) {
-			foreach ($this->wrapper_methods as $k => $v) {
-				$index = 1;
-				foreach ($v as $k2 => $v2) {
-					$this->form_object->wrapper_methods[$k][$index] = [new $k2, $v2];
-					$index++;
 				}
 			}
 		}

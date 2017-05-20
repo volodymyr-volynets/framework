@@ -45,10 +45,10 @@ class Types extends \Object\Data {
 		// json types
 		'json' => ['name' => 'JSON', 'php_type' => 'array'],
 		// date types
-		'date' => ['name' => 'Date', 'php_type' => 'string', 'format' => 'date', 'placeholder' => 'Format::get_date_placeholder'],
-		'time' => ['name' => 'Time', 'php_type' => 'string', 'format' => 'time', 'placeholder' => 'Format::get_date_placeholder'],
-		'datetime' => ['name' => 'Date & Time', 'php_type' => 'string', 'format' => 'datetime', 'placeholder' => 'Format::get_date_placeholder'],
-		'timestamp' => ['name' => 'Timestamp', 'php_type' => 'string', 'format' => 'timestamp', 'placeholder' => 'Format::get_date_placeholder'],
+		'date' => ['name' => 'Date', 'php_type' => 'string', 'format' => 'date', 'placeholder' => 'Format::getDatePlaceholder'],
+		'time' => ['name' => 'Time', 'php_type' => 'string', 'format' => 'time', 'placeholder' => 'Format::getDatePlaceholder'],
+		'datetime' => ['name' => 'Date & Time', 'php_type' => 'string', 'format' => 'datetime', 'placeholder' => 'Format::getDatePlaceholder'],
+		'timestamp' => ['name' => 'Timestamp', 'php_type' => 'string', 'format' => 'timestamp', 'placeholder' => 'Format::getDatePlaceholder'],
 		// mixed data type
 		'mixed' => ['name' => 'Mixed', 'php_type' => 'mixed']
 	];
