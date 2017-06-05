@@ -299,6 +299,13 @@ class Table extends \Object\Table\Options {
 	public $module = false;
 
 	/**
+	 * Module column
+	 *
+	 * @var string
+	 */
+	public $module_column;
+
+	/**
 	 * SQL Last query
 	 *
 	 * @var string
@@ -327,7 +334,7 @@ class Table extends \Object\Table\Options {
 			}
 			// if we could not determine the link we throw exception
 			if (empty($this->db_link)) {
-				Throw new Exception('Could not determine db link in model!');
+				Throw new \Exception('Could not determine db link in model!');
 			}
 		}
 		// process table name and schema
@@ -340,6 +347,10 @@ class Table extends \Object\Table\Options {
 		// tenant column
 		if ($this->tenant) {
 			$this->tenant_column = $this->column_prefix . 'tenant_id';
+		}
+		// module column
+		if ($this->module) {
+			$this->module_column = $this->column_prefix . 'module_id';
 		}
 		// cache tags
 		$this->cache_tags[] = $this->full_table_name;
@@ -428,7 +439,7 @@ class Table extends \Object\Table\Options {
 		$this->virtual_class_name = $virtual_class_name;
 		$model = \Factory::model($class, true);
 		if (empty($model->{$widget_name}) || empty($model->{$widget_name}['map'])) {
-			Throw new Exception("You must indicate {$widget_name} for {$class} map!");
+			Throw new \Exception("You must indicate {$widget_name} for {$class} map!");
 		}
 		// title & name
 		$this->title = $model->title . ' ' . ucwords($widget_name);
@@ -583,7 +594,7 @@ class Table extends \Object\Table\Options {
 		$result = $query->query($pk, $options_query);
 		$this->sql_last_query = $query->sql();
 		if (!$result['success']) {
-			Throw new Exception(implode(", ", $result['error']));
+			Throw new \Exception(implode(", ", $result['error']));
 		}
 		// single row
 		if (!empty($options['single_row'])) {

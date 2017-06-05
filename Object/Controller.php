@@ -59,6 +59,13 @@ class Controller {
 	public $controller_id;
 
 	/**
+	 * Controller data
+	 *
+	 * @var array
+	 */
+	public $controller_data = [];
+
+	/**
 	 * Method code
 	 *
 	 * @var string
@@ -117,6 +124,8 @@ class Controller {
 			$this->icon = self::$cached_controllers[$class]['icon'];
 			$this->breadcrumbs = self::$cached_controllers[$class]['breadcrumbs'];
 			$this->actions = self::$cached_controllers[$class]['actions'];
+			// data
+			$this->controller_data = self::$cached_controllers[$class];
 			// ids
 			$this->controller_id = self::$cached_controllers[$class]['id'];
 			$this->method_code = \Application::get('mvc.controller_action_code');
@@ -240,6 +249,23 @@ class Controller {
 			if ($temp === 1) return 1;
 		}
 		return 0;
+	}
+
+	/**
+	 * Get controllers modules
+	 *
+	 * @return array
+	 */
+	public function getControllersModules() : array {
+		$result = [];
+		$module_datasource = \Object\ACL\Resources::getStatic('system', 'modules_by_code', 'datasource_name');
+		if (!empty($module_datasource)) {
+			$module_datasource_object = new $module_datasource();
+			$result = $module_datasource_object->options(['where' => [
+				'module_code' => $this->controller_data['module_code']
+			]]);
+		}
+		return $result;
 	}
 
 	/**

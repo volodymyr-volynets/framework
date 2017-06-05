@@ -36,6 +36,8 @@ class Domains extends \Object\Data {
 		'short_code' => ['name' => 'Short Code', 'type' => 'varchar', 'length' => 6, 'validator_method' => '\Object\Validator\UpperCase::validate'],
 		'type_code' => ['name' => 'Type Code', 'type' => 'varchar', 'length' => 15, 'validator_method' => '\Object\Validator\UpperCase::validate'],
 		'group_code' => ['name' => 'Group Code', 'type' => 'varchar', 'length' => 30, 'validator_method' => '\Object\Validator\UpperCase::validate'],
+		'status_one' => ['name' => 'Status (1)', 'type' => 'char', 'length' => 1],
+		'status_two' => ['name' => 'Status (2)', 'type' => 'char', 'length' => 2],
 		// types & groups
 		'type_id' => ['name' => 'Type #', 'type' => 'smallint', 'default' => null, 'format' => 'id'],
 		'type_id_sequence' => ['name' => 'Type #', 'type' => 'smallserial', 'placeholder' => 'Sequence', 'format' => 'id'],
@@ -94,6 +96,10 @@ class Domains extends \Object\Data {
 		'user_id_sequence' => ['name' => 'User #', 'type' => 'serial', 'placeholder' => 'Sequence'],
 		'organization_id' => ['name' => 'Organization #', 'type' => 'integer', 'default' => null, 'format' => 'id'],
 		'organization_id_sequence' => ['name' => 'Organization #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
+		'jurisdiction_id' => ['name' => 'Jurisdiction #', 'type' => 'integer', 'default' => null, 'format' => 'id'],
+		'jurisdiction_id_sequence' => ['name' => 'Jurisdiction #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
+		'authority_id' => ['name' => 'Authority #', 'type' => 'integer', 'default' => null, 'format' => 'id'],
+		'authority_id_sequence' => ['name' => 'Authority #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		//'component_id' => ['name' => 'Component #', 'type' => 'integer', 'default' => null, 'format' => 'id'],
 		//'component_id_sequence' => ['name' => 'Component #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		// relations & models
@@ -107,13 +113,12 @@ class Domains extends \Object\Data {
 		// accounting
 		'term_code' => ['name' => 'Term Code', 'type' => 'varchar', 'length' => 12, 'validator_method' => '\Object\Validator\UpperCase::validate', 'searchable' => true],
 		'payment_code' => ['name' => 'Payment Code', 'type' => 'varchar', 'length' => 12, 'validator_method' => '\Object\Validator\UpperCase::validate', 'searchable' => true],
-		'source_code' => ['name' => 'Source Code', 'type' => 'char', 'length' => 3, 'validator_method' => '\Object\Validator\UpperCase::validate'],
 		'year' => ['name' => 'Year', 'type' => 'smallint', 'validator_method' => 'object_validator_year::validate', 'format' => 'id', 'searchable' => true],
 		'period' => ['name' => 'Period', 'type' => 'smallint', 'validator_method' => 'object_validator_period::validate', 'format' => 'id'],
-		'segment_delimiter' => ['name' => 'Segment Delimiter', 'type' => 'varchar', 'length' => 1],
-		'gl_account' => ['name' => 'G/L Account', 'type' => 'varchar', 'length' => 109, 'placeholder' => 'G/L Account', 'searchable' => true, 'tree' => true, 'format' => 'id'],
 		'uom' => ['name' => 'UOM', 'type' => 'varchar', 'length' => 12],
-		'status' => ['name' => 'Status', 'type' => 'char', 'length' => 1],
+		'cs_segment_delimiter' => ['name' => 'Segment Delimiter', 'type' => 'char', 'length' => 1],
+		'cs_account' => ['name' => 'C/S Account', 'type' => 'varchar', 'length' => 109, 'placeholder' => 'C/S Account', 'searchable' => true, 'tree' => true, 'format' => 'id'],
+		'gl_source_code' => ['name' => 'Source Code', 'type' => 'char', 'length' => 3, 'validator_method' => '\Object\Validator\UpperCase::validate'],
 		// html
 		'html_color_code' => ['name' => 'HTML Color Code', 'type' => 'char', 'length' => 6, 'null' => true],
 		'html_color_group' => ['name' => 'HTML Color Group', 'type' => 'varchar', 'length' => 30, 'null' => true]

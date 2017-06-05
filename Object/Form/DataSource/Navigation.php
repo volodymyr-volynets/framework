@@ -1,7 +1,7 @@
 <?php
 
 namespace Object\Form\DataSource;
-class Navigation extends \Object\Datasource {
+class Navigation extends \Object\DataSource {
 	public $db_link;
 	public $db_link_flag;
 	public $pk;

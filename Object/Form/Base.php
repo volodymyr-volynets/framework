@@ -1113,6 +1113,41 @@ class Base extends \Object\Form\Parent2 {
 				$this->element($this::HIDDEN, $this::HIDDEN, $this->collection_object->primary_model->optimistic_lock_column, ['label_name' => 'Optimistic Lock', 'type' => 'text', 'null' => true, 'default' => null, 'method'=> 'hidden']);
 			}
 		}
+		// module #
+		$blank_reset_var = [];
+		if ($this->collection_object->primary_model->module ?? false) {
+			// reset of module #
+			if (($this->options['input']['__form_onchange_field_values_key'] ?? null) == $this->collection_object->primary_model->module_column) {
+				$module_id = $this->options['input'][$this->collection_object->primary_model->module_column] ?? null;
+				$this->options['input'] = [];
+				$this->options['input'][$this->collection_object->primary_model->module_column] = $module_id;
+			}
+			// add report container
+			$this->container('__module_container', [
+				'default_row_type' => 'grid',
+				'order' => PHP_INT_MIN + 1000
+			]);
+			// process module #
+			$module_id = $this->options['input'][$this->collection_object->primary_model->module_column] ?? null;
+			$module_datasource_options = \Application::$controller->getControllersModules();
+			if (empty($module_id) || empty($module_datasource_options[$module_id])) {
+				$module_id = key($module_datasource_options);
+			}
+			$blank_reset_var[$this->collection_object->primary_model->module_column] = $module_id;
+			$this->options['input'][$this->collection_object->primary_model->module_column] = $module_id;
+			$this->element('__module_container', 'row', $this->collection_object->primary_model->module_column, [
+				'label_name' => 'System Module',
+				'domain' => 'module_id',
+				'null' => true,
+				'required' => true,
+				'default' => $module_id,
+				'method' => 'select',
+				'options' => $module_datasource_options,
+				'onchange' => 'this.form.submit();',
+				'query_builder' => 'a.' . $this->collection_object->primary_model->module_column . ';='
+			]);
+			$this->element('__module_container', 'separator_1', self::SEPARATOR_HORIZONTAL, ['row_order' => 400, 'label_name' => '', 'percent' => 100]);
+		}
 		// hidden buttons to handle form though javascript
 		$this->element($this::HIDDEN, $this::HIDDEN, $this::BUTTON_SUBMIT_REFRESH, $this::BUTTON_SUBMIT_REFRESH_DATA);
 		if (!isset($this->process_submit_all[$this::BUTTON_SUBMIT_BLANK])) {
@@ -1234,7 +1269,7 @@ class Base extends \Object\Form\Parent2 {
 		}
 		// if we are blanking the form
 		if ($this->blank) {
-			$this->getAllValues([]);
+			$this->getAllValues($blank_reset_var);
 			$this->triggerMethod('refresh');
 			goto convert_multiple_columns;
 		}
@@ -1304,25 +1339,6 @@ class Base extends \Object\Form\Parent2 {
 				} else if (!empty($this->collection_object)) {
 					// native save based on collection
 					$this->values_saved = $this->saveValues();
-					/*
-					 * todo
-					if ($this->save_values() || empty($this->errors['general']['danger'])) {
-						// we need to redirect for certain buttons
-						$mvc = \Application::get('mvc');
-						// save and new
-						if (!empty($this->process_submit[self::BUTTON_SUBMIT_SAVE_AND_NEW])) {
-							\Request::redirect($mvc['full']);
-						}
-						// save and close
-						if (!empty($this->process_submit[self::BUTTON_SUBMIT_SAVE_AND_CLOSE])) {
-							\Request::redirect($mvc['controller'] . '/_index');
-						}
-						// we reload form values
-						goto loadValues;
-					} else {
-						goto convert_multiple_columns;
-					}
-					*/
 				}
 				// if save was successfull we post
 				if (!$this->hasErrors()) {
@@ -1389,6 +1405,19 @@ convert_multiple_columns:
 		$this->closeTransaction();
 		// finilize
 		$this->triggerMethod('finalize');
+		// save and new and/or close
+		if (!$this->hasErrors()) {
+			// we need to redirect for certain buttons
+			$mvc = \Application::get('mvc');
+			// save and new
+			if (!empty($this->process_submit[self::BUTTON_SUBMIT_SAVE_AND_NEW])) {
+				\Request::redirect($mvc['full']);
+			}
+			// save and close
+			if (!empty($this->process_submit[self::BUTTON_SUBMIT_SAVE_AND_CLOSE])) {
+				\Request::redirect($mvc['controller'] . '/_Index');
+			}
+		}
 		// convert multiple column to a form renderer can accept
 		$this->convertMultipleColumns($this->values);
 		// assuming save has been executed without errors we need to process on_success_js
@@ -2388,17 +2417,20 @@ convert_multiple_columns:
 	 * @param array $options
 	 * @param boolean $flag_params
 	 */
-	public function processParamsAndDepends(& $params, & $neighbouring_values, $options, $flag_params = true) {
+	public function processParamsAndDepends(& $params, & $neighbouring_values, $options, $flag_params = true, $detail_values = []) {
 		foreach ($params as $k => $v) {
 			if (is_array($v)) continue;
 			// if we have a parent
-			if (strpos($v, 'parent::') !== false) {
+			if (strpos($v, 'parent::') !== false) { // value from parent
 				$field = str_replace(['parent::', 'static::'], '', $v);
 				if (!empty($this->errors['fields'][$field]['danger'])) {
 					$params[$k] = null;
 				} else {
 					$params[$k] = $this->values[$field] ?? null;
 				}
+			} else if (strpos($v, 'detail::') !== false) { // if we need to grab value from detail
+				$field = str_replace('detail::', '', $v);
+				$params[$k] = $options['options']['__detail_values'][$field] ?? null;
 			} else if ($flag_params) {
 				// todo process errors   
 				$params[$k] = $neighbouring_values[$v] ?? null;

@@ -42,6 +42,16 @@ class Parent2 extends \Object\Override\Data {
 	];
 
 	/**
+	 * Filter sort
+	 */
+	const LIST_FILTER_SORT = [
+		'value' => 'Filter/Sort',
+		'sort' => 32000,
+		'icon' => 'filter',
+		'onclick' => 'Numbers.Form.listFilterSortToggle(this);'
+	];
+
+	/**
 	 * Row for buttons
 	 */
 	const BUTTONS = '__submit_buttons';
