@@ -68,11 +68,26 @@ class Tree {
 	 * @param array $result
 	 */
 	public static function convertTreeToOptionsMulti($data, $level = 0, $options = [], & $result) {
-		// convert to array
+		if (empty($options['name_field'])) $options['name_field'] = 'name';
+		if (!isset($options['i18n'])) $options['i18n'] = true;
+		// skip_keys - convert to array
 		if (!empty($options['skip_keys']) && !is_array($options['skip_keys'])) {
 			$options['skip_keys'] = [$options['skip_keys']];
 		}
 		$inactive = i18n(null, \Object\Content\Messages::INFO_INACTIVE);
+		// translate name column
+		foreach ($data as $k => $v) {
+			$data[$k]['name'] = !empty($options['i18n']) ? i18n(null, $v[$options['name_field']]) : $v[$options['name_field']];
+			// handle inactive
+			if (!empty($v['inactive'])) {
+				$data[$k]['name'].= \Format::$symbol_comma . ' ' . $inactive;
+			}
+		}
+		// sorting
+		if (!empty($options['i18n']) && $options['i18n'] !== 'skip_sorting') {
+			array_key_sort($data, ['name' => SORT_ASC], ['name' => SORT_NATURAL]);
+		}
+		// assemble
 		foreach ($data as $k => $v) {
 			// if we are skipping certain keys
 			if (!empty($options['skip_keys']) && in_array($k, $options['skip_keys'])) {
@@ -80,11 +95,6 @@ class Tree {
 			}
 			// assemble variable
 			$value = $v;
-			$value['name'] = !empty($options['i18n']) ? i18n(null, $v[$options['name_field']]) : $v[$options['name_field']];
-			// handle inactive
-			if (!empty($v['inactive'])) {
-				$value['name'].= \Format::$symbol_comma . ' ' . $inactive;
-			}
 			$value['level'] = $level;
 			if (!empty($options['icon_field'])) {
 				$value['icon_class'] = \HTML::icon(['type' => $v[$options['icon_field']], 'class_only' => true]);

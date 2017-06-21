@@ -59,6 +59,13 @@ class Controller {
 	public $controller_id;
 
 	/**
+	 * Module #
+	 *
+	 * @var int
+	 */
+	public $module_id;
+
+	/**
 	 * Controller data
 	 *
 	 * @var array
@@ -109,12 +116,35 @@ class Controller {
 	private static $cached_roles;
 
 	/**
+	 * Cached modules
+	 *
+	 * @var array
+	 */
+	private static $cached_modules;
+
+	/**
 	 * Constructor
 	 */
 	public function __construct() {
 		// load all controllers from datasource
 		if (is_null(self::$cached_controllers) && !\Object\Error\Base::$flag_database_tenant_not_found) {
 			self::$cached_controllers = \Object\ACL\Resources::getStatic('controllers', 'primary');
+		}
+		// load all modules from datasource
+		if (is_null(self::$cached_modules) && !\Object\Error\Base::$flag_database_tenant_not_found) {
+			$temp = \Object\ACL\Resources::getStatic('modules', 'primary');
+			self::$cached_modules = [];
+			foreach ($temp as $k => $v) {
+				if (!isset(self::$cached_modules[$v['module_code']])) {
+					self::$cached_modules[$v['module_code']] = [
+						'module_multiple' => $v['module_multiple'],
+						'module_ids' => []
+					];
+				}
+				self::$cached_modules[$v['module_code']]['module_ids'][$k] = [
+					'name' => $v['name']
+				];
+			}
 		}
 		// find yourself
 		$class = '\\' . get_called_class();
@@ -152,7 +182,7 @@ class Controller {
 			// permissions
 			if (!empty($this->acl['permission'])) {
 				// determine action
-				$action = $this->method_code == 'Edit' ? 'Record_Edit' : 'List_View';
+				$action = $this->method_code == 'Edit' ? 'Record_View' : 'List_View';
 				return $this->can($action);
 			}
 		} else {
@@ -172,12 +202,30 @@ class Controller {
 	 * Can
 	 *
 	 * @param string|int $action
+	 * @param string $method_code
+	 * @param int $module_id
 	 * @param array $roles
 	 * @return boolean
 	 */
-	public function can($action, $method_code = null, $roles = null) : bool {
+	public function can($action, $method_code = null, $module_id = null, $roles = null) : bool {
 		if (empty($this->controller_id)) return false;
-		return $this->canExtended($this->controller_id, $method_code ?? $this->method_code, $action, $roles);
+		// module id
+		if (empty($module_id)) {
+			if (empty(self::$cached_modules[$this->controller_data['module_code']]['module_multiple'])) {
+				$this->module_id = $module_id = key(self::$cached_modules[$this->controller_data['module_code']]['module_ids']);
+			} else {
+				if (empty($module_id)) $module_id = \Application::get('flag.global.__module_id');
+				$modules = $this->getControllersModules();
+				if (!empty($module_id) && empty($modules[$module_id])) { // see if you have correct module
+					Throw new \Exception('You must specify correct module #');
+				} else if (empty($module_id)) { // grab first module if not specified
+					$module_id = key($modules);
+				}
+				$this->module_id = $module_id;
+			}
+		}
+		// run permission
+		return $this->canExtended($this->controller_id, $method_code ?? $this->method_code, $action, $module_id, $roles);
 	}
 
 	/**
@@ -186,17 +234,20 @@ class Controller {
 	 * @param int $resource_id
 	 * @param string $method_code
 	 * @param string|int $action
+	 * @param int $module_id
 	 * @param array $roles
 	 * @return bool
 	 * @throws Exception
 	 */
-	public function canExtended($resource_id, $method_code, $action, $roles = null) : bool {
-		// if resource is not present we return false
+	public function canExtended($resource_id, $method_code, $action, $module_id = null, $roles = null) : bool {
+		// rearrange controllers
 		if (!isset(self::$cached_controllers_by_ids)) {
+			self::$cached_controllers_by_ids = [];
 			foreach (self::$cached_controllers as $k => $v) {
 				self::$cached_controllers_by_ids[$v['id']] = $k;
 			}
 		}
+		// if resource is not present we return false
 		if (empty(self::$cached_controllers_by_ids[$resource_id])) return false;
 		// super admin
 		if (\User::get('super_admin')) return true;
@@ -209,7 +260,7 @@ class Controller {
 		if (is_string($action)) $action = self::$cached_actions[$action]['id'];
 		// go though roles
 		foreach ($roles as $v) {
-			$temp = $this->processRole($v, $resource_id, $method_code, $action);
+			$temp = $this->processRole($v, $resource_id, $method_code, $action, $module_id);
 			if ($temp === 1) return true;
 		}
 		return false;
@@ -224,15 +275,31 @@ class Controller {
 	 * @param int $action_id
 	 * @return int
 	 */
-	private function processRole(string $role, int $resource_id, string $method_code, int $action_id) : int {
+	private function processRole(string $role, int $resource_id, string $method_code, int $action_id, $module_id = null) : int {
 		// load all roles from datasource
 		if (is_null(self::$cached_roles) && !\Object\Error\Base::$flag_database_tenant_not_found) {
 			self::$cached_roles = \Object\ACL\Resources::getStatic('roles', 'primary');
 		}
 		// if role is not found
 		if (empty(self::$cached_roles[$role])) return 0;
-		// see if we have permissions
-		$temp = self::$cached_roles[$role]['permissions'][$resource_id][$method_code][$action_id] ?? null;
+		// process permissions
+		$all_actions = self::$cached_roles[$role]['permissions'][$resource_id]['AllActions'][-1] ?? null;
+		$actual_action = self::$cached_roles[$role]['permissions'][$resource_id][$method_code][$action_id] ?? null;
+		$temp = array_merge_hard($all_actions, $actual_action);
+		if (!empty($temp)) {
+			if (!empty($module_id)) {
+				$temp = $temp[$module_id] ?? null;
+			} else { // find any active permision
+				$temp2 = $temp;
+				$temp = null;
+				foreach ($temp2 as $k => $v) {
+					if ($v === 0) {
+						$temp = 0;
+						break;
+					}
+				}
+			}
+		}
 		if ($temp === 0) {
 			return 1;
 		} else if ($temp === 1) {
@@ -257,15 +324,17 @@ class Controller {
 	 * @return array
 	 */
 	public function getControllersModules() : array {
-		$result = [];
-		$module_datasource = \Object\ACL\Resources::getStatic('system', 'modules_by_code', 'datasource_name');
-		if (!empty($module_datasource)) {
-			$module_datasource_object = new $module_datasource();
-			$result = $module_datasource_object->options(['where' => [
-				'module_code' => $this->controller_data['module_code']
-			]]);
+		$result = self::$cached_modules[$this->controller_data['module_code']]['module_ids'];
+		// filter
+		foreach ($result as $k => $v) {
+			// determine action
+			$action = $this->method_code == 'Edit' ? 'Record_View' : 'List_View';
+			if (!$this->can($action, $this->method_code, $k)) {
+				unset($result[$k]);
+			}
 		}
-		return $result;
+		// sort
+		return \Object\Data\Common::buildOptions($result, ['name' => 'name'], [], ['i18n' => true]);
 	}
 
 	/**

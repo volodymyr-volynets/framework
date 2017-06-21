@@ -86,6 +86,7 @@ class Columns extends \Object\Data {
 			foreach (['dependent::', 'parent::', 'master_object::', 'static::'] as $v) {
 				if (strpos($column_options['default'] . '', $v) !== false) {
 					unset($column_options['default']);
+					break;
 				}
 			}
 		}

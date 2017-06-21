@@ -119,17 +119,14 @@ class Base extends \Object\Form\Parent2 {
 		$this->form_object->initiator_class = $options['initiator_class'] ?? 'form';
 		$this->form_object->form_parent = & $this;
 		$this->form_object->acl = $this->acl;
+		// buttons model
+		if (!empty($this->buttons_model)) {
+			$this->form_object->buttons_model = new $this->buttons_model();
+		}
 		// add collection
 		$this->form_object->collection = $this->collection;
 		$this->form_object->preloadCollectionObject(); // must initialize it before calls to container/row/element
 		$this->form_object->column_prefix = $this->column_prefix ?? $this->form_object->collection_object->primary_model->column_prefix ?? null;
-		// master object
-		if (!empty($this->master_options['model'])) {
-			$this->master_options['type'] = $this->master_options['type'] ?? '';
-			$this->master_options['ledger'] = strtoupper($this->master_options['ledger']) ?? '';
-			$this->form_object->master_options = $this->master_options;
-			$this->form_object->master_object = Factory::model($this->master_options['model'], true);
-		}
 		// report object
 		// todo		
 		//$this->form_object->report_object = new numbers_frontend_html_form_report($this->form_object);

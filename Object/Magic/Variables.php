@@ -9,6 +9,7 @@ class Variables extends \Object\Data {
 		'no_magic_variable_description' => ['name' => 'Description', 'type' => 'text']
 	];
 	public $data = [
+		'__module_id' => ['no_magic_variable_description' => 'Module #'],
 		'__content_type' => ['no_magic_variable_description' => 'Content Type'],
 		//'__in_language_code' => ['no_magic_variable_description' => 'I/N Language Code'],
 		'__in_group_id' => ['no_magic_variable_description' => 'I/N Group #'],

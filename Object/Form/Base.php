@@ -304,6 +304,13 @@ class Base extends \Object\Form\Parent2 {
 	public $list_rendered;
 
 	/**
+	 * Buttons model
+	 *
+	 * @var object
+	 */
+	public $buttons_model;
+
+	/**
 	 * Constructor
 	 *
 	 * @param string $form_link
@@ -1117,36 +1124,42 @@ class Base extends \Object\Form\Parent2 {
 		$blank_reset_var = [];
 		if ($this->collection_object->primary_model->module ?? false) {
 			// reset of module #
-			if (($this->options['input']['__form_onchange_field_values_key'] ?? null) == $this->collection_object->primary_model->module_column) {
-				$module_id = $this->options['input'][$this->collection_object->primary_model->module_column] ?? null;
+			if (($this->options['input']['__form_onchange_field_values_key'] ?? null) == '__module_id') {
 				$this->options['input'] = [];
-				$this->options['input'][$this->collection_object->primary_model->module_column] = $module_id;
+				$this->options['input'][$this->collection_object->primary_model->module_column] = $this->options['input']['__module_id'] = \Application::$controller->module_id;
 			}
+			$blank_reset_var[$this->collection_object->primary_model->module_column] = $blank_reset_var['__module_id'] = $this->options['input'][$this->collection_object->primary_model->module_column] = \Application::$controller->module_id;
 			// add report container
 			$this->container('__module_container', [
 				'default_row_type' => 'grid',
 				'order' => PHP_INT_MIN + 1000
 			]);
-			// process module #
-			$module_id = $this->options['input'][$this->collection_object->primary_model->module_column] ?? null;
-			$module_datasource_options = \Application::$controller->getControllersModules();
-			if (empty($module_id) || empty($module_datasource_options[$module_id])) {
-				$module_id = key($module_datasource_options);
-			}
-			$blank_reset_var[$this->collection_object->primary_model->module_column] = $module_id;
-			$this->options['input'][$this->collection_object->primary_model->module_column] = $module_id;
-			$this->element('__module_container', 'row', $this->collection_object->primary_model->module_column, [
-				'label_name' => 'System Module',
+			$this->element('__module_container', 'row', '__module_id', [
+				'label_name' => 'Ledger',
 				'domain' => 'module_id',
 				'null' => true,
 				'required' => true,
-				'default' => $module_id,
+				'default' => \Application::$controller->module_id,
 				'method' => 'select',
-				'options' => $module_datasource_options,
-				'onchange' => 'this.form.submit();',
+				'no_choose' => true,
+				'options' => \Application::$controller->getControllersModules(),
+				'onchange' => 'this.form.submit();'
+			]);
+			$this->element('__module_container', $this::HIDDEN, $this->collection_object->primary_model->module_column, [
+				'label_name' => 'Ledger',
+				'domain' => 'module_id',
+				'required' => true,
+				'default' => \Application::$controller->module_id,
+				'method' => 'hidden',
 				'query_builder' => 'a.' . $this->collection_object->primary_model->module_column . ';='
 			]);
 			$this->element('__module_container', 'separator_1', self::SEPARATOR_HORIZONTAL, ['row_order' => 400, 'label_name' => '', 'percent' => 100]);
+			// master object
+			if (!empty($this->form_parent->master_options['model'])) {
+				$this->master_options = $this->form_parent->master_options;
+				$class = $this->master_options['model'];
+				$this->master_object = new $class($module_id, $this->form_parent->master_options['ledger']);
+			}
 		}
 		// hidden buttons to handle form though javascript
 		$this->element($this::HIDDEN, $this::HIDDEN, $this::BUTTON_SUBMIT_REFRESH, $this::BUTTON_SUBMIT_REFRESH_DATA);
@@ -1313,7 +1326,7 @@ class Base extends \Object\Form\Parent2 {
 			goto convert_multiple_columns;
 		}
 		// if form has been submitted
-		if ($this->submitted) {
+		if ($this->submitted && $this->initiator_class != 'list') {
 			// call attached method to the form
 			if (!$this->delete) {
 				// create a snapshot of values for rollback
@@ -1657,12 +1670,8 @@ convert_multiple_columns:
 	public function validateSubmitButtons($options = []) {
 		$buttons_found = [];
 		$names = [];
-		$have_TRANSACTION_BUTTONS = false;
 		foreach ($this->data as $k => $v) {
 			foreach ($v['rows'] as $k2 => $v2) {
-				if ($k2 == $this::TRANSACTION_BUTTONS) {
-					$have_TRANSACTION_BUTTONS = true;
-				}
 				// find all process submit buttons
 				foreach ($v2['elements'] as $k3 => $v3) {
 					if (!empty($v3['options']['process_submit'])) {
@@ -1679,9 +1688,9 @@ convert_multiple_columns:
 			}
 		}
 		// validations
-		if ($have_TRANSACTION_BUTTONS) {
+		if (!empty($this->buttons_model)) {
 			// make a call to master object
-			$result = $this->master_object->__process_buttons($this, [
+			$result = $this->buttons_model->processButtons($this, [
 				'skip_validation' => $options['skip_validation'] ?? false
 			]);
 			$not_allowed = $result['not_allowed'];
@@ -2459,7 +2468,7 @@ convert_multiple_columns:
 			$field = str_replace(['parent::', 'static::'], '', $default);
 			$value = $this->values[$field] ?? null;
 		} else {
-			if ($default === 'now()') $default = Format::now('timestamp');
+			if ($default === 'now()') $default = \Format::now('timestamp');
 			$value = $default;
 		}
 		// handling override_field_value method
