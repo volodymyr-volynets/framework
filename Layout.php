@@ -17,7 +17,7 @@ class Layout extends View {
 	public static $icon_override;
 
 	/**
-	 * Version to be used when rendering js/css links
+	 * Version to be used when rendering JS/CSS links
 	 *
 	 * @var int
 	 */
@@ -308,16 +308,14 @@ class Layout extends View {
 				break;
 			case 'text/html':
 				\Helper\Ob::start();
-				require(Application::get(['application', 'path_full']) . 'layout/blank.html');
-				$from = [
+				require(Application::get(['application', 'path_full']) . 'Layout/blank.html');
+				echo str_replace([
 					'<!-- [numbers: document title] -->',
 					'<!-- [numbers: document body] -->'
-				];
-				$to = [
+				], [
 					Layout::renderDocumentTitle(),
 					$data
-				];
-				echo str_replace($from, $to, \Helper\Ob::clean());
+				], \Helper\Ob::clean());
 				break;
 			default:
 				echo $data;

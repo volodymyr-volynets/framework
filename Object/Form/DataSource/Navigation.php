@@ -23,7 +23,7 @@ class Navigation extends \Object\DataSource {
 		'type' => ['name' => 'Type', 'type' => 'text', 'required' => true],
 		'column' => ['name' => 'Column', 'type' => 'text', 'required' => true],
 		'pk' => ['name' => 'Pk', 'type' => 'mixed', 'required' => true],
-		'value' => ['name' => 'Value', 'type' => 'mixed', 'required' => true],
+		'value' => ['name' => 'Value', 'type' => 'mixed', 'required' => false],
 		'depends' => ['name' => 'Depends', 'type' => 'mixed', 'required' => false],
 	];
 

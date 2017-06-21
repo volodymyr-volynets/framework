@@ -1125,8 +1125,10 @@ class Base extends \Object\Form\Parent2 {
 		if ($this->collection_object->primary_model->module ?? false) {
 			// reset of module #
 			if (($this->options['input']['__form_onchange_field_values_key'] ?? null) == '__module_id') {
+				$ajax_values = extract_keys(['__ajax', '__ajax_form_id'], $this->options['input']);
 				$this->options['input'] = [];
 				$this->options['input'][$this->collection_object->primary_model->module_column] = $this->options['input']['__module_id'] = \Application::$controller->module_id;
+				$this->options['input'] = array_merge_hard($this->options['input'], $ajax_values);
 			}
 			$blank_reset_var[$this->collection_object->primary_model->module_column] = $blank_reset_var['__module_id'] = $this->options['input'][$this->collection_object->primary_model->module_column] = \Application::$controller->module_id;
 			// add report container
@@ -1218,7 +1220,8 @@ class Base extends \Object\Form\Parent2 {
 		if (!empty($this->options['input']['__ajax'])) {
 			// if its ajax call to this form
 			if (($this->options['input']['__ajax_form_id'] ?? '') == "form_{$this->form_link}_form") {
-				// it its a call to auto complete
+				// if its a call to auto complete
+				/* todo
 				if ($this->attributes && !empty($this->options['input']['__ajax_autocomplete']['rn_attrattr_id'])) {
 					return \Factory::model('numbers_data_relations_model_attribute_form', true)->autocomplete($this, $this->options['input']);
 				} else if (!empty($this->options['input']['__ajax_autocomplete']['name'])
@@ -1235,6 +1238,7 @@ class Base extends \Object\Form\Parent2 {
 						return \Factory::model($temp[0])->{$temp[1]}($options);
 					}
 				}
+				*/
 			} else {
 				// load pk
 				$this->loadPk($this->options['input']);
@@ -1564,11 +1568,6 @@ convert_multiple_columns:
 				$this->options['input'][$this::BUTTON_SUBMIT_REFRESH] = true;
 				break;
 			}
-			$params = [
-				'column_name' => $column,
-				'column_value' => $this->values[$column],
-				'depends' => []
-			];
 			$depends = [];
 			foreach ($navigation_depends as $v) {
 				$depends[$v] = $this->values[$v];
@@ -1593,7 +1592,7 @@ convert_multiple_columns:
 						$this->misc_settings['navigation']['preserve'][$v] = $this->options['input'][$v] ?? null;
 					}
 				}
-				$this->options['input'] = $result[0];
+				$this->options['input'] = array_merge_hard($this->options['input'], $result[0]);
 			} else {
 				if ($navigation_type == 'refresh') {
 					$this->error('danger', \Object\Content\Messages::RECORD_NOT_FOUND, $column);
