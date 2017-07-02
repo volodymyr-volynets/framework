@@ -295,13 +295,18 @@ class Layout extends View {
 	 *
 	 * @param mixed $data
 	 * @param string $content_type
+	 * @param array $options
+	 *		output_file_name
 	 */
-	public static function renderAs($data, string $content_type) {
+	public static function renderAs($data, string $content_type, array $options = []) {
 		// clena up output buffer
 		\Helper\Ob::cleanAll();
 		Application::set('flag.global.__content_type', $content_type);
 		Application::set('flag.global.__skip_layout', 1);
 		header("Content-type: " . $content_type);
+		if (!empty($options['output_file_name'])) {
+			header('Content-Disposition: attachment; filename=' . $options['output_file_name']);
+		}
 		switch ($content_type) {
 			case 'application/json':
 				echo json_encode($data);

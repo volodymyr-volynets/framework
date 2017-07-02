@@ -17,7 +17,7 @@ class Parent2 extends \Object\Override\Data {
 	/**
 	 * List buttons
 	 */
-	const LIST_BUTTONS = '__LIST_BUTTONS';
+	const LIST_BUTTONS = '__list_buttons';
 	const LIST_BUTTONS_DATA = [
 		'__content_type' => [
 			'__content_type' => ['order' => 1, 'container_order' => PHP_INT_MAX - 1000, 'container_class' => 'numbers_form_filter_sort_container', 'label_name' => 'Format', 'percent' => 25, 'required' => true, 'method' => 'select', 'default' => 'text/html', 'no_choose' => true, 'options_model' => '\Object\Form\Model\Content\Types']
@@ -59,7 +59,7 @@ class Parent2 extends \Object\Override\Data {
 	/**
 	 * Row for batch buttons
 	 */
-	const TRANSACTION_BUTTONS = '__submit_TRANSACTION_BUTTONS';
+	const TRANSACTION_BUTTONS = '__submit_transaction_buttons';
 
 	/**
 	 * Hidden container/row
@@ -205,4 +205,21 @@ class Parent2 extends \Object\Override\Data {
 			'title' => 'View / Edit:'
 		]
 	];
+
+	/**
+	 * Segment import
+	 */
+	const SEGMENT_IMPORT = [
+		'type' => 'info',
+		'header' => [
+			'icon' => ['type' => 'upload'],
+			'title' => 'Import:'
+		]
+	];
 }
+
+/**
+ * Constants
+ */
+define('DANGER', 'danger');
+define('SUCCESS', 'success');

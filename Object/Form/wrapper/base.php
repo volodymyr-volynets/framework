@@ -115,10 +115,9 @@ class Base extends \Object\Form\Parent2 {
 		// step 0: create form object
 		$this->form_object = new \Object\Form\Base($this->form_link, array_merge_hard($this->options, $options));
 		// class
-		$this->form_object->form_class = get_called_class();
+		$this->form_object->form_class = '\\' . get_called_class();
 		$this->form_object->initiator_class = $options['initiator_class'] ?? 'form';
 		$this->form_object->form_parent = & $this;
-		$this->form_object->acl = $this->acl;
 		// buttons model
 		if (!empty($this->buttons_model)) {
 			$this->form_object->buttons_model = new $this->buttons_model();

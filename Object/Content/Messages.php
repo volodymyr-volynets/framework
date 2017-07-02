@@ -9,7 +9,8 @@ class Messages {
 	const REQUIRED_FIELD = 'Required field!';
 	const MULTIPLE_VALUES_ARE_NOT_ALLOWED = 'Multiple values not allowed!';
 	const UNKNOWN_VALUE = 'Unknown value(s)!';
-	const INVALID_VALUE = 'Invalid value(s)!';
+	const INVALID_VALUE = 'Invalid value: [value]!';
+	const INVALID_VALUES = 'Invalid value(s)!';
 	const DUPLICATE_VALUE = 'Duplicate value(s)!';
 	const OPTIMISTIC_LOCK = 'Someone has updated the record while you were editing, please refresh!';
 	const NO_CHANGES = 'Records have not been changed, nothing to save!';

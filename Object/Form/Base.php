@@ -29,7 +29,7 @@ class Base extends \Object\Form\Parent2 {
 	 *
 	 * @var string
 	 */
-	public $initiator_class;
+	public $initiator_class = 'form';
 
 	/**
 	 * Form parent
@@ -253,13 +253,6 @@ class Base extends \Object\Form\Parent2 {
 	public $misc_settings = [];
 
 	/**
-	 * Acl
-	 *
-	 * @var boolean
-	 */
-	public $acl = true;
-
-	/**
 	 * Master object, used for validations
 	 *
 	 * @var object
@@ -311,6 +304,13 @@ class Base extends \Object\Form\Parent2 {
 	public $buttons_model;
 
 	/**
+	 * Import object
+	 *
+	 * @var object
+	 */
+	public $import_object;
+
+	/**
 	 * Constructor
 	 *
 	 * @param string $form_link
@@ -322,7 +322,7 @@ class Base extends \Object\Form\Parent2 {
 		// overrides from ini files
 		$overrides = \Application::get('flag.numbers.frontend.html.form');
 		if (!empty($overrides)) {
-			$this->options = array_merge_hard($this->options, $overrides);
+			$this->options = array_merge_hard($overrides, $this->options);
 		}
 		$this->errorResetAll();
 	}
@@ -689,13 +689,13 @@ class Base extends \Object\Form\Parent2 {
 				$temp_value = is_array($value) ? $value : [$value];
 				foreach ($temp_value as $v54) {
 					if (empty($v['options']['options'][$v54])) {
-						$this->error('danger', \Object\Content\Messages::INVALID_VALUE, $error_name);
+						$this->error('danger', \Object\Content\Messages::INVALID_VALUES, $error_name);
 					}
 				}
 			}
 		}
 		// check optimistic lock
-		if ($this->values_loaded && $this->collection_object->primary_model->optimistic_lock && $this->initiator_class != 'numbers_frontend_html_form_wrapper_report') {
+		if ($this->values_loaded && $this->collection_object->primary_model->optimistic_lock && !in_array($this->initiator_class, ['report', 'list', 'import']) && empty($this->options['skip_optimistic_lock'])) {
 			if (($this->values[$this->collection_object->primary_model->optimistic_lock_column] ?? '') !== $this->original_values[$this->collection_object->primary_model->optimistic_lock_column]) {
 				$this->error('danger', \Object\Content\Messages::OPTIMISTIC_LOCK);
 			}
@@ -846,7 +846,7 @@ class Base extends \Object\Form\Parent2 {
 							$temp_value = is_array($value) ? $value : [$value];
 							foreach ($temp_value as $v54) {
 								if (empty($v3['options']['options'][$v54])) {
-									$this->error('danger', \Object\Content\Messages::INVALID_VALUE, "{$error_name}[{$k3}]");
+									$this->error('danger', \Object\Content\Messages::INVALID_VALUES, "{$error_name}[{$k3}]");
 								}
 							}
 						}
@@ -985,7 +985,6 @@ class Base extends \Object\Form\Parent2 {
 		if (empty($field['options_params'])) $field['options_params'] = [];
 		if (empty($field['options_options'])) $field['options_options'] = [];
 		$field['options_options']['i18n'] = false;
-		$field['options_options']['acl'] = $field['options_options']['acl'] ?? $this->acl;
 		if (empty($field['options_depends'])) $field['options_depends'] = [];
 		// options depends & params
 		$options = [];
@@ -1012,7 +1011,11 @@ class Base extends \Object\Form\Parent2 {
 				$temp = $v;
 			}
 			if (empty($field['options'][$temp])) {
-				$this->error('danger', \Object\Content\Messages::INVALID_VALUE, $error_name);
+				$this->error('danger', \Object\Content\Messages::INVALID_VALUE, $error_name, [
+					'replace' => [
+						'[value]' => $temp
+					]
+				]);
 			}
 		}
 	}
@@ -1092,6 +1095,14 @@ class Base extends \Object\Form\Parent2 {
 	}
 
 	/**
+	 * Add input
+	 * @param array $input
+	 */
+	public function addInput(array $input) {
+		$this->options['input'] = $input;
+	}
+
+	/**
 	 * Process
 	 */
 	public function process() {
@@ -1108,6 +1119,7 @@ class Base extends \Object\Form\Parent2 {
 		$this->transaction = false;
 		$this->rollback = false;
 		$this->list_rendered = false;
+		$this->errorResetAll();
 		// preload collection, must be first
 		// fix here
 		if ($this->preloadCollectionObject() && $this->initiator_class != 'numbers_frontend_html_form_wrapper_report') {
@@ -1117,7 +1129,7 @@ class Base extends \Object\Form\Parent2 {
 			}
 			// optimistic lock
 			if (!empty($this->collection_object->primary_model->optimistic_lock)) {
-				$this->element($this::HIDDEN, $this::HIDDEN, $this->collection_object->primary_model->optimistic_lock_column, ['label_name' => 'Optimistic Lock', 'type' => 'text', 'null' => true, 'default' => null, 'method'=> 'hidden']);
+				$this->element($this::HIDDEN, $this::HIDDEN, $this->collection_object->primary_model->optimistic_lock_column, ['label_name' => 'Optimistic Lock', 'type' => 'text', 'null' => true, 'default' => null, 'method'=> 'hidden', 'skip_during_export' => true]);
 			}
 		}
 		// module #
@@ -1130,8 +1142,8 @@ class Base extends \Object\Form\Parent2 {
 				$this->options['input'][$this->collection_object->primary_model->module_column] = $this->options['input']['__module_id'] = \Application::$controller->module_id;
 				$this->options['input'] = array_merge_hard($this->options['input'], $ajax_values);
 			}
-			$blank_reset_var[$this->collection_object->primary_model->module_column] = $blank_reset_var['__module_id'] = $this->options['input'][$this->collection_object->primary_model->module_column] = \Application::$controller->module_id;
-			// add report container
+			$blank_reset_var[$this->collection_object->primary_model->module_column] = $blank_reset_var['__module_id'] = $this->options['input'][$this->collection_object->primary_model->module_column] = $this->options['input']['__module_id'] = \Application::$controller->module_id;
+			// add container & elements
 			$this->container('__module_container', [
 				'default_row_type' => 'grid',
 				'order' => PHP_INT_MIN + 1000
@@ -1145,7 +1157,8 @@ class Base extends \Object\Form\Parent2 {
 				'method' => 'select',
 				'no_choose' => true,
 				'options' => \Application::$controller->getControllersModules(),
-				'onchange' => 'this.form.submit();'
+				'onchange' => 'this.form.submit();',
+				'skip_during_export' => true
 			]);
 			$this->element('__module_container', $this::HIDDEN, $this->collection_object->primary_model->module_column, [
 				'label_name' => 'Ledger',
@@ -1153,7 +1166,8 @@ class Base extends \Object\Form\Parent2 {
 				'required' => true,
 				'default' => \Application::$controller->module_id,
 				'method' => 'hidden',
-				'query_builder' => 'a.' . $this->collection_object->primary_model->module_column . ';='
+				'query_builder' => 'a.' . $this->collection_object->primary_model->module_column . ';=',
+				'skip_during_export' => true
 			]);
 			$this->element('__module_container', 'separator_1', self::SEPARATOR_HORIZONTAL, ['row_order' => 400, 'label_name' => '', 'percent' => 100]);
 			// master object
@@ -1291,7 +1305,7 @@ class Base extends \Object\Form\Parent2 {
 			goto convert_multiple_columns;
 		}
 		// we need to start transaction
-		if (!empty($this->collection_object) && $this->submitted && $this->initiator_class != 'numbers_frontend_html_form_wrapper_report') {
+		if (!empty($this->collection_object) && $this->submitted && !in_array($this->initiator_class, ['import', 'list', 'report'])) {
 			$this->collection_object->primary_model->db_object->begin();
 			$this->transaction = true;
 		}
@@ -1411,6 +1425,10 @@ loadValues2:
 				$this->values_loaded = true;
 			} else if ($this->values_loaded) { // otherwise set loaded values
 				$this->values = $this->original_values;
+				// we need to preserver module #
+				if (isset($this->options['input']['__module_id'])) {
+					$this->values['__module_id'] = $this->options['input']['__module_id'];
+				}
 				// if we are preserving columns during navigation
 				if (!empty($this->misc_settings['navigation']['preserve'])) {
 					$this->values = array_merge_hard($this->values, $this->misc_settings['navigation']['preserve']);
@@ -1830,7 +1848,8 @@ convert_multiple_columns:
 		}
 		$options = [
 			'flag_delete_row' => $this->process_submit[self::BUTTON_SUBMIT_DELETE] ?? false,
-			'skip_type_validation' => true
+			'skip_type_validation' => true,
+			'skip_optimistic_lock' => $this->options['skip_optimistic_lock'] ?? false
 		];
 		// we do not need to reload values from database because we locked them
 		if ($this->values_loaded) {
@@ -2373,6 +2392,92 @@ convert_multiple_columns:
 	}
 
 	/**
+	 * API result
+	 *
+	 * @return array
+	 */
+	public function apiResult() : array {
+		$result = [
+			'success' => false,
+			'error' => []
+		];
+		if ($this->hasErrors()) {
+			$message = [];
+			// details
+			$details = [];
+			if (!empty($this->collection['details'])) {
+				$this->disassembleCollectionObject($this->collection['details'], $details);
+			}
+			$ignore_fields = [];
+			if ($this->collection_object->primary_model->tenant) {
+				$ignore_fields[$this->collection_object->primary_model->tenant_column] = $this->collection_object->primary_model->tenant_column;
+			}
+			if ($this->collection_object->primary_model->module) {
+				$ignore_fields[$this->collection_object->primary_model->tenant_column] = $this->collection_object->primary_model->tenant_column;
+			}
+			foreach ($details as $k3 => $v3) {
+				foreach ($ignore_fields as $k4 => $v4) {
+					if (isset($v3['map'][$k4])) {
+						$ignore_fields[$v3['map'][$k4]] = $v3['map'][$k4];
+					}
+				}
+			}
+			$message[] = i18n(null, 'Record') . ':';
+			$temp = [];
+			foreach ($this->pk as $k => $v) {
+				if (!empty($ignore_fields[$k])) continue;
+				$temp[] = $k . ' = ' . $v;
+			}
+			$message[] = "\t" . i18n(null, 'Primary Key') . ': ' . implode(', ', $temp);
+			// general errors
+			if (!empty($this->errors['general']['danger'])) {
+				$message[] = "\t" . i18n(null, 'General Errors') . ':';
+				foreach ($this->errors['general']['danger'] as $v) {
+					$message[] = "\t\t" . $v;
+				}
+			}
+			// fields
+			if (!empty($this->errors['flag_error_in_fields'])) {
+				$message[] = "\t" . i18n(null, 'Field Errors') . ':';
+				foreach ($this->errors['fields'] as $k => $v) {
+					if (empty($v['danger'])) continue; // only errors
+					// regular fields
+					if (strpos($k, '[') === false) {
+						$message[] = "\t\t" . $k . ': ';
+						foreach ($v['danger'] as $v2) {
+							$message[] = "\t\t\t" . $v2;
+						}
+					} else { // details
+						$field = str_replace(']', '', $k);
+						$parts = explode('[', $field);
+						$message[] = "\t\t" . $details[$parts[0]]['name'] . ', ' . $parts[2] . ': ';
+						// pk
+						$pk_parts = explode('::', $parts[1]);
+						$pk_details = [];
+						foreach ($details[$parts[0]]['pk'] as $k2 => $v2) {
+							$pk_details[$v2] = $pk_parts[$k2];
+						}
+						$temp = [];
+						foreach ($pk_details as $k2 => $v2) {
+							if (!empty($ignore_fields[$k2])) continue;
+							$temp[] = $k2 . ' = ' . $v2;
+						}
+						$message[] = "\t\t\t" . i18n(null, 'Primary Key') . ': ' . implode(', ', $temp);
+						foreach ($v['danger'] as $v2) {
+							$message[] = "\t\t\t" . $v2;
+						}
+						// todo handle subdetails
+					}
+				}
+			}
+			$result['error'][] = implode("\n", $message);
+		} else {
+			$result['success'] = true;
+		}
+		return $result;
+	}
+
+	/**
 	 * Get field errors
 	 *
 	 * @param array $field
@@ -2501,5 +2606,156 @@ convert_multiple_columns:
 		} else {
 			return false;
 		}
+	}
+
+	/**
+	 * Prepare export file variables
+	 *
+	 * @return array
+	 */
+	public function prepareExportFileVariables() : array {
+		$result = [
+			'success' => false,
+			'error' => [],
+			'data' => []
+		];
+		// details
+		$details = [];
+		if (!empty($this->collection['details'])) {
+			$this->disassembleCollectionObject($this->collection['details'], $details);
+		}
+		// step 1: fields
+		$result['data'][$this->collection['name']] = [];
+		foreach ($this->fields as $k => $v) {
+			if (!$this->skipExportField($k, $v)) continue;
+			// if we have detail
+			if (!empty($details[$k])) {
+				$result['data'][$details[$k]['name']] = [];
+				foreach ($details[$k]['pk'] as $k2 => $v2) {
+					if ($k2 == 0 && strpos($v2, 'tenant_id') !== false) continue;
+					$result['data'][$details[$k]['name']][0][$v2] = $v2;
+				}
+				continue;
+			}
+			// regular field
+			$result['data'][$this->collection['name']][0][$k] = $k;
+		}
+		// step 2: detail fields
+		foreach ($this->detail_fields as $k => $v) {
+			$result['data'][$details[$k]['name']] = [];
+			// add pk
+			foreach ($details[$k]['pk'] as $k2 => $v2) {
+				if ($k2 == 0 && strpos($v2, 'tenant_id') !== false) continue;
+				$result['data'][$details[$k]['name']][0][$v2] = $v2;
+			}
+			// add fields
+			foreach ($v['elements'] as $k2 => $v2) {
+				if (!$this->skipExportField($k2, $v2)) continue;
+				$result['data'][$details[$k]['name']][0][$k2] = $k2;
+			}
+		}
+		$result['success'] = true;
+		return $result;
+	}
+
+	/**
+	 * Skip export field
+	 *
+	 * @param string $field_name
+	 * @param array $field_options
+	 * @return bool
+	 */
+	private function skipExportField(string $field_name, array $field_options) : bool {
+		if (!empty($field_options['options']['process_submit'])) return false;
+		if ($field_name == $this::SEPARATOR_HORIZONTAL || $field_name == $this::SEPARATOR_VERTICAL) return false;
+		if (!empty($field_options['options']['skip_during_export'])) return false;
+		return true;
+	}
+
+	/**
+	 * Disassemble collection details
+	 *
+	 * @param array $collection_details
+	 * @param array $result
+	 */
+	private function disassembleCollectionObject(array $collection_details, & $result, $parent = []) {
+		foreach ($collection_details as $k => $v) {
+			$result[$k] = $v;
+			$result[$k]['model'] = $k;
+			$result[$k]['__parent'] = $parent;
+			if (!empty($v['details'])) {
+				$parent[] = $k;
+				$this->disassembleCollectionObject($v['details'], $result, $parent);
+			}
+			unset($result[$k]['details']);
+		}
+	}
+
+	/**
+	 * Process imported sheets
+	 *
+	 * @param array $data
+	 * @param array $globals
+	 * @return array
+	 */
+	public function processImportedSheets(array $data, array $globals) : array {
+		$result = [
+			'success' => false,
+			'error' => [],
+			'data' => []
+		];
+		// process globals
+		$globals_final = [];
+		$ignore_columns = [];
+		if ($this->collection_object->primary_model->tenant) {
+			$globals_final[$this->collection_object->primary_model->tenant_column] = $globals[$this->collection_object->primary_model->tenant_column];
+			$ignore_columns[$this->collection_object->primary_model->tenant_column] = $this->collection_object->primary_model->tenant_column;
+		}
+		if ($this->collection_object->primary_model->module) {
+			$globals_final[$this->collection_object->primary_model->module_column] = $globals[$this->collection_object->primary_model->module_column];
+			$ignore_columns[$this->collection_object->primary_model->module_column] = $this->collection_object->primary_model->module_column;
+		}
+		// find main sheet
+		$main_sheet_data = $data[$this->collection['name']] ?? $data['Main Sheet'] ?? [];
+		unset($data[$this->collection['name']], $data['Main Sheet']);
+		if (empty($main_sheet_data)) {
+			$result['error'][] = \Object\Content\Messages::NO_ROWS_FOUND;
+			return $result;
+		}
+		// loop though header rows
+		foreach ($main_sheet_data as $k => $v) {
+			$v = array_merge_hard($v, $globals_final);
+			// details
+			if (!empty($this->collection['details'])) {
+				foreach ($this->collection['details'] as $k2 => $v2) {
+					$v[$k2] = [];
+					if (empty($data[$v2['name']])) continue;
+					// go through data
+					foreach ($data[$v2['name']] as $k3 => $v3) {
+						// map child to parent
+						$found = true;
+						foreach ($v2['map'] as $k4 => $v4) {
+							// important to add new items to ignore columns array
+							if (isset($ignore_columns[$k4])) {
+								$ignore_columns[$v4] = $v4;
+								continue;
+							}
+							// compare
+							if ($v3[$v4] != $v[$k4]) $found = false;
+						}
+						// if found
+						if ($found) {
+							// todo process subdetails
+							$v[$k2][] = $v3;
+							unset($data[$v2['name']][$k3]);
+						}
+					}
+				}
+			}
+			$result['data'][$k] = $v;
+			unset($main_sheet_data[$k]);
+		}
+		$result['success'] = true;
+		return $result;
 	}
 }

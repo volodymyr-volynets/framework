@@ -198,6 +198,10 @@ class Data extends \Object\Table\Options {
 		if (!empty($pk)) {
 			pk($pk, $result);
 		}
+		// single row
+		if (!empty($options['single_row'])) {
+			return current($result);
+		}
 		return $result;
 	}
 
