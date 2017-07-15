@@ -168,7 +168,7 @@ class Debug {
 									}
 									$result.= '<td nowrap>&nbsp;' . \HTML::a(['value' => ucwords($k) . ' (' . $count . ')', 'id' => "debuging_toolbar_{$k}_a", 'href' => 'javascript:void(0);', 'onclick' => "$('#debuging_toolbar_{$k}').toggle();"]) . '&nbsp;</td>';
 								}
-								$result.= '<td width="50%" align="right">' . \HTML::a(['href' => '/numbers/frontend/system/controller/dev', 'value' => 'Dev. Portal']) . '</td>';
+								$result.= '<td width="50%" align="right">' . \HTML::a(['href' => '/Numbers/Backend/System/Modules/Controller/DevPortal', 'value' => 'Dev. Portal']) . '</td>';
 							$result.= '</tr>';
 						$result.= '</table>';
 					$result.= '</td>';

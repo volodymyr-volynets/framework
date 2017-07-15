@@ -17,14 +17,14 @@ class Crypt {
 	 */
 	public function __construct($crypt_link = null, $class = null, $options = []) {
 		// if we need to use default link from application
-		if ($crypt_link == null) {
-			$crypt_link = Application::get('flag.global.default_crypt_link');
+		if ($crypt_link === null) {
+			$crypt_link = \Application::get('flag.global.default_crypt_link');
 			if (empty($crypt_link)) {
 				Throw new Exception('You must specify crypt link!');
 			}
 		}
 		// get object from factory
-		$temp = Factory::get(['crypt', $crypt_link]);
+		$temp = \Factory::get(['crypt', $crypt_link]);
 		// if we have class
 		if (!empty($class) && !empty($crypt_link)) {
 			// replaces in case we have it as submodule
@@ -32,7 +32,7 @@ class Crypt {
 			// creating new class
 			unset($this->object);
 			$this->object = new $class($crypt_link, $options);
-			Factory::set(['crypt', $crypt_link], ['object' => $this->object, 'class' => $class]);
+			\Factory::set(['crypt', $crypt_link], ['object' => $this->object, 'class' => $class]);
 		} else if (!empty($temp['object'])) {
 			$this->object = $temp['object'];
 		} else {

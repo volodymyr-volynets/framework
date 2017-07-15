@@ -105,4 +105,13 @@ class Cmd {
 		$result.=  $string . "\033[0m";
 		return $result;
 	}
+
+	/**
+	 * Is command line interface (cli)
+	 *
+	 * @return boolean
+	 */
+	public static function isCli() : bool {
+		return (php_sapi_name() == 'cli');
+	}
 }

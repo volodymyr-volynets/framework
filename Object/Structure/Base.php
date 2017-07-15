@@ -64,12 +64,21 @@ class Base {
 	 * @return array
 	 */
 	public function tenant() {
+		// see if we have a tenant in a __token
+		$input = \Request::input();
+		if (!empty($input['__token'])) {
+			$crypt_model = new \Crypt();
+			$crypt_result = $crypt_model->tokenValidate($input['__token']);
+		}
 		$tenant_datasource_settings = \Object\ACL\Resources::getStatic('application_structure', 'tenant');
 		if (!empty($tenant_datasource_settings['tenant_datasource'])) {
 			// prepare to query tenant
 			$tenant_input = \Application::get('application.structure.settings.tenant');
+			// see if we have tenant override from __token
+			if (!empty($crypt_result['id'])) {
+				$tenant_input = ['id' => (int) $crypt_result['id']];
+			}
 			if (!empty($tenant_input)) {
-				$tenant_where = [];
 				if (!empty($tenant_datasource_settings['column_prefix'])) {
 					array_key_prefix_and_suffix($tenant_input, $tenant_datasource_settings['column_prefix']);
 				}

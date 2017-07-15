@@ -116,6 +116,22 @@ class Request {
 	}
 
 	/**
+	 * Generate urt for particular tenant
+	 *
+	 * @param string $tenant_part
+	 * @return string
+	 */
+	public static function tenantHost(string $tenant_part) : string {
+		// generate link to system tenant
+		$domain_level = (int) \Application::get('application.structure.tenant_domain_level');
+		$host_parts = \Request::hostParts();
+		$host_parts[$domain_level] = $tenant_part;
+		krsort($host_parts);
+		$crypt_model = new \Crypt();
+		return \Request::host(['host_parts' => $host_parts]);
+	}
+
+	/**
 	 * Is ssl
 	 * 
 	 * @return boolean

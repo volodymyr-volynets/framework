@@ -1174,7 +1174,7 @@ class Base extends \Object\Form\Parent2 {
 			if (!empty($this->form_parent->master_options['model'])) {
 				$this->master_options = $this->form_parent->master_options;
 				$class = $this->master_options['model'];
-				$this->master_object = new $class($module_id, $this->form_parent->master_options['ledger']);
+				$this->master_object = new $class(\Application::$controller->module_id, $this->form_parent->master_options['ledger']);
 			}
 		}
 		// hidden buttons to handle form though javascript
@@ -1736,7 +1736,7 @@ convert_multiple_columns:
 			if ($this->values_loaded && \Application::$controller->can('Record_Edit', 'Edit')) {
 				$show_save_buttons = true;
 			}
-			if (!$show_save_buttons) {
+			if (!$show_save_buttons && empty($this->options['skip_acl'])) {
 				$not_allowed[] = self::BUTTON_SUBMIT_SAVE;
 				$not_allowed[] = self::BUTTON_SUBMIT_SAVE_AND_NEW;
 				$not_allowed[] = self::BUTTON_SUBMIT_SAVE_AND_CLOSE;

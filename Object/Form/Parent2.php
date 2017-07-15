@@ -207,6 +207,17 @@ class Parent2 extends \Object\Override\Data {
 	];
 
 	/**
+	 * Segment task
+	 */
+	const SEGMENT_TASK = [
+		'type' => 'warning',
+		'header' => [
+			'icon' => ['type' => 'play'],
+			'title' => 'Execute Task:'
+		]
+	];
+
+	/**
 	 * Segment import
 	 */
 	const SEGMENT_IMPORT = [

@@ -31,6 +31,7 @@ class Messages {
 	const RECORD_READY_TO_POST = 'Record has been marked as ready to post!';
 	const RECORD_MARK_DELETED = 'Record has been marked as deleted!';
 	const RECORD_OPENED = 'Record has been successfully opened!';
+	const OPERATION_EXECUTED = 'Operation has been successfully executed!';
 	// confirmation
 	const CONFIRM_DELETE = 'Are you sure you want to delete this record?';
 	const CONFIRM_RESET = 'Are you sure you want to reset?';
@@ -38,5 +39,6 @@ class Messages {
 	// information
 	const INFO_CLOSED = '[Closed]';
 	const INFO_INACTIVE = '[Inactive]';
+	const INFO_MANDATORY = '[Mandatory]';
 	const INFO_FUNCTIONAL_CURRENCY = '[FC]';
 }

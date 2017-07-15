@@ -162,7 +162,7 @@ class Application {
 			return;
 		}
 		// processing mvc settings
-		\Object\Controller\Front::setMvc();
+		\Object\Controller\Front::setMvc($options['request_uri'] ?? null);
 		// check if controller exists
 		if (!file_exists(self::$settings['mvc']['controller_file'])) {
 			Throw new Exception('Resource not found!', -1);

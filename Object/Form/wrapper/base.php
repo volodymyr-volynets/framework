@@ -196,4 +196,13 @@ class Base extends \Object\Form\Parent2 {
 	public function render($format = 'text/html') {
 		return $this->form_object->render($format);
 	}
+
+	/**
+	 * API result
+	 *
+	 * @return array
+	 */
+	public function apiResult() : array {
+		return $this->form_object->apiResult();
+	}
 }

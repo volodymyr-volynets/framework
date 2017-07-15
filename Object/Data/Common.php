@@ -180,11 +180,21 @@ class Common {
 		}
 		// inactive & icon_class
 		$i18n_inactive = !empty($options['i18n']) ? i18n(null, \Object\Content\Messages::INFO_INACTIVE) : \Object\Content\Messages::INFO_INACTIVE;
+		// mandatory column
+		$mandatory_column = array_search('mandatory', $options_map_new);
+		if (!empty($mandatory_column)) {
+			$i18n_mandatory = i18n(null, \Object\Content\Messages::INFO_MANDATORY);
+		}
 		foreach ($data as $k => $v) {
 			if (!empty($options['column_prefix']) && !empty($v[$options['column_prefix'] . 'inactive'])) {
 				$options_map_new[$options['column_prefix'] . 'inactive'] = 'inactive';
 				$options_map_new['__prepend'] = 'name';
 				$data[$k]['__prepend'] = $i18n_inactive;
+			}
+			// mandatory column
+			if (!empty($mandatory_column) && !empty($v[$mandatory_column])) {
+				$options_map_new['__prepend2'] = 'name';
+				$data[$k]['__prepend2'] = $i18n_mandatory;
 			}
 		}
 		$data = remap($data, $options_map_new);
