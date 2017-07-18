@@ -2409,10 +2409,10 @@ convert_multiple_columns:
 				$this->disassembleCollectionObject($this->collection['details'], $details);
 			}
 			$ignore_fields = [];
-			if ($this->collection_object->primary_model->tenant) {
+			if ($this->collection_object->primary_model->tenant ?? false) {
 				$ignore_fields[$this->collection_object->primary_model->tenant_column] = $this->collection_object->primary_model->tenant_column;
 			}
-			if ($this->collection_object->primary_model->module) {
+			if ($this->collection_object->primary_model->module ?? false) {
 				$ignore_fields[$this->collection_object->primary_model->tenant_column] = $this->collection_object->primary_model->tenant_column;
 			}
 			foreach ($details as $k3 => $v3) {

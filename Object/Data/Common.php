@@ -154,7 +154,7 @@ class Common {
 				}
 			} else {
 				$options_map_new[$k] = $v;
-				if (!empty($options['i18n'])) {
+				if (!empty($options['i18n']) && $v != 'icon_class') {
 					$i18n[$k] = true;
 				}
 			}

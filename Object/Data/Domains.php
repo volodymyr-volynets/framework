@@ -58,7 +58,7 @@ class Domains extends \Object\Data {
 		'icon' => ['name' => 'Icon', 'type' => 'varchar', 'length' => 50],
 		// login
 		'login' => ['name' => 'Login', 'type' => 'varchar', 'length' => 30],
-		'password' => ['name' => 'Password', 'type' => 'text', 'validator_method' => 'object_validator_password::validate'],
+		'password' => ['name' => 'Password', 'type' => 'text', 'validator_method' => '\Object\Validator\Password::validate'],
 		'ip' => ['name' => 'IP', 'type' => 'varchar', 'length' => 46],
 		'domain_part' => ['name' => 'Domain Part', 'type' => 'varchar', 'length' => 30, 'validator_method' => 'object_validator_domain_part::validate'],
 		// S/M System

@@ -48,16 +48,16 @@ class Format {
 	public static function init(array $options = []) {
 		// default options
 		self::$defaut_options = [
-			'language_code' => 'sys',
-			'locale' => 'en_CA.UTF-8',
-			'timezone' => 'America/Toronto', // user timezone
-			'server_timezone' => Application::get('php.date.timezone'),
-			'date' => 'Y-m-d',
-			'time' => 'H:i:s',
-			'datetime' => 'Y-m-d H:i:s',
-			'timestamp' => 'Y-m-d H:i:s.u',
-			'amount_frm' => 20, // Amounts In Forms
-			'amount_fs' => 40, // Amounts In Financial Statement
+			'language_code' => 'sm0',
+			'locale_code' => 'en_CA.UTF-8',
+			'timezone_code' => 'America/Toronto', // user timezone
+			'server_timezone_code' => Application::get('php.date.timezone'),
+			'format_date' => 'Y-m-d',
+			'format_time' => 'H:i:s',
+			'format_datetime' => 'Y-m-d H:i:s',
+			'format_timestamp' => 'Y-m-d H:i:s.u',
+			'format_amount_frm' => 20, // Amounts In Forms
+			'format_amount_fs' => 40, // Amounts In Financial Statement
 			'settings' => [
 				'currency_codes' => [], // a list of currency settings
 			],
@@ -73,18 +73,20 @@ class Format {
 		// settings from config files
 		$config = Application::get('flag.global.format');
 		// settings from user account
-		//$entity = entity::groupped('format');
-		$user_settings = [];
+		$user_settings = User::get('internalization');
+		if (!empty($user_settings)) {
+			foreach ($user_settings as $k => $v) if (empty($v)) unset($user_settings[$k]);
+		}
 		// merge all of them together
 		self::$options = array_merge_hard(self::$defaut_options, $config, I18n::$options, $user_settings, $options);
 		// fix utf8
-		self::$options['locale'] = str_replace(['utf8', 'utf-8'], 'UTF-8', self::$options['locale']);
+		self::$options['locale_code'] = str_replace(['utf8', 'utf-8'], 'UTF-8', self::$options['locale_code']);
 		// generate a list of available locales
-		$locale_settings = self::setLocale(self::$options['locale'], self::$defaut_options['locale']);
+		$locale_settings = self::setLocale(self::$options['locale_code'], self::$defaut_options['locale_code']);
 		self::$options = array_merge_hard(self::$options, $locale_settings);
 		// fix values
-		self::$options['amount_frm'] = (int) self::$options['amount_frm'];
-		self::$options['amount_fs'] = (int) self::$options['amount_fs'];
+		self::$options['format_amount_frm'] = (int) self::$options['format_amount_frm'];
+		self::$options['format_amount_fs'] = (int) self::$options['format_amount_fs'];
 		self::$options['locale_options']['mon_thousands_sep'] = self::$options['locale_options']['mon_thousands_sep'] ?? ',';
 		self::$options['locale_options']['mon_decimal_point'] = self::$options['locale_options']['mon_decimal_point'] ?? '.';
 		if (empty(self::$options['locale_options']['mon_grouping'])) {
@@ -93,8 +95,8 @@ class Format {
 		// load data from models
 		if (!empty(self::$options['model'])) {
 			foreach (self::$options['model'] as $k => $v) {
-				$method = Factory::method($v, null);
-				self::$options['settings'][$k] = Factory::model($method[0], true)->{$method[1]}();
+				$method = \Factory::method($v, null);
+				self::$options['settings'][$k] = \Factory::model($method[0], true)->{$method[1]}();
 			}
 			unset(self::$options['model']);
 		}
@@ -192,7 +194,7 @@ class Format {
 	 * @return string
 	 */
 	public static function getDateFormat($type) {
-		return self::$options[$type];
+		return self::$options['format_' . $type];
 	}
 
 	/**
@@ -238,11 +240,11 @@ class Format {
 			$value = date('Y-m-d H:i:s', (int) $temp[0]) . (isset($temp[1]) ? '.' . $temp[1] : '');
 		}
 		try {
-			$server_timezone = self::$options['server_timezone'] ?? Application::get('php.date.timezone');
+			$server_timezone = self::$options['server_timezone_code'] ?? Application::get('php.date.timezone');
 			$object = new DateTime($value, new DateTimeZone($server_timezone));
 			// change timezone
 			if (empty($options['skip_user_timezone'])) {
-				$object->setTimezone(new DateTimeZone(self::$options['timezone']));
+				$object->setTimezone(new DateTimeZone(self::$options['timezone_code']));
 			}
 			$value = $object->format($format);
 		} catch (Exception $e) {
@@ -390,22 +392,22 @@ class Format {
 		$date = str_replace([i18n(null, 'am'), i18n(null, 'pm')], ['am', 'pm'], $date);
 		// dates are accepted as is
 		if ($type == 'date') {
-			$timezone = new DateTimeZone(self::$options['server_timezone']);
+			$timezone = new DateTimeZone(self::$options['server_timezone_code']);
 		} else {
-			$timezone = new DateTimeZone(self::$options['timezone']);
+			$timezone = new DateTimeZone(self::$options['timezone_code']);
 		}
 		// try to get a date from user format
-		$object = DateTime::createFromFormat(self::$options[$type], $date, $timezone);
+		$object = DateTime::createFromFormat(self::$options['format_' . $type], $date, $timezone);
 		if ($object === false) { // system format
-			$object = DateTime::createFromFormat(self::$defaut_options[$type], $date, $timezone);
+			$object = DateTime::createFromFormat(self::$defaut_options['format_' . $type], $date, $timezone);
 		}
 		if ($object === false) { // strtotime
 			$date = date('Y-m-d H:i:s', strtotime($date));
 			$object = new DateTime($date, $timezone);
 		}
 		// convert between timezones
-		$object->setTimezone(new DateTimeZone(self::$options['server_timezone']));
-		return $object->format(self::$defaut_options[$type]);
+		$object->setTimezone(new DateTimeZone(self::$options['server_timezone_code']));
+		return $object->format(self::$defaut_options['format_' . $type]);
 	}
 
 	/**
@@ -520,9 +522,9 @@ class Format {
 			if (!empty($options['type'])) {
 				$type = $options['type'];
 			} else if (empty($options['fs'])) {
-				$type = self::$options['amount_frm'];
+				$type = self::$options['format_amount_frm'];
 			} else {
-				$type = self::$options['amount_fs'];
+				$type = self::$options['format_amount_fs'];
 			}
 			if ($type == 10) { // Amount (Locale, With Currency Symbol)
 				$options['symbol'] = $options['symbol'] ?? self::$options['locale_options']['currency_symbol'];

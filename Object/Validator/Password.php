@@ -1,6 +1,7 @@
 <?php
 
-class object_validator_password extends \Object\Validator\Base {
+namespace Object\Validator;
+class Password extends \Object\Validator\Base {
 
 	/**
 	 * @see \Object\Validator\Base::validate()
