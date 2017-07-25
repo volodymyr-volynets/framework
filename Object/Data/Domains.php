@@ -101,6 +101,10 @@ class Domains extends \Object\Data {
 		'jurisdiction_id_sequence' => ['name' => 'Jurisdiction #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'authority_id' => ['name' => 'Authority #', 'type' => 'integer', 'default' => null, 'format' => 'id'],
 		'authority_id_sequence' => ['name' => 'Authority #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
+		'sbu_id' => ['name' => 'SBU #', 'type' => 'integer', 'default' => null, 'format' => 'id'],
+		'sbu_id_sequence' => ['name' => 'SBU #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
+		'department_id' => ['name' => 'Department #', 'type' => 'integer', 'default' => null, 'format' => 'id'],
+		'department_id_sequence' => ['name' => 'Department #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		//'component_id' => ['name' => 'Component #', 'type' => 'integer', 'default' => null, 'format' => 'id'],
 		//'component_id_sequence' => ['name' => 'Component #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		// relations & models

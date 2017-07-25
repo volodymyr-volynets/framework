@@ -309,7 +309,9 @@ class Debug {
 								}
 								// results second
 								if (!empty($v['rows'])) {
-									$temp = array_keys(current($v['rows']));
+									$temp2 = current($v['rows']);
+									if (!is_array($temp2)) $temp2 = $v['rows'];
+									$temp = array_keys($temp2);
 									$header = array_combine($temp, $temp);
 									if (!empty($header)) {
 										$result.= '<tr>';

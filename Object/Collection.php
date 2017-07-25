@@ -659,7 +659,7 @@ error:
 			// handle serial types, empty only
 			foreach ($model->columns as $k => $v) {
 				if (strpos($v['type'], 'serial') !== false && empty($v['null']) && empty($data_row_final[$k])) {
-					$result['new_serials'][$k] = $data_row_final[$k] = $this->primary_model->sequence($k);
+					$result['new_serials'][$k] = $data_row_final[$k] = $model->sequence($k);
 				}
 			}
 			$temp = $this->primary_model->db_object->insert($model->full_table_name, [$data_row_final], null);

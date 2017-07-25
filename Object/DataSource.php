@@ -254,6 +254,14 @@ class DataSource extends \Object\Table\Options {
 			'cache' => $this->cache,
 			'cache_tags' => array_unique($this->cache_tags)
 		];
+		// if we need to return a query
+		if (!empty($options['return_query_only'])) {
+			if (!empty($sql)) {
+				return $sql;
+			} else { // query builder
+				return $this->query->sql();
+			}
+		}
 		// if we have SQL
 		if (!empty($sql)) {
 			$result = $db_object->query($sql, $query_settings['pk'], $query_options);
@@ -317,5 +325,40 @@ class DataSource extends \Object\Table\Options {
 		$class = get_called_class();
 		$object = new $class();
 		return $object->get($options);
+	}
+
+	/**
+	 * Query builder
+	 *
+	 * @param array $options
+	 * @return \\Object\Query\Builder
+	 */
+	public function queryBuilder(array $options = []) : \Object\Query\Builder {
+		return self::queryBuilderStatic($options);
+	}
+
+	/**
+	 * Query builder (static)
+	 *
+	 * @param array $options
+	 * @return \\Object\Query\Builder
+	 */
+	public static function queryBuilderStatic(array $options = []) : \Object\Query\Builder {
+		$class = get_called_class();
+		$model = new $class();
+		$sql = $model->get(['return_query_only' => true]);
+		// alias
+		$alias = $options['alias'] ?? 'a';
+		unset($options['alias']);
+		$object = new \Object\Query\Builder($model->db_link, $options);
+		$object->from('(' . $object->wrapSqlIntoTabs($sql) . ')', $alias);
+		// registered ALC
+		if (empty($options['skip_acl'])) {
+			\Object\ACL\Registered::process('\\' . get_called_class(), $object, [
+				'initiator' => $options['initiator'] ?? null,
+				'existing_values' => $options['existing_values'] ?? null
+			]);
+		}
+		return $object;
 	}
 }

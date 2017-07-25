@@ -1051,10 +1051,10 @@ class Base extends \Object\Form\Parent2 {
 						if (!empty($v['options']['details_11'])) {
 							$error_name = "{$k}";
 							$v3['options']['values_key'] = [$k, $k3];
-							$value = $v2[$k3];
+							$value = $v2[$k3] ?? null;
 							$this->validateRequiredOneField($value, "{$k}[{$k3}]", $v3);
 							// put value back into values
-							if ($value !== $v2[$k3]) {
+							if ($value !== ($v2[$k3] ?? null)) {
 								$this->values[$k][$k3] = $value;
 							}
 						} else { // 1 to M
@@ -2543,7 +2543,7 @@ convert_multiple_columns:
 				}
 			} else if (strpos($v, 'detail::') !== false) { // if we need to grab value from detail
 				$field = str_replace('detail::', '', $v);
-				$params[$k] = $options['options']['__detail_values'][$field] ?? null;
+				$params[$k] = $neighbouring_values[$field] ?? $options['options']['__detail_values'][$field] ?? null;
 			} else if ($flag_params) {
 				// todo process errors   
 				$params[$k] = $neighbouring_values[$v] ?? null;
