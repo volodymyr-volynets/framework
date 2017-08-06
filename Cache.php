@@ -42,6 +42,10 @@ class Cache {
 		$temp = Factory::get(['cache', $cache_link]);
 		// if we have class
 		if (!empty($class) && !empty($cache_link)) {
+			// check if backend has been enabled
+			if (!\Application::get($class, ['submodule_exists' => true])) {
+				Throw new Exception('You must enable ' . $class . ' first!');
+			}
 			// replaces in case we have it as submodule
 			$class = str_replace('.', '_', trim($class));
 			// if we are replacing database connection with the same link we

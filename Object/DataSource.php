@@ -256,11 +256,18 @@ class DataSource extends \Object\Table\Options {
 		];
 		// if we need to return a query
 		if (!empty($options['return_query_only'])) {
-			if (!empty($sql)) {
-				return $sql;
-			} else { // query builder
-				return $this->query->sql();
+			if (empty($sql)) {
+				$sql = $this->query->sql();
 			}
+			// wrap into tabs
+			if ($options['return_query_only'] == 'wrap') {
+				$object = new \Object\Query\Builder($this->db_link, []);
+				$sql = '(' . $object->wrapSqlIntoTabs($sql) . ')';
+			}
+			return [
+				'sql' => $sql,
+				'cache_tags' => array_unique($this->cache_tags)
+			];
 		}
 		// if we have SQL
 		if (!empty($sql)) {
@@ -346,12 +353,15 @@ class DataSource extends \Object\Table\Options {
 	public static function queryBuilderStatic(array $options = []) : \Object\Query\Builder {
 		$class = get_called_class();
 		$model = new $class();
-		$sql = $model->get(['return_query_only' => true]);
+		$options['cache_tags'] = $options['cache_tags'] ?? [];
+		$sql = $model->sql([
+			'where' => $options['where'] ?? []
+		], $options['cache_tags']);
 		// alias
 		$alias = $options['alias'] ?? 'a';
 		unset($options['alias']);
 		$object = new \Object\Query\Builder($model->db_link, $options);
-		$object->from('(' . $object->wrapSqlIntoTabs($sql) . ')', $alias);
+		$object->from($sql, $alias);
 		// registered ALC
 		if (empty($options['skip_acl'])) {
 			\Object\ACL\Registered::process('\\' . get_called_class(), $object, [
@@ -360,5 +370,21 @@ class DataSource extends \Object\Table\Options {
 			]);
 		}
 		return $object;
+	}
+
+	/**
+	 * SQL
+	 *
+	 * @param array $options
+	 * @param array $cache_tags
+	 * @return string
+	 */
+	public function sql(array $options, array & $cache_tags = null) : string {
+		$options['return_query_only'] = 'wrap';
+		$result = $this->get($options);
+		if (isset($cache_tags)) {
+			$cache_tags = array_merge($cache_tags, $result['cache_tags']);
+		}
+		return $result['sql'];
 	}
 }

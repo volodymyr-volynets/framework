@@ -208,6 +208,8 @@ class Application {
 	public static function autoloader($class) {
 		if (class_exists($class, false) || interface_exists($class, false)) {
 			return;
+		} else if (in_array(strtolower($class), get_loaded_extensions()) && !in_array($class, ['Session'])) {
+			return;
 		}
 		// we need to check if we have customization for classes, we only allow 
 		// customizaton for models and controllers
@@ -234,10 +236,6 @@ class Application {
 		// start buffering
 		\Helper\Ob::start(true);
 		$controller_class = self::$settings['mvc']['controller_class'];
-		// if we are handling error message and controller class has not been loaded
-		if ($controller_class == 'controller_error' && \Object\Error\Base::$flag_error_already && !class_exists('controller_error')) {
-			require('./controller/error.php');
-		}
 		// processing options
  		if (!empty($options)) {
 			foreach ($options as $k => $v) {
@@ -248,7 +246,7 @@ class Application {
 		self::$controller->action_code = self::$settings['mvc']['controller_action_code'];
 		self::$controller->action_method = self::$settings['mvc']['controller_action'];
 		// check ACL
-		if ($controller_class != 'Controller\Error') {
+		if ($controller_class != '\Controller\Errors') {
 			if (!self::$controller->permitted(['redirect' => true])) {
 				Throw new Exception('Permission denied!', -1);
 			}

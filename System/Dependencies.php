@@ -106,10 +106,10 @@ class Dependencies {
 								$data['media'] = array_merge_hard($data['media'], $sub_data['media']);
 							}
 							// processing unit tests
-							if (file_exists($v . 'unit_tests')) {
+							if (file_exists($v . 'UnitTests')) {
 								// we have to reload the module.ini file to get module name
-								$sub_data_temp = system_config::ini($v . 'module.ini', 'module');
-								$data['unit_tests'][$sub_data_temp['module']['name']] = $v . 'unit_tests/';
+								$sub_data_temp = \System\Config::ini($v . 'module.ini', 'module');
+								$data['unit_tests'][$sub_data_temp['module']['name']] = $v . 'UnitTests/';
 							}
 						} else {
 							$keys = explode('/', $k);
@@ -299,7 +299,7 @@ class Dependencies {
 				\Helper\File::write('./Overrides/Class/Override_Object_ACL_Registered.php', $class_code);
 			}
 			// unit tests
-			\Helper\File::delete('./Overrides/Unit_Tests', ['only_contents' => true, 'skip_files' => ['.gitkeep']]);
+			\Helper\File::delete('./Overrides/UnitTests', ['only_contents' => true, 'skip_files' => ['.gitkeep']]);
 			// submodule tests first
 			if (!empty($data['unit_tests'])) {
 				$xml = '';

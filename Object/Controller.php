@@ -126,28 +126,30 @@ class Controller {
 	 * Constructor
 	 */
 	public function __construct() {
-		// load all controllers from datasource
-		if (is_null(self::$cached_controllers) && !\Object\Error\Base::$flag_database_tenant_not_found) {
-			self::$cached_controllers = \Object\ACL\Resources::getStatic('controllers', 'primary');
-		}
-		// load all modules from datasource
-		if (is_null(self::$cached_modules) && !\Object\Error\Base::$flag_database_tenant_not_found) {
-			$temp = \Object\ACL\Resources::getStatic('modules', 'primary');
-			self::$cached_modules = [];
-			foreach ($temp as $k => $v) {
-				if (!isset(self::$cached_modules[$v['module_code']])) {
-					self::$cached_modules[$v['module_code']] = [
-						'module_multiple' => $v['module_multiple'],
-						'module_ids' => []
+		$class = '\\' . get_called_class();
+		if ($class != '\Controller\Errors') {
+			// load all controllers from datasource
+			if (is_null(self::$cached_controllers) && !\Object\Error\Base::$flag_database_tenant_not_found) {
+				self::$cached_controllers = \Object\ACL\Resources::getStatic('controllers', 'primary');
+			}
+			// load all modules from datasource
+			if (is_null(self::$cached_modules) && !\Object\Error\Base::$flag_database_tenant_not_found) {
+				$temp = \Object\ACL\Resources::getStatic('modules', 'primary');
+				self::$cached_modules = [];
+				foreach ($temp as $k => $v) {
+					if (!isset(self::$cached_modules[$v['module_code']])) {
+						self::$cached_modules[$v['module_code']] = [
+							'module_multiple' => $v['module_multiple'],
+							'module_ids' => []
+						];
+					}
+					self::$cached_modules[$v['module_code']]['module_ids'][$k] = [
+						'name' => $v['name']
 					];
 				}
-				self::$cached_modules[$v['module_code']]['module_ids'][$k] = [
-					'name' => $v['name']
-				];
 			}
 		}
 		// find yourself
-		$class = '\\' . get_called_class();
 		if (!empty(self::$cached_controllers[$class])) {
 			$this->title = self::$cached_controllers[$class]['name'];
 			$this->description = self::$cached_controllers[$class]['description'];

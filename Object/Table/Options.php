@@ -211,6 +211,23 @@ class Options extends \Object\Override\Data {
 	}
 
 	/**
+	 * Process options existing values and skip values
+	 *
+	 * @param mixed $value
+	 * @param array $existing_values
+	 * @param mixed $skip_values
+	 * @return bool
+	 */
+	public static function processOptionsExistingValuesAndSkipValues($value, $existing_values, $skip_values) : bool {
+		if (!empty($existing_values)) {
+			if (!is_array($existing_values)) $existing_values = [$existing_values];
+			if (in_array($value, $existing_values)) return true;
+		}
+		if (!empty($skip_values) && in_array($value, $skip_values)) return false;
+		return true;
+	}
+
+	/**
 	 * Format key for JSON options
 	 *
 	 * @param array $key

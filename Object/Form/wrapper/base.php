@@ -139,7 +139,7 @@ class Base extends \Object\Form\Parent2 {
 			$this->title = $this->form_object->title = ucwords(implode(' ', $temp));
 		}
 		// step 1: methods
-		foreach (['refresh', 'validate', 'save', 'post', 'success', 'finalize', 'owners', 'overrideFieldValue', 'overrideTabs', 'processDefaultValue', 'processOptionsModels', 'listQuery'] as $v) {
+		foreach (['refresh', 'validate', 'save', 'post', 'success', 'finalize', 'owners', 'overrideFieldValue', 'overrideTabs', 'processDefaultValue', 'processOptionsModels', 'processAllValues', 'listQuery'] as $v) {
 			if (method_exists($this, $v)) {
 				$this->form_object->wrapper_methods[$v]['main'] = [& $this, $v];
 			}

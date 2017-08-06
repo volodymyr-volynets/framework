@@ -134,9 +134,11 @@ class Bootstrap {
 				]
 			],
 			// domains
+			/* todo preload it though controller
 			'\Object\Data\Domains' => [
 				'data' => \Object\Data\Domains::getStatic()
 			]
+			*/
 		]);
 	}
 
@@ -162,7 +164,9 @@ class Bootstrap {
 					\Helper\Ob::cleanAll();
 					print_r(\Object\Error\Base::$errors);
 				} else {
+					\Helper\Ob::cleanAll();
 					// set mvc + process
+					\Object\Error\Base::$flag_database_tenant_not_found = true;
 					\Object\Controller\Front::setMvc('/Errors/_Error/500');
 					\Application::$controller = new \Controller\Errors();
 					\Application::process();

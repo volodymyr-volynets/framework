@@ -414,7 +414,7 @@ class Base extends \Object\Form\Parent2 {
 				if (\Math::compare($value, '0', $options['options']['scale']) == 0) {
 					$this->error('danger', \Object\Content\Messages::REQUIRED_FIELD, $error_name);
 				}
-			} else if (!empty($options['options']['multiple_column'])) {
+			} else if (!empty($options['options']['multiple_column']) || is_array($value)) {
 				if (empty($value)) {
 					$this->error('danger', \Object\Content\Messages::REQUIRED_FIELD, $error_name);
 				}
@@ -425,7 +425,7 @@ class Base extends \Object\Form\Parent2 {
 			}
 		}
 		// validator
-		if (!empty($options['options']['validator_method']) && !empty($value) && empty($options['options']['multiple_column'])) {
+		if (!empty($options['options']['validator_method']) && !empty($value) && empty($options['options']['multiple_column']) && !is_array($value)) {
 			$neighbouring_values_key = $options['options']['values_key'];
 			array_pop($neighbouring_values_key);
 			$temp = \Object\Validator\Base::method(
@@ -700,6 +700,8 @@ class Base extends \Object\Form\Parent2 {
 				$this->error('danger', \Object\Content\Messages::OPTIMISTIC_LOCK);
 			}
 		}
+		// we do not process details if only_columns is set
+		if (!empty($options['only_columns'])) goto processAllValues;
 		// process details & subdetails
 		if (empty($options['validate_for_delete']) && !empty($this->detail_fields)) {
 			foreach ($this->detail_fields as $k => $v) {
@@ -961,6 +963,8 @@ class Base extends \Object\Form\Parent2 {
 				}
 			}
 		}
+processAllValues:
+		$this->triggerMethod('processAllValues');
 	}
 
 	/**
@@ -1302,7 +1306,7 @@ class Base extends \Object\Form\Parent2 {
 		if ($this->blank) {
 			$this->getAllValues($blank_reset_var);
 			$this->triggerMethod('refresh');
-			goto convert_multiple_columns;
+			goto convertMultipleColumns;
 		}
 		// we need to start transaction
 		if (!empty($this->collection_object) && $this->submitted && !in_array($this->initiator_class, ['import', 'list', 'report'])) {
@@ -1319,7 +1323,7 @@ class Base extends \Object\Form\Parent2 {
 				$this->blank = true;
 				$this->getAllValues($this->options['input'] ?? []);
 				$this->triggerMethod('refresh');
-				goto convert_multiple_columns;
+				goto convertMultipleColumns;
 			}
 		}
 		// get all values
@@ -1330,7 +1334,7 @@ class Base extends \Object\Form\Parent2 {
 		// validate submits
 		if ($this->submitted) {
 			if (!$this->validateSubmitButtons()) {
-				goto process_errors;
+				goto processErrors;
 			}
 		}
 		// handling form refresh
@@ -1341,7 +1345,7 @@ class Base extends \Object\Form\Parent2 {
 		}
 		// convert columns on refresh
 		if ($this->refresh) {
-			goto convert_multiple_columns;
+			goto convertMultipleColumns;
 		}
 		// if form has been submitted
 		if ($this->submitted && $this->initiator_class != 'list') {
@@ -1360,7 +1364,7 @@ class Base extends \Object\Form\Parent2 {
 			if (!$this->hasErrors() && !empty($this->process_submit[$this::BUTTON_SUBMIT_SAVE])) {
 				// if it is a report we would skip save
 				if ($this->initiator_class == 'numbers_frontend_html_form_wrapper_report') {
-					goto convert_multiple_columns;
+					goto convertMultipleColumns;
 				}
 				// process save
 				if (method_exists($this, 'save')) {
@@ -1385,7 +1389,7 @@ class Base extends \Object\Form\Parent2 {
 			}
 		}
 		// adding general error
-process_errors:
+processErrors:
 		if ($this->errors['flag_error_in_fields'] && empty($this->errors['general']['danger'])) {
 			$this->error('danger', \Object\Content\Messages::SUBMISSION_PROBLEM);
 		}
@@ -1435,7 +1439,7 @@ loadValues2:
 				}
 			}
 		}
-convert_multiple_columns:
+convertMultipleColumns:
 		// close transaction
 		$this->closeTransaction();
 		// finilize
@@ -1476,7 +1480,10 @@ convert_multiple_columns:
 			$this->list_rendered = true;
 			// create query object
 			if (!empty($this->form_parent->query_primary_model)) {
-				$this->query = call_user_func_array([$this->form_parent->query_primary_model, 'queryBuilderStatic'], [['initiator' => 'list']])->select();
+				$this->query = call_user_func_array([$this->form_parent->query_primary_model, 'queryBuilderStatic'], [[
+					'initiator' => 'list',
+					'where' => $this->form_parent->query_primary_options ?? []
+				]])->select();
 			}
 			// add filter
 			$where = [];
@@ -1520,6 +1527,8 @@ convert_multiple_columns:
 			$this->misc_settings['list']['preview'] = $this->values['__preview'];
 			$this->misc_settings['list']['columns'] = $this->data[$this::LIST_CONTAINER]['rows'];
 		}
+		// process all values
+		$this->triggerMethod('processAllValues');
 		// debug
 		//print_r2($this->errors);
 	}

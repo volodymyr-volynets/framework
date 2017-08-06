@@ -95,6 +95,8 @@ class Domains extends \Object\Data {
 		// U/M User & O/N Organization Management
 		'user_id' => ['name' => 'User #', 'type' => 'integer', 'default' => null, 'format' => 'id'],
 		'user_id_sequence' => ['name' => 'User #', 'type' => 'serial', 'placeholder' => 'Sequence'],
+		'role_id' => ['name' => 'Role #', 'type' => 'integer', 'default' => null, 'format' => 'id'],
+		'role_id_sequence' => ['name' => 'Role #', 'type' => 'serial', 'placeholder' => 'Sequence'],
 		'organization_id' => ['name' => 'Organization #', 'type' => 'integer', 'default' => null, 'format' => 'id'],
 		'organization_id_sequence' => ['name' => 'Organization #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'jurisdiction_id' => ['name' => 'Jurisdiction #', 'type' => 'integer', 'default' => null, 'format' => 'id'],

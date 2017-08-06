@@ -9,7 +9,7 @@ if (file_exists('../libraries/vendor/autoload.php')) {
 }
 
 // automatic class loading
-require('../libraries/vendor/numbers/framework/Application.php');
+require('../libraries/vendor/Numbers/Framework/Application.php');
 spl_autoload_register(array('Application', 'autoloader'));
 
 // running application
@@ -20,7 +20,7 @@ ini_set('memory_limit', '2048M');
 set_time_limit(0);
 
 // confirmation whether to run the script
-if (!Helper_Cmd::confirm("Run Unit Tests?")) exit;
+if (!\Helper\Cmd::confirm("Run Unit Tests?")) exit;
 
 // this is a must, otherwise PHPUnit will not find xml file
 chdir('..');

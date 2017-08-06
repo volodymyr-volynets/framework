@@ -695,6 +695,8 @@ error:
 		// step 3 process details
 		if (!empty($collection['details'])) {
 			foreach ($collection['details'] as $k => $v) {
+				// we do not process readonly details
+				if (!empty($v['readonly'])) continue;
 				// create new object
 				$v['model_object'] = \Factory::model($k, true);
 				if ($v['type'] == '11') {
