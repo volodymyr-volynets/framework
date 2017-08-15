@@ -781,7 +781,7 @@ function mixedtolower($mixed) {
 /**
  * i18n, alias
  *
- * @param mixed $i18n
+ * @param int $i18n
  * @param mixed $text
  * @param array $options
  * @return string

@@ -20,6 +20,7 @@ class Mail {
 	 * 	]);
 	 *
 	 * @param array $options
+	 * @return array
 	 */
 	public static function send(array $options) : array {
 		$result = [

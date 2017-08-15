@@ -569,6 +569,16 @@ class HTML {
 	}
 
 	/**
+	 * Bold
+	 *
+	 * @param array $options
+	 * @return string
+	 */
+	public static function b(array $options = []) : string {
+		return Factory::delegate('flag.numbers.framework.html', 'b', [$options]);
+	}
+
+	/**
 	 * Process options
 	 *
 	 * @param string $model_and_method

@@ -293,6 +293,36 @@ class Format {
 	}
 
 	/**
+	 * Format nice timestamp
+	 *
+	 * @param mixed $value
+	 * @param array $options
+	 * @return string
+	 */
+	public static function niceTimestamp($value, array $options = []) {
+		try {
+			$server_timezone = self::$options['server_timezone_code'] ?? Application::get('php.date.timezone');
+			$object = new DateTime($value, new DateTimeZone($server_timezone));
+			// change timezone
+			if (empty($options['skip_user_timezone'])) {
+				$object->setTimezone(new DateTimeZone(self::$options['timezone_code']));
+			}
+			// now and date
+			$now = new DateTime('now', new DateTimeZone($server_timezone));
+			$other = new DateTime($object->format(self::getDateFormat('date')), new DateTimeZone($server_timezone));
+			// if its today we show time
+			if ($now->diff($other)->days === 0) {
+				$value = $object->format(self::getDateFormat('time'));
+			} else {
+				$value = $object->format(self::getDateFormat('date'));
+			}
+		} catch (Exception $e) {
+			// on exception we return as is
+		}
+		return $value;
+	}
+
+	/**
 	 * Format timestamp
 	 *
 	 * @param mixed $value

@@ -199,6 +199,14 @@ class Bootstrap {
 		if (\I18n::$initialized) {
 			\I18n::destroy();
 		}
+		// custom destroy methods
+		$temp = \Object\ACL\Resources::getStatic('destroy');
+		if (!empty($temp)) {
+			foreach ($temp as $v) {
+				$method = \Factory::method($v['method'], null, true);
+				call_user_func_array($method, []);
+			}
+		}
 		// close db connections
 		$dbs = \Factory::get(['db']);
 		if (!empty($dbs)) {

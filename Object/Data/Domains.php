@@ -50,6 +50,9 @@ class Domains extends \Object\Data {
 		'order' => ['name' => 'Order', 'type' => 'integer', 'default' => 0, 'format' => 'id'],
 		'counter' => ['name' => 'Counter', 'type' => 'integer', 'default' => 0, 'format' => 'id'],
 		'bigcounter' => ['name' => 'Counter (Big)', 'type' => 'bigint', 'default' => 0, 'format' => 'id'],
+		// date & time
+		'optimistic_lock' => ['name' => 'Optimistic Lock', 'type' => 'timestamp', 'null' => false, 'default' => 'now()', 'format' => '', 'validator_method' => '', 'placeholder' => ''],
+		'timestamp_now' => ['name' => 'Timestamp (Now)', 'type' => 'timestamp', 'default' => 'now()', 'null' => false, 'format' => '', 'validator_method' => '', 'placeholder' => ''],
 		// personal
 		'email' => ['name' => 'Email', 'type' => 'varchar', 'length' => 255, 'validator_method' => 'object_validator_email::validate', 'null' => true],
 		'phone' => ['name' => 'Phone', 'type' => 'varchar', 'length' => 50, 'validator_method' => 'object_validator_phone::validate', 'null' => true],
@@ -64,7 +67,6 @@ class Domains extends \Object\Data {
 		// S/M System
 		'ledger_id' => ['name' => 'Ledger #', 'type' => 'integer', 'default' => null, 'format' => 'id'],
 		'ledger_id_sequence' => ['name' => 'Ledger #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
-		'optimistic_lock' => ['name' => 'Optimistic Lock', 'type' => 'timestamp', 'null' => false, 'default' => 'now()', 'format' => '', 'validator_method' => '', 'placeholder' => ''],
 		'language_code' => ['name' => 'Language Code', 'type' => 'char', 'length' => 3, 'validator_method' => 'object_validator_lowercase::validate'],
 		'locale_code' => ['name' => 'Locale Code', 'type' => 'varchar', 'length' => 30],
 		'timezone_code' => ['name' => 'Timezone Code', 'type' => 'varchar', 'length' => 30],
@@ -92,11 +94,14 @@ class Domains extends \Object\Data {
 		'resource_id' => ['name' => 'Resource #', 'type' => 'integer', 'format' => 'id'],
 		'resource_id_sequence' => ['name' => 'Resource #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'action_id' => ['name' => 'Action #', 'type' => 'smallint', 'format' => 'id'],
-		// U/M User & O/N Organization Management
+		// U/M User Management
 		'user_id' => ['name' => 'User #', 'type' => 'integer', 'default' => null, 'format' => 'id'],
 		'user_id_sequence' => ['name' => 'User #', 'type' => 'serial', 'placeholder' => 'Sequence'],
 		'role_id' => ['name' => 'Role #', 'type' => 'integer', 'default' => null, 'format' => 'id'],
 		'role_id_sequence' => ['name' => 'Role #', 'type' => 'serial', 'placeholder' => 'Sequence'],
+		'message_id' => ['name' => 'Message #', 'type' => 'bigint', 'default' => null, 'format' => 'id'],
+		'message_id_sequence' => ['name' => 'Message #', 'type' => 'bigserial', 'placeholder' => 'Sequence'],
+		// O/N Organization Management
 		'organization_id' => ['name' => 'Organization #', 'type' => 'integer', 'default' => null, 'format' => 'id'],
 		'organization_id_sequence' => ['name' => 'Organization #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'jurisdiction_id' => ['name' => 'Jurisdiction #', 'type' => 'integer', 'default' => null, 'format' => 'id'],
@@ -107,8 +112,6 @@ class Domains extends \Object\Data {
 		'sbu_id_sequence' => ['name' => 'SBU #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'department_id' => ['name' => 'Department #', 'type' => 'integer', 'default' => null, 'format' => 'id'],
 		'department_id_sequence' => ['name' => 'Department #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
-		//'component_id' => ['name' => 'Component #', 'type' => 'integer', 'default' => null, 'format' => 'id'],
-		//'component_id_sequence' => ['name' => 'Component #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		// relations & models
 		'relation_id' => ['name' => 'Relation #', 'type' => 'bigint', 'default' => null, 'format' => 'id'],
 		'relation_id_sequence' => ['name' => 'Relation #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id'],
