@@ -278,6 +278,8 @@ class DataSource extends \Object\Table\Options {
 		if (!$result['success']) {
 			Throw new \Exception(implode(", ", $result['error']));
 		}
+		// put parameters beck into options
+		$options['parameters'] = $parameters;
 		// process data
 		if (method_exists($this, 'process')) {
 			$data = $this->process($result['rows'], $options);
