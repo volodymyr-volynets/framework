@@ -1,6 +1,12 @@
 <?php
 
 /**
+ * Constants
+ */
+define('DANGER', 'danger');
+define('SUCCESS', 'success');
+
+/**
  * Concatenate parameters if not empty
  * 
  * @param string $delimiter

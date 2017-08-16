@@ -228,9 +228,3 @@ class Parent2 extends \Object\Override\Data {
 		]
 	];
 }
-
-/**
- * Constants
- */
-define('DANGER', 'danger');
-define('SUCCESS', 'success');

@@ -260,6 +260,10 @@ class Controller {
 			self::$cached_actions = \Object\ACL\Resources::getStatic('actions', 'primary');
 		}
 		if (is_string($action)) $action = self::$cached_actions[$action]['id'];
+		// authorized controllers have full access
+		if (empty(self::$cached_controllers[self::$cached_controllers_by_ids[$resource_id]]['acl_permission']) && !empty(self::$cached_controllers[self::$cached_controllers_by_ids[$resource_id]]['acl_authorized'])) {
+			if (\User::authorized()) return true;
+		}
 		// go though roles
 		foreach ($roles as $v) {
 			$temp = $this->processRole($v, $resource_id, $method_code, $action, $module_id);
