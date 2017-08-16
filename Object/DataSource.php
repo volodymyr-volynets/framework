@@ -309,6 +309,10 @@ class DataSource extends \Object\Table\Options {
 		} else {
 			$data = $result['rows'];
 		}
+		// process not cached
+		if (method_exists($this, 'processNotCached')) {
+			$data = $this->processNotCached($data, $options);
+		}
 		// single row
 		if (!empty($query_settings['single_row']) && !empty($data)) {
 			$data = current($data);
