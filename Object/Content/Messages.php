@@ -41,4 +41,6 @@ class Messages {
 	const INFO_INACTIVE = '[Inactive]';
 	const INFO_MANDATORY = '[Mandatory]';
 	const INFO_FUNCTIONAL_CURRENCY = '[FC]';
+	// report
+	const REPORT_ROWS_NUMBER = 'Rows: [Number]';
 }

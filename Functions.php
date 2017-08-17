@@ -5,6 +5,10 @@
  */
 define('DANGER', 'danger');
 define('SUCCESS', 'success');
+define('DEF', 'default');
+define('NONE', 0);
+define('ODD', 1);
+define('EVEN', 2);
 
 /**
  * Concatenate parameters if not empty

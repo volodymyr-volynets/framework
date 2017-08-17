@@ -1202,37 +1202,18 @@ processAllValues:
 				}
 			}
 		}
-		// custome renderers for reports
-		if ($this->initiator_class == 'numbers_frontend_html_form_wrapper_report') {
-			// format
-			$this->element('default', 'format', 'format', [
-				'label_name' => 'Format',
-				'order' => -32000,
-				'row_order' => PHP_INT_MAX - 3000,
-				'default' => 'html',
-				'required' => true,
-				'percent' => 25,
-				'method' => 'select',
-				'no_choose' => true,
-				'options_model' => 'numbers_frontend_html_form_model_formats',
-				'options_options' => ['i18n' => 'skip_sorting'],
-				'onchange' => 'numbers.form.report.on_format_changed(this);'
-			]);
-			// add buttons
-			$this->container('buttons', [
-				'default_row_type' => 'grid',
-				'order' => PHP_INT_MAX - 2000
-			]);
-			foreach (self::REPORT_BUTTONS_DATA_GROUP as $k => $v) {
-				$this->element('buttons', self::BUTTONS, $k, $v);
+		// extra elements for report
+		if ($this->initiator_class == 'report') {
+			// default sort
+			if (empty($this->options['input']['\Object\Form\Model\Dummy\Sort']) && !empty($this->form_parent->report_default_sort)) {
+				$this->options['input']['\Object\Form\Model\Dummy\Sort'] = [];
+				foreach ($this->form_parent->report_default_sort as $k => $v) {
+					$this->options['input']['\Object\Form\Model\Dummy\Sort'][] = [
+						'__sort' => $k,
+						'__order' => $v
+					];
+				}
 			}
-			// add report container
-			$this->container('__report_container', [
-				'default_row_type' => 'grid',
-				'order' => PHP_INT_MAX - 1000,
-				'custom_renderer' => $this->form_class . '::build_report',
-				'report_renderer' => true
-			]);
 		}
 		// ajax requests from other forms are filtered by id
 		if (!empty($this->options['input']['__ajax'])) {
@@ -1363,7 +1344,7 @@ processAllValues:
 			// save for regular forms
 			if (!$this->hasErrors() && !empty($this->process_submit[$this::BUTTON_SUBMIT_SAVE])) {
 				// if it is a report we would skip save
-				if ($this->initiator_class == 'numbers_frontend_html_form_wrapper_report') {
+				if ($this->initiator_class == 'report') {
 					goto convertMultipleColumns;
 				}
 				// process save
@@ -1527,6 +1508,26 @@ convertMultipleColumns:
 			$this->misc_settings['list']['preview'] = $this->values['__preview'];
 			$this->misc_settings['list']['columns'] = $this->data[$this::LIST_CONTAINER]['rows'];
 		}
+		// report
+		if ($this->initiator_class == 'report' && !$this->hasErrors() && ($this->submitted || (!$this->refresh && !$this->submitted))) {
+			$result = $this->triggerMethod('buildReport');
+			if (!is_a($result, 'Object\Form\Builder\Report')) {
+				Throw new Exception('buildReport method should return Object\Form\Builder\Report object!');
+			}
+			// render report
+			$format = $this->options['input']['__content_type'] ?? 'text/html';
+			$content_types_model = new \Object\Form\Model\Report\Types();
+			$content_types = $content_types_model->get();
+			if (empty($content_types[$format])) $format = 'text/html';
+			$model = new $content_types[$format]['no_report_content_type_model']();
+			$report_html = $model->render($result);
+			// if report did not exited means we have html
+			$this->container('__report_builder_container', [
+				'default_row_type' => 'grid',
+				'order' => PHP_INT_MAX,
+				'__html' => & $report_html
+			]);
+		}
 		// process all values
 		$this->triggerMethod('processAllValues');
 		// debug
@@ -1545,6 +1546,45 @@ convertMultipleColumns:
 					$this->query->orderby([$v['__sort'] => $v['__order']]);
 				}
 			}
+		}
+	}
+
+	/**
+	 * Process list query order by clause
+	 */
+	public function processReportQueryOrderBy(& $query) {
+		if (!empty($this->values['\Object\Form\Model\Dummy\Sort'])) {
+			foreach ($this->values['\Object\Form\Model\Dummy\Sort'] as $k => $v) {
+				if (!empty($v['__sort'])) {
+					$name = $this->detail_fields['\Object\Form\Model\Dummy\Sort']['elements']['__sort']['options']['options'][$v['__sort']]['name'];
+					$this->misc_settings['list']['sort'][$name] = $v['__order'];
+					$query->orderby([$v['__sort'] => $v['__order']]);
+				}
+			}
+		}
+	}
+
+	/**
+	 * Process report query filter
+	 *
+	 * @param object $query
+	 */
+	public function processReportQueryFilter(& $query) {
+		$where = [];
+		foreach ($this->fields as $k => $v) {
+			if (!empty($v['options']['query_builder']) && isset($this->values[$k])) {
+				if (is_array($this->values[$k]) && empty($this->values[$k])) continue;
+				$where[$v['options']['query_builder']] = $this->values[$k];
+			}
+		}
+		if (isset($this->values['full_text_search'])) {
+			$where['full_text_search;FTS'] = [
+				'fields' => $this->fields['full_text_search']['options']['full_text_search_columns'],
+				'str' => $this->values['full_text_search']
+			];
+		}
+		if (!empty($where)) {
+			$query->whereMultiple('AND', $where);
 		}
 	}
 

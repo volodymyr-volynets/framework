@@ -30,6 +30,21 @@ class Parent2 extends \Object\Override\Data {
 	];
 
 	/**
+	 * Report buttons
+	 */
+	const REPORT_BUTTONS = '__report_buttons';
+	const REPORT_BUTTONS_DATA = [
+		'__content_type' => [
+			'__content_type' => ['order' => 1, 'container_order' => PHP_INT_MAX - 1000, 'container_class' => 'numbers_form_filter_sort_container', 'label_name' => 'Format', 'percent' => 25, 'required' => true, 'method' => 'select', 'default' => 'text/html', 'no_choose' => true, 'options_model' => '\Object\Form\Model\Report\Types']
+		],
+		self::BUTTONS => [
+			self::BUTTON_SUBMIT => self::BUTTON_SUBMIT_DATA,
+			self::BUTTON_SUBMIT_BLANK => self::BUTTON_SUBMIT_BLANK_DATA,
+			self::BUTTON_SUBMIT_RESET => self::BUTTON_SUBMIT_RESET_DATA
+		]
+	];
+
+	/**
 	 * List sort container
 	 */
 	const LIST_SORT_CONTAINER = [
@@ -192,6 +207,17 @@ class Parent2 extends \Object\Override\Data {
 		'header' => [
 			'icon' => ['type' => 'list'],
 			'title' => 'List:'
+		]
+	];
+
+	/**
+	 * Segment report
+	 */
+	const SEGMENT_REPORT = [
+		'type' => 'default',
+		'header' => [
+			'icon' => ['type' => 'table'],
+			'title' => 'Report:'
 		]
 	];
 

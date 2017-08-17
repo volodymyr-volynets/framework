@@ -208,7 +208,7 @@ class Application {
 	public static function autoloader($class) {
 		if (class_exists($class, false) || interface_exists($class, false)) {
 			return;
-		} else if (in_array(strtolower($class), get_loaded_extensions()) && !in_array($class, ['Session'])) {
+		} else if (in_array(strtolower($class), ['memcached'])) {
 			return;
 		}
 		// we need to check if we have customization for classes, we only allow 
