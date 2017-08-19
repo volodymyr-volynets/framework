@@ -234,6 +234,17 @@ class Data extends \Object\Table\Options {
 	}
 
 	/**
+	 * Options (static)
+	 *
+	 * @see $this::get()
+	 */
+	public static function optionsStatic(array $options = []) {
+		$class = get_called_class();
+		$object = new $class();
+		return $object->options($options);
+	}
+
+	/**
 	 * @see $this->get()
 	 * @return boolean
 	 */

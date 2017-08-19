@@ -43,4 +43,17 @@ class Messages {
 	const INFO_FUNCTIONAL_CURRENCY = '[FC]';
 	// report
 	const REPORT_ROWS_NUMBER = 'Rows: [Number]';
+
+	/**
+	 * Active
+	 *
+	 * @param mixed $value
+	 * @return string
+	 */
+	public static function active($value, $flip = false) : string {
+		if ($flip) {
+			$value = $value ? false : true;
+		}
+		return i18n(null, !empty($value) ? 'Yes' : 'No');
+	}
 }

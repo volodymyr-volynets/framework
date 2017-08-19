@@ -37,6 +37,7 @@ class Report {
 			'name' => $report_name,
 			'options' => $options,
 			'header' => [],
+			'header_options' => [],
 			'data' => []
 		];
 	}
@@ -48,7 +49,7 @@ class Report {
 	 * @param string $header_name
 	 * @param array $header_column1
 	 */
-	public function addHeader(string $report_name, string $header_name, array $header_columns) {
+	public function addHeader(string $report_name, string $header_name, array $header_columns, array $options = []) {
 		// set index
 		$index = 0;
 		foreach ($header_columns as $k => $v) {
@@ -58,6 +59,24 @@ class Report {
 		}
 		// replace header
 		$this->data[$report_name]['header'][$header_name] = $header_columns;
+		$this->data[$report_name]['header_options'][$header_name] = $options;
+	}
+
+	/**
+	 * Get header for rendering
+	 *
+	 * @param string $report_name
+	 * @param string $header_name
+	 * @return array
+	 */
+	public function getHeaderForRender(string $report_name, string $header_name) : array {
+		$columns = $this->data[$report_name]['header'][$header_name];
+		foreach ($columns as $k => $v) {
+			if ($k == 'blank' || empty($v['label_name'])) continue;
+			$columns[$k]['as_header'] = true;
+			$columns[$k]['value'] = $v['label_name'];
+		}
+		return $columns;
 	}
 
 	/**
@@ -67,7 +86,7 @@ class Report {
 	 * @param string $header_name
 	 * @param mixed $data_column1
 	 */
-	public function addData(string $report_name, string $header_name, $odd_even, array $data_columns) {
+	public function addData(string $report_name, string $header_name, $odd_even, array $data_columns, array $options = []) {
 		// process header
 		$header = $this->data[$report_name]['header'][$header_name];
 		$temp = [];
@@ -83,6 +102,7 @@ class Report {
 			2 => false,			// separator
 			3 => $header_name,  // header name
 			4 => null,			// legend
+			5 => $options,		// options
 		];
 	}
 

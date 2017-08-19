@@ -156,4 +156,20 @@ class Request {
 		header('Location: ' . $url);
 		exit;
 	}
+
+	/**
+	 * Build URL
+	 *
+	 * @param type $controller
+	 * @param array $params
+	 * @param string $host
+	 * @return string
+	 */
+	public static function buildURL($controller, array $params = [], string $host = '') : string {
+		if (empty($host)) {
+			$host = \Request::host();
+		}
+		$controller = ltrim($controller, '/');
+		return $host . $controller . '?' . http_build_query2($params);
+	}
 }

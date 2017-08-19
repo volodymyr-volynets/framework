@@ -1125,8 +1125,7 @@ processAllValues:
 		$this->list_rendered = false;
 		$this->errorResetAll();
 		// preload collection, must be first
-		// fix here
-		if ($this->preloadCollectionObject() && $this->initiator_class != 'numbers_frontend_html_form_wrapper_report') {
+		if ($this->preloadCollectionObject() && !in_array($this->initiator_class, ['report', 'list'])) {
 			// if we have relation
 			if (!empty($this->collection_object->primary_model->relation['field']) && !in_array($this->collection_object->primary_model->relation['field'], $this->collection_object->primary_model->pk)) {
 				$this->element($this::HIDDEN, $this::HIDDEN, $this->collection_object->primary_model->relation['field'], ['label_name' => 'Relation #', 'domain' => 'relation_id_sequence', 'persistent' => true]);
@@ -1135,6 +1134,10 @@ processAllValues:
 			if (!empty($this->collection_object->primary_model->optimistic_lock)) {
 				$this->element($this::HIDDEN, $this::HIDDEN, $this->collection_object->primary_model->optimistic_lock_column, ['label_name' => 'Optimistic Lock', 'type' => 'text', 'null' => true, 'default' => null, 'method'=> 'hidden', 'skip_during_export' => true]);
 			}
+		}
+		// for reports we do not user ajax
+		if ($this->initiator_class == 'report') {
+			$this->options['no_ajax_form_reload'] = true;
 		}
 		// module #
 		$blank_reset_var = [];
@@ -1508,8 +1511,8 @@ convertMultipleColumns:
 			$this->misc_settings['list']['preview'] = $this->values['__preview'];
 			$this->misc_settings['list']['columns'] = $this->data[$this::LIST_CONTAINER]['rows'];
 		}
-		// report
-		if ($this->initiator_class == 'report' && !$this->hasErrors() && ($this->submitted || (!$this->refresh && !$this->submitted))) {
+		// report, filter form must be submitted
+		if ($this->initiator_class == 'report' && !$this->hasErrors() && $this->submitted) {
 			$result = $this->triggerMethod('buildReport');
 			if (!is_a($result, 'Object\Form\Builder\Report')) {
 				Throw new Exception('buildReport method should return Object\Form\Builder\Report object!');
@@ -2333,6 +2336,12 @@ convertMultipleColumns:
 					if (\Application::get('flag.numbers.frontend.html.form.revert_inactive') && ($options['label_name'] ?? '') == 'Inactive') {
 						$options['label_name'] = 'Active';
 						$options['oposite_checkbox'] = true;
+					}
+				} else if (in_array($this->initiator_class, ['list', 'report']) && ($options['type'] ?? '') == 'boolean') {
+					// we revert inactive if set
+					if (\Application::get('flag.numbers.frontend.html.form.revert_inactive') && ($options['label_name'] ?? '') == 'Inactive') {
+						$options['label_name'] = 'Active';
+						$options['options_model'] = '\Object\Data\Model\Inactive2';
 					}
 				}
 				// validator method for captcha
