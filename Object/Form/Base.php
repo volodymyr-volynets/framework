@@ -311,6 +311,13 @@ class Base extends \Object\Form\Parent2 {
 	public $import_object;
 
 	/**
+	 * Cached options
+	 *
+	 * @var array
+	 */
+	public $cached_options = [];
+
+	/**
 	 * Constructor
 	 *
 	 * @param string $form_link
@@ -1486,6 +1493,11 @@ convertMultipleColumns:
 			if (!empty($where)) {
 				$this->query->whereMultiple('AND', $where);
 			}
+			// if we are rendering not text/html we need to reset limit and offset
+			if ($this->values['__format'] != 'text/html') {
+				$this->values['__limit'] = PHP_INT_MAX;
+				$this->values['__offset'] = 0;
+			}
 			// execute custom query processor
 			$result = $this->triggerMethod('listQuery');
 			if (is_array($result) && !empty($result['success'])) {
@@ -1518,7 +1530,7 @@ convertMultipleColumns:
 				Throw new Exception('buildReport method should return Object\Form\Builder\Report object!');
 			}
 			// render report
-			$format = $this->options['input']['__content_type'] ?? 'text/html';
+			$format = $this->values['__format'] ?? 'text/html';
 			$content_types_model = new \Object\Form\Model\Report\Types();
 			$content_types = $content_types_model->get();
 			if (empty($content_types[$format])) $format = 'text/html';
@@ -2441,6 +2453,10 @@ convertMultipleColumns:
 	 * @return mixed
 	 */
 	public function render($format = null) {
+		// list has its own format
+		if ($this->initiator_class == 'list') {
+			$format = $this->values['__format'] ?? 'text/html';
+		}
 		if (!isset($format)) $format = $this->options['input']['__content_type'] ?? 'text/html';
 		$content_types_model = new \Object\Form\Model\Content\Types();
 		$content_types = $content_types_model->get();
@@ -2815,5 +2831,38 @@ convertMultipleColumns:
 		}
 		$result['success'] = true;
 		return $result;
+	}
+
+	/**
+	 * Render list one option
+	 *
+	 * @param array $options
+	 * @param mixed $value
+	 * @return mixed
+	 */
+	public function renderListContainerDefaultOptions(array $options, $value, $neighbouring_values = []) {
+		if (strpos($options['options_model'], '::') === false) $options['options_model'].= '::options';
+		$params = $options['options_params'] ?? [];
+		if (!empty($options['options_depends'])) {
+			foreach ($options['options_depends'] as $k9 => $v9) {
+				$params[$k9] = $neighbouring_values[$v9];
+			}
+		}
+		$hash = sha1($options['options_model'] . serialize($params));
+		if (!isset($this->cached_options[$hash])) {
+			$method = \Factory::method($options['options_model'], null, true);
+			$this->cached_options[$hash] = call_user_func_array($method, [['where' => $params, 'i18n' => true]]);
+		}
+		if (is_array($value)) {
+			$temp = [];
+			foreach ($value as $v) {
+				if (isset($this->cached_options[$hash][$v]['name'])) {
+					$temp[]= $this->cached_options[$hash][$v]['name'];
+				}
+			}
+			return implode(\Format::$symbol_comma . ' ', $temp);
+		} else {
+			return $this->cached_options[$hash][$value]['name'] ?? null;
+		}
 	}
 }

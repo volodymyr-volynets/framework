@@ -19,8 +19,8 @@ class Parent2 extends \Object\Override\Data {
 	 */
 	const LIST_BUTTONS = '__list_buttons';
 	const LIST_BUTTONS_DATA = [
-		'__content_type' => [
-			'__content_type' => ['order' => 1, 'container_order' => PHP_INT_MAX - 1000, 'container_class' => 'numbers_form_filter_sort_container', 'label_name' => 'Format', 'percent' => 25, 'required' => true, 'method' => 'select', 'default' => 'text/html', 'no_choose' => true, 'options_model' => '\Object\Form\Model\Content\Types']
+		'__format' => [
+			'__format' => ['order' => 1, 'container_order' => PHP_INT_MAX - 1000, 'container_class' => 'numbers_form_filter_sort_container', 'label_name' => 'Format', 'percent' => 25, 'required' => true, 'method' => 'select', 'default' => 'text/html', 'no_choose' => true, 'options_model' => '\Object\Form\Model\Content\Types', 'options_options' => ['i18n' => 'skip_sorting']]
 		],
 		self::BUTTONS => [
 			self::BUTTON_SUBMIT => self::BUTTON_SUBMIT_DATA,
@@ -34,8 +34,8 @@ class Parent2 extends \Object\Override\Data {
 	 */
 	const REPORT_BUTTONS = '__report_buttons';
 	const REPORT_BUTTONS_DATA = [
-		'__content_type' => [
-			'__content_type' => ['order' => 1, 'container_order' => PHP_INT_MAX - 1000, 'container_class' => 'numbers_form_filter_sort_container', 'label_name' => 'Format', 'percent' => 25, 'required' => true, 'method' => 'select', 'default' => 'text/html', 'no_choose' => true, 'options_model' => '\Object\Form\Model\Report\Types']
+		'__format' => [
+			'__format' => ['order' => 1, 'container_order' => PHP_INT_MAX - 1000, 'container_class' => 'numbers_form_filter_sort_container', 'label_name' => 'Format', 'percent' => 25, 'required' => true, 'method' => 'select', 'default' => 'text/html', 'no_choose' => true, 'options_model' => '\Object\Form\Model\Report\Types', 'options_options' => ['i18n' => 'skip_sorting']]
 		],
 		self::BUTTONS => [
 			self::BUTTON_SUBMIT => self::BUTTON_SUBMIT_DATA,
