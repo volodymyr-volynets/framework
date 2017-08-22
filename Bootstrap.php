@@ -12,7 +12,7 @@ class Bootstrap {
 		// if we are from command line we exit here
 		if (!empty($options['__run_only_bootstrap'])) {
 			// format
-			Format::init();
+			\Format::init();
 			return;
 		}
 		// get flags & dependencies
@@ -99,14 +99,14 @@ class Bootstrap {
 		}
 		// load tenant
 		if (!empty($application_structure_model)) {
-			Factory::model($application_structure_model, true)->tenant();
+			\Factory::model($application_structure_model, true)->tenant();
 		}
 		// we need to get overrides from session and put them back to flag array
-		$flags = array_merge_hard($flags, Session::get('numbers.flag'));
-		Application::set('flag', $flags);
+		$flags = array_merge_hard($flags, \Session::get('numbers.flag'));
+		\Application::set('flag', $flags);
 		// initialize i18n
 		if ($backend) {
-			$temp_result = I18n::init();
+			$temp_result = \I18n::init();
 			if (!$temp_result['success']) {
 				Throw new Exception('Could not initialize i18n.');
 			}
