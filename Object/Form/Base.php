@@ -1473,7 +1473,7 @@ convertMultipleColumns:
 			if (!empty($this->form_parent->query_primary_model)) {
 				$this->query = call_user_func_array([$this->form_parent->query_primary_model, 'queryBuilderStatic'], [[
 					'initiator' => 'list',
-					'where' => $this->form_parent->query_primary_options ?? []
+					'where' => $this->form_parent->query_primary_parameters ?? []
 				]])->select();
 			}
 			// add filter
@@ -1662,7 +1662,9 @@ convertMultipleColumns:
 					'column' => $column,
 					'pk' => $this->collection_object->data['pk'],
 					'value' => $this->values[$column],
-					'depends' => $depends
+					'depends' => $depends,
+					'acl_datasource' => $this->collection_object->data['acl_datasource'] ?? null,
+					'acl_parameters' => $this->collection_object->data['acl_parameters'] ?? null,
 				]
 			]);
 			// if we have data we override
@@ -2754,6 +2756,7 @@ convertMultipleColumns:
 	 */
 	private function disassembleCollectionObject(array $collection_details, & $result, $parent = []) {
 		foreach ($collection_details as $k => $v) {
+			if (!empty($v['readonly'])) continue;
 			$result[$k] = $v;
 			$result[$k]['model'] = $k;
 			$result[$k]['__parent'] = $parent;

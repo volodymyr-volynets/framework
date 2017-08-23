@@ -23,8 +23,10 @@ class Navigation extends \Object\DataSource {
 		'type' => ['name' => 'Type', 'type' => 'text', 'required' => true],
 		'column' => ['name' => 'Column', 'type' => 'text', 'required' => true],
 		'pk' => ['name' => 'Pk', 'type' => 'mixed', 'required' => true],
-		'value' => ['name' => 'Value', 'type' => 'mixed', 'required' => false],
-		'depends' => ['name' => 'Depends', 'type' => 'mixed', 'required' => false],
+		'value' => ['name' => 'Value', 'type' => 'mixed'],
+		'depends' => ['name' => 'Depends', 'type' => 'mixed'],
+		'acl_datasource' => ['name' => 'ACL DataSource', 'type' => 'string'],
+		'acl_parameters' => ['name' => 'ACL Parameters', 'type' => 'mixed'],
 	];
 
 	public function query($parameters, $options = []) {
@@ -34,6 +36,24 @@ class Navigation extends \Object\DataSource {
 		$column = $parameters['column'];
 		$this->query = $model->queryBuilder()->select();
 		$this->query->columns($parameters['pk']);
+		// acl datasource
+		if (!empty($parameters['acl_datasource'])) {
+			$acl_datasource = $parameters['acl_datasource'];
+			$acl_pk = [];
+			foreach ($parameters['pk'] as $v) {
+				if ($v == $model->tenant_column) continue;
+				$acl_pk[] = ['a.' . $v, '=', 'inner_a.' . $v, true];
+			}
+			$acl_parameters = $parameters['acl_parameters'] ?? [];
+			$this->query->where('AND', function (& $query) use ($acl_datasource, $acl_pk, $acl_parameters) {
+				$model = new $acl_datasource();
+				$query = $model->queryBuilder(['alias' => 'inner_a', 'where' => $acl_parameters])->select();
+				$query->columns(1);
+				foreach ($acl_pk as $v) {
+					$query->where('AND', $v);
+				}
+			}, 'EXISTS');
+		}
 		// adjust type based on value
 		if (empty($parameters['value'])) {
 			if ($parameters['type'] == 'previous') {

@@ -253,13 +253,38 @@ class Controller {
 		if (empty(self::$cached_controllers_by_ids[$resource_id])) return false;
 		// super admin
 		if (\User::get('super_admin')) return true;
-		// load user roles
-		if (is_null($roles)) $roles = \User::roles();
 		// load all actions from datasource
 		if (is_null(self::$cached_actions) && !\Object\Error\Base::$flag_database_tenant_not_found) {
 			self::$cached_actions = \Object\ACL\Resources::getStatic('actions', 'primary');
 		}
 		if (is_string($action)) $action = self::$cached_actions[$action]['id'];
+		// see if we have permission overrides
+		$permissions = \User::get('permissions');
+		if (!empty($permissions)) {
+			// process permissions
+			$all_actions = $permissions[$resource_id]['AllActions'][-1] ?? [];
+			$actual_action = $permissions[$resource_id][$method_code][$action] ?? [];
+			$temp = array_merge_hard($all_actions, $actual_action);
+			if (!empty($temp)) {
+				if (!empty($module_id)) {
+					$temp = $temp[$module_id] ?? null;
+				} else { // find any active permision
+					$temp2 = $temp;
+					$temp = null;
+					foreach ($temp2 as $k => $v) {
+						if ($v === 0) {
+							$temp = 0;
+							break;
+						}
+					}
+				}
+			}
+			if ($temp === 0) {
+				return true;
+			}
+		}
+		// load user roles
+		if (is_null($roles)) $roles = \User::roles();
 		// authorized controllers have full access
 		if (empty(self::$cached_controllers[self::$cached_controllers_by_ids[$resource_id]]['acl_permission']) && !empty(self::$cached_controllers[self::$cached_controllers_by_ids[$resource_id]]['acl_authorized'])) {
 			if (\User::authorized()) return true;
@@ -289,8 +314,8 @@ class Controller {
 		// if role is not found
 		if (empty(self::$cached_roles[$role])) return 0;
 		// process permissions
-		$all_actions = self::$cached_roles[$role]['permissions'][$resource_id]['AllActions'][-1] ?? null;
-		$actual_action = self::$cached_roles[$role]['permissions'][$resource_id][$method_code][$action_id] ?? null;
+		$all_actions = self::$cached_roles[$role]['permissions'][$resource_id]['AllActions'][-1] ?? [];
+		$actual_action = self::$cached_roles[$role]['permissions'][$resource_id][$method_code][$action_id] ?? [];
 		$temp = array_merge_hard($all_actions, $actual_action);
 		if (!empty($temp)) {
 			if (!empty($module_id)) {

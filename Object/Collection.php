@@ -100,6 +100,24 @@ class Collection extends \Object\Override\Data {
 				'initiator' => 'collection',
 				'skip_acl' => true
 			])->select();
+			// acl datasource
+			if (!empty($this->data['acl_datasource'])) {
+				$acl_datasource = $this->data['acl_datasource'];
+				$acl_pk = [];
+				foreach (($this->data['pk'] ?? $this->primary_model->pk) as $v) {
+					if ($v == $this->primary_model->tenant_column) continue;
+					$acl_pk[] = ['a.' . $v, '=', 'inner_a.' . $v, true];
+				}
+				$acl_parameters = $this->data['acl_parameters'] ?? [];
+				$query->where('AND', function (& $query) use ($acl_datasource, $acl_pk, $acl_parameters) {
+					$model = new $acl_datasource();
+					$query = $model->queryBuilder(['alias' => 'inner_a', 'where' => $acl_parameters])->select();
+					$query->columns(1);
+					foreach ($acl_pk as $v) {
+						$query->where('AND', $v);
+					}
+				}, 'EXISTS');
+			}
 			// where
 			if (!empty($options['where'])) {
 				$query->whereMultiple('AND', $options['where']);
