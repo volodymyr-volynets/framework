@@ -78,19 +78,21 @@ class Sequence extends \Object\Override\Data {
 	 * @throws Exception
 	 */
 	public function __construct() {
+		// we need to handle overrrides
+		parent::overrideHandle($this);
 		// we need to determine db link
 		if (empty($this->db_link)) {
 			// get from flags first
 			if (!empty($this->db_link_flag)) {
-				$this->db_link = Application::get($this->db_link_flag);
+				$this->db_link = \Application::get($this->db_link_flag);
 			}
 			// get default link
 			if (empty($this->db_link)) {
-				$this->db_link = Application::get('flag.global.db.default_db_link');
+				$this->db_link = \Application::get('flag.global.default_db_link');
 			}
 			// if we could not determine the link we throw exception
 			if (empty($this->db_link)) {
-				Throw new Exception('Could not determine db link in sequnce!');
+				Throw new \Exception('Could not determine db link in sequnce!');
 			}
 		}
 		// process table name and schema
@@ -108,7 +110,7 @@ class Sequence extends \Object\Override\Data {
 	 * @return array
 	 */
 	public function nextval() {
-		return $this->get_by_type('nextval');
+		return $this->getByType('nextval');
 	}
 
 	/**
@@ -117,7 +119,7 @@ class Sequence extends \Object\Override\Data {
 	 * @return type
 	 */
 	public function currval() {
-		return $this->get_by_type('currval');
+		return $this->getByType('currval');
 	}
 
 	/**
@@ -133,12 +135,11 @@ class Sequence extends \Object\Override\Data {
 			'advanced' => null
 		];
 		$db = new \Db($this->db_link);
-		$table_model = new \Numbers\Backend\Db\Common\Model\Sequences();
 		$temp = $db->sequence($this->full_sequence_name, $type);
 		if (!$temp['success']) {
 			$result['error'] = $temp['error'];
 		} else if (!empty($temp['rows'][0])) {
-			if ($temp['rows'][0]['sm_sequence_type'] == 'advanced') {
+			if (in_array($this->type, ['global_advanced', 'tenant_advanced', 'module_advanced'])) {
 				$result['simple'] = $temp['rows'][0]['counter'];
 				$sequence = $result['simple'] . '';
 				// if we need to pad sequence

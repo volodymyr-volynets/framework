@@ -165,9 +165,9 @@ class Layout extends View {
 	 * @return string
 	 */
 	public static function renderTitle() {
-		$title = self::$title_override ?? Application::$controller->title ?? null;
+		$title = self::$title_override ?? \Application::$controller->title ?? null;
 		if (!empty($title)) {
-			$icon = self::$icon_override ?? Application::$controller->icon ?? null;
+			$icon = self::$icon_override ?? \Application::$controller->icon ?? null;
 			return (!empty($icon) ? (\HTML::icon(['type' => $icon]) . ' ') : '') . i18n(null, $title);
 		}
 	}

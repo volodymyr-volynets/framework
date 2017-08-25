@@ -252,7 +252,7 @@ class Format {
 		}
 		// localize
 		if (empty($options['skip_i18n'])) {
-			$value = str_replace(['am', 'pm'], [i18n(null, 'am'), i18n(null, 'pm')], $value);
+			$value = str_replace(['am', 'pm'], [i18n(null, 'am', ['skip_i_symbol' => true]), i18n(null, 'pm', ['skip_i_symbol' => true])], $value);
 			return self::numberToFromNativeLanguage($value, $options);
 		} else {
 			return $value;

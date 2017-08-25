@@ -104,18 +104,26 @@ class Bootstrap {
 		// we need to get overrides from session and put them back to flag array
 		$flags = array_merge_hard($flags, \Session::get('numbers.flag'));
 		\Application::set('flag', $flags);
+		// custom destroy methods
+		$temp = \Object\ACL\Resources::getStatic('initialize');
+		if (!empty($temp)) {
+			foreach ($temp as $v) {
+				$method = \Factory::method($v['method'], null, true);
+				call_user_func_array($method, []);
+			}
+		}
 		// initialize i18n
 		if ($backend) {
 			$temp_result = \I18n::init();
 			if (!$temp_result['success']) {
-				Throw new Exception('Could not initialize i18n.');
+				Throw new \Exception('Could not initialize i18n.');
 			}
 		}
 		// format
-		Format::init();
+		\Format::init();
 		// default actions
-		Layout::addAction('refresh', ['value' => 'Refresh', 'icon' => 'refresh', 'onclick' => 'location.reload();', 'order' => -32000]);
-		Layout::addAction('print', ['value' => 'Print', 'icon' => 'print', 'onclick' => 'window.print();', 'order' => -31000]);
+		\Layout::addAction('refresh', ['value' => 'Refresh', 'icon' => 'refresh', 'onclick' => 'location.reload();', 'order' => -32000]);
+		\Layout::addAction('print', ['value' => 'Print', 'icon' => 'print', 'onclick' => 'window.print();', 'order' => -31000]);
 	}
 
 	/**

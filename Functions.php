@@ -339,27 +339,6 @@ function array_extract_values_by_key(array $array, string $key, array $options =
 }
 
 /**
- * Process function
- * 
- * @param string $function
- * @param mixed $value
- */
-function function2($function, $value) {
-	$result = null;
-	switch ($function) {
-		case 'date':
-		case 'datetime':
-		case 'time':
-			// todo fix formating
-			$result = (strtotime($value)!==false) ? Format::date_format($result['value'], $temp_func, 'system') : '';
-			break;
-		default:
-			$result = $function($value);
-	}
-	return $result;
-}
-
-/**
  * Build a query string and strip empty fields
  * 
  * @param array $arr
