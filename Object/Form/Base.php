@@ -1494,7 +1494,7 @@ convertMultipleColumns:
 				$this->query->whereMultiple('AND', $where);
 			}
 			// if we are rendering not text/html we need to reset limit and offset
-			if ($this->values['__format'] != 'text/html') {
+			if (($this->values['__format'] ?? 'text/html') != 'text/html') {
 				$this->values['__limit'] = PHP_INT_MAX;
 				$this->values['__offset'] = 0;
 			}
