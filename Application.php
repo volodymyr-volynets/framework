@@ -206,6 +206,7 @@ class Application {
 	 * @param string $class
 	 */
 	public static function autoloader($class) {
+		$class = ltrim($class, '\\');
 		if (class_exists($class, false) || interface_exists($class, false)) {
 			return;
 		} else if (in_array(strtolower($class), ['memcached'])) {

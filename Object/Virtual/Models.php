@@ -14,7 +14,8 @@ class Models {
 		$temp2 = explode('\\', $last);
 		$model = \Object\ACL\Resources::getStatic(strtolower($temp2[0]), strtolower($temp2[1]), 'model');
 		// create an object
-		$object = new $model($temp[0], $class);
+		$parent_class = implode('\0Virtual0\\', $temp);
+		$object = new $model($parent_class, $class);
 		return $object;
 	}
 }

@@ -869,10 +869,10 @@ class Base extends \Object\Form\Parent2 {
 							// sort fields
 							$subdetail_fields = $this->sortFieldsForProcessing($v0['elements']);
 							// if we have custom data processor
-							if (!empty($v0['options']['details_processWidget_data'])) {
+							if (!empty($v0['options']['details_process_widget_data'])) {
 								$widget_model = \Factory::model($k0, true);
 								$v0['validate_required'] = $options['validate_required'] ?? false;
-								$detail[$k0] = $widget_model->processWidget_data($this, [$k, $k2, $k0], $v2[$k0] ?? [], $detail, $subdetail_fields, $v0);
+								$detail[$k0] = $widget_model->formProcessWidgetData($this, [$k, $k2, $k0], $v2[$k0] ?? [], $detail, $subdetail_fields, $v0);
 								// change detected
 								if (!empty($detail[$k0])) {
 									$flag_change_detected = true;
@@ -1547,6 +1547,7 @@ convertMultipleColumns:
 		$this->triggerMethod('processAllValues');
 		// debug
 		//print_r2($this->errors);
+		//print_r2($this->values);
 	}
 
 	/**
@@ -2168,9 +2169,7 @@ convertMultipleColumns:
 				// we skip if widgets are not enabled
 				$widget = str_replace('detail_', '', $options['widget']);
 				$temp = \Object\ACL\Resources::getStatic('widgets', $widget);
-				if (empty($temp) || empty($this->collection_object->primary_model->{$widget})) {
-					return;
-				}
+				if (empty($temp)) return;
 				// handling widgets
 				return $this->processWidget($options);
 			}
@@ -2475,7 +2474,8 @@ convertMultipleColumns:
 	public function apiResult() : array {
 		$result = [
 			'success' => false,
-			'error' => []
+			'error' => [],
+			'values' => $this->values
 		];
 		if ($this->hasErrors()) {
 			$message = [];

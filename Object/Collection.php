@@ -279,18 +279,6 @@ class Collection extends \Object\Override\Data {
 			foreach ($result_keys as $k0 => $v0) {
 				array_key_set($parent_rows, $v0, []);
 			}
-			// if we have relation
-			$sql_relation_join = '';
-			$sql_relation_columns = '';
-			// todo
-			if (!empty($v['__relation_pk'])) {
-				$temp3 = [];
-				foreach ($v['map'] as $k3 => $v3) {
-					$temp3[] = "b2.{$k3} = b.{$v3}";
-				}
-				$sql_relation_join = ' INNER JOIN ' . $this->primary_model->full_table_name . ' b2 ON ' . implode(' AND ', $temp3);
-				$sql_relation_columns = ', ' . implode(',', $v['__relation_pk']);
-			}
 			// building query
 			$query = new \Object\Query\Builder($model->db_link);
 			$query->select()

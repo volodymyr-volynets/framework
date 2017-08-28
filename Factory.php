@@ -99,10 +99,11 @@ class Factory {
 			} else {
 no_cache:
 				// if we need to pass options to an object
+				$class_name = ltrim($class, '\\');
 				if (isset($constructor_parameters)) {
-					self::$class_objects['model'][$class] = new $class(... $constructor_parameters);
+					self::$class_objects['model'][$class] = new $class_name(... $constructor_parameters);
 				} else {
-					self::$class_objects['model'][$class] = new $class();
+					self::$class_objects['model'][$class] = new $class_name();
 				}
 			}
 			$object = & self::$class_objects['model'][$class];

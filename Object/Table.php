@@ -395,7 +395,7 @@ class Table extends \Object\Table\Options {
 		$widgets = array_merge(['attributes' => false, 'addresses' => false, 'audit' => false], $widgets);
 		foreach ($widgets as $widget => $widget_data) {
 			if (!empty($this->{$widget}) && !empty($widget_data)) {
-				$this->{$widget . '_model'} = get_class($this) . '\0Virtual0\Widgets\\' . ucwords($widget);
+				$this->{$widget . '_model'} = '\\' . get_class($this) . '\0Virtual0\Widgets\\' . ucwords($widget);
 			} else {
 				$this->{$widget} = false;
 			}
@@ -455,9 +455,6 @@ class Table extends \Object\Table\Options {
 			if (isset($columns[$v]['domain'])) {
 				$columns[$v]['domain'] = str_replace('_sequence', '', $columns[$v]['domain']);
 				unset($columns[$v]['type'], $columns[$v]['sequence']);
-			}
-			if (!empty($model->relation['field']) && $k == $model->relation['field']) {
-				$this->__relation_pk = $model->pk;
 			}
 		}
 		$this->columns = array_merge_hard($columns, $this->columns);
