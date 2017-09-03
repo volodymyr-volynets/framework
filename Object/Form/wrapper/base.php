@@ -207,4 +207,19 @@ class Base extends \Object\Form\Parent2 {
 	public function apiResult() : array {
 		return $this->form_object->apiResult();
 	}
+
+	/**
+	 * Create API object
+	 *
+	 * @return \Object\Form\API
+	 */
+	public static function API() : \Object\Form\API {
+		$class = '\\' . get_called_class();
+		$model = new $class([
+			'skip_processing' => true,
+			'skip_acl' => true // a must because we might execute it from different controller
+		]);
+		$api = new \Object\Form\API($model);
+		return $api;
+	}
 }

@@ -1,6 +1,7 @@
 <?php
 
-class object_form_wrapper_wizard {
+namespace Object\Form\Wrapper;
+class Wizard {
 
 	/**
 	 * Options

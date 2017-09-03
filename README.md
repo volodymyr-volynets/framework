@@ -1,6 +1,6 @@
 # Numbers PHP Framework
 
-Framework is designed for Enterpeise applications and is a group of multiple composer repositories (modules) that can be plugged when needed.
+Framework is designed for Enterprise applications and is a group of multiple composer repositories (modules) that can be plugged when needed.
 1) To create a skeleton for and application follow installation instruction from this url:
 
 	[https://github.com/volodymyr-volynets/skeleton](https://github.com/volodymyr-volynets/skeleton)

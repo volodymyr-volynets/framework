@@ -313,6 +313,13 @@ class Table extends \Object\Table\Options {
 	public $sql_last_query;
 
 	/**
+	 * Options
+	 *
+	 * @var array
+	 */
+	public $options = [];
+
+	/**
 	 * Constructing object
 	 *
 	 * @param array $options
@@ -320,6 +327,7 @@ class Table extends \Object\Table\Options {
 	 * @throws Exception
 	 */
 	public function __construct($options = []) {
+		$this->options = $options;
 		// we need to handle overrrides
 		parent::overrideHandle($this);
 		// we need to determine db link
@@ -619,15 +627,15 @@ class Table extends \Object\Table\Options {
 	 *
 	 * @param string $column
 	 * @param string $type
+	 * @param int|null $tenant
+	 * @param int|null $module
 	 * @return int
 	 */
-	public function sequence(string $column, string $type = 'nextval') {
+	public function sequence(string $column, string $type = 'nextval', $tenant = null, $module = null) {
 		// add tenant
-		$tenant = null;
-		if ($this->tenant) {
+		if (empty($tenant) && $this->tenant) {
 			$tenant = \Tenant::id();
 		}
-		$module = null;
 		$temp = $this->db_object->sequence($this->full_table_name . '_' . $column . '_seq', $type, $tenant, $module);
 		return $temp['rows'][0]['counter'];
 	}
