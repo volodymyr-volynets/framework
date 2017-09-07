@@ -21,6 +21,9 @@ if (file_exists('../libraries/vendor/autoload.php')) {
 require('../libraries/vendor/Numbers/Framework/Application.php');
 Application::run(['__run_only_bootstrap' => 1]);
 
+// disable debug
+\Debug::$debug = false;
+
 // increase in memory and unlimited execution time
 ini_set('memory_limit', '2048M');
 set_time_limit(0);
