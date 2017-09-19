@@ -812,18 +812,7 @@ TTT;
 	 * @return \\Object\Query\Builder
 	 */
 	public function queryBuilder(array $options = []) : \Object\Query\Builder {
-		return self::queryBuilderStatic($options);
-	}
-
-	/**
-	 * Query builder (static)
-	 *
-	 * @param array $options
-	 * @return \\Object\Query\Builder
-	 */
-	public static function queryBuilderStatic(array $options = []) : \Object\Query\Builder {
-		$class = get_called_class();
-		$model = new $class();
+		$model = $this;
 		// alias
 		$alias = $options['alias'] ?? 'a';
 		unset($options['alias']);
@@ -845,6 +834,18 @@ TTT;
 			]);
 		}
 		return $object;
+	}
+
+	/**
+	 * Query builder (static)
+	 *
+	 * @param array $options
+	 * @return \\Object\Query\Builder
+	 */
+	public static function queryBuilderStatic(array $options = []) : \Object\Query\Builder {
+		$class = get_called_class();
+		$model = new $class();
+		return $model->queryBuilder($options);
 	}
 
 	/**

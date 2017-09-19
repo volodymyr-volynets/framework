@@ -1,6 +1,7 @@
 <?php
 
-class object_validator_lowercase extends \Object\Validator\Base {
+namespace Object\Validator;
+class LowerCase extends \Object\Validator\Base {
 
 	/**
 	 * @see \Object\Validator\Base::validate()

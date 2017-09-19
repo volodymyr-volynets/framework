@@ -165,7 +165,7 @@ class Application {
 		\Object\Controller\Front::setMvc($options['request_uri'] ?? null);
 		// check if controller exists
 		if (!file_exists(self::$settings['mvc']['controller_file'])) {
-			Throw new Exception('Resource not found!', -1);
+			Throw new \Exception('Resource not found!', -1);
 		}
 		// initialize the controller
 		$controller_class = self::$settings['mvc']['controller_class'];
@@ -179,7 +179,7 @@ class Application {
 			$message = self::$controller->singleton_message ?? 'This script is being run by another user!';
 			$lock_id = "singleton_" . $controller_class;
 			if (\Lock::process($lock_id)===false) {
-				Throw new Exception($message);
+				Throw new \Exception($message);
 			}
 		}
 		// process parameters and provide output
@@ -209,8 +209,10 @@ class Application {
 		$class = ltrim($class, '\\');
 		if (class_exists($class, false) || interface_exists($class, false)) {
 			return;
-		} else if (in_array(strtolower($class), ['memcached'])) {
-			return;
+		}
+		$whitelisted = ['Memcached', 'PHPUnit', 'Symfony'];
+		foreach ($whitelisted as $v) {
+			if (strpos($class, $v) === 0) return;
 		}
 		// we need to check if we have customization for classes, we only allow 
 		// customizaton for models and controllers
@@ -249,7 +251,7 @@ class Application {
 		// check ACL
 		if ($controller_class != '\Controller\Errors') {
 			if (!self::$controller->permitted(['redirect' => true])) {
-				Throw new Exception('Permission denied!', -1);
+				Throw new \Exception('Permission denied!', -1);
 			}
 		}
 		// auto populating input property in controller
@@ -262,7 +264,7 @@ class Application {
 		}
 		// check if action exists
 		if (!method_exists(self::$controller, self::$controller->action_method)) {
-			Throw new Exception('Action does not exists!');
+			Throw new \Exception('Action does not exists!');
 		}
 		// calling action
 		echo call_user_func(array(self::$controller, self::$controller->action_method));
@@ -284,7 +286,7 @@ class Application {
 			}
 			// if views are mandatory
 			if (!empty(self::$settings['application']['view']['mandatory']) && !$flag_view_found) {
-				Throw new Exception('View ' . $view . ' does not exists!');
+				Throw new \Exception('View ' . $view . ' does not exists!');
 			}
 		}
 		// autoloading media files

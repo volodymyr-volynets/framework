@@ -149,7 +149,7 @@ class Layout extends View {
 	 * @param array $data
 	 */
 	public static function jsData($data) {
-		self::$js_data = array_merge2(self::$js_data, $data);
+		self::$js_data = array_merge_hard(self::$js_data, $data);
 	}
 
 	/**

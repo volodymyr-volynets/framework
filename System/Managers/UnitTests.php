@@ -22,5 +22,5 @@ set_time_limit(0);
 // confirmation whether to run the script
 if (!\Helper\Cmd::confirm("Run Unit Tests?")) exit;
 
-// this is a must, otherwise PHPUnit will not find xml file
+// this is a must to read configuration file
 chdir('..');

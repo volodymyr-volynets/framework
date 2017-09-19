@@ -665,7 +665,9 @@ error:
 			// handle serial types, empty only
 			foreach ($model->columns as $k => $v) {
 				if (strpos($v['type'], 'serial') !== false && empty($v['null']) && empty($data_row_final[$k])) {
-					$result['new_serials'][$k] = $data_row_final[$k] = $model->sequence($k);
+					$tenant = $model->tenant ? \Tenant::id() : null;
+					$module = $model->module ? $data_row_final[$model->module_column] : null;
+					$result['new_serials'][$k] = $data_row_final[$k] = $model->sequence($k, 'nextval', $tenant, $module);
 				}
 			}
 			$temp = $this->primary_model->db_object->insert($model->full_table_name, [$data_row_final], null);

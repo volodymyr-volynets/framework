@@ -1,6 +1,7 @@
 <?php
 
-class object_validator_email extends \Object\Validator\Base {
+namespace Object\Validator;
+class Email extends \Object\Validator\Base {
 
 	/**
 	 * @see \Object\Validator\Base::validate()
@@ -11,7 +12,7 @@ class object_validator_email extends \Object\Validator\Base {
 		$data = filter_var($value, FILTER_VALIDATE_EMAIL);
 		if ($data !== false) {
 			$result['success'] = true;
-			$result['data'] = $data . '';
+			$result['data'] = strtolower($data . '');
 		} else {
 			$result['error'][] = 'Invalid email address!';
 		}

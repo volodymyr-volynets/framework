@@ -388,15 +388,15 @@ class Base extends \Object\Form\Parent2 {
 				if (in_array($k, $collection['pk'] ?? [])) {
 					$fields[$k]['order_for_defaults'] = -32000;
 				} else if (!empty($v['options']['default']) && strpos($v['options']['default'], 'dependent::') !== false) { // processed last
-					$fields[$k]['order_for_defaults'] = 32000 + intval(str_replace(['dependent::', 'static::'], '', $v['options']['default']));
+					$fields[$k]['order_for_defaults'] = 2147483647 - 32000 + intval(str_replace(['dependent::', 'static::'], '', $v['options']['default']));
 				} else if (!empty($v['options']['default']) && (strpos($v['options']['default'], 'parent::') !== false || strpos($v['options']['default'], 'static::') !== false)) {
 					$column = str_replace(['parent::', 'static::'], '', $v['options']['default']);
 					$fields[$k]['order_for_defaults'] = ($fields[$column]['order_for_defaults'] ?? 0) + 100;
 				} else if (!isset($fields[$k]['order_for_defaults'])) {
-					$fields[$k]['order_for_defaults'] = 0;
+					$fields[$k]['order_for_defaults'] = ($this->data[$fields[$k]['options']['container_link']]['order'] * 10000) + ($fields[$k]['row_order'] * 100) + $fields[$k]['order'];
 				}
 			}
-			array_key_sort($fields, ['order_for_defaults' => SORT_ASC]);
+			array_key_sort($fields, ['order_for_defaults' => SORT_ASC], ['order_for_defaults' => SORT_NUMERIC]);
 		}
 		return $fields;
 	}
@@ -651,6 +651,7 @@ class Base extends \Object\Form\Parent2 {
 				$v['options']['type'] = 'varchar';
 			}
 			// get value
+			$input = array_merge_hard($input, $this->values);
 			$value = array_key_get($input, $v['options']['values_key']);
 			$error_name = $v['options']['error_name'];
 			// multiple column
@@ -842,8 +843,8 @@ class Base extends \Object\Form\Parent2 {
 								$value = $default;
 							}
 						}
-						// see if we changed the value
-						if (!is_null($value) && $value !== $default) {
+						// see if we changed the value but not autoincrement
+						if (!is_null($value) && $value !== $default && !isset($autoincrement_details[$k3])) {
 							$flag_change_detected = true;
 						}
 						// options_model validation
@@ -972,6 +973,8 @@ class Base extends \Object\Form\Parent2 {
 		}
 processAllValues:
 		$this->triggerMethod('processAllValues');
+		// debug
+		//print_r2($this->values);
 	}
 
 	/**
@@ -1149,46 +1152,59 @@ processAllValues:
 		// module #
 		$blank_reset_var = [];
 		if ($this->collection_object->primary_model->module ?? false) {
+			if (!empty(\Application::$controller)) {
+				$available_modules = \Application::$controller->getControllersModules();
+				$module_id = \Application::$controller->module_id;
+			} else {
+				$available_modules = [];
+				$module_id = $this->options['input'][$this->collection_object->primary_model->module_column] ?? null;
+				if (!empty($module_id)) {
+					$available_modules[$module_id] = ['name' => $module_id];
+				}
+			}
 			// reset of module #
 			if (($this->options['input']['__form_onchange_field_values_key'] ?? null) == '__module_id') {
 				$ajax_values = extract_keys(['__ajax', '__ajax_form_id'], $this->options['input']);
 				$this->options['input'] = [];
-				$this->options['input'][$this->collection_object->primary_model->module_column] = $this->options['input']['__module_id'] = \Application::$controller->module_id;
+				$this->options['input'][$this->collection_object->primary_model->module_column] = $this->options['input']['__module_id'] = $module_id;
 				$this->options['input'] = array_merge_hard($this->options['input'], $ajax_values);
 			}
-			$blank_reset_var[$this->collection_object->primary_model->module_column] = $blank_reset_var['__module_id'] = $this->options['input'][$this->collection_object->primary_model->module_column] = $this->options['input']['__module_id'] = \Application::$controller->module_id;
+			$blank_reset_var[$this->collection_object->primary_model->module_column] = $blank_reset_var['__module_id'] = $this->options['input'][$this->collection_object->primary_model->module_column] = $this->options['input']['__module_id'] = $module_id;
 			// add container & elements
 			$this->container('__module_container', [
 				'default_row_type' => 'grid',
-				'order' => PHP_INT_MIN + 1000
+				'order' => -35000
 			]);
 			$this->element('__module_container', 'row', '__module_id', [
 				'label_name' => 'Ledger',
 				'domain' => 'module_id',
 				'null' => true,
-				'required' => true,
-				'default' => \Application::$controller->module_id,
+				//'required' => true,
+				//'default' => $module_id,
 				'method' => 'select',
 				'no_choose' => true,
-				'options' => \Application::$controller->getControllersModules(),
+				'options' => $available_modules,
 				'onchange' => 'this.form.submit();',
-				'skip_during_export' => true
+				'skip_during_export' => true,
+				'order' => 0
 			]);
 			$this->element('__module_container', $this::HIDDEN, $this->collection_object->primary_model->module_column, [
 				'label_name' => 'Ledger',
 				'domain' => 'module_id',
 				'required' => true,
-				'default' => \Application::$controller->module_id,
+				//'default' => $module_id,
+				'null' => true,
 				'method' => 'hidden',
 				'query_builder' => 'a.' . $this->collection_object->primary_model->module_column . ';=',
-				'skip_during_export' => true
+				'skip_during_export' => true,
+				'order' => 0
 			]);
 			$this->element('__module_container', 'separator_1', self::SEPARATOR_HORIZONTAL, ['row_order' => 400, 'label_name' => '', 'percent' => 100]);
 			// master object
 			if (!empty($this->form_parent->master_options['model'])) {
 				$this->master_options = $this->form_parent->master_options;
 				$class = $this->master_options['model'];
-				$this->master_object = new $class(\Application::$controller->module_id, $this->form_parent->master_options['ledger']);
+				$this->master_object = new $class($module_id ?? 0, $this->form_parent->master_options['ledger']);
 			}
 		}
 		// hidden buttons to handle form though javascript
@@ -1417,6 +1433,10 @@ loadValues:
 				$this->triggerMethod('success');
 loadValues2:
 				$this->original_values = $this->values = $this->loadValues();
+				// we need to preserver module #
+				if (isset($this->options['input']['__module_id'])) {
+					$this->values['__module_id'] = $this->options['input']['__module_id'];
+				}
 				$this->values_loaded = true;
 			} else if ($this->values_loaded) { // otherwise set loaded values
 				$this->values = $this->original_values;
@@ -2162,7 +2182,7 @@ convertMultipleColumns:
 			$type = $options['type'] = $options['type'] ?? 'fields';
 			// make hidden container last
 			if ($container_link == $this::HIDDEN) {
-				$options['order'] = PHP_INT_MAX - 1000;
+				$options['order'] = 35000;
 			}
 			// see if we adding a widget
 			if (!empty($options['widget'])) {
@@ -2237,7 +2257,7 @@ convertMultipleColumns:
 		if (!isset($this->data[$container_link]['rows'][$row_link])) {
 			// hidden rows
 			if ($row_link == $this::HIDDEN) {
-				$options['order'] = PHP_INT_MAX - 1000;
+				$options['order'] = 35000;
 			}
 			// validating row type
 			$types = \Object\HTML\Form\Row\Types::getStatic();
@@ -2590,7 +2610,7 @@ convertMultipleColumns:
 			foreach ($sorted as $k => $v) {
 				if (empty($v)) continue;
 				foreach ($v as $k2 => $v2) {
-					$result['message'].= \HTML::text(['tag' => 'div', 'class' => 'numbers_field_error_messages', 'field_value_hash' => $k2, 'type' => $k, 'value' => $v2]);
+					$result['message'].= \HTML::text(['tag' => 'div', 'class' => 'numbers_field_error_messages', 'data-field_value_hash' => $k2, 'type' => $k, 'value' => $v2]);
 				}
 			}
 			return $result;
@@ -2677,7 +2697,7 @@ convertMultipleColumns:
 	 * @return boolean
 	 */
 	private function canProcessDefaultValue($value, $options) {
-		if (strpos($options['options']['default'], 'static::') !== false || strpos($options['options']['default'], 'dependent::') !== false || (is_null($value) && empty($options['options']['null']))) {
+		if (strpos($options['options']['default'], 'static::') !== false || strpos($options['options']['default'], 'master_object::') !== false || strpos($options['options']['default'], 'dependent::') !== false || (is_null($value) && empty($options['options']['null']))) {
 			return true;
 		} else {
 			return false;

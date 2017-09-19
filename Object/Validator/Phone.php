@@ -1,6 +1,7 @@
 <?php
 
-class object_validator_phone extends \Object\Validator\Base {
+namespace Object\Validator;
+class Phone extends \Object\Validator\Base {
 
 	/**
 	 * @see \Object\Validator\Base::validate()

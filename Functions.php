@@ -425,18 +425,17 @@ function array_key_sort(& $arr, $keys, $methods = []) {
 		}
 	}
 	// calling multisort function
-	call_user_func_array('array_multisort', $params);
-	// create final array
 	$final = [];
-	foreach ($keys as $k => $v) {
-		foreach ($params[$k . '_column'] as $k2 => $v2) {
-			$k2 = substr($k2, 1);
-			if (!isset($final[$k2])) {
-				$final[$k2] = $arr[$k2];
-			}
-		}
+	foreach ($arr as $k => $v) {
+		$final['_' . $k] = $v;
 	}
-	$arr = $final;
+	$params['data'] = & $final;
+	call_user_func_array('array_multisort', $params);
+	// convert keys back
+	$arr = [];
+	foreach ($params['data'] as $k => $v) {
+		$arr[substr($k, 1)] = $v;
+	}
 }
 
 /**

@@ -22,7 +22,12 @@ class Data {
 		if (isset(self::$override_data[$class]) && self::$override_data[$class] === false) {
 			return false;
 		}
-		$filename = './Overrides/Class/Override_' . $class . '.php';
+		// need to fix file path based on PHPUnit
+		if (!file_exists('./Overrides')) {
+			$filename = './application/Overrides/Class/Override_' . $class . '.php';
+		} else {
+			$filename = './Overrides/Class/Override_' . $class . '.php';
+		}
 		if (!file_exists($filename)) {
 			self::$override_data[$class] = false;
 			return false;
