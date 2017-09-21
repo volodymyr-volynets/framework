@@ -1,6 +1,7 @@
 <?php
 
-class object_validator_period extends \Object\Validator\Base {
+namespace Object\Validator;
+class Period extends \Object\Validator\Base {
 
 	/**
 	 * @see \Object\Validator\Base::validate()
@@ -8,6 +9,7 @@ class object_validator_period extends \Object\Validator\Base {
 	public function validate($value, $options = []) {
 		$result = $this->result;
 		$result['placeholder'] = '###';
+		$result['placeholder_select'] = 'Period';
 		$value = (int) $value;
 		if ($value < 1 || $value > 999) {
 			$result['error'][] = 'Invalid period!';

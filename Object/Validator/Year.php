@@ -1,6 +1,7 @@
 <?php
 
-class object_validator_year extends \Object\Validator\Base {
+namespace Object\Validator;
+class Year extends \Object\Validator\Base {
 
 	/**
 	 * @see \Object\Validator\Base::validate()

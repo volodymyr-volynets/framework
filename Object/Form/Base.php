@@ -393,7 +393,7 @@ class Base extends \Object\Form\Parent2 {
 					$column = str_replace(['parent::', 'static::'], '', $v['options']['default']);
 					$fields[$k]['order_for_defaults'] = ($fields[$column]['order_for_defaults'] ?? 0) + 100;
 				} else if (!isset($fields[$k]['order_for_defaults'])) {
-					$fields[$k]['order_for_defaults'] = ($this->data[$fields[$k]['options']['container_link']]['order'] * 10000) + ($fields[$k]['row_order'] * 100) + $fields[$k]['order'];
+					$fields[$k]['order_for_defaults'] = (($this->data[$fields[$k]['options']['container_link']]['order'] ?? 1000) * 10000) + ($fields[$k]['row_order'] * 100) + $fields[$k]['order'];
 				}
 			}
 			array_key_sort($fields, ['order_for_defaults' => SORT_ASC], ['order_for_defaults' => SORT_NUMERIC]);
@@ -838,13 +838,17 @@ class Base extends \Object\Form\Parent2 {
 						// default
 						$default = null;
 						if (array_key_exists('default', $v3['options'])) {
-							$default = $this->processDefaultValue($k3, $v3['options']['default'], $value, $detail, false, $changed_field_details, $v3);
-							if ($this->canProcessDefaultValue($value, $v3)) {
+							$value_default_copy = null;
+							$detail[$k3] = $value;
+							$default = $this->processDefaultValue($k3, $v3['options']['default'], $value_default_copy, $detail, false, $changed_field_details, $v3);
+							if (!isset($value) && $this->canProcessDefaultValue($value, $v3)) {
 								$value = $default;
+							} else if ($detail[$k3] !== $value) {
+								$value = $detail[$k3];
 							}
 						}
 						// see if we changed the value but not autoincrement
-						if (!is_null($value) && $value !== $default && !isset($autoincrement_details[$k3])) {
+						if (isset($value) && $value !== $default && !isset($autoincrement_details[$k3])) {
 							$flag_change_detected = true;
 						}
 						// options_model validation
@@ -1204,7 +1208,7 @@ processAllValues:
 			if (!empty($this->form_parent->master_options['model'])) {
 				$this->master_options = $this->form_parent->master_options;
 				$class = $this->master_options['model'];
-				$this->master_object = new $class($module_id ?? 0, $this->form_parent->master_options['ledger']);
+				$this->master_object = \Factory::model($class, true, [$module_id ?? 0, $this->form_parent->master_options['ledger']]);
 			}
 		}
 		// hidden buttons to handle form though javascript

@@ -29,8 +29,8 @@ class Domains extends \Object\Data {
 	public $data = [
 		// general
 		'name' => ['name' => 'Name', 'type' => 'varchar', 'length' => 120],
-		'reference' => ['name' => 'Reference', 'type' => 'varchar', 'length' => 255],
-		'description' => ['name' => 'Description', 'type' => 'varchar', 'length' => 2000],
+		'reference' => ['name' => 'Reference', 'type' => 'varchar', 'length' => 255, 'placeholder' => 'Reference'],
+		'description' => ['name' => 'Description', 'type' => 'varchar', 'length' => 2000, 'placeholder' => 'Description'],
 		// codes
 		'code' => ['name' => 'Code', 'type' => 'varchar', 'length' => 255],
 		'short_code' => ['name' => 'Short Code', 'type' => 'varchar', 'length' => 6, 'validator_method' => '\Object\Validator\UpperCase::validate'],
@@ -67,7 +67,7 @@ class Domains extends \Object\Data {
 		// S/M System
 		'ledger_id' => ['name' => 'Ledger #', 'type' => 'integer', 'default' => null, 'format' => 'id'],
 		'ledger_id_sequence' => ['name' => 'Ledger #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
-		'language_code' => ['name' => 'Language Code', 'type' => 'char', 'length' => 3, 'validator_method' => 'object_validator_lowercase::validate'],
+		'language_code' => ['name' => 'Language Code', 'type' => 'char', 'length' => 3, 'validator_method' => '\Object\Validator\LowerCase::validate'],
 		'locale_code' => ['name' => 'Locale Code', 'type' => 'varchar', 'length' => 30],
 		'timezone_code' => ['name' => 'Timezone Code', 'type' => 'varchar', 'length' => 30],
 		// C/M Country Management
@@ -134,11 +134,11 @@ class Domains extends \Object\Data {
 		// accounting
 		'term_code' => ['name' => 'Term Code', 'type' => 'varchar', 'length' => 12, 'validator_method' => '\Object\Validator\UpperCase::validate', 'searchable' => true],
 		'payment_code' => ['name' => 'Payment Code', 'type' => 'varchar', 'length' => 12, 'validator_method' => '\Object\Validator\UpperCase::validate', 'searchable' => true],
-		'year' => ['name' => 'Year', 'type' => 'smallint', 'validator_method' => 'object_validator_year::validate', 'format' => 'id', 'searchable' => true],
-		'period' => ['name' => 'Period', 'type' => 'smallint', 'validator_method' => 'object_validator_period::validate', 'format' => 'id'],
+		'year' => ['name' => 'Year', 'type' => 'smallint', 'validator_method' => '\Object\Validator\Year::validate', 'format' => 'id', 'searchable' => true],
+		'period' => ['name' => 'Period', 'type' => 'smallint', 'validator_method' => '\Object\Validator\Period::validate', 'format' => 'id', 'searchable' => true],
 		'uom' => ['name' => 'UOM', 'type' => 'varchar', 'length' => 12],
 		'cs_segment_delimiter' => ['name' => 'Segment Delimiter', 'type' => 'char', 'length' => 1],
-		'cs_account' => ['name' => 'C/S Account', 'type' => 'varchar', 'length' => 109, 'placeholder' => 'C/S Account', 'searchable' => true, 'tree' => true, 'format' => 'id'],
+		'cs_account' => ['name' => 'C/S Account', 'type' => 'varchar', 'length' => 109, 'placeholder' => 'Account', 'searchable' => true, 'tree' => true, 'format' => 'id'],
 		'gl_source_code' => ['name' => 'Source Code', 'type' => 'char', 'length' => 3, 'validator_method' => '\Object\Validator\UpperCase::validate'],
 		// html
 		'html_color_code' => ['name' => 'HTML Color Code', 'type' => 'char', 'length' => 6, 'null' => true],

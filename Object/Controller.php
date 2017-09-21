@@ -171,16 +171,17 @@ class Controller {
 		// determine module_id
 		if (!empty($this->controller_data['module_code'])) {
 			if (empty(self::$cached_modules[$this->controller_data['module_code']]['module_multiple'])) {
-				$this->module_id = $module_id = key(self::$cached_modules[$this->controller_data['module_code']]['module_ids']);
+				$this->module_id = key(self::$cached_modules[$this->controller_data['module_code']]['module_ids']);
 			} else {
-				if (empty($module_id)) $module_id = \Application::get('flag.global.__module_id');
+				$module_id = (int) \Application::get('flag.global.__module_id');
 				$modules = $this->getControllersModules();
 				if (!empty($module_id) && empty($modules[$module_id])) { // see if you have correct module
-					Throw new \Exception('You must specify correct module #');
+					$this->module_id = null;
 				} else if (empty($module_id)) { // grab first module if not specified
-					$module_id = key($modules);
+					$this->module_id = key($modules);
+				} else {
+					$this->module_id = $module_id;
 				}
-				$this->module_id = $module_id;
 			}
 		}
 	}
@@ -229,6 +230,9 @@ class Controller {
 		// module id
 		if (empty($module_id)) {
 			$module_id = $this->module_id;
+			if (empty($module_id)) {
+				Throw new \Exception('You must specify correct module #');
+			}
 		}
 		// run permission
 		return $this->canExtended($this->controller_id, $method_code ?? $this->method_code, $action, $module_id, $roles);

@@ -41,6 +41,13 @@ class Format {
 	];
 
 	/**
+	 * Cached currencies
+	 *
+	 * @var array
+	 */
+	public static $cached_currencies;
+
+	/**
 	 * Initialize
 	 * 
 	 * @param array $options
@@ -58,9 +65,6 @@ class Format {
 			'format_timestamp' => 'Y-m-d H:i:s.u',
 			'format_amount_frm' => 20, // Amounts In Forms
 			'format_amount_fs' => 40, // Amounts In Financial Statement
-			'settings' => [
-				'currency_codes' => [], // a list of currency settings
-			],
 			// computed settings
 			'locale_locales' => [], // list of locale codes
 			'locale_locale_js' => null, // javascript locale name
@@ -540,7 +544,15 @@ class Format {
 	public static function amount($amount, $options = []) {
 		// if currency code is passed we need to load symbol
 		if (!empty($options['currency_code'])) {
-			$options['symbol'] = self::$options['settings']['currency_codes'][$options['currency_code']]['symbol'] ?? null;
+			if (!isset(self::$cached_currencies)) {
+				$temp = \Object\ACL\Resources::getStatic('currencies', 'primary');
+				if (!empty($temp)) {
+					self::$cached_currencies = $temp;
+				} else {
+					self::$cached_currencies = [];
+				}
+			}
+			$options['symbol'] = self::$cached_currencies[$options['currency_code']]['symbol'] ?? null;
 		}
 		// decimals
 		if (!isset($options['decimals'])) {
@@ -604,6 +616,7 @@ class Format {
 	 */
 	public static function currencyRate($amount, $options = []) {
 		$options['decimals'] = \Object\Data\Domains::getSetting('currency_rate', 'scale');
+		$options['symbol'] = false;
 		return self::amount($amount, $options);
 	}
 
