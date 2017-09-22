@@ -194,6 +194,9 @@ class Base {
 					foreach ($v['args'] as $v2) {
 						if (gettype($v2) == 'string') {
 							$params[] = str_replace(["\n", "\r", "\t"], ' ', $v2);
+						} else if (is_array($v2)) {
+							$temp = var_export_condensed($v2, ['skip_objects' => true]);
+							$params[] = substr($temp, 0, 100) . '...';
 						} else {
 							$params[] = var_export_condensed($v2, ['skip_objects' => true]);
 						}

@@ -154,8 +154,8 @@ class Format {
 		$result['locale_locale_js'] = str_replace('_', '-', $temp);
 		$result['locale_set_name'] = setlocale(LC_ALL, $result['locale_locales']);
 		// if we are unsuccessful
-		if (empty($result['locale_set_name'])) {
-			$result_backup = self::setLocale($backup, null);
+		if (empty($result['locale_set_name']) && !empty($backup)) {
+			$result_backup = self::setLocale($backup, '');
 		}
 		// grab settings
 		$result['locale_options'] = localeconv();
@@ -553,6 +553,7 @@ class Format {
 				}
 			}
 			$options['symbol'] = self::$cached_currencies[$options['currency_code']]['symbol'] ?? null;
+			$options['decimals'] = self::$cached_currencies[$options['currency_code']]['fraction_digits'] ?? null;
 		}
 		// decimals
 		if (!isset($options['decimals'])) {

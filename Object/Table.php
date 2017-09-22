@@ -809,7 +809,7 @@ TTT;
 	 * Query builder
 	 *
 	 * @param array $options
-	 * @return \\Object\Query\Builder
+	 * @return \Object\Query\Builder
 	 */
 	public function queryBuilder(array $options = []) : \Object\Query\Builder {
 		$model = $this;
@@ -840,7 +840,7 @@ TTT;
 	 * Query builder (static)
 	 *
 	 * @param array $options
-	 * @return \\Object\Query\Builder
+	 * @return \Object\Query\Builder
 	 */
 	public static function queryBuilderStatic(array $options = []) : \Object\Query\Builder {
 		$class = get_called_class();

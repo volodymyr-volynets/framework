@@ -838,9 +838,8 @@ class Base extends \Object\Form\Parent2 {
 						// default
 						$default = null;
 						if (array_key_exists('default', $v3['options'])) {
-							$value_default_copy = null;
 							$detail[$k3] = $value;
-							$default = $this->processDefaultValue($k3, $v3['options']['default'], $value_default_copy, $detail, false, $changed_field_details, $v3);
+							$default = $this->processDefaultValue($k3, $v3['options']['default'], null, $detail, false, $changed_field_details, $v3);
 							if (!isset($value) && $this->canProcessDefaultValue($value, $v3)) {
 								$value = $default;
 							} else if ($detail[$k3] !== $value) {
@@ -1207,8 +1206,7 @@ processAllValues:
 			// master object
 			if (!empty($this->form_parent->master_options['model'])) {
 				$this->master_options = $this->form_parent->master_options;
-				$class = $this->master_options['model'];
-				$this->master_object = \Factory::model($class, true, [$module_id ?? 0, $this->form_parent->master_options['ledger']]);
+				$this->master_object = \Factory::model($this->master_options['model'], true, [$module_id ?? 0, $this->form_parent->master_options['ledger']]);
 			}
 		}
 		// hidden buttons to handle form though javascript
@@ -2555,7 +2553,7 @@ convertMultipleColumns:
 						$pk_parts = explode('::', $parts[1]);
 						$pk_details = [];
 						foreach ($details[$parts[0]]['pk'] as $k2 => $v2) {
-							$pk_details[$v2] = $pk_parts[$k2];
+							$pk_details[$v2] = $pk_parts[$k2] ?? null;
 						}
 						$temp = [];
 						foreach ($pk_details as $k2 => $v2) {
@@ -2667,7 +2665,7 @@ convertMultipleColumns:
 			// nothing
 		} else if (strpos($default, 'master_object::') !== false) {
 			$field = explode('::', str_replace(['master_object::', 'static::'], '', $default));
-			$value = $this->master_object->{$field[0]}->{$field[1]}->{$field[2]};
+			return $this->master_object->{$field[0]}->{$field[1]}->{$field[2]};
 		} else if (strpos($default, 'parent::') !== false) {
 			$field = str_replace(['parent::', 'static::'], '', $default);
 			$value = $this->values[$field] ?? null;

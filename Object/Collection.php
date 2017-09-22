@@ -690,7 +690,7 @@ error:
 				// skip relation_id
 				if ($k == $this->primary_model->column_prefix . 'relation_id') continue;
 				// hard comparison
-				if ($v !== $original_row[$k]) {
+				if ($v !== $original_row[$k] && !($model->columns[$k]['php_type'] == 'bcnumeric' && \Math::isEqual($v, $original_row[$k]))) {
 					$update[$k] = $v;
 				}
 				if (in_array($k, $collection['pk'])) {

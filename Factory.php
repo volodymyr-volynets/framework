@@ -83,6 +83,7 @@ class Factory {
 	public static function model($class, $cache = false, $constructor_parameters = null) {
 		// fix dot notation
 		$class = str_replace('.', '_', $class);
+		$hash = sha1($class . serialize($constructor_parameters));
 		// if we need to override classes
 		if (isset(\Overrides\Factory::$data[$class])) {
 			$class = \Overrides\Factory::$data[$class];
@@ -90,23 +91,23 @@ class Factory {
 		// if we are not caching
 		if (!$cache) goto no_cache;
 		// try to find objects in the cache
-		if (isset(self::$class_objects['model'][$class])) {
-			$object = & self::$class_objects['model'][$class];
+		if (isset(self::$class_objects['model'][$hash])) {
+			$object = & self::$class_objects['model'][$hash];
 		} else {
 			// process virtual models
 			if (strpos($class, '0Virtual0') !== false) {
-				self::$class_objects['model'][$class] = \Object\Virtual\Models::model($class);
+				self::$class_objects['model'][$hash] = \Object\Virtual\Models::model($class);
 			} else {
 no_cache:
 				// if we need to pass options to an object
 				$class_name = ltrim($class, '\\');
 				if (isset($constructor_parameters)) {
-					self::$class_objects['model'][$class] = new $class_name(... $constructor_parameters);
+					self::$class_objects['model'][$hash] = new $class_name(... $constructor_parameters);
 				} else {
-					self::$class_objects['model'][$class] = new $class_name();
+					self::$class_objects['model'][$hash] = new $class_name();
 				}
 			}
-			$object = & self::$class_objects['model'][$class];
+			$object = & self::$class_objects['model'][$hash];
 		}
 		return $object;
 	}

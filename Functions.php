@@ -4,6 +4,7 @@
  * Constants
  */
 define('DANGER', 'danger');
+define('WARNING', 'warning');
 define('SUCCESS', 'success');
 define('DEF', 'default');
 define('NONE', 0);

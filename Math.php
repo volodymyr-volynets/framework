@@ -42,6 +42,18 @@ class Math {
 	}
 
 	/**
+	 * Is equal
+	 *
+	 * @param mixed $arg1
+	 * @param mixed $arg2
+	 * @param int $scale
+	 * @return bool
+	 */
+	public static function isEqual($arg1, $arg2, $scale = null) {
+		return (self::compare($arg1, $arg2, $scale ?? 13) == 0);
+	}
+
+	/**
 	 * Add
 	 *
 	 * @param mixed $arg1
@@ -143,9 +155,8 @@ class Math {
 	 * @return string
 	 */
 	public static function round($arg1, $scale = 0) {
-		if (!is_int($scale)) {
-			print_r2($scale);
-			exit;
+		if (!isset($scale)) {
+			$scale = self::$scale;
 		}
 		if ($arg1[0] != '-') {
 			return bcadd($arg1, '0.' . str_repeat('0', $scale) . '5', $scale);
