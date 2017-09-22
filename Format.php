@@ -153,10 +153,6 @@ class Format {
 		}
 		$result['locale_locale_js'] = str_replace('_', '-', $temp);
 		$result['locale_set_name'] = setlocale(LC_ALL, $result['locale_locales']);
-		// if we are unsuccessful
-		if (empty($result['locale_set_name']) && !empty($backup)) {
-			$result_backup = self::setLocale($backup, '');
-		}
 		// grab settings
 		$result['locale_options'] = localeconv();
 		// form a class name from locale name
@@ -176,8 +172,8 @@ class Format {
 			if (empty($result['locale_set_name'])) {
 				$result['locale_set_name'] = $locale;
 			}
-		} else if (empty($result['locale_set_name'])) {
-			$result = $result_backup;
+		} else if (empty($result['locale_set_name']) && !empty($backup)) {
+			$result = self::setLocale($backup, '');
 		}
 		return $result;
 	}
