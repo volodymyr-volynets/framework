@@ -41,13 +41,95 @@ class API {
 	}
 
 	/**
+	 * Get
+	 *
+	 * @param array $input
+	 * @return array
+	 */
+	public function get(array $input) : array {
+		$this->form->form_object->addInput($input);
+		$this->form->form_object->process();
+		return $this->form->form_object->apiResult();
+	}
+
+	/**
 	 * Save
 	 *
 	 * @param array $input
 	 * @return array
 	 */
 	public function save(array $input) : array {
-		$input['__submit_save'] = true;
+		$input[\Object\Form\Parent2::BUTTON_SUBMIT_SAVE] = true;
+		$this->form->form_object->addInput($input);
+		$this->form->form_object->process();
+		return $this->form->form_object->apiResult();
+	}
+
+	/**
+	 * Ready to post
+	 *
+	 * @param array $input
+	 * @return array
+	 */
+	public function readyToPost(array $input) : array {
+		$input[\Object\Form\Parent2::BUTTON_SUBMIT_SAVE] = true;
+		$input[\Object\Form\Parent2::BUTTON_SUBMIT_READY_TO_POST] = true;
+		$this->form->form_object->addInput($input);
+		$this->form->form_object->process();
+		return $this->form->form_object->apiResult();
+	}
+
+	/**
+	 * Temporary post
+	 *
+	 * @param array $input
+	 * @return array
+	 */
+	public function temporaryPost(array $input) : array {
+		$input[\Object\Form\Parent2::BUTTON_SUBMIT_SAVE] = true;
+		$input[\Object\Form\Parent2::BUTTON_SUBMIT_TEMPORARY_POST] = true;
+		$this->form->form_object->addInput($input);
+		$this->form->form_object->process();
+		return $this->form->form_object->apiResult();
+	}
+
+	/**
+	 * Open
+	 *
+	 * @param array $input
+	 * @return array
+	 */
+	public function open(array $input) : array {
+		$input[\Object\Form\Parent2::BUTTON_SUBMIT_SAVE] = true;
+		$input[\Object\Form\Parent2::BUTTON_SUBMIT_OPEN] = true;
+		$this->form->form_object->addInput($input);
+		$this->form->form_object->process();
+		return $this->form->form_object->apiResult();
+	}
+
+	/**
+	 * Post
+	 *
+	 * @param array $input
+	 * @return array
+	 */
+	public function post(array $input) : array {
+		$input[\Object\Form\Parent2::BUTTON_SUBMIT_SAVE] = true;
+		$input[\Object\Form\Parent2::BUTTON_SUBMIT_POST] = true;
+		$this->form->form_object->addInput($input);
+		$this->form->form_object->process();
+		return $this->form->form_object->apiResult();
+	}
+
+	/**
+	 * Mark deleted
+	 *
+	 * @param array $input
+	 * @return array
+	 */
+	public function markDeleted(array $input) : array {
+		$input[\Object\Form\Parent2::BUTTON_SUBMIT_SAVE] = true;
+		$input[\Object\Form\Parent2::BUTTON_SUBMIT_MARK_DELETED] = true;
 		$this->form->form_object->addInput($input);
 		$this->form->form_object->process();
 		return $this->form->form_object->apiResult();

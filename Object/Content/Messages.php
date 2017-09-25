@@ -24,13 +24,13 @@ class Messages {
 	const AMOUNT_RECALCULATED = 'The amount has been recalculated!';
 	const AMOUNT_ROUNDED = 'The amount has been rounded!';
 	// good messages
-	const RECORD_DELETED = 'Record has been successfully deleted!';
-	const RECORD_INSERTED = 'Record has been successfully created!';
-	const RECORT_UPDATED = 'Record has been successfully updated!';
-	const RECORD_POSTED = 'Record has been successfully posted!';
-	const RECORD_READY_TO_POST = 'Record has been marked as ready to post!';
-	const RECORD_MARK_DELETED = 'Record has been marked as deleted!';
-	const RECORD_OPENED = 'Record has been successfully opened!';
+	const RECORD_DELETED = 'Record(s) has been successfully deleted!';
+	const RECORD_INSERTED = 'Record(s) has been successfully created!';
+	const RECORT_UPDATED = 'Record(s) has been successfully updated!';
+	const RECORD_POSTED = 'Record(s) has been successfully posted!';
+	const RECORD_READY_TO_POST = 'Record(s) has been marked as ready to post!';
+	const RECORD_MARK_DELETED = 'Record(s) has been marked as deleted!';
+	const RECORD_OPENED = 'Record(s) has been successfully opened!';
 	const OPERATION_EXECUTED = 'Operation has been successfully executed!';
 	// confirmation
 	const CONFIRM_DELETE = 'Are you sure you want to delete this record?';

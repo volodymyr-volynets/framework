@@ -217,6 +217,7 @@ class Base extends \Object\Form\Parent2 {
 		$class = '\\' . get_called_class();
 		$model = new $class([
 			'skip_processing' => true,
+			'skip_optimistic_lock' => true,
 			'skip_acl' => true // a must because we might execute it from different controller
 		]);
 		$api = new \Object\Form\API($model);

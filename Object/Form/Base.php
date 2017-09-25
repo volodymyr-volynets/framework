@@ -385,7 +385,9 @@ class Base extends \Object\Form\Parent2 {
 					continue;
 				}
 				// sort
-				if (in_array($k, $collection['pk'] ?? [])) {
+				if (isset($fields[$k]['options']['order_for_defaults'])) {
+					$fields[$k]['order_for_defaults'] = $fields[$k]['options']['order_for_defaults'];
+				} else if (in_array($k, $collection['pk'] ?? [])) {
 					$fields[$k]['order_for_defaults'] = -32000;
 				} else if (!empty($v['options']['default']) && strpos($v['options']['default'], 'dependent::') !== false) { // processed last
 					$fields[$k]['order_for_defaults'] = 2147483647 - 32000 + intval(str_replace(['dependent::', 'static::'], '', $v['options']['default']));
@@ -1411,7 +1413,7 @@ processErrors:
 		if (!empty($this->new_serials) && !empty($this->errors['fields'])) {
 			$intersect = array_intersect($this->collection_object->data['pk'], array_keys($this->new_serials));
 			if (!empty($intersect) && count($intersect) == 1) {
-				$serial_pk = $this->values[$intersect[0]];
+				$serial_pk = $this->values[current($intersect)];
 				foreach ($this->detail_fields as $k => $v) {
 					foreach ($this->errors['fields'] as $k2 => $v2) {
 						if (strpos($k2, $k . '[0::') !== false) {
@@ -2497,6 +2499,7 @@ convertMultipleColumns:
 		$result = [
 			'success' => false,
 			'error' => [],
+			'pk' => $this->pk,
 			'values' => $this->values
 		];
 		if ($this->hasErrors()) {
