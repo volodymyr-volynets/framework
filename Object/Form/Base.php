@@ -1478,18 +1478,24 @@ convertMultipleColumns:
 		if (!$this->hasErrors() && !empty($this->options['on_success_js'])) {
 			Layout::onload($this->options['on_success_js']);
 		}
-		// we need to hide buttons
-		$this->validateSubmitButtons(['skip_validation' => true]);
 		// add success messages
 		if (!$this->hasErrors()) {
 			if (isset($this->misc_settings['success_message_if_no_errors'])) {
-				$this->error('success', $this->misc_settings['success_message_if_no_errors']);
+				$this->error(SUCCESS, $this->misc_settings['success_message_if_no_errors']);
 			} else {
-				if ($this->values_deleted) $this->error('success', \Object\Content\Messages::RECORD_DELETED);
-				if ($this->values_inserted) $this->error('success', \Object\Content\Messages::RECORD_INSERTED);
-				if ($this->values_updated) $this->error('success', \Object\Content\Messages::RECORT_UPDATED);
+				if (!empty($this->process_submit[self::BUTTON_SUBMIT_TEMPORARY_POST]) || !empty($this->process_submit[self::BUTTON_SUBMIT_POST])) {
+					if ($this->values_inserted || $this->values_updated) {
+						$this->error(SUCCESS, \Object\Content\Messages::RECORD_POSTED);
+					}
+				} else {
+					if ($this->values_deleted) $this->error(SUCCESS, \Object\Content\Messages::RECORD_DELETED);
+					if ($this->values_inserted) $this->error(SUCCESS, \Object\Content\Messages::RECORD_INSERTED);
+					if ($this->values_updated) $this->error(SUCCESS, \Object\Content\Messages::RECORD_UPDATED);
+				}
 			}
 		}
+		// we need to hide buttons
+		$this->validateSubmitButtons(['skip_validation' => true]);
 		// query for list
 		if ($this->initiator_class == 'list' && !$this->hasErrors() && ($this->submitted || (!$this->refresh && !$this->submitted))) {
 			$this->list_rendered = true;
