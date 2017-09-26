@@ -857,4 +857,29 @@ TTT;
 		$temp_result = $this->db_object->query("SELECT count(*) counter FROM (" . $this->db_object->sqlHelper('fetch_tables') . ") a WHERE a.schema_name = '{$this->schema}' AND table_name = '{$this->name}'");
 		return !empty($temp_result['rows'][0]['counter']);
 	}
+
+	/**
+	 * Aggregate
+	 *
+	 * @param array $options
+	 *		array columns
+	 *		array where
+	 *		array groupby
+	 *		array pk
+	 * @return array
+	 */
+	public static function aggregate(array $options) : array {
+		$query = self::queryBuilderStatic()->select();
+		if (!empty($options['columns'])) {
+			$query->columns($options['columns']);
+		}
+		if (!empty($options['where'])) {
+			$query->whereMultiple('AND', $options['where']);
+		}
+		if (!empty($options['groupby'])) {
+			$query->groupby($options['groupby']);
+		}
+		$result = $query->query($options['pk'] ?? null);
+		return $result['rows'];
+	}
 }
