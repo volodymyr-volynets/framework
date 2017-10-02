@@ -119,7 +119,7 @@ no_cache:
 	 * @param string $base_class
 	 * @return array
 	 */
-	public static function method($method, $base_class = null, $model = false) {
+	public static function method($method, $base_class = null, $model = false, $constructor_parameters = null) {
 		$temp = explode('::', $method);
 		if (count($temp) > 1) {
 			$temp_model = $temp[0];
@@ -129,7 +129,7 @@ no_cache:
 			$temp_method = $temp[0];
 		}
 		if ($model) {
-			$temp_model = Factory::model($temp_model, true);
+			$temp_model = Factory::model($temp_model, true, $constructor_parameters);
 		}
 		return [& $temp_model, $temp_method];
 	}

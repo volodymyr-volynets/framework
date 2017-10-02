@@ -354,6 +354,7 @@ class Base extends \Object\Form\Parent2 {
 	 * Get original values
 	 *
 	 * @param array $input
+	 * @param boolean $for_update
 	 */
 	private function getOriginalValues($input, $for_update) {
 		// process primary key
@@ -683,9 +684,17 @@ class Base extends \Object\Form\Parent2 {
 			}
 			$v['options']['error_name_no_field'] = $error_name;
 			// default
+			$default = null;
 			if (array_key_exists('default', $v['options'])) {
-				if ($this->canProcessDefaultValue($value, $v)) {
-					$value = $this->processDefaultValue($k, $v['options']['default'], $value, $this->values, false, $changed_field, $v);
+				array_key_set($this->values, $v['options']['values_key'], $value);
+				$default = $this->processDefaultValue($k, $v['options']['default'], null, $this->values, false, $changed_field, $v);
+				if (!isset($value) && $this->canProcessDefaultValue($value, $v)) {
+					$value = $default;
+				} else {
+					$temp = array_key_get($this->values, $v['options']['values_key']);
+					if ($temp !== $value) {
+						$value = $temp;
+					}
 				}
 			}
 			// put into values
@@ -1211,6 +1220,12 @@ processAllValues:
 				$this->master_object = \Factory::model($this->master_options['model'], true, [$module_id ?? 0, $this->form_parent->master_options['ledger']]);
 			}
 		}
+		// preserve blank
+		foreach ($this->fields as $k => $v) {
+			if (!empty($v['options']['preserve_blank'])) {
+				$blank_reset_var[$k] = $this->options['input'][$k] ?? null;
+			}
+		}
 		// hidden buttons to handle form though javascript
 		$this->element($this::HIDDEN, $this::HIDDEN, $this::BUTTON_SUBMIT_REFRESH, $this::BUTTON_SUBMIT_REFRESH_DATA);
 		if (!isset($this->process_submit_all[$this::BUTTON_SUBMIT_BLANK])) {
@@ -1452,6 +1467,8 @@ loadValues2:
 				if (!empty($this->misc_settings['navigation']['preserve'])) {
 					$this->values = array_merge_hard($this->values, $this->misc_settings['navigation']['preserve']);
 				}
+				// trigger refresh
+				$this->triggerMethod('refresh');
 			}
 		}
 convertMultipleColumns:

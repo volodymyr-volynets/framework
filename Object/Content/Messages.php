@@ -26,7 +26,7 @@ class Messages {
 	// good messages
 	const RECORD_DELETED = 'Record(s) has been successfully deleted!';
 	const RECORD_INSERTED = 'Record(s) has been successfully created!';
-	const RECORT_UPDATED = 'Record(s) has been successfully updated!';
+	const RECORD_UPDATED = 'Record(s) has been successfully updated!';
 	const RECORD_POSTED = 'Record(s) has been successfully posted!';
 	const RECORD_READY_TO_POST = 'Record(s) has been marked as ready to post!';
 	const RECORD_MARK_DELETED = 'Record(s) has been marked as deleted!';
