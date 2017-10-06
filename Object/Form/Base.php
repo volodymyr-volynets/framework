@@ -381,7 +381,7 @@ class Base extends \Object\Form\Parent2 {
 			$collection = array_key_get($this->collection_object->data, $options['details_collection_key'] ?? null);
 			foreach ($fields as $k => $v) {
 				// skip certain values
-				if ($k == $this::SEPARATOR_HORIZONTAL || $k == $this::SEPARATOR_VERTICAL || !empty($v['options']['process_submit'])) {
+				if ($k == $this::SEPARATOR_HORIZONTAL || $k == $this::SEPARATOR_VERTICAL || !empty($v['options']['process_submit']) || !empty($v['options']['custom_renderer'])) {
 					unset($fields[$k]);
 					continue;
 				}
