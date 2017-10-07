@@ -54,6 +54,17 @@ class Math {
 	}
 
 	/**
+	 * Is less
+	 *
+	 * @param mixed $arg1
+	 * @param int $scale
+	 * @return boolean
+	 */
+	public static function isLess($arg1, $scale = null) {
+		return (self::compare($arg1, '0', $scale ?? 13) < 0);
+	}
+
+	/**
 	 * Add
 	 *
 	 * @param mixed $arg1
@@ -201,6 +212,17 @@ class Math {
 	 */
 	public static function abs($arg1) {
 		return ltrim($arg1, '-');
+	}
+
+	/**
+	 * Opposite
+	 *
+	 * @param mixed $arg1
+	 * @param int $scale
+	 * @return string
+	 */
+	public static function opposite($arg1, $scale = null) {
+		return self::multiply($arg1, '-1', $scale ?? self::$scale);
 	}
 
 	/**

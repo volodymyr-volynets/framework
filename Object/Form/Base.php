@@ -1468,6 +1468,7 @@ loadValues2:
 					$this->values = array_merge_hard($this->values, $this->misc_settings['navigation']['preserve']);
 				}
 				// trigger refresh
+				$this->getAllValues($this->values);
 				$this->triggerMethod('refresh');
 			}
 		}
