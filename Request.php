@@ -43,6 +43,9 @@ class Request {
 		if ($cookie) {
 			$result = array_merge($_COOKIE, $_GET, $_POST);
 		} else {
+			if (!isset($_GET)) {
+				$_GET = $_REQUEST;
+			}
 			$result = array_merge($_GET, $_POST);
 		}
 		// protection against XSS attacks is on by default

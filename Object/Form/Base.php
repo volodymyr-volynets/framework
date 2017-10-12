@@ -1217,7 +1217,8 @@ processAllValues:
 			// master object
 			if (!empty($this->form_parent->master_options['model'])) {
 				$this->master_options = $this->form_parent->master_options;
-				$this->master_object = \Factory::model($this->master_options['model'], true, [$module_id ?? 0, $this->form_parent->master_options['ledger']]);
+				$module_id = $this->master_options['module_id'] ?? $module_id;
+				$this->master_object = \Factory::model($this->master_options['model'], true, [$module_id ?? 0, $this->master_options['ledger']]);
 			}
 		}
 		// preserve blank

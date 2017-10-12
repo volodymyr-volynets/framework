@@ -142,6 +142,8 @@ class Domains extends \Object\Data {
 		'gl_source_code' => ['name' => 'Source Code', 'type' => 'char', 'length' => 3, 'validator_method' => '\Object\Validator\UpperCase::validate'],
 		'tax_group_id' => ['name' => 'Tax Group #', 'type' => 'integer', 'default' => null, 'format' => 'id'],
 		'tax_group_id_sequence' => ['name' => 'Tax Group #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
+		'document_id' => ['name' => 'Document #', 'type' => 'bigint', 'default' => null, 'format' => 'id'],
+		'document_id_sequence' => ['name' => 'Document #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		// html
 		'html_color_code' => ['name' => 'HTML Color Code', 'type' => 'char', 'length' => 6, 'null' => true],
 		'html_color_group' => ['name' => 'HTML Color Group', 'type' => 'varchar', 'length' => 30, 'null' => true]
