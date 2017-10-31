@@ -191,6 +191,18 @@ class Parent2 extends \Object\Override\Data {
 	];
 
 	/**
+	 * Trimmed buttons for batches
+	 */
+	const TRIMMED_TRANSACTION_BUTTONS_DATA_GROUP = [
+		self::BUTTON_SUBMIT_SAVE => self::BUTTON_SUBMIT_SAVE_DATA,
+		self::BUTTON_SUBMIT_POST => self::BUTTON_SUBMIT_POST_DATA,
+		self::BUTTON_SUBMIT_READY_TO_POST => self::BUTTON_SUBMIT_READY_TO_POST_DATA,
+		self::BUTTON_SUBMIT_OPEN => self::BUTTON_SUBMIT_OPEN_DATA,
+		self::BUTTON_SUBMIT_RESET => self::BUTTON_SUBMIT_RESET_DATA,
+		self::BUTTON_SUBMIT_MARK_DELETED => self::BUTTON_SUBMIT_MARK_DELETED_DATA
+	];
+
+	/**
 	 * Report buttons
 	 */
 	const REPORT_BUTTONS_DATA_GROUP = [

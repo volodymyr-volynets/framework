@@ -125,9 +125,12 @@ class Sequence extends \Object\Override\Data {
 	/**
 	 * Get next sequence number
 	 *
-	 * @return type
+	 * @param string $type
+	 * @param int $tenant
+	 * @param int $module
+	 * @return mixed
 	 */
-	private function getByType($type) {
+	public function getByType($type, $tenant = null, $module = null) {
 		$result = [
 			'success' => false,
 			'error' => [],
@@ -135,7 +138,7 @@ class Sequence extends \Object\Override\Data {
 			'advanced' => null
 		];
 		$db = new \Db($this->db_link);
-		$temp = $db->sequence($this->full_sequence_name, $type);
+		$temp = $db->sequence($this->full_sequence_name, $type, $tenant, $module);
 		if (!$temp['success']) {
 			$result['error'] = $temp['error'];
 		} else if (!empty($temp['rows'][0])) {
@@ -143,10 +146,10 @@ class Sequence extends \Object\Override\Data {
 				$result['simple'] = $temp['rows'][0]['counter'];
 				$sequence = $result['simple'] . '';
 				// if we need to pad sequence
-				if (strlen($sequence) < $temp['rows'][0]['sm_sequence_length']) {
-					$sequence = str_pad($sequence, $temp['rows'][0]['sm_sequence_length'], '0', STR_PAD_LEFT);
+				if (strlen($sequence) < $this->length) {
+					$sequence = str_pad($sequence, $this->length, '0', STR_PAD_LEFT);
 				}
-				$result['advanced'] = $temp['rows'][0]['sm_sequence_prefix'] . $sequence . $temp['rows'][0]['sm_sequence_suffix'];
+				$result['advanced'] = $this->prefix . $sequence . $this->suffix;
 			} else {
 				$result['simple'] = $result['advanced'] = $temp['rows'][0]['counter'];
 			}

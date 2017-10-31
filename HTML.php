@@ -9,7 +9,7 @@ class HTML {
 	 * @param string $icon
 	 * @param boolean $skip_i18n
 	 */
-	public static function name(string $name, $icon = null, bool $skip_i18n = false) : string {
+	public static function name($name, $icon = null, bool $skip_i18n = false) : string {
 		if (empty($skip_i18n)) {
 			$name = i18n(null, $name);
 		}

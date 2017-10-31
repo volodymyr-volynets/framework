@@ -40,12 +40,10 @@ class Request {
 	 */
 	public static function input($key = '', bool $xss = true, bool $cookie = false) {
 		// cookie first, get and post after
+		$_GET = $_GET ?? $_REQUEST ?? [];
 		if ($cookie) {
 			$result = array_merge($_COOKIE, $_GET, $_POST);
 		} else {
-			if (!isset($_GET)) {
-				$_GET = $_REQUEST;
-			}
 			$result = array_merge($_GET, $_POST);
 		}
 		// protection against XSS attacks is on by default

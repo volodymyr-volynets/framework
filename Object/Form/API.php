@@ -60,6 +60,8 @@ class API {
 	 */
 	public function save(array $input) : array {
 		$input[\Object\Form\Parent2::BUTTON_SUBMIT_SAVE] = true;
+		// we must set entry method
+		$input[$this->form->form_object->collection_object->primary_model->column_prefix . 'entry_method'] = 'G';
 		$this->form->form_object->addInput($input);
 		$this->form->form_object->process();
 		return $this->form->form_object->apiResult();

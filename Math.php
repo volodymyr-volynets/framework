@@ -120,11 +120,22 @@ class Math {
 	 * @param mixed $arg1
 	 * @param mixed $arg2
 	 * @param int $scale
-	 * @param boolean $first
 	 * @return string
 	 */
 	public static function multiply($arg1, $arg2, $scale = null) {
 		return self::__operator('bcmul', $arg1, $arg2, $scale ?? self::$scale);
+	}
+
+	/**
+	 * Divide
+	 *
+	 * @param mixed $arg1
+	 * @param mixed $arg2
+	 * @param int $scale
+	 * @return string
+	 */
+	public static function divide($arg1, $arg2, $scale = null) {
+		return self::__operator('bcdiv', $arg1, $arg2, $scale ?? self::$scale);
 	}
 
 	/**
@@ -134,7 +145,6 @@ class Math {
 	 * @param mixed $arg1
 	 * @param mixed $arg2
 	 * @param int $scale
-	 * @param boolean $first
 	 * @return string
 	 */
 	private static function __operator($function, $arg1, $arg2, $scale) {
@@ -223,6 +233,25 @@ class Math {
 	 */
 	public static function opposite($arg1, $scale = null) {
 		return self::multiply($arg1, '-1', $scale ?? self::$scale);
+	}
+
+	/**
+	 * Double reversal
+	 *
+	 * @param string $arg1
+	 * @param boolean $reverse1
+	 * @param boolean $reverse2
+	 * @param int $scale
+	 * @return string
+	 */
+	public static function doubleReverse($arg1, $reverse1, $reverse2, $scale = null) {
+		if ($reverse1) {
+			$arg1 = self::opposite($arg1, $scale);
+		}
+		if ($reverse2) {
+			$arg1 = self::opposite($arg1, $scale);
+		}
+		return $arg1;
 	}
 
 	/**

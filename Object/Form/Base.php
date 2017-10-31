@@ -572,6 +572,9 @@ class Base extends \Object\Form\Parent2 {
 			$fields_key_holder = [];
 			$this->generateDetailsPrimaryKey($fields_key_holder, 'reset', $values, $parent_keys, $options);
 			foreach ($value as $k2 => $v2) {
+				if (isset($v2[$options['options']['multiple_column']])) {
+					$v2 = $v2[$options['options']['multiple_column']];
+				}
 				$temp = $this->validateDataTypesSingleValue($options['options']['multiple_column'], $options, $v2, $error_name);
 				if (empty($temp['flag_error'])) {
 					$temp_value_new = [
@@ -1166,7 +1169,7 @@ processAllValues:
 		// module #
 		$blank_reset_var = [];
 		if ($this->collection_object->primary_model->module ?? false) {
-			if (!empty(\Application::$controller)) {
+			if (!empty(\Application::$controller) && empty($this->options['skip_acl'])) {
 				$available_modules = \Application::$controller->getControllersModules();
 				$module_id = \Application::$controller->module_id;
 			} else {
