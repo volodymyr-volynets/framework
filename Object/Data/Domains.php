@@ -31,6 +31,7 @@ class Domains extends \Object\Data {
 		'name' => ['name' => 'Name', 'type' => 'varchar', 'length' => 120],
 		'reference' => ['name' => 'Reference', 'type' => 'varchar', 'length' => 255, 'placeholder' => 'Reference'],
 		'description' => ['name' => 'Description', 'type' => 'varchar', 'length' => 2000, 'placeholder' => 'Description'],
+		'symlink' => ['name' => 'Symlink', 'type' => 'varchar', 'length' => 255, 'placeholder' => 'Symlink'],
 		// codes
 		'code' => ['name' => 'Code', 'type' => 'varchar', 'length' => 255],
 		'short_code' => ['name' => 'Short Code', 'type' => 'varchar', 'length' => 6, 'validator_method' => '\Object\Validator\UpperCase::validate'],
