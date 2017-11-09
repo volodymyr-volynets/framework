@@ -1807,7 +1807,7 @@ convertMultipleColumns:
 		$buttons_found = [];
 		$names = [];
 		foreach ($this->data as $k => $v) {
-			foreach ($v['rows'] as $k2 => $v2) {
+			foreach (($v['rows'] ?? []) as $k2 => $v2) {
 				// find all process submit buttons
 				foreach ($v2['elements'] as $k3 => $v3) {
 					if (!empty($v3['options']['process_submit'])) {
