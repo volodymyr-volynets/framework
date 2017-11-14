@@ -241,7 +241,7 @@ class Controller {
 	/**
 	 * Can (extended)
 	 *
-	 * @param int $resource_id
+	 * @param int|string $resource_id
 	 * @param string $method_code
 	 * @param string|int $action
 	 * @param int $module_id
@@ -256,6 +256,10 @@ class Controller {
 			foreach (self::$cached_controllers as $k => $v) {
 				self::$cached_controllers_by_ids[$v['id']] = $k;
 			}
+		}
+		// if we got a string
+		if (is_string($resource_id)) {
+			$resource_id = self::$cached_controllers[$resource_id]['id'];
 		}
 		// if resource is not present we return false
 		if (empty(self::$cached_controllers_by_ids[$resource_id])) return false;
@@ -386,6 +390,7 @@ class Controller {
 			$data = \Object\ACL\Resources::getStatic('menu', 'primary');
 			return \HTML::menu([
 				'brand' => \Application::get('application.layout.name'),
+				'brand_url' => \Object\ACL\Resources::getStatic('postlogin_brand_url', 'url', 'url'),
 				'options' => $data[200] ?? [],
 				'options_right' => $data[210] ?? []
 			]);
