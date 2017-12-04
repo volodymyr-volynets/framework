@@ -435,7 +435,7 @@ class Base extends \Object\Form\Parent2 {
 			}
 		}
 		// validator
-		if (!empty($options['options']['validator_method']) && !empty($value) && empty($options['options']['multiple_column']) && !is_array($value)) {
+		if (!empty($options['options']['validator_method']) && !empty($value) && empty($options['options']['multiple_column']) && (!is_array($value) || $options['options']['method'] == 'file')) {
 			$neighbouring_values_key = $options['options']['values_key'];
 			array_pop($neighbouring_values_key);
 			$temp = \Object\Validator\Base::method(
@@ -1455,7 +1455,10 @@ loadValues:
 			} else if ($this->values_saved) { // if saved we need to reload from database
 				$this->triggerMethod('success');
 loadValues2:
-				$this->original_values = $this->values = $this->loadValues();
+				// skip readonly
+				if (empty($this->collection_object->data['readonly'])) {
+					$this->original_values = $this->values = $this->loadValues();
+				}
 				// we need to preserver module #
 				if (isset($this->options['input']['__module_id'])) {
 					$this->values['__module_id'] = $this->options['input']['__module_id'];

@@ -442,7 +442,7 @@ error:
 		echo "\n" . \Helper\Cmd::colorString(implode("\n", $result['hint']), null, null, false) . "\n\n";
 	}
 	// if we did not succeed
-	if (!$result['success']) {
+	if (!empty($result['error'])) {
 		echo "\n" . \Helper\Cmd::colorString(implode("\n", $result['error']), 'red', null, true) . "\n\n";
 		exit;
 	}

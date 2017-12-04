@@ -121,6 +121,13 @@ class Domains extends \Object\Data {
 		'cost_center_id_sequence' => ['name' => 'Cost Center #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'division_id' => ['name' => 'Division #', 'type' => 'integer', 'default' => null, 'format' => 'id'],
 		'division_id_sequence' => ['name' => 'Division #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
+		// D/T Document Management
+		'file_id' => ['name' => 'File #', 'type' => 'bigint', 'default' => null, 'format' => 'id'],
+		'file_id_sequence' => ['name' => 'File #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id'],
+		'file_name' => ['name' => 'File Name', 'type' => 'varchar', 'length' => 255],
+		'file_extension' => ['name' => 'File Extension', 'type' => 'varchar', 'length' => 30],
+		'file_size' => ['name' => 'File Size', 'type' => 'integer', 'default' => null, 'format' => 'id'],
+		'file_path' => ['name' => 'File Path', 'type' => 'varchar', 'length' => 500],
 		// P/M Project Management
 		'product_id' => ['name' => 'Product #', 'type' => 'bigint', 'default' => null, 'format' => 'id'],
 		'product_id_sequence' => ['name' => 'Product #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id'],

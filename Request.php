@@ -41,10 +41,16 @@ class Request {
 	public static function input($key = '', bool $xss = true, bool $cookie = false) {
 		// cookie first, get and post after
 		$_GET = $_GET ?? $_REQUEST ?? [];
+		// fix files
+		$files = [];
+		foreach ($_FILES as $k => $v) {
+			if (empty($v['tmp_name'])) continue;
+			$files[$k] = $v;
+		}
 		if ($cookie) {
-			$result = array_merge($_COOKIE, $_GET, $_POST);
+			$result = array_merge($_COOKIE, $_GET, $_POST, $files);
 		} else {
-			$result = array_merge($_GET, $_POST);
+			$result = array_merge($_GET, $_POST, $files);
 		}
 		// protection against XSS attacks is on by default
 		if ($xss) $result = strip_tags2($result);
