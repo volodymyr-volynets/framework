@@ -330,6 +330,16 @@ function extract_keys($keys, $data) {
 function array_extract_values_by_key(array $array, string $key, array $options = []) : array {
 	$result = [];
 	foreach ($array as $v) {
+		if (!empty($options['where'])) {
+			$found = true;
+			foreach ($options['where'] as $k2 => $v2) {
+				if ($v[$k2] !== $v2) {
+					$found = false;
+					break;
+				}
+			}
+			if (!$found) continue;
+		}
 		$result[] = $v[$key];
 	}
 	// if unique
@@ -900,4 +910,25 @@ function is_json($input) {
 	} else {
 		return false;
 	}
+}
+
+/**
+ * Hex to RGB
+ *
+ * @param string $hex
+ * @return array
+ */
+function hex2rgb(string $hex) : array {
+   $hex = str_replace('#', '', $hex);
+   $result = [];
+   if(strlen($hex) == 3) {
+      $result[0] = hexdec(substr($hex, 0, 1) . substr($hex, 0, 1));
+      $result[1] = hexdec(substr($hex, 1, 1) . substr($hex, 1, 1));
+      $result[2] = hexdec(substr($hex, 2, 1) . substr($hex, 2, 1));
+   } else {
+      $result[0] = hexdec(substr($hex, 0, 2));
+      $result[1] = hexdec(substr($hex, 2, 2));
+      $result[2] = hexdec(substr($hex, 4, 2));
+   }
+   return $result;
 }
