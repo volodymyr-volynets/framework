@@ -77,7 +77,16 @@ class Tree {
 		$inactive = i18n(null, \Object\Content\Messages::INFO_INACTIVE);
 		// translate name column
 		foreach ($data as $k => $v) {
-			$data[$k]['name'] = !empty($options['i18n']) ? i18n(null, $v[$options['name_field']]) : $v[$options['name_field']];
+			if (is_array($options['name_field'])) {
+				$temp = [];
+				foreach ($options['name_field'] as $k2 => $v2) {
+					if (!isset($v[$v2])) continue;
+					$temp[] = !empty($options['i18n']) ? i18n(null, $v[$v2]) : $v[$v2];
+				}
+				$data[$k]['name'] = implode(\Format::$symbol_comma . ' ', $temp);
+			} else {
+				$data[$k]['name'] = !empty($options['i18n']) ? i18n(null, $v[$options['name_field']]) : $v[$options['name_field']];
+			}
 			// handle inactive
 			if (!empty($v['inactive'])) {
 				$data[$k]['name'].= \Format::$symbol_comma . ' ' . $inactive;

@@ -62,7 +62,7 @@ class Parent2 extends \Object\Override\Data {
 	const LIST_FILTER_SORT = [
 		'value' => 'Filter/Sort',
 		'sort' => 32000,
-		'icon' => 'filter',
+		'icon' => 'fas fa-filter',
 		'onclick' => 'Numbers.Form.listFilterSortToggle(this);'
 	];
 
@@ -85,73 +85,73 @@ class Parent2 extends \Object\Override\Data {
 	 * Submit button
 	 */
 	const BUTTON_SUBMIT = '__submit_button';
-	const BUTTON_SUBMIT_DATA = ['order' => -100, 'button_group' => 'left', 'value' => 'Submit', 'method' => 'button2', 'accesskey' => 's', 'process_submit' => true]; // , 'type' => 'primary'
+	const BUTTON_SUBMIT_DATA = ['order' => -100, 'button_group' => 'left', 'value' => 'Submit', 'method' => 'button2', 'icon' => 'fas fa-mouse-pointer', 'accesskey' => 's', 'process_submit' => true]; // , 'type' => 'primary'
 
 	/**
 	 * Submit save
 	 */
 	const BUTTON_SUBMIT_SAVE = '__submit_save';
-	const BUTTON_SUBMIT_SAVE_DATA = ['order' => 100, 'button_group' => 'left', 'value' => 'Save', 'method' => 'button2', 'icon' => 'floppy-o', 'accesskey' => 's', 'process_submit' => true]; // , 'type' => 'primary'
+	const BUTTON_SUBMIT_SAVE_DATA = ['order' => 100, 'button_group' => 'left', 'value' => 'Save', 'method' => 'button2', 'icon' => 'far fa-save', 'accesskey' => 's', 'process_submit' => true]; // , 'type' => 'primary'
 
 	/**
 	 * Submit save and new
 	 */
 	const BUTTON_SUBMIT_SAVE_AND_NEW = '__submit_save_and_new';
-	const BUTTON_SUBMIT_SAVE_AND_NEW_DATA = ['order' => 200, 'button_group' => 'left', 'value' => 'Save & New', 'type' => 'success', 'method' => 'button2', 'icon' => 'floppy-o', 'process_submit' => true];
+	const BUTTON_SUBMIT_SAVE_AND_NEW_DATA = ['order' => 200, 'button_group' => 'left', 'value' => 'Save & New', 'type' => 'success', 'method' => 'button2', 'icon' => 'far fa-save', 'process_submit' => true];
 
 	/**
 	 * Submit save and close
 	 */
 	const BUTTON_SUBMIT_SAVE_AND_CLOSE = '__submit_save_and_close';
-	const BUTTON_SUBMIT_SAVE_AND_CLOSE_DATA = ['order' => 300, 'button_group' => 'left', 'value' => 'Save & Close', 'type' => 'default', 'method' => 'button2', 'icon' => 'floppy-o', 'process_submit' => true];
+	const BUTTON_SUBMIT_SAVE_AND_CLOSE_DATA = ['order' => 300, 'button_group' => 'left', 'value' => 'Save & Close', 'type' => 'default', 'method' => 'button2', 'icon' => 'far fa-save', 'process_submit' => true];
 
 	/**
 	 * Delete button, actual delete will be performed in database
 	 */
 	const BUTTON_SUBMIT_DELETE = '__submit_delete';
-	const BUTTON_SUBMIT_DELETE_DATA = ['order' => 32000, 'button_group' => 'right', 'value' => 'Delete', 'type' => 'danger', 'method' => 'button2', 'icon' => 'trash-o', 'accesskey' => 'd', 'process_submit' => true, 'confirm_message' => \Object\Content\Messages::CONFIRM_DELETE];
+	const BUTTON_SUBMIT_DELETE_DATA = ['order' => 32000, 'button_group' => 'right', 'value' => 'Delete', 'type' => 'danger', 'method' => 'button2', 'icon' => 'far fa-trash-alt', 'accesskey' => 'd', 'process_submit' => true, 'confirm_message' => \Object\Content\Messages::CONFIRM_DELETE];
 
 	/**
 	 * Reset button
 	 */
 	const BUTTON_SUBMIT_RESET = '__submit_reset';
-	const BUTTON_SUBMIT_RESET_DATA = ['order' => 31000, 'button_group' => 'right', 'value' => 'Reset', 'type' => 'warning', 'input_type' => 'reset', 'icon' => 'ban', 'accesskey' => 'q', 'method' => 'button2', 'process_submit' => true, 'confirm_message' => \Object\Content\Messages::CONFIRM_RESET];
+	const BUTTON_SUBMIT_RESET_DATA = ['order' => 31000, 'button_group' => 'right', 'value' => 'Reset', 'type' => 'warning', 'input_type' => 'reset', 'icon' => 'fas fa-ban', 'accesskey' => 'q', 'method' => 'button2', 'process_submit' => true, 'confirm_message' => \Object\Content\Messages::CONFIRM_RESET];
 
 	/**
 	 * Blank button
 	 */
 	const BUTTON_SUBMIT_BLANK = '__submit_blank';
-	const BUTTON_SUBMIT_BLANK_DATA = ['order' => 30000, 'button_group' => 'right', 'value' => 'Blank', 'type' => 'default', 'icon' => 'file-o', 'method' => 'button2', 'accesskey' => 'n', 'process_submit' => true, 'confirm_message' => \Object\Content\Messages::CONFIRM_BLANK];
+	const BUTTON_SUBMIT_BLANK_DATA = ['order' => 30000, 'button_group' => 'right', 'value' => 'Blank', 'type' => 'default', 'icon' => 'far fa-file', 'method' => 'button2', 'accesskey' => 'n', 'process_submit' => true, 'confirm_message' => \Object\Content\Messages::CONFIRM_BLANK];
 
 	/**
 	 * Refresh button
 	 */
 	const BUTTON_SUBMIT_REFRESH = '__submit_refresh';
-	const BUTTON_SUBMIT_REFRESH_DATA = ['order' => -100, 'button_group' => 'left', 'value' => 'Refresh', 'method' => 'button2', 'icon' => 'refresh', 'accesskey' => 'r', 'process_submit' => true];
+	const BUTTON_SUBMIT_REFRESH_DATA = ['order' => -100, 'button_group' => 'left', 'value' => 'Refresh', 'method' => 'button2', 'icon' => 'fas fa-sync', 'accesskey' => 'r', 'process_submit' => true];
 
 	/**
 	 * Post button
 	 */
 	const BUTTON_SUBMIT_POST = '__submit_post';
-	const BUTTON_SUBMIT_POST_DATA = ['order' => 150, 'button_group' => 'left', 'value' => 'Post', 'type' => 'warning', 'method' => 'button2', 'accesskey' => 'p', 'process_submit' => true];
+	const BUTTON_SUBMIT_POST_DATA = ['order' => 150, 'button_group' => 'left', 'value' => 'Post', 'type' => 'warning', 'method' => 'button2', 'icon' => 'fas fa-archive', 'accesskey' => 'p', 'process_submit' => true];
 
 	/**
 	 * Post provisionally button
 	 */
 	const BUTTON_SUBMIT_TEMPORARY_POST = '__submit_post_temporary';
-	const BUTTON_SUBMIT_TEMPORARY_POST_DATA = ['order' => 151, 'button_group' => 'left', 'value' => 'Temporary Post', 'type' => 'success', 'method' => 'button2', 'process_submit' => true];
+	const BUTTON_SUBMIT_TEMPORARY_POST_DATA = ['order' => 151, 'button_group' => 'left', 'value' => 'Temporary Post', 'type' => 'success', 'icon' => 'fas fa-archive', 'method' => 'button2', 'process_submit' => true];
 
 	/**
 	 * Ready to post button
 	 */
 	const BUTTON_SUBMIT_READY_TO_POST = '__submit_ready_to_post';
-	const BUTTON_SUBMIT_READY_TO_POST_DATA = ['order' => 150, 'button_group' => 'center', 'value' => 'Ready To Post', 'type' => 'info', 'method' => 'button2', 'process_submit' => true];
+	const BUTTON_SUBMIT_READY_TO_POST_DATA = ['order' => 150, 'button_group' => 'center', 'value' => 'Ready To Post', 'type' => 'info', 'icon' => 'fas fa-archive', 'method' => 'button2', 'process_submit' => true];
 
 	/**
 	 * Open button
 	 */
 	const BUTTON_SUBMIT_OPEN = '__submit_open';
-	const BUTTON_SUBMIT_OPEN_DATA = ['order' => 151, 'button_group' => 'center', 'value' => 'Open', 'type' => 'info', 'method' => 'button2', 'process_submit' => true];
+	const BUTTON_SUBMIT_OPEN_DATA = ['order' => 151, 'button_group' => 'center', 'value' => 'Open', 'type' => 'info', 'icon' => 'fas fa-archive', 'method' => 'button2', 'process_submit' => true];
 
 	/**
 	 * Mark deleted button, used in transactions
@@ -163,7 +163,7 @@ class Parent2 extends \Object\Override\Data {
 	 * Print button
 	 */
 	const BUTTON_PRINT = '__print_button';
-	const BUTTON_PRINT_DATA = ['order' => -100, 'button_group' => 'left', 'value' => 'Print', 'type' => 'default', 'icon' => 'print', 'method' => 'button2', 'accesskey' => 'p'];
+	const BUTTON_PRINT_DATA = ['order' => -100, 'button_group' => 'left', 'value' => 'Print', 'type' => 'default', 'icon' => 'fas fa-print', 'method' => 'button2', 'accesskey' => 'p'];
 
 	/**
 	 * Standard buttons

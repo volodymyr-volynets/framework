@@ -122,8 +122,8 @@ class Bootstrap {
 		// format
 		\Format::init();
 		// default actions
-		\Layout::addAction('refresh', ['value' => 'Refresh', 'icon' => 'refresh', 'onclick' => 'location.reload();', 'order' => -32000]);
-		\Layout::addAction('print', ['value' => 'Print', 'icon' => 'print', 'onclick' => 'window.print();', 'order' => -31000]);
+		\Layout::addAction('refresh', ['value' => 'Refresh', 'icon' => 'fas fa-sync', 'onclick' => 'location.reload();', 'order' => -32000]);
+		\Layout::addAction('print', ['value' => 'Print', 'icon' => 'fas fa-print', 'onclick' => 'window.print();', 'order' => -31000]);
 	}
 
 	/**

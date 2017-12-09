@@ -20,7 +20,6 @@ class Report {
 	/**
 	 * Construct
 	 *
-	 * @param string $name
 	 * @param array $options
 	 */
 	public function __construct(array $options = []) {
@@ -30,16 +29,23 @@ class Report {
 	/**
 	 * Add report
 	 *
-	 * @param string $name
+	 * @param string $report_name
+	 * @param object $form
+	 * @param array $options
 	 */
-	public function addReport(string $report_name, array $options = []) {
+	public function addReport(string $report_name, & $form = null, array $options = []) {
 		$this->data[$report_name] = [
 			'name' => $report_name,
 			'options' => $options,
 			'header' => [],
 			'header_options' => [],
+			'filter' => [],
 			'data' => []
 		];
+		// extrace filter out of form
+		if (isset($form)) {
+			$this->data[$report_name]['filter'] = $form->generateFilter();
+		}
 	}
 
 	/**

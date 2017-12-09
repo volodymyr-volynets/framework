@@ -572,7 +572,7 @@ class Base extends \Object\Form\Parent2 {
 			$fields_key_holder = [];
 			$this->generateDetailsPrimaryKey($fields_key_holder, 'reset', $values, $parent_keys, $options);
 			foreach ($value as $k2 => $v2) {
-				if (isset($v2[$options['options']['multiple_column']])) {
+				if (is_array($v2) && isset($v2[$options['options']['multiple_column']])) {
 					$v2 = $v2[$options['options']['multiple_column']];
 				}
 				$temp = $this->validateDataTypesSingleValue($options['options']['multiple_column'], $options, $v2, $error_name);
@@ -2662,7 +2662,7 @@ convertMultipleColumns:
 	 * @param array $options
 	 * @param boolean $flag_params
 	 */
-	public function processParamsAndDepends(& $params, & $neighbouring_values, $options, $flag_params = true, $detail_values = []) {
+	public function processParamsAndDepends(& $params, & $neighbouring_values, $options, $flag_params = true) {
 		foreach ($params as $k => $v) {
 			if (is_array($v)) continue;
 			// if we have a parent
@@ -2677,8 +2677,13 @@ convertMultipleColumns:
 				$field = str_replace('detail::', '', $v);
 				$params[$k] = $neighbouring_values[$field] ?? $options['options']['__detail_values'][$field] ?? null;
 			} else if ($flag_params) {
-				// todo process errors   
-				$params[$k] = $neighbouring_values[$v] ?? null;
+				// todo process errors
+				// todo process details
+				if (!empty($this->fields[$v]['options']['multiple_column']) && is_array(current($neighbouring_values[$v] ?? []))) {
+					$params[$k] = array_extract_values_by_key($neighbouring_values[$v] ?? [], $this->fields[$v]['options']['multiple_column']);
+				} else {
+					$params[$k] = $neighbouring_values[$v] ?? null;
+				}
 			}
 		}
 	}
@@ -2923,5 +2928,43 @@ convertMultipleColumns:
 		} else {
 			return $this->cached_options[$hash][$value]['name'] ?? null;
 		}
+	}
+
+	/**
+	 * Generate filter
+	 *
+	 * @return array
+	 */
+	public function generateFilter() : array {
+		$result = [];
+		// filter
+		foreach ($this->fields as $k => $v) {
+			if ($v['options']['container_link'] != 'filter') continue;
+			if (($v['options']['method'] ?? null) == 'hidden') continue;
+			$label = i18n(null, $v['options']['label_name']);
+			$value = $this->values[$k] ?? null;
+			if (!empty($v['options']['options_model'])) {
+				$value = $this->renderListContainerDefaultOptions($v['options'], $value, $this->values);
+			}
+			if (is_array($value)) {
+				$value = implode(', ', $value);
+			}
+			if (!isset($result[$label])) {
+				$result[$label] = $value;
+			} else {
+				$result[$label].= ' - ' . $value;
+			}
+		}
+		// sort
+		if (!empty($this->values['\Object\Form\Model\Dummy\Sort'])) {
+			$sort_options = \Object\Data\Model\Order::optionsStatic(['i18n' => true]);
+			$temp = [];
+			foreach ($this->values['\Object\Form\Model\Dummy\Sort'] as $k => $v) {
+				$name = $this->detail_fields['\Object\Form\Model\Dummy\Sort']['elements']['__sort']['options']['options'][$v['__sort']]['name'];
+				$temp[] = i18n(null, $name) . ' ' . $sort_options[$v['__order']]['name'];
+			}
+			$result[i18n(null, 'Sort')] = implode(', ', $temp);
+		}
+		return $result;
 	}
 }
