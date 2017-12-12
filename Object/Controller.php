@@ -259,7 +259,7 @@ class Controller {
 		}
 		// if we got a string
 		if (is_string($resource_id)) {
-			$resource_id = self::$cached_controllers[$resource_id]['id'];
+			$resource_id = self::$cached_controllers[$resource_id]['id'] ?? null;
 		}
 		// if resource is not present we return false
 		if (empty(self::$cached_controllers_by_ids[$resource_id])) return false;
