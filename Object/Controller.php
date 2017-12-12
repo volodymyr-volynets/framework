@@ -388,8 +388,15 @@ class Controller {
 	public static function renderMenu() : string {
 		if (!\Object\Error\Base::$flag_database_tenant_not_found) {
 			$data = \Object\ACL\Resources::getStatic('menu', 'primary');
+			// get logo URL
+			$brand_logo = \Object\ACL\Resources::getStatic('layout', 'logo', 'method');
+			if (!empty($brand_logo)) {
+				$method = \Factory::method($brand_logo, null, true);
+				$brand_logo = call_user_func_array($method, []);
+			}
 			return \HTML::menu([
-				'brand' => \Application::get('application.layout.name'),
+				'brand_name' => \Application::get('application.layout.name'),
+				'brand_logo' => $brand_logo,
 				'brand_url' => \Object\ACL\Resources::getStatic('postlogin_brand_url', 'url', 'url'),
 				'options' => $data[200] ?? [],
 				'options_right' => $data[210] ?? []
