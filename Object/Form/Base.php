@@ -18,6 +18,13 @@ class Base extends \Object\Form\Parent2 {
 	public $title;
 
 	/**
+	 * Module Code
+	 *
+	 * @var string
+	 */
+	public $module_code;
+
+	/**
 	 * Form class
 	 *
 	 * @var string
@@ -1853,15 +1860,15 @@ convertMultipleColumns:
 			// process
 			$not_allowed = [];
 			// remove delete buttons if we do not have loaded values or do not have permission
-			if (!$this->values_loaded || !\Application::$controller->can('Record_Delete', 'Edit')) {
+			if (!$this->values_loaded || (empty($this->options['skip_acl']) && !\Application::$controller->can('Record_Delete', 'Edit'))) {
 				$not_allowed[] = self::BUTTON_SUBMIT_DELETE;
 			}
 			// we need to check permissions
 			$show_save_buttons = false;
-			if (!$this->values_loaded && \Application::$controller->can('Record_New', 'Edit')) {
+			if (!$this->values_loaded && (empty($this->options['skip_acl']) && \Application::$controller->can('Record_New', 'Edit'))) {
 				$show_save_buttons = true;
 			}
-			if ($this->values_loaded && \Application::$controller->can('Record_Edit', 'Edit')) {
+			if ($this->values_loaded && (empty($this->options['skip_acl']) && \Application::$controller->can('Record_Edit', 'Edit'))) {
 				$show_save_buttons = true;
 			}
 			if (!$show_save_buttons && empty($this->options['skip_acl'])) {
@@ -2802,6 +2809,91 @@ convertMultipleColumns:
 	}
 
 	/**
+	 * Generate form fields
+	 *
+	 * @return array
+	 */
+	public function generateFormFields() : array {
+		$result = [
+			'success' => false,
+			'error' => [],
+			'data' => []
+		];
+		// details
+		$details = [];
+		if (!empty($this->collection['details'])) {
+			$this->disassembleCollectionObject($this->collection['details'], $details);
+		}
+		// step 1: fields
+		foreach ($this->fields as $k => $v) {
+			if (!$this->skipExportField($k, $v)) continue;
+			// if we have detail
+			if (!empty($details[$k])) {
+				$result['data'][$k . '[' . $v['options']['multiple_column'] . ']'] = [
+					'name' => $v['options']['label_name'],
+					'type' => $this->determineFieldType($v['options']['multiple_column'], $v)
+				];
+				continue;
+			}
+			// regular field
+			$result['data'][$k] = [
+				'name' => $v['options']['label_name'],
+				'type' => $this->determineFieldType($k, $v)
+			];
+		}
+		// step 2: detail fields
+		foreach ($this->detail_fields as $k => $v) {
+			foreach ($v['elements'] as $k2 => $v2) {
+				if (!$this->skipExportField($k2, $v2)) continue;
+				$result['data'][$k . '[' . $k2 . ']'] = [
+					'name' => (isset($details[$k]['name']) ? ($details[$k]['name'] . ' - ') : '') . $v2['options']['label_name'],
+					'type' => $this->determineFieldType($k2, $v2)
+				];
+			}
+		}
+		$result['success'] = true;
+		return $result;
+	}
+
+	/**
+	 * Field type
+	 *
+	 * @param string $field_name
+	 * @param array $field_options
+	 * @return int
+	 * @throws \Exception
+	 */
+	private function determineFieldType(string $field_name, array $field_options) : int {
+		// form
+		if ($this->initiator_class == 'form') {
+			$result = 10;
+		} else if ($this->initiator_class == 'list') { // list
+			if ($field_options['options']['container_link'] == 'filter' || $field_options['options']['container_link'] == '__list_buttons') {
+				$result = 20;
+			} else if ($field_options['options']['container_link'] == self::LIST_CONTAINER) {
+				$result = 30;
+			} else if ($field_options['options']['container_link'] == 'sort') {
+				$result = 40;
+			} else {
+				Throw new \Exception('List field type?');
+			}
+		} else if ($this->initiator_class == 'report') { // report
+			if ($field_options['options']['container_link'] == 'filter' || $field_options['options']['container_link'] == '__report_buttons') {
+				$result = 50;
+			} else if ($field_options['options']['container_link'] == self::LIST_CONTAINER) {
+				$result = 60;
+			} else if ($field_options['options']['container_link'] == 'sort') {
+				$result = 70;
+			} else {
+				Throw new \Exception('Report field type?');
+			}
+		} else {
+			Throw new \Exception('Other field type?');
+		}
+		return $result;
+	}
+
+	/**
 	 * Skip export field
 	 *
 	 * @param string $field_name
@@ -2812,6 +2904,11 @@ convertMultipleColumns:
 		if (!empty($field_options['options']['process_submit'])) return false;
 		if ($field_name == $this::SEPARATOR_HORIZONTAL || $field_name == $this::SEPARATOR_VERTICAL) return false;
 		if (!empty($field_options['options']['skip_during_export'])) return false;
+		if (!empty($field_options['options']['custom_renderer'])) return false;
+		if ($field_options['options']['container_link'] == self::HIDDEN) return false;
+		$label = $field_options['options']['label_name'] ?? '';
+		if ($label == '' || $label == ' ') return false;
+		if ($field_name == '__format') return false;
 		return true;
 	}
 

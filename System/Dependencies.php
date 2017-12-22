@@ -40,6 +40,7 @@ class Dependencies {
 			$data['media'] = $data['media'] ?? [];
 			$data['model_processed'] = [];
 			$data['unit_tests'] = [];
+			$data['form'] = $data['form'] ?? [];
 			$data['__submodule_dependencies'] = [];
 			$dummy = [];
 			// we have small chicken and egg problem with composer
@@ -104,6 +105,9 @@ class Dependencies {
 							}
 							if (!empty($sub_data['media'])) {
 								$data['media'] = array_merge_hard($data['media'], $sub_data['media']);
+							}
+							if (!empty($sub_data['form'])) {
+								$data['form'] = array_merge_hard($data['form'], $sub_data['form']);
 							}
 							// processing unit tests
 							if (file_exists($v . 'UnitTests')) {
@@ -763,8 +767,8 @@ import_data:
 																$origin_dependencies[$origin_submodule][$name] = $name;
 															}
 														} else {
-															// we skip more than 5 part keys for now
-															Throw new Exception('we skip more than 7 part keys for now');
+															// we skip more than 7 part keys for now
+															Throw new \Exception('we skip more than 7 part keys for now');
 														}
 													}
 												}

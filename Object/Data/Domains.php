@@ -40,6 +40,8 @@ class Domains extends \Object\Data {
 		'token' => ['name' => 'Token', 'type' => 'varchar', 'length' => 255],
 		'status_one' => ['name' => 'Status (1)', 'type' => 'char', 'length' => 1],
 		'status_two' => ['name' => 'Status (2)', 'type' => 'char', 'length' => 2],
+		'promocode' => ['name' => 'Promocode', 'type' => 'varchar', 'length' => 255],
+		'barcode' => ['name' => 'Barcode', 'type' => 'varchar', 'length' => 255],
 		// types & groups
 		'type_id' => ['name' => 'Type #', 'type' => 'smallint', 'default' => null, 'format' => 'id'],
 		'type_id_sequence' => ['name' => 'Type #', 'type' => 'smallserial', 'placeholder' => 'Sequence', 'format' => 'id'],
@@ -102,6 +104,7 @@ class Domains extends \Object\Data {
 		'role_id_sequence' => ['name' => 'Role #', 'type' => 'serial', 'placeholder' => 'Sequence'],
 		'message_id' => ['name' => 'Message #', 'type' => 'bigint', 'default' => null, 'format' => 'id'],
 		'message_id_sequence' => ['name' => 'Message #', 'type' => 'bigserial', 'placeholder' => 'Sequence'],
+		'weight' => ['name' => 'Weight', 'type' => 'integer', 'default' => null, 'format' => 'id'],
 		// O/N Organization Management
 		'organization_id' => ['name' => 'Organization #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Organization', 'format' => 'id'],
 		'organization_id_sequence' => ['name' => 'Organization #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],

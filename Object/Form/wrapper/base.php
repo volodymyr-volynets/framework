@@ -25,6 +25,14 @@ class Base extends \Object\Form\Parent2 {
 	public $title;
 
 	/**
+	 * Module Code
+	 *
+	 * @var string
+	 */
+	public $module_code;
+
+
+	/**
 	 * Options
 	 *
 	 * @var array
@@ -127,17 +135,17 @@ class Base extends \Object\Form\Parent2 {
 		$this->form_object->collection = $this->collection;
 		$this->form_object->preloadCollectionObject(); // must initialize it before calls to container/row/element
 		$this->form_object->column_prefix = $this->column_prefix ?? $this->form_object->collection_object->primary_model->column_prefix ?? null;
-		// report object
-		// todo		
-		//$this->form_object->report_object = new numbers_frontend_html_form_report($this->form_object);
 		// title
 		if (!empty($this->title)) {
 			$this->form_object->title = $this->title;
 		} else {
-			// we generate a title based on class name
-			$temp = explode('\Form\\', get_called_class());
-			$temp = explode('\\', $temp[1]);
-			$this->title = $this->form_object->title = ucwords(implode(' ', $temp));
+			Throw new \Exception('Title?');
+		}
+		// module code
+		if (!empty($this->module_code)) {
+			$this->form_object->module_code = $this->module_code;
+		} else {
+			Throw new \Exception('Module Code?');
 		}
 		// step 1: methods
 		foreach (['refresh', 'validate', 'save', 'post', 'success', 'finalize',
@@ -156,6 +164,17 @@ class Base extends \Object\Form\Parent2 {
 					$index++;
 				}
 			}
+		}
+		// load form overrides
+		$overrides_fields = [];
+		$overrides_model = \Object\ACL\Resources::getStatic('form_overrides', 'primary', 'model');
+		if (!empty($overrides_model)) {
+			$temp_model = new $overrides_model();
+			$overrides_fields = $temp_model->get([
+				'where' => [
+					'form_model' => $this->form_object->form_class
+				]
+			]);
 		}
 		// step 2: create all containers
 		foreach ($this->containers as $k => $v) {
@@ -179,6 +198,26 @@ class Base extends \Object\Form\Parent2 {
 				foreach ($v2 as $k3 => $v3) {
 					if ($v3 === null) {
 						continue;
+					}
+					// if we have an override
+					if (!empty($overrides_fields[$k3])) {
+						if ($overrides_fields[$k3]['action'] == 10) {
+							$v3['readonly'] = true;
+							if (($v3['method'] ?? '') == 'multiselect') {
+								$v3['method'] = 'select';
+							}
+						} else if ($overrides_fields[$k3]['action'] == 30) {
+							if ($this->form_object->initiator_class == 'form') {
+								continue;
+							} else {
+								if ($k == self::LIST_CONTAINER) {
+									$k3 = $k3 . '_dummy_field';
+									$v3['label_name'] = '';
+								} else {
+									continue;
+								}
+							}
+						}
 					}
 					$this->form_object->element($k, $k2, $k3, $v3);
 				}
