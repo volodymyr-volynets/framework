@@ -405,4 +405,14 @@ class Controller {
 			return '';
 		}
 	}
+
+	/**
+	 * Get system module by module code
+	 *
+	 * @param string $module_code
+	 * @return array
+	 */
+	public static function getSystemModuleByModuleCode(string $module_code) : array {
+		return self::$cached_modules[$module_code] ?? [];
+	}
 }
