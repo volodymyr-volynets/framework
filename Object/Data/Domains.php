@@ -142,6 +142,10 @@ class Domains extends \Object\Data {
 		// P/M Project Management
 		'product_id' => ['name' => 'Product #', 'type' => 'bigint', 'default' => null, 'format' => 'id'],
 		'product_id_sequence' => ['name' => 'Product #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id'],
+		// W/W Workflow
+		'workflow_id' => ['name' => 'Workflow #', 'type' => 'integer', 'default' => null, 'format' => 'id'],
+		'workflow_id_sequence' => ['name' => 'Workflow #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
+		'dimension' => ['name' => 'Dimansion', 'type' => 'integer', 'default' => 0, 'format' => 'id'],
 		// relations & models
 		'relation_id' => ['name' => 'Relation #', 'type' => 'bigint', 'default' => null, 'format' => 'id'],
 		'relation_id_sequence' => ['name' => 'Relation #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id'],

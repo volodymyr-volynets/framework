@@ -62,6 +62,9 @@ class Options extends \Object\Override\Data {
 		} else {
 			$options_map = [$this->column_prefix . 'name' => 'name'];
 		}
+		if (isset($options['options_map_addition'])) {
+			$options_map = array_merge_hard($options_map, $options['options_map_addition']);
+		}
 		// if we need to filter options_active
 		if (!empty($options['__options_active'])) {
 			$options_active = $this->options_active ? $this->options_active : [$this->column_prefix . 'inactive' => 0];
@@ -91,6 +94,21 @@ class Options extends \Object\Override\Data {
 	public function optionsActive($options = []) {
 		$options['__options_active'] = true;
 		return $this->options($options);
+	}
+
+	/**
+	 * Optgroups
+	 *
+	 * @param array $options
+	 * @return array
+	 */
+	public function optgroups($options = []) {
+		if (empty($this->optgroups_map)) {
+			return $this->options($options);
+		} else {
+			$options['options_map_addition'][$this->optgroups_map['column']] = $this->optgroups_map['column'];
+			return \Object\Data\Common::optgroups($this->options($options), $this->optgroups_map, ['name' => 'name']);
+		}
 	}
 
 	/**

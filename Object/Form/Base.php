@@ -908,7 +908,11 @@ class Base extends \Object\Form\Parent2 {
 							$subdetail_key_holder = [];
 							$this->generateDetailsPrimaryKey($subdetail_key_holder, 'reset', $detail, [$k, $k2, $k0], $v0);
 							// go through data
-							$subdetail_data = $v2[$k0] ?? [];
+							if (!empty($v0['options']['details_11'])) {
+								$subdetail_data = [$v2[$k0] ?? []];
+							} else {
+								$subdetail_data = $v2[$k0] ?? [];
+							}
 							if (!empty($subdetail_data)) {
 								foreach ($subdetail_data as $k5 => $v5) {
 									$flag_subdetail_change_detected = false;
@@ -918,6 +922,7 @@ class Base extends \Object\Form\Parent2 {
 									$this->generateDetailsPrimaryKey($subdetail_key_holder, 'pk', $v5, [$k, $k2, $k0], $v0);
 									$subdetail_error_name = $subdetail_key_holder['error_name'];
 									$k5 = $subdetail_key_holder['pk'];
+									//print_r2($subdetail_fields);
 									// process fields
 									foreach ($subdetail_fields as $k6 => $v6) {
 										// default data type
@@ -942,6 +947,7 @@ class Base extends \Object\Form\Parent2 {
 										} else {
 											$subdetail_access_key = array_merge($detail_access_key, [$k0, $k5]);
 										}
+										//print_r2($subdetail_access_key);
 										$original_values = array_key_get($this->original_values, array_merge($subdetail_access_key, [$k6]));
 										if ($this->values_loaded && !empty($this->misc_settings['persistent']['subdetails'][$k][$k0][$k6]) && isset($original_values)) {
 											// todo: handle if_set
@@ -968,7 +974,11 @@ class Base extends \Object\Form\Parent2 {
 									// if we have a change
 									if ($flag_subdetail_change_detected) {
 										$flag_change_detected = true;
-										$detail[$k0][$k5] = $subdetail;
+										if (!empty($v0['options']['details_11'])) {
+											$detail[$k0] = $subdetail;
+										} else {
+											$detail[$k0][$k5] = $subdetail;
+										}
 									}
 								}
 							}
@@ -1595,7 +1605,7 @@ convertMultipleColumns:
 		if ($this->initiator_class == 'report' && !$this->hasErrors() && $this->submitted) {
 			$result = $this->triggerMethod('buildReport');
 			if (!is_a($result, 'Object\Form\Builder\Report')) {
-				Throw new Exception('buildReport method should return Object\Form\Builder\Report object!');
+				Throw new \Exception('buildReport method should return Object\Form\Builder\Report object!');
 			}
 			// render report
 			$format = $this->values['__format'] ?? 'text/html';
@@ -1979,7 +1989,7 @@ convertMultipleColumns:
 	final public function saveValues() {
 		// double check if we have collection object
 		if (empty($this->collection_object)) {
-			Throw new Exception('You must provide collection object!');
+			Throw new \Exception('You must provide collection object!');
 		}
 		$options = [
 			'flag_delete_row' => $this->process_submit[self::BUTTON_SUBMIT_DELETE] ?? false,
@@ -2244,7 +2254,7 @@ convertMultipleColumns:
 			// processing details
 			if ($type == 'details') {
 				if (empty($options['details_key']) || empty($options['details_pk'])) {
-					Throw new Exception('Detail key or pk?');
+					Throw new \Exception('Detail key or pk?');
 				}
 				$options['details_collection_key'] = $options['details_collection_key'] ?? ['details', $options['details_key']];
 				$options['details_rendering_type'] = $options['details_rendering_type'] ?? 'grid_with_label';
@@ -2253,7 +2263,7 @@ convertMultipleColumns:
 			// processing subdetails
 			if ($type == 'subdetails') {
 				if (empty($options['details_key']) || empty($options['details_pk']) || empty($options['details_parent_key'])) {
-					Throw new Exception('Subdetail key, parent key or pk?');
+					Throw new \Exception('Subdetail key, parent key or pk?');
 				}
 				$options['flag_child'] = true;
 				$options['details_collection_key'] = $options['details_collection_key'] ?? ['details', $options['details_parent_key'], 'details', $options['details_key']];
