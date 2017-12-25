@@ -764,6 +764,24 @@ function array_key_unset(& $arr, $keys, $options = []) {
 }
 
 /**
+ * Unset a set of keys in the array recursively
+ *
+ * @param array $arr
+ * @param array $keys
+ */
+function array_key_unset_recursively(& $arr, $keys) {
+	foreach ($arr as $k => $v) {
+		if (in_array($k, $keys)) {
+			unset($arr[$k]);
+		} else {
+			if (is_array($arr[$k])) {
+				array_key_unset_recursively($arr[$k], $keys);
+			}
+		}
+	}
+}
+
+/**
  * Mixed to lowercase
  *
  * @param mixed $mixed
