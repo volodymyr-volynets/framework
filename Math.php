@@ -23,9 +23,9 @@ class Math {
 	 * Double the scale
 	 *
 	 * @param mixed scale
-	 * @returns integer
+	 * @return integer
 	 */
-	public static function double($scale) {
+	public static function double($scale) : int {
 		return (intval($scale) * 2) + 1;
 	}
 
@@ -37,7 +37,7 @@ class Math {
 	 * @param int $scale
 	 * @return int, -1, 0 or 1
 	 */
-	public static function compare($arg1, $arg2, $scale = null) {
+	public static function compare($arg1, $arg2, $scale = null) : int {
 		return bccomp($arg1 . '', $arg2 . '', $scale ?? self::$scale);
 	}
 
@@ -47,7 +47,7 @@ class Math {
 	 * @param mixed $arg1
 	 * @param mixed $arg2
 	 * @param int $scale
-	 * @return bool
+	 * @return boolean
 	 */
 	public static function isEqual($arg1, $arg2, $scale = null) {
 		return (self::compare($arg1, $arg2, $scale ?? 13) == 0);
@@ -72,7 +72,7 @@ class Math {
 	 * @param int $scale
 	 * @return string
 	 */
-	public static function add($arg1, $arg2, $scale = null) {
+	public static function add($arg1, $arg2, $scale = null) : string {
 		return self::__operator('bcadd', $arg1, $arg2, $scale ?? self::$scale);
 	}
 
@@ -84,7 +84,7 @@ class Math {
 	 * @param int $scale
 	 * @return string
 	 */
-	public static function add2(& $arg1, $arg2, $scale = null) {
+	public static function add2(& $arg1, $arg2, $scale = null) : string {
 		$arg1 = self::add($arg1, $arg2, $scale);
 		return $arg1;
 	}
@@ -97,7 +97,7 @@ class Math {
 	 * @param int $scale
 	 * @return string
 	 */
-	public static function subtract($arg1, $arg2, $scale = null) {
+	public static function subtract($arg1, $arg2, $scale = null) : string {
 		return self::__operator('bcsub', $arg1, $arg2, $scale ?? self::$scale);
 	}
 
@@ -109,7 +109,7 @@ class Math {
 	 * @param int $scale
 	 * @return string
 	 */
-	public static function subtract2(& $arg1, $arg2, $scale = null) {
+	public static function subtract2(& $arg1, $arg2, $scale = null) : string {
 		$arg1 = self::subtract($arg1, $arg2, $scale);
 		return $arg1;
 	}
@@ -122,7 +122,7 @@ class Math {
 	 * @param int $scale
 	 * @return string
 	 */
-	public static function multiply($arg1, $arg2, $scale = null) {
+	public static function multiply($arg1, $arg2, $scale = null) : string {
 		return self::__operator('bcmul', $arg1, $arg2, $scale ?? self::$scale);
 	}
 
@@ -134,7 +134,7 @@ class Math {
 	 * @param int $scale
 	 * @return string
 	 */
-	public static function divide($arg1, $arg2, $scale = null) {
+	public static function divide($arg1, $arg2, $scale = null) : string {
 		return self::__operator('bcdiv', $arg1, $arg2, $scale ?? self::$scale);
 	}
 
@@ -147,7 +147,7 @@ class Math {
 	 * @param int $scale
 	 * @return string
 	 */
-	private static function __operator($function, $arg1, $arg2, $scale) {
+	private static function __operator($function, $arg1, $arg2, $scale) : string {
 		if (is_array($arg1)) {
 			$arg1_temp = $arg1;
 			$temp1 = array_shift($arg1_temp);
@@ -175,7 +175,7 @@ class Math {
 	 * @param int $scale
 	 * @return string
 	 */
-	public static function round($arg1, $scale = 0) {
+	public static function round($arg1, $scale = 0) : string {
 		if (!isset($scale)) {
 			$scale = self::$scale;
 		}
@@ -190,13 +190,18 @@ class Math {
 	 * Floor, round fractions down
 	 *
 	 * @param string $arg1
+	 * @param int $scale
 	 * @return string
 	 */
-	public static function floor($arg1) {
+	public static function floor($arg1, $scale = 0) : string {
 		if ($arg1[0] != '-') {
-			return bcadd($arg1, '0', 0);
+			return bcadd($arg1, '0', $scale);
 		} else {
-			return bcsub($arg1, '1', 0);
+			$value = '1';
+			if ($scale != 0) {
+				$value = self::divide('1', 10 ** $scale, $scale);
+			}
+			return bcsub($arg1, $value, $scale);
 		}
 	}
 
@@ -204,13 +209,18 @@ class Math {
 	 * Ceil, round fractions up
 	 *
 	 * @param string $arg1
+	 * @param int $scale
 	 * @return string
 	 */
-	public static function ceil($arg1) {
+	public static function ceil($arg1, $scale = 0) : string {
 		if ($arg1[0] != '-') {
-			return bcadd($arg1, '1', 0);
+			$value = '1';
+			if ($scale != 0) {
+				$value = self::divide('1', 10 ** $scale, $scale);
+			}
+			return bcadd($arg1, $value, $scale);
 		} else {
-			return bcsub($arg1, '0', 0);
+			return bcsub($arg1, '0', $scale);
 		}
 	}
 
@@ -220,7 +230,7 @@ class Math {
 	 * @param string $arg1
 	 * @return string
 	 */
-	public static function abs($arg1) {
+	public static function abs($arg1) : string {
 		return ltrim($arg1, '-');
 	}
 
@@ -231,7 +241,7 @@ class Math {
 	 * @param int $scale
 	 * @return string
 	 */
-	public static function opposite($arg1, $scale = null) {
+	public static function opposite($arg1, $scale = null) : string {
 		return self::multiply($arg1, '-1', $scale ?? self::$scale);
 	}
 
@@ -244,7 +254,7 @@ class Math {
 	 * @param int $scale
 	 * @return string
 	 */
-	public static function doubleReverse($arg1, $reverse1, $reverse2, $scale = null) {
+	public static function doubleReverse($arg1, $reverse1, $reverse2, $scale = null) : string {
 		if ($reverse1) {
 			$arg1 = self::opposite($arg1, $scale);
 		}
@@ -260,7 +270,22 @@ class Math {
 	 * @param int $scale
 	 * @return string
 	 */
-	public static function zero($scale = null) {
+	public static function zero($scale = null) : string {
 		return self::add('0', '0.0000000000000', $scale ?? self::$scale);
+	}
+
+	/**
+	 * Sum
+	 *
+	 * @param array $array
+	 * @param int $scale
+	 * @return string
+	 */
+	public static function sum(array $array, $scale = null) : string {
+		$result = '0';
+		foreach ($array as $v) {
+			$result = \Math::add($result, $v . '', $scale);
+		}
+		return $result;
 	}
 }
