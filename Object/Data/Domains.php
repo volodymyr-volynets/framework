@@ -139,6 +139,11 @@ class Domains extends \Object\Data {
 		'file_extension' => ['name' => 'File Extension', 'type' => 'varchar', 'length' => 30],
 		'file_size' => ['name' => 'File Size', 'type' => 'integer', 'default' => null, 'format' => 'id'],
 		'file_path' => ['name' => 'File Path', 'type' => 'varchar', 'length' => 500],
+		// A/M Advertizing Management
+		'adcode_id' => ['name' => 'Adcode #', 'type' => 'integer', 'default' => null, 'format' => 'id'],
+		'adcode_id_sequence' => ['name' => 'Adcode #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
+		'promocode_id' => ['name' => 'Promocode #', 'type' => 'integer', 'default' => null, 'format' => 'id'],
+		'promocode_id_sequence' => ['name' => 'Promocode #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		// P/M Project Management
 		'product_id' => ['name' => 'Product #', 'type' => 'bigint', 'default' => null, 'format' => 'id'],
 		'product_id_sequence' => ['name' => 'Product #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id'],
