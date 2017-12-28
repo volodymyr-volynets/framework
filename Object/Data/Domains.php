@@ -148,8 +148,10 @@ class Domains extends \Object\Data {
 		'product_id' => ['name' => 'Product #', 'type' => 'bigint', 'default' => null, 'format' => 'id'],
 		'product_id_sequence' => ['name' => 'Product #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		// W/W Workflow
-		'workflow_id' => ['name' => 'Workflow #', 'type' => 'integer', 'default' => null, 'format' => 'id'],
+		'workflow_id' => ['name' => 'Workflow #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Workflow', 'format' => 'id'],
 		'workflow_id_sequence' => ['name' => 'Workflow #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
+		'service_id' => ['name' => 'Service #', 'type' => 'integer', 'default' => null, 'format' => 'id'],
+		'service_id_sequence' => ['name' => 'Service #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'dimension' => ['name' => 'Dimansion', 'type' => 'integer', 'default' => 0, 'format' => 'id'],
 		'version_code' => ['name' => 'Version Code', 'type' => 'varchar', 'length' => 30],
 		// relations & models
