@@ -1865,7 +1865,9 @@ convertMultipleColumns:
 				self::BUTTON_SUBMIT_SAVE_AND_NEW,
 				self::BUTTON_SUBMIT_SAVE_AND_CLOSE,
 				self::BUTTON_SUBMIT_RESET,
-				self::BUTTON_SUBMIT_DELETE
+				self::BUTTON_SUBMIT_DELETE,
+				self::BUTTON_CONTINUE,
+				self::BUTTON_STOP
 			];
 			// process
 			$not_allowed = [];
@@ -1891,7 +1893,9 @@ convertMultipleColumns:
 				self::BUTTON_SUBMIT,
 				self::BUTTON_SUBMIT_SAVE_AND_NEW,
 				self::BUTTON_SUBMIT_SAVE_AND_CLOSE,
-				self::BUTTON_SUBMIT_DELETE
+				self::BUTTON_SUBMIT_DELETE,
+				self::BUTTON_CONTINUE,
+				self::BUTTON_STOP
 			];
 		}
 		// validate if we have that button

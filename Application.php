@@ -319,7 +319,8 @@ class Application {
 				'<!-- [numbers: javascript data] -->',
 				'<!-- [numbers: css links] -->',
 				'<!-- [numbers: layout onload] -->',
-				'<!-- [numbers: layout onhtml] -->'
+				'<!-- [numbers: layout onhtml] -->',
+				'<!-- [numbers: workflows] -->'
 			];
 			$to = [
 				\Layout::renderMessages(),
@@ -331,7 +332,8 @@ class Application {
 				\Layout::renderJsData(),
 				\Layout::renderCss(),
 				\Layout::renderOnload(),
-				\Layout::$onhtml
+				\Layout::$onhtml,
+				\Object\Form\Workflow\Base::render()
 			];
 			echo str_replace($from, $to, \Helper\Ob::clean());
 		} else {

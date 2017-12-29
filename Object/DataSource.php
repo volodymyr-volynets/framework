@@ -201,7 +201,7 @@ class DataSource extends \Object\Table\Options {
 		// add settings to query
 		$query_settings = [];
 		foreach (['pk', 'columns', 'limit', 'orderby', 'single_row', 'single_value'] as $v) {
-			if (isset($options[$v])) {
+			if (array_key_exists($v, $options)) {
 				$query_settings[$v] = $options[$v];
 			} else if (isset($this->{$v})) {
 				$query_settings[$v] = $this->{$v};

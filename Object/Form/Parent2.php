@@ -85,13 +85,25 @@ class Parent2 extends \Object\Override\Data {
 	 * Submit button
 	 */
 	const BUTTON_SUBMIT = '__submit_button';
-	const BUTTON_SUBMIT_DATA = ['order' => -100, 'button_group' => 'left', 'value' => 'Submit', 'method' => 'button2', 'icon' => 'fas fa-mouse-pointer', 'accesskey' => 's', 'process_submit' => true]; // , 'type' => 'primary'
+	const BUTTON_SUBMIT_DATA = ['order' => -100, 'button_group' => 'left', 'value' => 'Submit', 'method' => 'button2', 'icon' => 'fas fa-mouse-pointer', 'accesskey' => 's', 'process_submit' => true];
+
+	/**
+	 * Continue button
+	 */
+	const BUTTON_CONTINUE = '__continue_button';
+	const BUTTON_CONTINUE_DATA = ['order' => -100, 'button_group' => 'left', 'value' => 'Continue', 'method' => 'button2', 'accesskey' => 's', 'process_submit' => true];
+
+	/**
+	 * Stop button
+	 */
+	const BUTTON_STOP = '__stop_button';
+	const BUTTON_STOP_DATA = ['order' => -100, 'button_group' => 'left', 'type' => 'danger', 'value' => 'Stop', 'method' => 'button2', 'accesskey' => 'x', 'process_submit' => true];
 
 	/**
 	 * Submit save
 	 */
 	const BUTTON_SUBMIT_SAVE = '__submit_save';
-	const BUTTON_SUBMIT_SAVE_DATA = ['order' => 100, 'button_group' => 'left', 'value' => 'Save', 'method' => 'button2', 'icon' => 'far fa-save', 'accesskey' => 's', 'process_submit' => true]; // , 'type' => 'primary'
+	const BUTTON_SUBMIT_SAVE_DATA = ['order' => 100, 'button_group' => 'left', 'value' => 'Save', 'method' => 'button2', 'icon' => 'far fa-save', 'accesskey' => 's', 'process_submit' => true];
 
 	/**
 	 * Submit save and new

@@ -43,7 +43,7 @@ class Request {
 		$_GET = $_GET ?? $_REQUEST ?? [];
 		// fix files
 		$files = [];
-		foreach ($_FILES as $k => $v) {
+		foreach (($_FILES ?? []) as $k => $v) {
 			if (empty($v['tmp_name'])) continue;
 			$files[$k] = $v;
 		}
