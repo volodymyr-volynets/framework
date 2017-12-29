@@ -58,6 +58,7 @@ class Domains extends \Object\Data {
 		'timestamp_now' => ['name' => 'Timestamp (Now)', 'type' => 'timestamp', 'default' => 'now()', 'null' => false, 'format' => '', 'validator_method' => '', 'placeholder' => ''],
 		// personal
 		'email' => ['name' => 'Email', 'type' => 'varchar', 'length' => 255, 'validator_method' => '\Object\Validator\Email::validate', 'null' => true],
+		'subject' => ['name' => 'Subject', 'type' => 'varchar', 'length' => 255, 'null' => true],
 		'phone' => ['name' => 'Phone', 'type' => 'varchar', 'length' => 50, 'validator_method' => '\Object\Validator\Phone::validate', 'null' => true],
 		'personal_name' => ['name' => 'Name (Personal)', 'type' => 'varchar', 'length' => 50],
 		'personal_title' => ['name' => 'Title (Personal)', 'type' => 'varchar', 'length' => 10],
