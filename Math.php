@@ -26,7 +26,7 @@ class Math {
 	 * @return integer
 	 */
 	public static function double($scale) : int {
-		return (intval($scale) * 2) + 1;
+		return (intval($scale) * 2) + 2;
 	}
 
 	/**

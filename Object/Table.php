@@ -809,6 +809,9 @@ TTT;
 	 * Query builder
 	 *
 	 * @param array $options
+	 *		string alias, default a
+	 *		boolean skip_tenant
+	 *		boolean skip_acl
 	 * @return \Object\Query\Builder
 	 */
 	public function queryBuilder(array $options = []) : \Object\Query\Builder {
@@ -840,6 +843,9 @@ TTT;
 	 * Query builder (static)
 	 *
 	 * @param array $options
+	 *		string alias, default a
+	 *		boolean skip_tenant
+	 *		boolean skip_acl
 	 * @return \Object\Query\Builder
 	 */
 	public static function queryBuilderStatic(array $options = []) : \Object\Query\Builder {
