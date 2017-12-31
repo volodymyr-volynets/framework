@@ -2764,7 +2764,7 @@ convertMultipleColumns:
 	 * @param array $options
 	 * @return boolean
 	 */
-	private function canProcessDefaultValue($value, $options) {
+	public function canProcessDefaultValue($value, $options) {
 		if (strpos($options['options']['default'], 'static::') !== false || strpos($options['options']['default'], 'master_object::') !== false || strpos($options['options']['default'], 'dependent::') !== false || (is_null($value) && empty($options['options']['null']))) {
 			return true;
 		} else {
