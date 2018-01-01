@@ -169,6 +169,8 @@ class Domains extends \Object\Data {
 		'year' => ['name' => 'Year', 'type' => 'smallint', 'validator_method' => '\Object\Validator\Year::validate', 'format' => 'id', 'searchable' => true],
 		'period' => ['name' => 'Period', 'type' => 'smallint', 'validator_method' => '\Object\Validator\Period::validate', 'format' => 'id', 'searchable' => true],
 		'uom' => ['name' => 'UOM', 'type' => 'varchar', 'length' => 15],
+		'uom_id' => ['name' => 'UoM #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Unit of Measure', 'format' => 'id'],
+		'uom_id_sequence' => ['name' => 'UoM #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'cs_segment_delimiter' => ['name' => 'Segment Delimiter', 'type' => 'char', 'length' => 1],
 		'cs_account' => ['name' => 'C/S Account', 'type' => 'varchar', 'length' => 109, 'placeholder' => 'Account', 'searchable' => true, 'tree' => true, 'format' => 'id'],
 		'gl_source_code' => ['name' => 'Source Code', 'type' => 'char', 'length' => 3, 'validator_method' => '\Object\Validator\UpperCase::validate'],
