@@ -68,27 +68,27 @@ class Domains extends \Object\Data {
 		'password' => ['name' => 'Password', 'type' => 'text', 'validator_method' => '\Object\Validator\Password::validate'],
 		'ip' => ['name' => 'IP', 'type' => 'varchar', 'length' => 46],
 		'domain_part' => ['name' => 'Domain Part', 'type' => 'varchar', 'length' => 30, 'validator_method' => 'object_validator_domain_part::validate'],
-		// S/M System
+		// System
 		'ledger_id' => ['name' => 'Ledger #', 'type' => 'integer', 'default' => null, 'format' => 'id'],
 		'ledger_id_sequence' => ['name' => 'Ledger #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'language_code' => ['name' => 'Language Code', 'type' => 'char', 'length' => 3, 'validator_method' => '\Object\Validator\LowerCase::validate'],
 		'locale_code' => ['name' => 'Locale Code', 'type' => 'varchar', 'length' => 30],
 		'timezone_code' => ['name' => 'Timezone Code', 'type' => 'varchar', 'length' => 30],
-		// C/M Country Management
+		// Country Management
 		'country_code' => ['name' => 'Country Code', 'type' => 'char', 'length' => 2, 'validator_method' => '\Object\Validator\UpperCase::validate', 'searchable' => true],
 		'country_code3' => ['name' => 'Country Code (3)', 'type' => 'char', 'length' => 3, 'validator_method' => '\Object\Validator\UpperCase::validate'],
 		'country_number' => ['name' => 'Country Numeric Code', 'type' => 'smallint', 'default' => null],
 		'province_code' => ['name' => 'Province Code', 'type' => 'varchar', 'length' => 30, 'validator_method' => '\Object\Validator\UpperCase::validate', 'searchable' => true],
 		'postal_code' => ['name' => 'Postal Code', 'type' => 'varchar', 'length' => 15, 'validator_method' => '\Object\Validator\PostalCode::validate'],
 		'geo_coordinate' => ['name' => 'Geo Coordinate', 'type' => 'numeric', 'precision' => 10, 'scale' => 6, 'null' => true],
-		// C/Y Currency Management
+		// Currency Management
 		'currency_type' => ['name' => 'Currency Type', 'type' => 'varchar', 'length' => 12, 'validator_method' => '\Object\Validator\UpperCase::validate', 'searchable' => true],
 		'currency_code' => ['name' => 'Currency Code', 'type' => 'char', 'length' => 3, 'validator_method' => '\Object\Validator\UpperCase::validate', 'placeholder' => 'Currency', 'searchable' => true],
 		'currency_rate_id' => ['name' => 'Currency Rate #', 'type' => 'bigint', 'default' => null, 'format' => 'id'],
 		'currency_rate_id_sequence' => ['name' => 'Currency Rate #', 'type' => 'bigserial', 'placeholder' => 'Sequence'],
 		'currency_rate' => ['name' => 'Currency Rate', 'type' => 'bcnumeric', 'precision' => 16, 'scale' => 8, 'default' => '1.00000000', 'format' => 'currencyRate', 'align' => 'right'],
 		'fraction_digits' => ['name' => 'Fraction Digits', 'type' => 'smallint', 'default' => 2],
-		// T/M Tenants
+		// Tenants
 		'tenant_id' => ['name' => 'Tenant #', 'type' => 'integer', 'default' => null, 'format' => 'id'],
 		'tenant_id_sequence' => ['name' => 'Tenant #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'module_code' => ['name' => 'Module Code', 'type' => 'char', 'length' => 2, 'validator_method' => '\Object\Validator\UpperCase::validate'],
@@ -98,7 +98,7 @@ class Domains extends \Object\Data {
 		'resource_id' => ['name' => 'Resource #', 'type' => 'integer', 'format' => 'id'],
 		'resource_id_sequence' => ['name' => 'Resource #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'action_id' => ['name' => 'Action #', 'type' => 'smallint', 'format' => 'id'],
-		// U/M User Management
+		// User Management
 		'user_id' => ['name' => 'User #', 'type' => 'integer', 'default' => null, 'format' => 'id'],
 		'user_id_sequence' => ['name' => 'User #', 'type' => 'serial', 'placeholder' => 'Sequence'],
 		'role_id' => ['name' => 'Role #', 'type' => 'integer', 'default' => null, 'format' => 'id', 'placeholder' => 'Role'],
@@ -106,7 +106,7 @@ class Domains extends \Object\Data {
 		'message_id' => ['name' => 'Message #', 'type' => 'bigint', 'default' => null, 'format' => 'id'],
 		'message_id_sequence' => ['name' => 'Message #', 'type' => 'bigserial', 'placeholder' => 'Sequence'],
 		'weight' => ['name' => 'Weight', 'type' => 'integer', 'default' => null, 'format' => 'id'],
-		// O/N Organization Management
+		// Organization Management
 		'organization_id' => ['name' => 'Organization #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Organization', 'format' => 'id'],
 		'organization_id_sequence' => ['name' => 'Organization #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'location_id' => ['name' => 'Location #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Location', 'format' => 'id'],
@@ -135,22 +135,24 @@ class Domains extends \Object\Data {
 		'division_id_sequence' => ['name' => 'Division #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'item_master_id' => ['name' => 'Item Master #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Item Master', 'format' => 'id'],
 		'item_master_id_sequence' => ['name' => 'Item Master #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
-		// D/T Document Management
+		// Document Management
 		'file_id' => ['name' => 'File #', 'type' => 'bigint', 'default' => null, 'format' => 'id'],
 		'file_id_sequence' => ['name' => 'File #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'file_name' => ['name' => 'File Name', 'type' => 'varchar', 'length' => 255],
 		'file_extension' => ['name' => 'File Extension', 'type' => 'varchar', 'length' => 30],
 		'file_size' => ['name' => 'File Size', 'type' => 'integer', 'default' => null, 'format' => 'id'],
 		'file_path' => ['name' => 'File Path', 'type' => 'varchar', 'length' => 500],
-		// A/M Advertizing Management
+		// Advertizing Management
 		'adcode_id' => ['name' => 'Adcode #', 'type' => 'integer', 'default' => null, 'format' => 'id'],
 		'adcode_id_sequence' => ['name' => 'Adcode #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'promocode_id' => ['name' => 'Promocode #', 'type' => 'integer', 'default' => null, 'format' => 'id'],
 		'promocode_id_sequence' => ['name' => 'Promocode #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
-		// P/M Project Management
-		'product_id' => ['name' => 'Product #', 'type' => 'bigint', 'default' => null, 'format' => 'id'],
-		'product_id_sequence' => ['name' => 'Product #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id'],
-		// W/W Workflow
+		// Project Management
+		'product_id' => ['name' => 'Product #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Product', 'format' => 'id'],
+		'product_id_sequence' => ['name' => 'Product #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
+		'project_id' => ['name' => 'Project #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Project', 'format' => 'id'],
+		'project_id_sequence' => ['name' => 'Project #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
+		// Workflow
 		'workflow_id' => ['name' => 'Workflow #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Workflow', 'format' => 'id'],
 		'workflow_id_sequence' => ['name' => 'Workflow #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'service_id' => ['name' => 'Service #', 'type' => 'integer', 'default' => null, 'format' => 'id'],
@@ -183,7 +185,7 @@ class Domains extends \Object\Data {
 		'bank_id_sequence' => ['name' => 'Bank #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'bank_deposit_number' => ['name' => 'Bank Deposit #', 'type' => 'bigint', 'default' => null, 'format' => 'id'],
 		'ic_item_id' => ['name' => 'I/C Item #', 'type' => 'varchar', 'length' => 30, 'placeholder' => 'Item', 'searchable' => true, 'tree' => true, 'format' => 'id'],
-		// html
+		// HTML
 		'html_color_code' => ['name' => 'HTML Color Code', 'type' => 'char', 'length' => 6, 'null' => true],
 		'html_color_group' => ['name' => 'HTML Color Group', 'type' => 'varchar', 'length' => 30, 'null' => true]
 	];
