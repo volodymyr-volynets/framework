@@ -170,6 +170,22 @@ class Application {
 		// initialize the controller
 		$controller_class = self::$settings['mvc']['controller_class'];
 		self::$controller = new $controller_class;
+		// forcing people to do things
+		if (!empty($_SESSION['numbers']['force'])) {
+			$already = false;
+			foreach ($_SESSION['numbers']['force'] as $k => $v) {
+				if ($v['controller'] == \Application::get(['mvc', 'full'])) {
+					$already = true;
+					break;
+				}
+			}
+			$next = current($_SESSION['numbers']['force']);
+			if (!$already && !\Application::get('flag.global.__ajax') && !\Helper\Cmd::isCli() && empty(self::$controller->skip_monitoring)) {
+				\Request::redirect($next['controller']);
+			} else if ($already) {
+				\Layout::addMessage($next['message'], DANGER);
+			}
+		}
 		// dispatch before, we need some settings from the controller
 		if (!empty(self::$settings['application']['dispatch']['before_controller'])) {
 			call_user_func(self::$settings['application']['dispatch']['before_controller']);
