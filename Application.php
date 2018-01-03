@@ -175,15 +175,15 @@ class Application {
 			$already = false;
 			foreach ($_SESSION['numbers']['force'] as $k => $v) {
 				if ($v['controller'] == \Application::get(['mvc', 'full'])) {
-					$already = true;
+					$already = $v;
 					break;
 				}
 			}
 			$next = current($_SESSION['numbers']['force']);
-			if (!$already && !\Application::get('flag.global.__ajax') && !\Helper\Cmd::isCli() && empty(self::$controller->skip_monitoring)) {
+			if (empty($already) && !\Application::get('flag.global.__ajax') && !\Helper\Cmd::isCli() && empty(self::$controller->skip_monitoring)) {
 				\Request::redirect($next['controller']);
-			} else if ($already) {
-				\Layout::addMessage($next['message'], DANGER);
+			} else if (!empty($already)) {
+				\Layout::addMessage($already['message'], DANGER);
 			}
 		}
 		// dispatch before, we need some settings from the controller
