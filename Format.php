@@ -827,4 +827,14 @@ class Format {
 		}
 		return round($memory / $divider, 2) . ' ' . $suffix;
 	}
+
+	/**
+	 * First name
+	 *
+	 * @param string $name
+	 * @return string
+	 */
+	public static function firstName(string $name) : string {
+		return explode(' ', trim($name))[0];
+	}
 }
