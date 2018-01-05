@@ -78,6 +78,7 @@ class Request {
 	 */
 	public static function host(array $params = []) : string {
 		$protocol = !empty($params['protocol']) ? $params['protocol'] : '';
+		$port = !empty($params['port']) ? (':' . $params['port']) : '';
 		if (!$protocol) $protocol = self::isSSL() ? 'https' : 'http';
 		if (!empty($params['host_parts'])) {
 			$host = implode('.', $params['host_parts']);
@@ -88,7 +89,7 @@ class Request {
 			$host = str_replace('www.', '', $host);
 			$host = @$params['level3'] . '.' . $host;
 		}
-		$result = $protocol . '://' . $host . (!empty($params['request']) ? $_SERVER['REQUEST_URI'] : '/');
+		$result = $protocol . '://' . $host . $port . (!empty($params['request']) ? $_SERVER['REQUEST_URI'] : '/');
 		// append mvc
 		if (!empty($params['mvc'])) {
 			$result = rtrim($result, '/') . $params['mvc'];

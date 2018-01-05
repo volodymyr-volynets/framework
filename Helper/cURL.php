@@ -4,6 +4,31 @@ namespace Helper;
 class cURL {
 
 	/**
+	 * Post
+	 *
+	 * @param string $url
+	 * @param array $options
+	 * @return array
+	 */
+	public static function post(string $url, array $options = []) : array {
+		$result = [
+			'success' => false,
+			'error' => [],
+			'data' => null
+		];
+		$ch = curl_init();
+		curl_setopt($ch, CURLOPT_URL, $url);
+		curl_setopt($ch, CURLOPT_POST, 1);
+		curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query2($options['params']));
+		$result['data'] = curl_exec($ch);
+		if (!empty($options['json'])) {
+			$result['data'] = json_decode($result['data'], true);
+		}
+		curl_close($ch);
+		return $result;
+	}
+
+	/**
 	 * Multi exec get
 	 *
 	 * @param array $urls

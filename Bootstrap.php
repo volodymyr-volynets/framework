@@ -131,22 +131,19 @@ class Bootstrap {
 	 */
 	public static function preRender() {
 		$crypt_class = new Crypt();
-		$token = urldecode($crypt_class->tokenCreate('general'));
+		$token = urldecode($crypt_class->tokenCreate(\User::id(), 'general'));
 		\Layout::jsData([
 			'token' => $token, // generating token to receive data from frontend
 			'controller_full' => \Application::get(['mvc', 'full']), // full controller path
+			'host' => \Request::host(),
+			'ws_host' => \Request::host(['protocol' => 'ws', 'port' => \Application::get('websocket.port')]),
+			'user_id' => \User::id(),
 			// flags set in configuration files
 			'flag' => [
 				'global' => [
 					'format' => \Format::$options // format options
 				]
 			],
-			// domains
-			/* todo preload it though controller
-			'\Object\Data\Domains' => [
-				'data' => \Object\Data\Domains::getStatic()
-			]
-			*/
 		]);
 	}
 

@@ -101,7 +101,18 @@ class Crypt {
 	 * @return array or false on error
 	 */
 	public function tokenValidate($token, $options = []) {
-		return $this->object->tokenValidate($token, $options = []);
+		return $this->object->tokenValidate($token, $options);
+	}
+
+	/**
+	 * Verify token
+	 *
+	 * @param string $token - urldecoded
+	 * @param array $options
+	 * @return array
+	 */
+	public function tokenVerify($token, $tokens) {
+		return $this->object->tokenVerify($token, $tokens);
 	}
 
 	/**

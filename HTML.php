@@ -579,6 +579,19 @@ class HTML {
 	}
 
 	/**
+	 * Card
+	 *
+	 * @param array $options
+	 *		string title
+	 *		string value
+	 *		string bottom
+	 * @return string
+	 */
+	public static function card(array $options = []) : string {
+		return Factory::delegate('flag.numbers.framework.html', 'card', [$options]);
+	}
+
+	/**
 	 * Process options
 	 *
 	 * @param string $model_and_method
