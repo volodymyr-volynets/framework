@@ -168,7 +168,7 @@ class Base extends \Object\Form\Parent2 {
 		// load form overrides
 		$overrides_fields = [];
 		$overrides_model = \Object\ACL\Resources::getStatic('form_overrides', 'primary', 'model');
-		if (!empty($overrides_model)) {
+		if (!empty($overrides_model) && empty($options['skip_processing'])) {
 			$temp_model = new $overrides_model();
 			$overrides_fields = $temp_model->get([
 				'where' => [

@@ -1006,7 +1006,7 @@ class Base extends \Object\Form\Parent2 {
 			}
 			// we need to process not set details
 			foreach ($input as $k => $v) {
-				if (is_string($k) && $k[0] == '\\' && !in_array($k, array_keys($this->detail_fields))) {
+				if (is_string($k) && $k[0] == '\\' && !in_array($k, array_keys($this->fields)) && !in_array($k, array_keys($this->detail_fields))) {
 					$this->values[$k] = $input[$k];
 				}
 			}
