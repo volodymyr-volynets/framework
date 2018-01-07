@@ -360,7 +360,7 @@ reask_for_migration:
 							'legend' => $compare_result['legend']['up']
 						]);
 						if (!$sql_result['success']) {
-							$result['error'] = array_merge($result['error'], $db_result['error']);
+							$result['error'] = array_merge($result['error'], $sql_result['error']);
 							$db_object->rollback();
 							goto error;
 						}

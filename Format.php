@@ -835,6 +835,11 @@ class Format {
 	 * @return string
 	 */
 	public static function firstName(string $name) : string {
-		return explode(' ', trim($name))[0];
+		$result = explode(' ', trim($name));
+		if (count($result) <= 2) {
+			return $result[0];
+		} else {
+			return $result[0] . ' ' . $result[1];
+		}
 	}
 }

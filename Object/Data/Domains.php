@@ -106,6 +106,8 @@ class Domains extends \Object\Data {
 		'message_id' => ['name' => 'Message #', 'type' => 'bigint', 'default' => null, 'format' => 'id'],
 		'message_id_sequence' => ['name' => 'Message #', 'type' => 'bigserial', 'placeholder' => 'Sequence'],
 		'weight' => ['name' => 'Weight', 'type' => 'integer', 'default' => null, 'format' => 'id'],
+		'team_id' => ['name' => 'Team #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Team', 'format' => 'id'],
+		'team_id_sequence' => ['name' => 'Team #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		// Organization Management
 		'organization_id' => ['name' => 'Organization #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Organization', 'format' => 'id'],
 		'organization_id_sequence' => ['name' => 'Organization #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
