@@ -99,8 +99,8 @@ class Domains extends \Object\Data {
 		'resource_id_sequence' => ['name' => 'Resource #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'action_id' => ['name' => 'Action #', 'type' => 'smallint', 'format' => 'id'],
 		// User Management
-		'user_id' => ['name' => 'User #', 'type' => 'integer', 'default' => null, 'format' => 'id'],
-		'user_id_sequence' => ['name' => 'User #', 'type' => 'serial', 'placeholder' => 'Sequence'],
+		'user_id' => ['name' => 'User #', 'type' => 'integer', 'default' => null, 'placeholder' => 'User', 'format' => 'id'],
+		'user_id_sequence' => ['name' => 'User #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'role_id' => ['name' => 'Role #', 'type' => 'integer', 'default' => null, 'format' => 'id', 'placeholder' => 'Role'],
 		'role_id_sequence' => ['name' => 'Role #', 'type' => 'serial', 'placeholder' => 'Sequence'],
 		'message_id' => ['name' => 'Message #', 'type' => 'bigint', 'default' => null, 'format' => 'id'],
@@ -170,6 +170,8 @@ class Domains extends \Object\Data {
 		'bigamount' => ['name' => 'Amount (Big)', 'type' => 'bcnumeric', 'precision' => 32, 'scale' => 2, 'default' => '0.00', 'format' => 'amount', 'align' => 'right'],
 		'bigquantity' => ['name' => 'Quantity (Big)', 'type' => 'bcnumeric', 'precision' => 32, 'scale' => 4, 'default' => '0.0000', 'format' => 'quantity', 'align' => 'right'],
 		// Accounting
+		'customer_id' => ['name' => 'Customer #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Customer', 'format' => 'id'],
+		'customer_id_sequence' => ['name' => 'Customer #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'year' => ['name' => 'Year', 'type' => 'smallint', 'validator_method' => '\Object\Validator\Year::validate', 'format' => 'id', 'searchable' => true],
 		'period' => ['name' => 'Period', 'type' => 'smallint', 'validator_method' => '\Object\Validator\Period::validate', 'format' => 'id', 'searchable' => true],
 		'uom' => ['name' => 'UOM', 'type' => 'varchar', 'length' => 15],
