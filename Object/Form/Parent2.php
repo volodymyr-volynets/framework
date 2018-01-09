@@ -88,6 +88,12 @@ class Parent2 extends \Object\Override\Data {
 	const BUTTON_SUBMIT_DATA = ['order' => -100, 'button_group' => 'left', 'value' => 'Submit', 'method' => 'button2', 'icon' => 'fas fa-mouse-pointer', 'accesskey' => 's', 'process_submit' => true];
 
 	/**
+	 * Other submit button
+	 */
+	const BUTTON_SUBMIT_OTHER = '__submit_button_2';
+	const BUTTON_SUBMIT_OTHER_DATA = ['order' => -100, 'button_group' => 'left', 'value' => 'Submit', 'method' => 'button2', 'icon' => 'fas fa-mouse-pointer', 'accesskey' => 's', 'process_submit' => 'other'];
+
+	/**
 	 * Continue button
 	 */
 	const BUTTON_CONTINUE = '__continue_button';

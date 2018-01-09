@@ -888,4 +888,25 @@ TTT;
 		$result = $query->query($options['pk'] ?? null);
 		return $result['rows'];
 	}
+
+	/**
+	 * Load by id
+	 *
+	 * @param int $id
+	 * @return array | boolean
+	 */
+	public static function loadById(int $id) {
+		$class = get_called_class();
+		$model = new $class();
+		$pk = $model->pk;
+		$last = array_pop($model->pk);
+		return $model->get([
+			'where' => [
+				$last => $id
+			],
+			'pk' => [$last],
+			'single_row' => true,
+			'skip_acl' => true
+		]);
+	}
 }

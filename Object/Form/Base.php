@@ -2280,6 +2280,7 @@ convertMultipleColumns:
 				'type' => $type,
 				'flag_child' => !empty($options['flag_child']),
 				'default_row_type' => $options['default_row_type'] ?? 'grid',
+				'label_name' => $options['label_name'] ?? null,
 				'rows' => [],
 			];
 			// special handling for details

@@ -19,6 +19,12 @@ class Password extends \Object\Validator\Base {
 		if (!preg_match('#[a-zA-Z]+#', $value)) {
 			$result['error'][] = 'Password must include at least one letter!';
 		}
+		// see if we have repeat
+		if (isset($options['neighbouring_values'][$options['options']['name'] . '2'])) {
+			if ($options['neighbouring_values'][$options['options']['name'] . '2'] != $value) {
+				$result['error'][] = 'Password must match repeat!';
+			}
+		}
 		if (empty($result['error'])) {
 			$result['success'] = true;
 			$result['data'] = $value;
