@@ -154,6 +154,8 @@ class Domains extends \Object\Data {
 		'product_id_sequence' => ['name' => 'Product #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'project_id' => ['name' => 'Project #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Project', 'format' => 'id'],
 		'project_id_sequence' => ['name' => 'Project #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
+		'repository_id' => ['name' => 'Repository #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Repository', 'format' => 'id'],
+		'repository_id_sequence' => ['name' => 'Repository #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		// Workflow
 		'workflow_id' => ['name' => 'Workflow #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Workflow', 'format' => 'id'],
 		'workflow_id_sequence' => ['name' => 'Workflow #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
