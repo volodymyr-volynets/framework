@@ -75,10 +75,10 @@ class Domains extends \Object\Data {
 		'locale_code' => ['name' => 'Locale Code', 'type' => 'varchar', 'length' => 30],
 		'timezone_code' => ['name' => 'Timezone Code', 'type' => 'varchar', 'length' => 30],
 		// Country Management
-		'country_code' => ['name' => 'Country Code', 'type' => 'char', 'length' => 2, 'validator_method' => '\Object\Validator\UpperCase::validate', 'searchable' => true],
+		'country_code' => ['name' => 'Country Code', 'type' => 'char', 'length' => 2, 'validator_method' => '\Object\Validator\UpperCase::validate', 'placeholder' => 'Country', 'searchable' => true],
 		'country_code3' => ['name' => 'Country Code (3)', 'type' => 'char', 'length' => 3, 'validator_method' => '\Object\Validator\UpperCase::validate'],
 		'country_number' => ['name' => 'Country Numeric Code', 'type' => 'smallint', 'default' => null],
-		'province_code' => ['name' => 'Province Code', 'type' => 'varchar', 'length' => 30, 'validator_method' => '\Object\Validator\UpperCase::validate', 'searchable' => true],
+		'province_code' => ['name' => 'Province Code', 'type' => 'varchar', 'length' => 30, 'validator_method' => '\Object\Validator\UpperCase::validate', 'placeholder' => 'Province', 'searchable' => true],
 		'postal_code' => ['name' => 'Postal Code', 'type' => 'varchar', 'length' => 15, 'validator_method' => '\Object\Validator\PostalCode::validate'],
 		'geo_coordinate' => ['name' => 'Geo Coordinate', 'type' => 'numeric', 'precision' => 10, 'scale' => 6, 'null' => true],
 		// Currency Management
@@ -110,6 +110,8 @@ class Domains extends \Object\Data {
 		'team_id_sequence' => ['name' => 'Team #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'shift_id' => ['name' => 'Shift #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Shift', 'format' => 'id'],
 		'shift_id_sequence' => ['name' => 'Shift #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
+		'holiday_id' => ['name' => 'Holiday #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Holiday', 'format' => 'id'],
+		'holiday_id_sequence' => ['name' => 'Holiday #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		// Organization Management
 		'organization_id' => ['name' => 'Organization #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Organization', 'format' => 'id'],
 		'organization_id_sequence' => ['name' => 'Organization #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
