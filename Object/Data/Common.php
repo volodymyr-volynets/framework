@@ -198,9 +198,25 @@ class Common {
 			}
 		}
 		$data = remap($data, $options_map_new);
+		// if we have photo #
+		if (in_array('photo_id', $options_map_new)) {
+			$generate_photo = \Object\ACL\Resources::getStatic('generate_photo');
+			if (!empty($generate_photo)) {
+				$photo_method_url = $generate_photo['generate_url']['method'] ?? null;
+				$photo_method_icon = $generate_photo['generate_icon']['method'] ?? null;
+			}
+		}
 		foreach ($data as $k => $v) {
 			if (!empty($v['icon_class'])) {
 				$data[$k]['icon_class'] = \HTML::icon(['type' => $v['icon_class'], 'class_only' => true]);
+			}
+			// picture/icon
+			if (!empty($generate_photo)) {
+				if (!empty($v['photo_id'])) {
+					$data[$k]['photo_id'] = call_user_func_array(explode('::', $photo_method_url), [$v['photo_id']]);
+				} else {
+					$data[$k]['photo_id'] = call_user_func_array(explode('::', $photo_method_icon), [$v['name'], 32, 32]);
+				}
 			}
 		}
 		return $data;
