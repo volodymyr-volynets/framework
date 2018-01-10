@@ -112,6 +112,8 @@ class Domains extends \Object\Data {
 		'shift_id_sequence' => ['name' => 'Shift #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'holiday_id' => ['name' => 'Holiday #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Holiday', 'format' => 'id'],
 		'holiday_id_sequence' => ['name' => 'Holiday #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
+		'interval_id' => ['name' => 'Interval #', 'type' => 'bigint', 'default' => null, 'placeholder' => 'Interval', 'format' => 'id'],
+		'interval_id_sequence' => ['name' => 'Interval #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		// Organization Management
 		'organization_id' => ['name' => 'Organization #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Organization', 'format' => 'id'],
 		'organization_id_sequence' => ['name' => 'Organization #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
