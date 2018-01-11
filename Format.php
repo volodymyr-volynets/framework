@@ -241,7 +241,11 @@ class Format {
 		}
 		try {
 			$server_timezone = self::$options['server_timezone_code'] ?? Application::get('php.date.timezone');
-			$object = new DateTime($value, new DateTimeZone($server_timezone));
+			if (is_a($value, 'DateTime')) {
+				$object = $value;
+			} else {
+				$object = new DateTime($value, new DateTimeZone($server_timezone));
+			}
 			// change timezone
 			if (empty($options['skip_user_timezone'])) {
 				$object->setTimezone(new DateTimeZone(self::$options['timezone_code']));
