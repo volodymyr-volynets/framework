@@ -80,6 +80,7 @@ class Domains extends \Object\Data {
 		'country_number' => ['name' => 'Country Numeric Code', 'type' => 'smallint', 'default' => null],
 		'province_code' => ['name' => 'Province Code', 'type' => 'varchar', 'length' => 30, 'validator_method' => '\Object\Validator\UpperCase::validate', 'placeholder' => 'Province', 'searchable' => true],
 		'postal_code' => ['name' => 'Postal Code', 'type' => 'varchar', 'length' => 15, 'validator_method' => '\Object\Validator\PostalCode::validate'],
+		'postal_codes' => ['name' => 'Postal Codes', 'type' => 'varchar', 'length' => 2000],
 		'geo_coordinate' => ['name' => 'Geo Coordinate', 'type' => 'numeric', 'precision' => 10, 'scale' => 6, 'null' => true],
 		// Currency Management
 		'currency_type' => ['name' => 'Currency Type', 'type' => 'varchar', 'length' => 12, 'validator_method' => '\Object\Validator\UpperCase::validate', 'searchable' => true],
@@ -143,6 +144,8 @@ class Domains extends \Object\Data {
 		'division_id_sequence' => ['name' => 'Division #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'item_master_id' => ['name' => 'Item Master #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Item Master', 'format' => 'id'],
 		'item_master_id_sequence' => ['name' => 'Item Master #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
+		'territory_id' => ['name' => 'Territory #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Territory', 'format' => 'id'],
+		'territory_id_sequence' => ['name' => 'Territory #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		// Document Management
 		'file_id' => ['name' => 'File #', 'type' => 'bigint', 'default' => null, 'format' => 'id'],
 		'file_id_sequence' => ['name' => 'File #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id'],

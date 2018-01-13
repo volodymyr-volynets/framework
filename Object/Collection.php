@@ -469,7 +469,9 @@ class Collection extends \Object\Override\Data {
 				}
 			}
 			// audit
+			$action = null;
 			if (!empty($temp['data']['audit'])) {
+				$action = $temp['data']['audit']['action'];
 				// we need to put relation into pk
 				if (!empty($this->primary_model->relation['field'])) {
 					$temp['data']['audit']['pk'][$this->primary_model->relation['field']] = $temp['new_serials'][$this->primary_model->relation['field']] ?? $data[$this->primary_model->relation['field']] ?? $original[$this->primary_model->relation['field']];
@@ -485,6 +487,18 @@ class Collection extends \Object\Override\Data {
 				if (!$temp2['success']) {
 					$result['error'] = array_merge($result['error'], $temp2['error']);
 					break;
+				}
+			}
+			// check for triggers
+			if (!empty($this->primary_model->triggers) && !empty($action)) {
+				$data_combined = $data + $temp['new_pk'];
+				foreach ($this->primary_model->triggers as $k => $v) {
+					$method = \Factory::method($v, null, true);
+					$trigger_result = call_user_func_array($method, [$action, $data_combined, $temp['data']['audit']]);
+					if (!$trigger_result['success']) {
+						$result['error'] = array_merge($result['error'], $trigger_result['error']);
+						return $result;
+					}
 				}
 			}
 			// if we got here we can commit

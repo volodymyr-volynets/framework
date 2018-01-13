@@ -320,6 +320,13 @@ class Table extends \Object\Table\Options {
 	public $options = [];
 
 	/**
+	 * Triggers
+	 *
+	 * @var array
+	 */
+	public $triggers = [];
+
+	/**
 	 * Constructing object
 	 *
 	 * @param array $options

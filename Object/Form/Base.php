@@ -3085,4 +3085,39 @@ convertMultipleColumns:
 		}
 		return $result;
 	}
+
+	/**
+	 * Validate details primary column
+	 *
+	 * @param string $detail
+	 * @param string $primary_column
+	 * @param string $inactive_column
+	 * @param string $pk_column
+	 * @return int | null
+	 */
+	public function validateDetailsPrimaryColumn(string $detail, string $primary_column, string $inactive_column, string $pk_column) {
+		if (empty($this->values[$detail])) return null;
+		$primary_found = 0;
+		$primary_first_line = null;
+		$primary_pk_id = null;
+		foreach ($this->values[$detail] as $k => $v) {
+			if (!isset($primary_first_line)) {
+				$primary_first_line = "{$detail}[{$k}][{$primary_column}]";
+			}
+			if (!empty($v[$primary_column])) {
+				$primary_pk_id = $v[$pk_column] ?? null;
+				$primary_found++;
+				if (!empty($v[$inactive_column])) {
+					$this->error(DANGER, 'Primary cannot be inactive!', "{$detail}[{$k}][{$inactive_column}]");
+				}
+				if ($primary_found > 1) {
+					$this->error(DANGER, 'There can be only one primary!', "{$detail}[{$k}][{$primary_column}]");
+				}
+			}
+		}
+		if ($primary_found == 0) {
+			$this->error(DANGER, 'You must select primary!', $primary_first_line);
+		}
+		return $primary_pk_id;
+	}
 }

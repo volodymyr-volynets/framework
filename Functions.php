@@ -950,3 +950,24 @@ function hex2rgb(string $hex) : array {
    }
    return $result;
 }
+
+/**
+ * Trim
+ *
+ * @param string $str
+ * @param string $what
+ *   "\0" - Null Character
+ *   "\t" - Tab
+ *   "\n" - New line
+ *   "\x0B" - Vertical Tab
+ *   "\r" - New Line in Mac
+ *   " " - Space
+ * @param type $with
+ * @return type
+ */
+function trim2($str, $what = null, $with = ' ') {
+    if($what === null) {
+        $what = "\\x00-\\x20";    //all white-spaces and control chars
+    }
+    return trim(preg_replace("/[".$what."]+/", $with, $str), $what);
+}
