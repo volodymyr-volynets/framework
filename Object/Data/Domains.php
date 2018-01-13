@@ -146,6 +146,10 @@ class Domains extends \Object\Data {
 		'item_master_id_sequence' => ['name' => 'Item Master #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'territory_id' => ['name' => 'Territory #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Territory', 'format' => 'id'],
 		'territory_id_sequence' => ['name' => 'Territory #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
+		'service_id' => ['name' => 'Service #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Service', 'format' => 'id'],
+		'service_id_sequence' => ['name' => 'Service #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
+		'channel_id' => ['name' => 'Channel #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Channel', 'format' => 'id'],
+		'channel_id_sequence' => ['name' => 'Channel #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		// Document Management
 		'file_id' => ['name' => 'File #', 'type' => 'bigint', 'default' => null, 'format' => 'id'],
 		'file_id_sequence' => ['name' => 'File #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id'],
@@ -168,9 +172,7 @@ class Domains extends \Object\Data {
 		// Workflow
 		'workflow_id' => ['name' => 'Workflow #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Workflow', 'format' => 'id'],
 		'workflow_id_sequence' => ['name' => 'Workflow #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
-		'service_id' => ['name' => 'Service #', 'type' => 'integer', 'default' => null, 'format' => 'id'],
-		'service_id_sequence' => ['name' => 'Service #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
-		'dimension' => ['name' => 'Dimansion', 'type' => 'integer', 'default' => 0, 'format' => 'id'],
+		'dimension' => ['name' => 'Dimension', 'type' => 'integer', 'default' => 0, 'format' => 'id'],
 		'version_code' => ['name' => 'Version Code', 'type' => 'varchar', 'length' => 30],
 		// relations & models
 		'relation_id' => ['name' => 'Relation #', 'type' => 'bigint', 'default' => null, 'format' => 'id'],
