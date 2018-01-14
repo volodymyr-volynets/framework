@@ -215,7 +215,7 @@ class Common {
 				if (!empty($v['photo_id'])) {
 					$data[$k]['photo_id'] = call_user_func_array(explode('::', $photo_method_url), [$v['photo_id']]);
 				} else {
-					$data[$k]['photo_id'] = call_user_func_array(explode('::', $photo_method_icon), [$v['name'], 32, 32]);
+					$data[$k]['photo_id'] = call_user_func_array(explode('::', $photo_method_icon), [strip_tags($v['name']), 32, 32]);
 				}
 			}
 		}

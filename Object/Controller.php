@@ -140,12 +140,15 @@ class Controller {
 					if (!isset(self::$cached_modules[$v['module_code']])) {
 						self::$cached_modules[$v['module_code']] = [
 							'module_multiple' => $v['module_multiple'],
-							'module_ids' => []
+							'module_ids' => [],
+							'all_features' => []
 						];
 					}
 					self::$cached_modules[$v['module_code']]['module_ids'][$k] = [
-						'name' => $v['name']
+						'name' => $v['name'],
+						'features' => $v['features']
 					];
+					self::$cached_modules[$v['module_code']]['all_features'] = array_unique(self::$cached_modules[$v['module_code']]['all_features'] + $v['features']);
 				}
 			}
 		}

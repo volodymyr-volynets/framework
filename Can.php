@@ -22,4 +22,22 @@ class Can {
 		$result = \Object\Controller::getSystemModuleByModuleCode($module_code);
 		return !empty($result);
 	}
+
+	/**
+	 * System feature exists
+	 *
+	 * @param string $submodule
+	 * @return bool
+	 */
+	public static function systemFeatureExists(string $feature_code) : bool {
+		$temp = explode('::', $feature_code);
+		$result = \Object\Controller::getSystemModuleByModuleCode($temp[0]);
+		if (isset($result['module_ids'][\Application::$controller->module_id]['features'])) {
+			return in_array($feature_code, $result['module_ids'][\Application::$controller->module_id]['features']);
+		}
+		if (empty($result['module_multiple'])) {
+			return in_array($feature_code, $result['all_features']);
+		}
+		return false;
+	}
 }
