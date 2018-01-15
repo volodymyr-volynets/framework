@@ -158,6 +158,8 @@ class Domains extends \Object\Data {
 		'queue_id_sequence' => ['name' => 'Queue #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'step_id' => ['name' => 'Step #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Step', 'format' => 'id'],
 		'step_id_sequence' => ['name' => 'Step #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
+		'canvas_id' => ['name' => 'Canvas #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Canvas', 'format' => 'id'],
+		'canvas_id_sequence' => ['name' => 'Canvas #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		// Order Management
 		'order_id' => ['name' => 'Order #', 'type' => 'bigint', 'default' => null, 'placeholder' => 'Order', 'format' => 'id'],
 		'order_id_sequence' => ['name' => 'Order #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id'],
@@ -181,7 +183,7 @@ class Domains extends \Object\Data {
 		'repository_id' => ['name' => 'Repository #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Repository', 'format' => 'id'],
 		'repository_id_sequence' => ['name' => 'Repository #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		// Workflow
-		'workflow_id' => ['name' => 'Workflow #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Workflow', 'format' => 'id'],
+		'workflow_id' => ['name' => 'Workflow #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Workflow', 'format' => 'id', 'searchable' => true],
 		'workflow_id_sequence' => ['name' => 'Workflow #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'dimension' => ['name' => 'Dimension', 'type' => 'integer', 'default' => 0, 'format' => 'id'],
 		'version_code' => ['name' => 'Version Code', 'type' => 'varchar', 'length' => 30],
