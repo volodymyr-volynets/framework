@@ -43,7 +43,7 @@ class Types extends \Object\Data {
 		'varchar' => ['name' => 'Character Varying', 'php_type' => 'string'],
 		'text' => ['name' => 'Text', 'php_type' => 'string'],
 		// json types
-		'json' => ['name' => 'JSON', 'php_type' => 'array'],
+		'json' => ['name' => 'JSON', 'php_type' => 'mixed'],
 		// date types
 		'date' => ['name' => 'Date', 'php_type' => 'string', 'format' => 'date', 'placeholder' => 'Format::getDatePlaceholder'],
 		'time' => ['name' => 'Time', 'php_type' => 'string', 'format' => 'time', 'placeholder' => 'Format::getDatePlaceholder'],

@@ -28,7 +28,7 @@ class Domains extends \Object\Data {
 	];
 	public $data = [
 		// general
-		'name' => ['name' => 'Name', 'type' => 'varchar', 'length' => 120],
+		'name' => ['name' => 'Name', 'type' => 'varchar', 'length' => 120, 'placeholder' => 'Name'],
 		'reference' => ['name' => 'Reference', 'type' => 'varchar', 'length' => 255, 'placeholder' => 'Reference'],
 		'description' => ['name' => 'Description', 'type' => 'varchar', 'length' => 2000, 'placeholder' => 'Description'],
 		'symlink' => ['name' => 'Symlink', 'type' => 'varchar', 'length' => 255, 'placeholder' => 'Symlink'],
@@ -43,7 +43,7 @@ class Domains extends \Object\Data {
 		'promocode' => ['name' => 'Promocode', 'type' => 'varchar', 'length' => 255],
 		'barcode' => ['name' => 'Barcode', 'type' => 'varchar', 'length' => 255],
 		// types & groups
-		'type_id' => ['name' => 'Type #', 'type' => 'smallint', 'default' => null, 'format' => 'id'],
+		'type_id' => ['name' => 'Type #', 'type' => 'smallint', 'default' => null, 'format' => 'id', 'placeholder' => 'Type'],
 		'type_id_sequence' => ['name' => 'Type #', 'type' => 'smallserial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'status_id' => ['name' => 'Status #', 'type' => 'smallint', 'default' => null, 'format' => 'id'],
 		'group_id' => ['name' => 'Group #', 'type' => 'integer', 'default' => null, 'format' => 'id'],
@@ -52,7 +52,7 @@ class Domains extends \Object\Data {
 		'category_id_sequence' => ['name' => 'Category #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'big_id' => ['name' => 'Big #', 'type' => 'bigint', 'default' => null, 'format' => 'id'],
 		'big_id_sequence' => ['name' => 'Big #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id'],
-		'order' => ['name' => 'Order', 'type' => 'integer', 'default' => 0, 'format' => 'id'],
+		'order' => ['name' => 'Order', 'type' => 'integer', 'default' => 0, 'format' => 'id', 'placeholder' => 'Order'],
 		'counter' => ['name' => 'Counter', 'type' => 'integer', 'default' => 0, 'format' => 'id'],
 		'bigcounter' => ['name' => 'Counter (Big)', 'type' => 'bigint', 'default' => 0, 'format' => 'id'],
 		// date & time
@@ -76,6 +76,8 @@ class Domains extends \Object\Data {
 		'language_code' => ['name' => 'Language Code', 'type' => 'char', 'length' => 3, 'validator_method' => '\Object\Validator\LowerCase::validate'],
 		'locale_code' => ['name' => 'Locale Code', 'type' => 'varchar', 'length' => 30],
 		'timezone_code' => ['name' => 'Timezone Code', 'type' => 'varchar', 'length' => 30],
+		'field_id' => ['name' => 'Field #', 'type' => 'integer', 'default' => null, 'format' => 'id', 'placeholder' => 'Field', 'searchable' => true],
+		'field_id_sequence' => ['name' => 'Field #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		// Country Management
 		'country_code' => ['name' => 'Country Code', 'type' => 'char', 'length' => 2, 'validator_method' => '\Object\Validator\UpperCase::validate', 'placeholder' => 'Country', 'searchable' => true],
 		'country_code3' => ['name' => 'Country Code (3)', 'type' => 'char', 'length' => 3, 'validator_method' => '\Object\Validator\UpperCase::validate'],
@@ -154,6 +156,8 @@ class Domains extends \Object\Data {
 		'channel_id_sequence' => ['name' => 'Channel #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'queue_id' => ['name' => 'Queue #', 'type' => 'bigint', 'default' => null, 'placeholder' => 'Queue', 'format' => 'id'],
 		'queue_id_sequence' => ['name' => 'Queue #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id'],
+		'step_id' => ['name' => 'Step #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Step', 'format' => 'id'],
+		'step_id_sequence' => ['name' => 'Step #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		// Order Management
 		'order_id' => ['name' => 'Order #', 'type' => 'bigint', 'default' => null, 'placeholder' => 'Order', 'format' => 'id'],
 		'order_id_sequence' => ['name' => 'Order #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id'],
