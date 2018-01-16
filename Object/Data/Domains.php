@@ -31,6 +31,7 @@ class Domains extends \Object\Data {
 		'name' => ['name' => 'Name', 'type' => 'varchar', 'length' => 120, 'placeholder' => 'Name'],
 		'reference' => ['name' => 'Reference', 'type' => 'varchar', 'length' => 255, 'placeholder' => 'Reference'],
 		'description' => ['name' => 'Description', 'type' => 'varchar', 'length' => 2000, 'placeholder' => 'Description'],
+		'comment' => ['name' => 'Comment', 'type' => 'varchar', 'length' => 2000, 'placeholder' => 'Comment'],
 		'symlink' => ['name' => 'Symlink', 'type' => 'varchar', 'length' => 255, 'placeholder' => 'Symlink'],
 		// codes
 		'code' => ['name' => 'Code', 'type' => 'varchar', 'length' => 255],
@@ -62,9 +63,9 @@ class Domains extends \Object\Data {
 		'email' => ['name' => 'Email', 'type' => 'varchar', 'length' => 255, 'validator_method' => '\Object\Validator\Email::validate', 'null' => true],
 		'subject' => ['name' => 'Subject', 'type' => 'varchar', 'length' => 255, 'null' => true],
 		'phone' => ['name' => 'Phone', 'type' => 'varchar', 'length' => 50, 'validator_method' => '\Object\Validator\Phone::validate', 'null' => true],
-		'personal_name' => ['name' => 'Name (Personal)', 'type' => 'varchar', 'length' => 50],
-		'personal_title' => ['name' => 'Title (Personal)', 'type' => 'varchar', 'length' => 10],
-		'icon' => ['name' => 'Icon', 'type' => 'varchar', 'length' => 50],
+		'personal_name' => ['name' => 'Name (Personal)', 'type' => 'varchar', 'length' => 50, 'placeholder' => 'Name'],
+		'personal_title' => ['name' => 'Title (Personal)', 'type' => 'varchar', 'length' => 10, 'placeholder' => 'Title'],
+		'icon' => ['name' => 'Icon', 'type' => 'varchar', 'length' => 50, 'placeholder' => 'Icon', 'searchable' => true],
 		// login
 		'login' => ['name' => 'Login', 'type' => 'varchar', 'length' => 30, 'validator_method' => '\Object\Validator\LowerCase::validate'],
 		'password' => ['name' => 'Password', 'type' => 'text', 'validator_method' => '\Object\Validator\Password::validate'],

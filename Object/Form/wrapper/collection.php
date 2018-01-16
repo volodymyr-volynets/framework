@@ -191,8 +191,8 @@ abstract class Collection {
 		$this->collection_screen_link = $this->values['collection_screen_link'] ?? $this::main_screen;
 		if (!isset($this->data[$this->collection_screen_link])) {
 			// grab main row
-			if (isset($this->data[$this::main_screen])) {
-				$this->collection_screen_link = $this::main_screen;
+			if (isset($this->data[$this::MAIN_SCREEN])) {
+				$this->collection_screen_link = $this::MAIN_SCREEN;
 			} else { // grab first screen
 				$this->collection_screen_link = key($this->data);
 			}

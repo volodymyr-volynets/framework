@@ -97,7 +97,7 @@ class Parent2 extends \Object\Override\Data {
 	 * Continue button
 	 */
 	const BUTTON_CONTINUE = '__continue_button';
-	const BUTTON_CONTINUE_DATA = ['order' => -100, 'button_group' => 'left', 'value' => 'Continue', 'method' => 'button2', 'accesskey' => 's', 'process_submit' => true];
+	const BUTTON_CONTINUE_DATA = ['order' => -100, 'button_group' => 'left', 'value' => 'Continue', 'method' => 'button2', 'icon' => 'far fa-arrow-alt-circle-right', 'accesskey' => 's', 'process_submit' => true];
 
 	/**
 	 * Stop button
