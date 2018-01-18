@@ -1045,6 +1045,11 @@ processAllValues:
 		$this->processParamsAndDepends($field['options_depends'], $neighbouring_values, $options, true);
 		$this->processParamsAndDepends($field['options_params'], $neighbouring_values, $options, false);
 		$field['options_params'] = array_merge_hard($field['options_params'], $field['options_depends']);
+		// call override method
+		if (!empty($this->wrapper_methods['processOptionsModels']['main'])) {
+			$model = $this->wrapper_methods['processOptionsModels']['main'][0];
+			$model->{$this->wrapper_methods['processOptionsModels']['main'][1]}($this, $field['name'], $field['details_key'] ?? null, $field['details_parent_key'] ?? null, $field['options_params'], $neighbouring_values, [/* todo: __detail_values */]);
+		}
 		// we do not need options for autocomplete
 		if (strpos(($field['method'] ?? ''), 'autocomplete') === false) {
 			$skip_values = [];

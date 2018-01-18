@@ -8,8 +8,10 @@ class Tree {
 	 *
 	 * @param array $data
 	 * @param string $parent_field
+	 * @param array $options
+	 *		boolean disable_parents
 	 */
-	public static function convertByParent($data, $parent_field) {
+	public static function convertByParent($data, $parent_field, $options = []) {
 		$pointers = [];
 		foreach ($data as $k => $v) {
 			if (empty($v[$parent_field])) {
@@ -18,6 +20,10 @@ class Tree {
 			// if parent is down the road
 			if (!empty($data[$v[$parent_field]])) {
 				$data[$v[$parent_field]]['options'][$k] = $data[$k];
+				// disable parents
+				if (!empty($options['disable_parents'])) {
+					$data[$v[$parent_field]]['disabled'] = 1;
+				}
 				$pointers[$k] = & $data[$v[$parent_field]]['options'][$k];
 				unset($data[$k]);
 			} else {

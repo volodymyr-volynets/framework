@@ -489,12 +489,12 @@ class Collection extends \Object\Override\Data {
 					break;
 				}
 			}
-			// check for triggers
-			if (!empty($this->primary_model->triggers) && !empty($action)) {
+			// check for triggers only if we have changes
+			if (!empty($this->primary_model->triggers) && !empty($temp['data']['total'])) {
 				$data_combined = $data + $temp['new_pk'];
 				foreach ($this->primary_model->triggers as $k => $v) {
 					$method = \Factory::method($v, null, true);
-					$trigger_result = call_user_func_array($method, [$action, $data_combined, $temp['data']['audit']]);
+					$trigger_result = call_user_func_array($method, [$action ?? '', $data_combined, $temp['data']['audit']]);
 					if (!$trigger_result['success']) {
 						$result['error'] = array_merge($result['error'], $trigger_result['error']);
 						return $result;
