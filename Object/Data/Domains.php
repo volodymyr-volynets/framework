@@ -162,6 +162,8 @@ class Domains extends \Object\Data {
 		'canvas_id' => ['name' => 'Canvas #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Canvas', 'format' => 'id'],
 		'canvas_id_sequence' => ['name' => 'Canvas #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		// Order Management
+		'lead_id' => ['name' => 'Lead #', 'type' => 'bigint', 'default' => null, 'placeholder' => 'Lead', 'format' => 'id'],
+		'lead_id_sequence' => ['name' => 'Lead #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'order_id' => ['name' => 'Order #', 'type' => 'bigint', 'default' => null, 'placeholder' => 'Order', 'format' => 'id'],
 		'order_id_sequence' => ['name' => 'Order #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		// Document Management
