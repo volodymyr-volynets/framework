@@ -63,6 +63,7 @@ class Domains extends \Object\Data {
 		'email' => ['name' => 'Email', 'type' => 'varchar', 'length' => 255, 'validator_method' => '\Object\Validator\Email::validate', 'null' => true],
 		'subject' => ['name' => 'Subject', 'type' => 'varchar', 'length' => 255, 'null' => true],
 		'phone' => ['name' => 'Phone', 'type' => 'varchar', 'length' => 50, 'validator_method' => '\Object\Validator\Phone::validate', 'null' => true],
+		'numeric_phone' => ['name' => 'Numeric Phone', 'type' => 'bigint', 'default' => null, 'format' => 'id', 'placeholder' => 'Phone'],
 		'personal_name' => ['name' => 'Name (Personal)', 'type' => 'varchar', 'length' => 50, 'placeholder' => 'Name'],
 		'personal_title' => ['name' => 'Title (Personal)', 'type' => 'varchar', 'length' => 10, 'placeholder' => 'Title'],
 		'icon' => ['name' => 'Icon', 'type' => 'varchar', 'length' => 50, 'placeholder' => 'Icon', 'searchable' => true],
