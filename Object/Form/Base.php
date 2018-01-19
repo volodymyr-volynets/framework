@@ -1479,7 +1479,8 @@ loadValues:
 			if ($this->values_deleted) { // we need to provide default values
 				$this->values_loaded = false;
 				$this->original_values = [];
-				$this->getAllValues([]);
+				// we need to preserver module #
+				$this->getAllValues(['__module_id' => $this->options['input']['__module_id'] ?? null]);
 			} else if ($this->values_saved) { // if saved we need to reload from database
 				$this->triggerMethod('success');
 loadValues2:
@@ -1494,7 +1495,7 @@ loadValues2:
 				$this->values_loaded = true;
 			} else if ($this->values_loaded) { // otherwise set loaded values
 				$this->values = $this->original_values;
-				// we need to preserver module #
+				// we need to preserve module #
 				if (isset($this->options['input']['__module_id'])) {
 					$this->values['__module_id'] = $this->options['input']['__module_id'];
 				}
