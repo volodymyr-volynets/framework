@@ -1244,7 +1244,7 @@ processAllValues:
 				'skip_during_export' => true,
 				'order' => 0
 			]);
-			$this->element('__module_container', 'separator_1', self::SEPARATOR_HORIZONTAL, ['row_order' => 400, 'label_name' => '', 'percent' => 100]);
+			$this->element('__module_container', 'separator_1', 'separator__module_id', ['row_order' => 400, 'method' => 'separator', 'label_name' => '', 'percent' => 100]);
 			// master object
 			if (!empty($this->form_parent->master_options['model'])) {
 				$this->master_options = $this->form_parent->master_options;
@@ -1323,9 +1323,14 @@ processAllValues:
 				$this->flag_another_ajax_call = true;
 				return;
 			}
-		} else if (!empty($this->options['input']['__form_link']) && $this->options['input']['__form_link'] != $this->form_link) { // it its a call from another form
-			$this->triggerMethod('refresh');
-			goto loadValues;
+		}
+		// call from another form
+		if (!empty($this->options['input']['__form_link']) && $this->options['input']['__form_link'] != $this->form_link) {
+			$this->refresh = true;
+			$this->submitted = false;
+			$this->options['skip_optimistic_lock'] = true;
+			$this->options['flag_other_form_submitted'] = true;
+			goto otherFormSubmitted;
 		}
 		// navigation
 		if (!empty($this->options['input']['navigation'])) {
@@ -1366,6 +1371,7 @@ processAllValues:
 			$this->triggerMethod('refresh');
 			goto convertMultipleColumns;
 		}
+otherFormSubmitted:
 		// we need to start transaction
 		if (!empty($this->collection_object) && $this->submitted && !in_array($this->initiator_class, ['import', 'list', 'report'])) {
 			$this->collection_object->primary_model->db_object->begin();
@@ -1401,12 +1407,16 @@ processAllValues:
 		if ($this->submitted && !$this->delete) {
 			$this->validateRequiredFields();
 		}
+		// other form submitted
+		if (!empty($this->options['flag_other_form_submitted'])) {
+			goto loadValues;
+		}
 		// convert columns on refresh
 		if ($this->refresh) {
 			goto convertMultipleColumns;
 		}
 		// if form has been submitted
-		if ($this->submitted && $this->initiator_class != 'list') {
+		if ($this->submitted && ($this->initiator_class != 'list' || !empty($this->wrapper_methods['validate']))) {
 			// call attached method to the form
 			if (!$this->delete) {
 				// create a snapshot of values for rollback
@@ -1417,6 +1427,9 @@ processAllValues:
 				} else if (!empty($this->wrapper_methods['validate'])) {
 					$this->triggerMethod('validate');
 				}
+			}
+			if ($this->initiator_class == 'list') {
+				goto processErrors;
 			}
 			// save for regular forms
 			if (!$this->hasErrors() && !empty($this->process_submit[$this::BUTTON_SUBMIT_SAVE])) {
@@ -1561,21 +1574,8 @@ convertMultipleColumns:
 				]])->select();
 			}
 			// add filter
-			$where = [];
-			foreach ($this->fields as $k => $v) {
-				if (!empty($v['options']['query_builder']) && isset($this->values[$k])) {
-					if (is_array($this->values[$k]) && empty($this->values[$k])) continue;
-					$where[$v['options']['query_builder']] = $this->values[$k];
-				}
-			}
-			if (isset($this->values['full_text_search'])) {
-				$where['full_text_search;FTS'] = [
-					'fields' => $this->fields['full_text_search']['options']['full_text_search_columns'],
-					'str' => $this->values['full_text_search']
-				];
-			}
-			if (!empty($where)) {
-				$this->query->whereMultiple('AND', $where);
+			if (!empty($this->query)) {
+				$this->processReportQueryFilter($this->query);
 			}
 			// if we are rendering not text/html we need to reset limit and offset
 			if (($this->values['__format'] ?? 'text/html') != 'text/html') {

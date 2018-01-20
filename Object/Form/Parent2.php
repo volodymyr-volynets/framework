@@ -235,7 +235,7 @@ class Parent2 extends \Object\Override\Data {
 	const SEGMENT_LIST = [
 		'type' => 'success',
 		'header' => [
-			'icon' => ['type' => 'list'],
+			'icon' => ['type' => 'far fa-list-alt'],
 			'title' => 'List:'
 		]
 	];
@@ -246,7 +246,7 @@ class Parent2 extends \Object\Override\Data {
 	const SEGMENT_REPORT = [
 		'type' => 'default',
 		'header' => [
-			'icon' => ['type' => 'table'],
+			'icon' => ['type' => 'fas fa-table'],
 			'title' => 'Report:'
 		]
 	];
@@ -257,7 +257,7 @@ class Parent2 extends \Object\Override\Data {
 	const SEGMENT_FORM = [
 		'type' => 'primary',
 		'header' => [
-			'icon' => ['type' => 'pencil-square-o'],
+			'icon' => ['type' => 'fas fa-pen-square'],
 			'title' => 'View / Edit:'
 		]
 	];
@@ -268,7 +268,7 @@ class Parent2 extends \Object\Override\Data {
 	const SEGMENT_TASK = [
 		'type' => 'warning',
 		'header' => [
-			'icon' => ['type' => 'play'],
+			'icon' => ['type' => 'fas fa-play'],
 			'title' => 'Execute Task:'
 		]
 	];
@@ -279,8 +279,19 @@ class Parent2 extends \Object\Override\Data {
 	const SEGMENT_IMPORT = [
 		'type' => 'info',
 		'header' => [
-			'icon' => ['type' => 'upload'],
+			'icon' => ['type' => 'fas fa-upload'],
 			'title' => 'Import:'
+		]
+	];
+
+	/**
+	 * Segment additional information
+	 */
+	const SEGMENT_ADDITIONAL_INFORMATION = [
+		'type' => 'info',
+		'header' => [
+			'icon' => ['type' => 'fab fa-envira'],
+			'title' => 'Additional Information:'
 		]
 	];
 }

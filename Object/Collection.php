@@ -528,7 +528,6 @@ error:
 		];
 		do {
 			if (empty($data)) {
-				print_r2($this->data);
 				$result['error'][] = 'No data to merge!';
 				break;
 			}

@@ -76,50 +76,6 @@ abstract class Collection {
 	const WIDGETS_ROW = '__collection_widgets_row';
 
 	/**
-	 * Widgets row data
-	 */
-	const WIDGETS_ROW_DATA = [
-		'options' => [
-			'type' => 'tabs',
-			'segment' => [
-				'type' => 'info',
-				'header' => [
-					'icon' => ['type' => 'info'],
-					'title' => 'Additional Information:'
-				],
-			],
-			'its_own_segment' => true
-		],
-		'order' => PHP_INT_MAX - 1000,
-		self::FORMS => [
-			'__collection_widget_comments' => [
-				'model' => null,
-				'submodule' => 'flag.global.widgets.comments.submodule',
-				'options' => [
-					'label_name' => 'Comments',
-				],
-				'order' => 1
-			],
-			'__collection_widget_documents' => [
-				'model' => null,
-				'submodule' => 'flag.global.widgets.documents.submodule',
-				'options' => [
-					'label_name' => 'Documents',
-				],
-				'order' => 2
-			],
-			'__collection_widget_audit' => [
-				'model' => null,
-				'submodule' => 'flag.global.widgets.audit.submodule',
-				'options' => [
-					'label_name' => 'Audit',
-				],
-				'order' => 3
-			]
-		]
-	];
-
-	/**
 	 * Current tab
 	 *
 	 * @var array
@@ -158,41 +114,14 @@ abstract class Collection {
 	 * Render
 	 */
 	public function render() {
-		// process form submition
-		/*
-		$bypass = [];
-		if (!empty($this->values['__form_submitted']) && !empty($this->values['__form_link']) && !empty($this->options['links'][$this->values['__form_link']])) {
-			$v2 = $this->options['links'][$this->values['__form_link']];
-			$options = $v2['options'] ?? [];
-			$options['input'] = $this->values;
-			$class = $v2['model'];
-			$model = new $class($options);
-			$this->options['links'][$this->values['__form_link']]['__value'] = $model->render();
-			// we need to process map
-			foreach ($this->options['links'] as $k => $v) {
-				if (empty($v['map'])) continue;
-				foreach ($v['map'] as $k2 => $v2) {
-					if ($k == $this->values['__form_link']) {
-						if (array_key_exists($v2, $model->form_object->values)) {
-							$this->values[$k2] = $bypass[$k2] = $model->form_object->values[$v2];
-						}
-					} else {
-						if (array_key_exists($k2, $model->form_object->values)) {
-							$this->values[$v2] = $bypass[$v2] = $model->form_object->values[$k2];
-						}
-					}
-				}
-			}
-		}
-		*/		
 		// distribute
 		$this->distribute();
 		// determine current screen
-		$this->collection_screen_link = $this->values['collection_screen_link'] ?? $this::main_screen;
+		$this->collection_screen_link = $this->values['collection_screen_link'] ?? self::MAIN_SCREEN;
 		if (!isset($this->data[$this->collection_screen_link])) {
 			// grab main row
-			if (isset($this->data[$this::MAIN_SCREEN])) {
-				$this->collection_screen_link = $this::MAIN_SCREEN;
+			if (isset($this->data[self::MAIN_SCREEN])) {
+				$this->collection_screen_link = self::MAIN_SCREEN;
 			} else { // grab first screen
 				$this->collection_screen_link = key($this->data);
 			}
@@ -252,13 +181,23 @@ abstract class Collection {
 				$tab_options = [];
 				$have_tabs = false;
 				foreach ($forms as $form_k => $form_v) {
+					if ((!empty($form_v['submodule']) && !\Can::submoduleExists($form_v['submodule'])) || empty($form_v['model'])) continue;
 					$this->current_tab[] = "{$tab_id}_{$form_k}";
 					$labels = '';
 					foreach (['records', 'danger', 'warning', 'success', 'info'] as $v78) {
 						$labels.= \HTML::label2(['type' => ($v78 == 'records' ? 'primary' : $v78), 'style' => 'display: none;', 'value' => 0, 'id' => implode('__', $this->current_tab) . '__' . $v78]);
 					}
 					$tab_header[$form_k] = i18n(null, $form_v['options']['label_name']) . $labels;
-					$tab_values[$form_k] = 'test tab';
+					// render form
+					$model_options = $form_v['options'];
+					// we pass links to the form
+					$model_options['collection_link'] = $this->collection_link;
+					$model_options['collection_screen_link'] = $this->collection_screen_link;
+					$model_options['form_link'] = $form_k;
+					// input
+					$model_options['input'] = $this->values;
+					$model = \Factory::model($form_v['model'], false, [$model_options]);
+					$tab_values[$form_k] = $model->render();
 					$have_tabs = true;
 					// process model
 					//$class = $form_v['model'];

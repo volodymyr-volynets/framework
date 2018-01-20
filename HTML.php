@@ -579,6 +579,18 @@ class HTML {
 	}
 
 	/**
+	 * Audio
+	 *
+	 * @param array $options
+	 *		string src
+	 *		string mime
+	 * @return string
+	 */
+	public static function audio(array $options = []) : string {
+		return Factory::delegate('flag.numbers.framework.html', 'audio', [$options]);
+	}
+
+	/**
 	 * Card
 	 *
 	 * @param array $options

@@ -126,20 +126,6 @@ class Table extends \Object\Table\Options {
 	public $history_name;
 
 	/**
-	 * Whether we need to keep audit log for this table
-	 *
-	 * @var bool
-	 */
-	public $audit = false;
-
-	/**
-	 * Audit class
-	 *
-	 * @var string
-	 */
-	public $audit_model;
-
-	/**
 	 * Optimistic lock
 	 *
 	 * @var boolean 
@@ -216,12 +202,6 @@ class Table extends \Object\Table\Options {
 	 * @var boolean
 	 */
 	public $attributes;
-
-	/**
-	 * Attribute class
-	 *
-	 * @var string
-	 */
 	public $attributes_model;
 
 	/**
@@ -230,13 +210,31 @@ class Table extends \Object\Table\Options {
 	 * @var boolean
 	 */
 	public $addresses;
+	public $addresses_model;
 
 	/**
-	 * Addresses class
+	 * Audit
 	 *
-	 * @var string
+	 * @var bool
 	 */
-	public $addresses_model;
+	public $audit = false;
+	public $audit_model;
+
+	/**
+	 * Comments
+	 *
+	 * @var bool
+	 */
+	public $comments = false;
+	public $comments_model;
+
+	/**
+	 * Documents
+	 *
+	 * @var bool
+	 */
+	public $documents = false;
+	public $documents_model;
 
 	/**
 	 * Map with parent table, used in widgets
@@ -407,7 +405,7 @@ class Table extends \Object\Table\Options {
 		}
 		// process widgets
 		$widgets = \Object\ACL\Resources::getStatic('widgets');
-		$widgets = array_merge(['attributes' => false, 'addresses' => false, 'audit' => false], $widgets);
+		$widgets = array_merge(['attributes' => false, 'addresses' => false, 'audit' => false, 'comments' => false, 'documents' => false], $widgets);
 		foreach ($widgets as $widget => $widget_data) {
 			if (!empty($this->{$widget}) && !empty($widget_data)) {
 				$this->{$widget . '_model'} = '\\' . get_class($this) . '\0Virtual0\Widgets\\' . ucwords($widget);
@@ -462,6 +460,8 @@ class Table extends \Object\Table\Options {
 		$this->full_table_name = $model->full_table_name . '__' . $widget_name;
 		$this->module_code = $model->module_code;
 		$this->data_asset = $model->data_asset;
+		$this->tenant = $model->tenant;
+		$this->module = $model->module;
 		// determine pk
 		$columns = [];
 		$this->map = $model->{$widget_name}['map'];
