@@ -227,7 +227,11 @@ abstract class Collection {
 				$tab_options = [];
 				$have_tabs = false;
 				foreach ($forms as $form_k => $form_v) {
+					// check if submodule exists
 					if ((!empty($form_v['submodule']) && !\Can::submoduleExists($form_v['submodule'])) || empty($form_v['model'])) continue;
+					// check if user can perform action
+					if (!empty($form_v['action_code']) && !\Application::$controller->can($form_v['action_code'], 'Edit')) continue;
+					// continue with logic
 					$this->current_tab[] = "{$tab_id}_{$form_k}";
 					$labels = '';
 					foreach (['records', 'danger', 'warning', 'success', 'info'] as $v78) {

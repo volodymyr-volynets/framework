@@ -971,3 +971,14 @@ function trim2($str, $what = null, $with = ' ') {
     }
     return trim(preg_replace("/[".$what."]+/", $with, $str), $what);
 }
+
+/**
+ * nl2br
+ *
+ * @param string $str
+ * @return string
+ */
+function nl2br2($str) {
+	$str = str_replace("\t", '&nbsp;&nbsp;&nbsp;', $str);
+	return nl2br($str);
+}

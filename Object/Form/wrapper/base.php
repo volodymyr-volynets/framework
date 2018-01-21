@@ -111,7 +111,8 @@ class Base extends \Object\Form\Parent2 {
 		parent::overrideHandle($this);
 		// step 0: apply data fixes
 		if (method_exists($this, 'overrides')) {
-			$this->values = $options['input'];
+			$this->values = $options['input'] ?? [];
+			$this->__options = $options;
 			$this->overrides($this);
 		}
 		// we need to merge override input

@@ -482,6 +482,8 @@ class Collection extends \Object\Override\Data {
 						$temp['data']['audit']['pk'][$v] = $temp['new_serials'][$v] ?? $data[$v] ?? $original[$v];
 					}
 				}
+				// add form class
+				$temp['data']['audit']['form_class'] = $options['form_class'] ?? null;
 				// merge
 				$temp2 = \Factory::model($this->primary_model->audit_model, true)->merge($temp['data']['audit'], ['changes' => $temp['data']['total']]);
 				if (!$temp2['success']) {

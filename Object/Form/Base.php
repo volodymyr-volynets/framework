@@ -1244,7 +1244,7 @@ processAllValues:
 				'skip_during_export' => true,
 				'order' => 0
 			]);
-			$this->element('__module_container', 'separator_1', 'separator__module_id', ['row_order' => 400, 'method' => 'separator', 'label_name' => '', 'percent' => 100]);
+			$this->element('__module_container', 'separator_1', '__separator__module_id', ['row_order' => 400, 'method' => 'separator', 'label_name' => '', 'percent' => 100]);
 			// master object
 			if (!empty($this->form_parent->master_options['model'])) {
 				$this->master_options = $this->form_parent->master_options;
@@ -2004,7 +2004,8 @@ convertMultipleColumns:
 		$options = [
 			'flag_delete_row' => $this->process_submit[self::BUTTON_SUBMIT_DELETE] ?? false,
 			'skip_type_validation' => true,
-			'skip_optimistic_lock' => $this->options['skip_optimistic_lock'] ?? false
+			'skip_optimistic_lock' => $this->options['skip_optimistic_lock'] ?? false,
+			'form_class' => $this->form_class
 		];
 		// we do not need to reload values from database because we locked them
 		if ($this->values_loaded) {
