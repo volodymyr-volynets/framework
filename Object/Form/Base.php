@@ -1249,7 +1249,7 @@ processAllValues:
 			if (!empty($this->form_parent->master_options['model'])) {
 				$this->master_options = $this->form_parent->master_options;
 				$module_id = $this->master_options['module_id'] ?? $module_id;
-				$this->master_object = \Factory::model($this->master_options['model'], true, [$module_id ?? 0, $this->master_options['ledger']]);
+				$this->master_object = \Factory::model($this->master_options['model'], true, [$module_id ?? 0, $this->master_options['ledger'], & $this]);
 			}
 		}
 		// preserve blank
@@ -1532,11 +1532,11 @@ convertMultipleColumns:
 			$mvc = \Application::get('mvc');
 			// save and new
 			if (!empty($this->process_submit[self::BUTTON_SUBMIT_SAVE_AND_NEW])) {
-				\Request::redirect($mvc['full']);
+				\Request::redirect($mvc['full'] . '?__module_id=' . ($this->values['__module_id'] ?? ''));
 			}
 			// save and close
 			if (!empty($this->process_submit[self::BUTTON_SUBMIT_SAVE_AND_CLOSE])) {
-				\Request::redirect($mvc['controller'] . '/_Index');
+				\Request::redirect($mvc['controller'] . '/_Index' . '?__module_id=' . ($this->values['__module_id'] ?? ''));
 			}
 		}
 		// convert multiple column to a form renderer can accept

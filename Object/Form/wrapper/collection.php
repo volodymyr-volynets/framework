@@ -48,7 +48,7 @@ abstract class Collection {
 	/**
 	 * Main screen
 	 */
-	const MAIN_SCREEN = '__collection_main_screen';
+	const MAIN_SCREEN = 'main';
 
 	/**
 	 * Rows
@@ -114,10 +114,8 @@ abstract class Collection {
 	 * Render
 	 */
 	public function render() {
-		// distribute
-		$this->distribute();
 		// determine current screen
-		$this->collection_screen_link = $this->values['collection_screen_link'] ?? self::MAIN_SCREEN;
+		$this->collection_screen_link = $this->values['__collection_screen_link'] ?? self::MAIN_SCREEN;
 		if (!isset($this->data[$this->collection_screen_link])) {
 			// grab main row
 			if (isset($this->data[self::MAIN_SCREEN])) {
@@ -126,15 +124,54 @@ abstract class Collection {
 				$this->collection_screen_link = key($this->data);
 			}
 		}
+		// render submitted form
+		$submitted_form_cached = [];
+		$submitted_bypass_values = [];
+		if (!empty($this->values['__form_link'])) {
+			if (isset($this->options['forms'][$this->collection_screen_link][$this->values['__form_link']])) {
+				$model_options = $this->options['forms'][$this->collection_screen_link][$this->values['__form_link']]['options'];
+				// we pass links to the form
+				$model_options['collection_link'] = $this->collection_link;
+				$model_options['collection_screen_link'] = $this->collection_screen_link;
+				$model_options['form_link'] = $this->values['__form_link'];
+				// input
+				$model_options['input'] = $this->values;
+				$model = \Factory::model($this->options['forms'][$this->collection_screen_link][$this->values['__form_link']]['model'], false, [$model_options]);
+				$submitted_form_cached[$this->values['__form_link']] = $model->render();
+				// bypass values
+				if (isset($this->options['forms'][$this->collection_screen_link][$this->values['__form_link']]['bypass_values'])) {
+					foreach ($this->options['forms'][$this->collection_screen_link][$this->values['__form_link']]['bypass_values'] as $v0) {
+						if (isset($model->form_object->values[$v0])) {
+							$submitted_bypass_values[$v0] = $model->form_object->values[$v0];
+						}
+					}
+				}
+				// bypass input
+				if (isset($this->options['forms'][$this->collection_screen_link][$this->values['__form_link']]['bypass_input'])) {
+					foreach ($this->options['forms'][$this->collection_screen_link][$this->values['__form_link']]['bypass_input'] as $v0) {
+						if (isset($model->form_object->options['input'][$v0])) {
+							$submitted_bypass_values[$v0] = $model->form_object->options['input'][$v0];
+						}
+					}
+				}
+				$this->values = $submitted_bypass_values;
+			} else {
+				$submitted_bypass_values = $this->values;
+			}
+		} else {
+			$submitted_bypass_values = $this->values;
+		}
+		// distribute
+		$this->distribute();
 		// render current screen
 		$segment = null;
 		$result = [];
 		$index = 0;
 		// sort rows in a screen
-		$rows = $this->data[$this->collection_screen_link][$this::ROWS];
+		$rows = $this->data[$this->collection_screen_link][self::ROWS];
 		array_key_sort($rows, ['order' => SORT_ASC]);
 		foreach ($rows as $row_k => $row_v) {
-			$forms = $row_v[$this::FORMS];
+			$forms = $row_v[self::FORMS];
 			array_key_sort($forms, ['order' => SORT_ASC]);
 			// if its own segment
 			if (!empty($row_v['options']['its_own_segment'])) {
@@ -158,21 +195,30 @@ abstract class Collection {
 			// render forms
 			if (($row_v['options']['type'] ?? 'forms') == 'forms') {
 				foreach ($forms as $form_k => $form_v) {
-					$class = $form_v['model'];
-					$model_options = $form_v['options'];
-					// we pass links to the form
-					$model_options['collection_link'] = $this->collection_link;
-					$model_options['collection_screen_link'] = $this->collection_screen_link;
-					$model_options['form_link'] = $form_k;
-					// input
-					$model_options['input'] = $this->values;
-					$model = \Factory::model($class, false, [$model_options]);
-					// render to grid
-					$result[$index]['grid']['options'][$row_k][$form_k][$form_k] = [
-						'value' => $model->render(),
-						'options' => $form_v['options'],
-						'row_class' => $form_v['options']['row_class'] ?? null
-					];
+					if (isset($submitted_form_cached[$form_k])) {
+						// render to grid
+						$result[$index]['grid']['options'][$row_k][$form_k][$form_k] = [
+							'value' => $submitted_form_cached[$form_k],
+							'options' => $form_v['options'],
+							'row_class' => $form_v['options']['row_class'] ?? null
+						];
+					} else {
+						$model_options = $form_v['options'];
+						// we pass links to the form
+						$model_options['collection_link'] = $this->collection_link;
+						$model_options['collection_screen_link'] = $this->collection_screen_link;
+						$model_options['form_link'] = $form_k;
+						// input
+						$model_options['input'] = $submitted_bypass_values;
+						$model = \Factory::model($form_v['model'], false, [$model_options]);
+						// render to grid
+						$result[$index]['grid']['options'][$row_k][$form_k][$form_k] = [
+							'value' => $model->render(),
+							'options' => $form_v['options'],
+							'row_class' => $form_v['options']['row_class'] ?? null
+						];
+						//$model->form_object->pk
+					}
 				}
 			} else if ($row_v['options']['type'] == 'tabs') { // tabs
 				$tab_id = "form_collection_tabs_{$this->collection_link}_{$row_k}";
@@ -189,18 +235,21 @@ abstract class Collection {
 					}
 					$tab_header[$form_k] = i18n(null, $form_v['options']['label_name']) . $labels;
 					// render form
-					$model_options = $form_v['options'];
-					// we pass links to the form
-					$model_options['collection_link'] = $this->collection_link;
-					$model_options['collection_screen_link'] = $this->collection_screen_link;
-					$model_options['form_link'] = $form_k;
-					// input
-					$model_options['input'] = $this->values;
-					$model = \Factory::model($form_v['model'], false, [$model_options]);
-					$tab_values[$form_k] = $model->render();
-					$have_tabs = true;
-					// process model
-					//$class = $form_v['model'];
+					if (isset($submitted_form_cached[$form_k])) {
+						$tab_values[$form_k] = $submitted_form_cached[$form_k];
+						$have_tabs = true;
+					} else {
+						$model_options = $form_v['options'];
+						// we pass links to the form
+						$model_options['collection_link'] = $this->collection_link;
+						$model_options['collection_screen_link'] = $this->collection_screen_link;
+						$model_options['form_link'] = $form_k;
+						// input
+						$model_options['input'] = $submitted_bypass_values;
+						$model = \Factory::model($form_v['model'], false, [$model_options]);
+						$tab_values[$form_k] = $model->render();
+						$have_tabs = true;
+					}
 					// remove last element from an array
 					array_pop($this->current_tab);
 				}

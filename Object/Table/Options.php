@@ -33,11 +33,18 @@ class Options extends \Object\Override\Data {
 	/**
 	 * Condition for options_active()
 	 *
-	 * @var type
+	 * @var array
 	 */
 	public $options_active = [
 		//'[table field]' => [value],
 	];
+
+	/**
+	 * Skip translations in options
+	 *
+	 * @var boolean
+	 */
+	public $options_skip_i18n = false;
 
 	/**
 	 * Acl get options
@@ -53,6 +60,9 @@ class Options extends \Object\Override\Data {
 	 */
 	public function options($options = []) {
 		$options['__options'] = true;
+		if (!empty($this->options_skip_i18n)) {
+			$options['i18n'] = false;
+		}
 		$data = $this->optionsQueryData($options);
 		// process options_map
 		if (isset($options['options_map'])) {

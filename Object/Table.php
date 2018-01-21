@@ -159,11 +159,18 @@ class Table extends \Object\Table\Options {
 	/**
 	 * Condition for options_active()
 	 *
-	 * @var type
+	 * @var array
 	 */
 	public $options_active = [
 		//'[table field]' => [value],
 	];
+
+	/**
+	 * Skip translations in options
+	 *
+	 * @var boolean
+	 */
+	public $options_skip_i18n = false;
 
 	/**
 	 * Whether we need to cache this table
