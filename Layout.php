@@ -139,7 +139,7 @@ class Layout extends View {
 	 */
 	public static function renderOnLoad() {
 		if (!empty(self::$onload)) {
-			return \HTML::script(array('value'=>'$(document).ready(function(){ ' . self::$onload . ' });'));
+			return \HTML::script(['value'=>'$(document).ready(function(){ ' . self::$onload . ' });']);
 		}
 	}
 

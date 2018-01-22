@@ -127,6 +127,7 @@ abstract class Collection {
 		// render submitted form
 		$submitted_form_cached = [];
 		$submitted_bypass_values = [];
+		$submitted_form_errors = [];
 		if (!empty($this->values['__form_link'])) {
 			if (isset($this->options['forms'][$this->collection_screen_link][$this->values['__form_link']])) {
 				$model_options = $this->options['forms'][$this->collection_screen_link][$this->values['__form_link']]['options'];
@@ -138,11 +139,25 @@ abstract class Collection {
 				$model_options['input'] = $this->values;
 				$model = \Factory::model($this->options['forms'][$this->collection_screen_link][$this->values['__form_link']]['model'], false, [$model_options]);
 				$submitted_form_cached[$this->values['__form_link']] = $model->render();
+				if (isset($model->form_object)) {
+					$submitted_form_errors[$this->values['__form_link']] = $model->form_object->hasErrors();
+				}
 				// bypass values
 				if (isset($this->options['forms'][$this->collection_screen_link][$this->values['__form_link']]['bypass_values'])) {
-					foreach ($this->options['forms'][$this->collection_screen_link][$this->values['__form_link']]['bypass_values'] as $v0) {
-						if (isset($model->form_object->values[$v0])) {
-							$submitted_bypass_values[$v0] = $model->form_object->values[$v0];
+					foreach ($this->options['forms'][$this->collection_screen_link][$this->values['__form_link']]['bypass_values'] as $k0 => $v0) {
+						// if we need to remap keys
+						if (is_string($k0)) {
+							if (strpos($k0, '*')) {
+								$submitted_bypass_values[str_replace('*', '', $k0)] = $v0;
+							} else {
+								if (isset($model->form_object->values[$v0])) {
+									$submitted_bypass_values[$k0] = $model->form_object->values[$v0];
+								}
+							}
+						} else {
+							if (isset($model->form_object->values[$v0])) {
+								$submitted_bypass_values[$v0] = $model->form_object->values[$v0];
+							}
 						}
 					}
 				}
@@ -199,11 +214,11 @@ abstract class Collection {
 						// render to grid
 						$result[$index]['grid']['options'][$row_k][$form_k][$form_k] = [
 							'value' => $submitted_form_cached[$form_k],
-							'options' => $form_v['options'],
+							'options' => $form_v['options'] ?? [],
 							'row_class' => $form_v['options']['row_class'] ?? null
 						];
 					} else {
-						$model_options = $form_v['options'];
+						$model_options = $form_v['options'] ?? [];
 						// we pass links to the form
 						$model_options['collection_link'] = $this->collection_link;
 						$model_options['collection_screen_link'] = $this->collection_screen_link;
@@ -211,13 +226,31 @@ abstract class Collection {
 						// input
 						$model_options['input'] = $submitted_bypass_values;
 						$model = \Factory::model($form_v['model'], false, [$model_options]);
+						// extract bypass values
+						if (!empty($form_v['flag_main_form'])) {
+							foreach (($form_v['bypass_values'] ?? []) as $k0 => $v0) {
+								// if we need to remap keys
+								if (is_string($k0)) {
+									if (strpos($k0, '*')) {
+										$submitted_bypass_values[str_replace('*', '', $k0)] = $v0;
+									} else {
+										if (isset($model->form_object->values[$v0])) {
+											$submitted_bypass_values[$k0] = $model->form_object->values[$v0];
+										}
+									}
+								} else {
+									if (isset($model->form_object->values[$v0])) {
+										$submitted_bypass_values[$v0] = $model->form_object->values[$v0];
+									}
+								}
+							}
+						}
 						// render to grid
 						$result[$index]['grid']['options'][$row_k][$form_k][$form_k] = [
 							'value' => $model->render(),
-							'options' => $form_v['options'],
+							'options' => $form_v['options'] ?? [],
 							'row_class' => $form_v['options']['row_class'] ?? null
 						];
-						//$model->form_object->pk
 					}
 				}
 			} else if ($row_v['options']['type'] == 'tabs') { // tabs
@@ -234,6 +267,7 @@ abstract class Collection {
 					// continue with logic
 					$this->current_tab[] = "{$tab_id}_{$form_k}";
 					$labels = '';
+					$error_id = implode('__', $this->current_tab) . '__danger';
 					foreach (['records', 'danger', 'warning', 'success', 'info'] as $v78) {
 						$labels.= \HTML::label2(['type' => ($v78 == 'records' ? 'primary' : $v78), 'style' => 'display: none;', 'value' => 0, 'id' => implode('__', $this->current_tab) . '__' . $v78]);
 					}
@@ -241,6 +275,9 @@ abstract class Collection {
 					// render form
 					if (isset($submitted_form_cached[$form_k])) {
 						$tab_values[$form_k] = $submitted_form_cached[$form_k];
+						if (!empty($submitted_form_errors[$form_k])) {
+							\Layout::onLoad("$('#{$error_id}').html(1); $('#{$error_id}').show();");
+						}
 						$have_tabs = true;
 					} else {
 						$model_options = $form_v['options'];
@@ -253,6 +290,10 @@ abstract class Collection {
 						$model = \Factory::model($form_v['model'], false, [$model_options]);
 						$tab_values[$form_k] = $model->render();
 						$have_tabs = true;
+						// js to update counters in tabs
+						if (isset($model->form_object) && $model->form_object->hasErrors()) {
+							\Layout::onLoad("$('#{$error_id}').html(1); $('#{$error_id}').show();");
+						}
 					}
 					// remove last element from an array
 					array_pop($this->current_tab);

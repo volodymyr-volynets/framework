@@ -189,6 +189,8 @@ class Domains extends \Object\Data {
 		// Workflow
 		'workflow_id' => ['name' => 'Workflow #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Workflow', 'format' => 'id', 'searchable' => true],
 		'workflow_id_sequence' => ['name' => 'Workflow #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
+		'executed_workflow_id' => ['name' => 'Executed Workflow #', 'type' => 'bigint', 'default' => null, 'placeholder' => 'Executed Workflow', 'format' => 'id'],
+		'executed_workflow_id_sequence' => ['name' => 'Workflow #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'dimension' => ['name' => 'Dimension', 'type' => 'integer', 'default' => 0, 'format' => 'id'],
 		'version_code' => ['name' => 'Version Code', 'type' => 'varchar', 'length' => 30],
 		// relations & models

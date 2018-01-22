@@ -294,4 +294,15 @@ class Parent2 extends \Object\Override\Data {
 			'title' => 'Additional Information:'
 		]
 	];
+
+	/**
+	 * Segment workflows
+	 */
+	const SEGMENT_WORKFLOWS = [
+		'type' => 'success',
+		'header' => [
+			'icon' => ['type' => ' fab fa-hubspot'],
+			'title' => 'Workflows:'
+		]
+	];
 }
