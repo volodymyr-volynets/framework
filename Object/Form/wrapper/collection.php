@@ -137,7 +137,7 @@ abstract class Collection {
 				$model_options['form_link'] = $this->values['__form_link'];
 				$model_options['__parent_options'] = $this->options['forms'][$this->collection_screen_link][$this->values['__form_link']] ?? [];
 				// input
-				$model_options['input'] = array_merge_hard($this->values, $model_options['input']);
+				$model_options['input'] = array_merge_hard($this->values, $model_options['input'] ?? []);
 				$model = \Factory::model($this->options['forms'][$this->collection_screen_link][$this->values['__form_link']]['model'], false, [$model_options]);
 				$submitted_form_cached[$this->values['__form_link']] = $model->render();
 				if (isset($model->form_object)) {
