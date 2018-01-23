@@ -413,6 +413,21 @@ function remap(& $data, $map) {
 }
 
 /**
+ * Array to field conversion
+ *
+ * @param array $arr
+ * @return string
+ */
+function array_to_field(array $arr) : string {
+	$first = array_shift($arr);
+	$result = $first;
+	foreach ($arr as $v) {
+		$result.= '[' . $v . ']';
+	}
+	return $result;
+}
+
+/**
  * Sort an array by certain keys with certain methods
  * 
  * @param array $arr

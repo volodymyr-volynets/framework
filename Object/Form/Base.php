@@ -1105,10 +1105,14 @@ processAllValues:
 				$fields = $this->sortFieldsForProcessing($v['elements'], $v['options']);
 				// process details one by one
 				foreach ($details as $k2 => $v2) {
+					if (!empty($v['options']['details_11'])) {
+						$values_key = [$k];
+					} else {
+						$values_key = [$k, $k2];
+					}
 					foreach ($fields as $k3 => $v3) {
 						// 1 to 1
 						if (!empty($v['options']['details_11'])) {
-							$error_name = "{$k}";
 							$v3['options']['values_key'] = [$k, $k3];
 							$value = $v2[$k3] ?? null;
 							$this->validateRequiredOneField($value, "{$k}[{$k3}]", $v3);
@@ -1127,7 +1131,43 @@ processAllValues:
 						}
 					}
 					// process subdetails
-					// todo     
+					foreach ($v['subdetails'] as $k3 => $v3) {
+						$subdetails = $v2[$k3] ?? [];
+						// sort fields
+						$subfields = $this->sortFieldsForProcessing($v3['elements'], $v3['options']);
+						// 1 to 1
+						if (!empty($v3['options']['details_11'])) {
+							$subdetails = [$subdetails];
+						}
+						foreach ($subdetails as $k4 => $v4) {
+							// 1 to 1
+							if (!empty($v3['options']['details_11'])) {
+								$values_key2 = array_merge($values_key, [$k3]);
+							} else {
+								$values_key2 = array_merge($values_key, [$k3, $k4]);
+							}
+							foreach ($subfields as $k5 => $v5) {
+								// 1 to 1
+								if (!empty($v3['options']['details_11'])) {
+									$v3['options']['values_key'] = array_merge($values_key2, [$k5]);
+									$value = $v4[$k5] ?? null;
+									$this->validateRequiredOneField($value, array_to_field($v3['options']['values_key']), $v5);
+									// put value back into values
+									if ($value !== ($v4[$k5] ?? null)) {
+										array_key_set($this->values, $v3['options']['values_key'], $value);
+									}
+								} else { // 1 to M
+									$v3['options']['values_key'] = array_merge($values_key2, [$k5]);
+									$value = $v4[$k5] ?? null;
+									$this->validateRequiredOneField($value, array_to_field($v3['options']['values_key']), $v5);
+									// put value back into values
+									if ($value !== ($v4[$k5] ?? null)) {
+										array_key_set($this->values, $v3['options']['values_key'], $value);
+									}
+								}
+							}
+						}
+					}
 				}
 				// see if detail is required, we display
 				if (!empty($v['options']['required']) && empty($this->values[$k])) {

@@ -135,8 +135,9 @@ abstract class Collection {
 				$model_options['collection_link'] = $this->collection_link;
 				$model_options['collection_screen_link'] = $this->collection_screen_link;
 				$model_options['form_link'] = $this->values['__form_link'];
+				$model_options['__parent_options'] = $this->options['forms'][$this->collection_screen_link][$this->values['__form_link']] ?? [];
 				// input
-				$model_options['input'] = $this->values;
+				$model_options['input'] = array_merge_hard($this->values, $model_options['input']);
 				$model = \Factory::model($this->options['forms'][$this->collection_screen_link][$this->values['__form_link']]['model'], false, [$model_options]);
 				$submitted_form_cached[$this->values['__form_link']] = $model->render();
 				if (isset($model->form_object)) {
@@ -223,8 +224,9 @@ abstract class Collection {
 						$model_options['collection_link'] = $this->collection_link;
 						$model_options['collection_screen_link'] = $this->collection_screen_link;
 						$model_options['form_link'] = $form_k;
+						$model_options['__parent_options'] = $form_v ?? [];
 						// input
-						$model_options['input'] = $submitted_bypass_values;
+						$model_options['input'] = array_merge_hard($submitted_bypass_values, $model_options['input'] ?? []);
 						$model = \Factory::model($form_v['model'], false, [$model_options]);
 						// extract bypass values
 						if (!empty($form_v['flag_main_form'])) {
@@ -285,6 +287,7 @@ abstract class Collection {
 						$model_options['collection_link'] = $this->collection_link;
 						$model_options['collection_screen_link'] = $this->collection_screen_link;
 						$model_options['form_link'] = $form_k;
+						$model_options['__parent_options'] = $form_v ?? [];
 						// input
 						$model_options['input'] = $submitted_bypass_values;
 						$model = \Factory::model($form_v['model'], false, [$model_options]);
