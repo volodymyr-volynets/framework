@@ -305,4 +305,15 @@ class Parent2 extends \Object\Override\Data {
 			'title' => 'Workflows:'
 		]
 	];
+
+	/**
+	 * Segment workflow next step
+	 */
+	const SEGMENT_WORKFLOW_NEXT_STEP = [
+		'type' => 'warning',
+		'header' => [
+			'icon' => ['type' => ' fab fa-hubspot'],
+			'title' => 'Workflow Next Step:'
+		]
+	];
 }

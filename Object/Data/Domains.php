@@ -106,8 +106,8 @@ class Domains extends \Object\Data {
 		'resource_id_sequence' => ['name' => 'Resource #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'action_id' => ['name' => 'Action #', 'type' => 'smallint', 'format' => 'id'],
 		// User Management
-		'user_id' => ['name' => 'User #', 'type' => 'integer', 'default' => null, 'placeholder' => 'User', 'format' => 'id'],
-		'user_id_sequence' => ['name' => 'User #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
+		'user_id' => ['name' => 'User #', 'type' => 'integer', 'default' => null, 'placeholder' => 'User', 'format' => 'id', 'searchable' => true],
+		'user_id_sequence' => ['name' => 'User #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id', 'searchable' => true],
 		'role_id' => ['name' => 'Role #', 'type' => 'integer', 'default' => null, 'format' => 'id', 'placeholder' => 'Role'],
 		'role_id_sequence' => ['name' => 'Role #', 'type' => 'serial', 'placeholder' => 'Sequence'],
 		'message_id' => ['name' => 'Message #', 'type' => 'bigint', 'default' => null, 'format' => 'id'],

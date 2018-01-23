@@ -311,6 +311,7 @@ abstract class Collection {
 					]);
 				}
 			}
+			$index++;
 		}
 		// todo handle separator
 		//$result[] = \HTML::separator(['value' => $v2['separator']['title'], 'icon' => $v2['separator']['icon'] ?? '']);
