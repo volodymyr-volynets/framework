@@ -163,6 +163,8 @@ class Domains extends \Object\Data {
 		'step_id_sequence' => ['name' => 'Step #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'canvas_id' => ['name' => 'Canvas #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Canvas', 'format' => 'id'],
 		'canvas_id_sequence' => ['name' => 'Canvas #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
+		'dashboard_id' => ['name' => 'Dashboard #', 'type' => 'integer', 'default' => null, 'format' => 'id', 'placeholder' => 'Dashboard', 'searchable' => true],
+		'dashboard_id_sequence' => ['name' => 'Dashboard #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		// Order Management
 		'lead_id' => ['name' => 'Lead #', 'type' => 'bigint', 'default' => null, 'placeholder' => 'Lead', 'format' => 'id'],
 		'lead_id_sequence' => ['name' => 'Lead #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id'],
