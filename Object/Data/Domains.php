@@ -54,6 +54,7 @@ class Domains extends \Object\Data {
 		'big_id' => ['name' => 'Big #', 'type' => 'bigint', 'default' => null, 'format' => 'id'],
 		'big_id_sequence' => ['name' => 'Big #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'order' => ['name' => 'Order', 'type' => 'integer', 'default' => 0, 'format' => 'id', 'placeholder' => 'Order'],
+		'percent' => ['name' => 'Percent', 'type' => 'integer', 'default' => 0, 'format' => 'id', 'placeholder' => 'Percent (%)'],
 		'counter' => ['name' => 'Counter', 'type' => 'integer', 'default' => 0, 'format' => 'id'],
 		'bigcounter' => ['name' => 'Counter (Big)', 'type' => 'bigint', 'default' => 0, 'format' => 'id'],
 		// date & time
