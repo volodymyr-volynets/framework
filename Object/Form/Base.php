@@ -443,14 +443,18 @@ class Base extends \Object\Form\Parent2 {
 		}
 		// validator
 		if (!empty($options['options']['validator_method']) && !empty($value) && empty($options['options']['multiple_column']) && (!is_array($value) || $options['options']['method'] == 'file')) {
-			$neighbouring_values_key = $options['options']['values_key'];
-			array_pop($neighbouring_values_key);
+			$neighbouring_values = [];
+			if (!empty($options['options']['values_key'])) {
+				$neighbouring_values_key = $options['options']['values_key'];
+				array_pop($neighbouring_values_key);
+				$neighbouring_values = array_key_get($this->values, $neighbouring_values_key);
+			}
 			$temp = \Object\Validator\Base::method(
 				$options['options']['validator_method'],
 				$value,
 				$options['options']['validator_params'] ?? [],
 				$options['options'],
-				array_key_get($this->values, $neighbouring_values_key)
+				$neighbouring_values
 			);
 			if (!$temp['success']) {
 				foreach ($temp['error'] as $v10) {
@@ -1131,38 +1135,40 @@ processAllValues:
 						}
 					}
 					// process subdetails
-					foreach ($v['subdetails'] as $k3 => $v3) {
-						$subdetails = $v2[$k3] ?? [];
-						// sort fields
-						$subfields = $this->sortFieldsForProcessing($v3['elements'], $v3['options']);
-						// 1 to 1
-						if (!empty($v3['options']['details_11'])) {
-							$subdetails = [$subdetails];
-						}
-						foreach ($subdetails as $k4 => $v4) {
+					if (!empty($v['subdetails'])) {
+						foreach ($v['subdetails'] as $k3 => $v3) {
+							$subdetails = $v2[$k3] ?? [];
+							// sort fields
+							$subfields = $this->sortFieldsForProcessing($v3['elements'], $v3['options']);
 							// 1 to 1
 							if (!empty($v3['options']['details_11'])) {
-								$values_key2 = array_merge($values_key, [$k3]);
-							} else {
-								$values_key2 = array_merge($values_key, [$k3, $k4]);
+								$subdetails = [$subdetails];
 							}
-							foreach ($subfields as $k5 => $v5) {
+							foreach ($subdetails as $k4 => $v4) {
 								// 1 to 1
 								if (!empty($v3['options']['details_11'])) {
-									$v3['options']['values_key'] = array_merge($values_key2, [$k5]);
-									$value = $v4[$k5] ?? null;
-									$this->validateRequiredOneField($value, array_to_field($v3['options']['values_key']), $v5);
-									// put value back into values
-									if ($value !== ($v4[$k5] ?? null)) {
-										array_key_set($this->values, $v3['options']['values_key'], $value);
-									}
-								} else { // 1 to M
-									$v3['options']['values_key'] = array_merge($values_key2, [$k5]);
-									$value = $v4[$k5] ?? null;
-									$this->validateRequiredOneField($value, array_to_field($v3['options']['values_key']), $v5);
-									// put value back into values
-									if ($value !== ($v4[$k5] ?? null)) {
-										array_key_set($this->values, $v3['options']['values_key'], $value);
+									$values_key2 = array_merge($values_key, [$k3]);
+								} else {
+									$values_key2 = array_merge($values_key, [$k3, $k4]);
+								}
+								foreach ($subfields as $k5 => $v5) {
+									// 1 to 1
+									if (!empty($v3['options']['details_11'])) {
+										$v5['options']['values_key'] = array_merge($values_key2, [$k5]);
+										$value = $v4[$k5] ?? null;
+										$this->validateRequiredOneField($value, array_to_field($v5['options']['values_key']), $v5);
+										// put value back into values
+										if ($value !== ($v4[$k5] ?? null)) {
+											array_key_set($this->values, $v3['options']['values_key'], $value);
+										}
+									} else { // 1 to M
+										$v5['options']['values_key'] = array_merge($values_key2, [$k5]);
+										$value = $v4[$k5] ?? null;
+										$this->validateRequiredOneField($value, array_to_field($v5['options']['values_key']), $v5);
+										// put value back into values
+										if ($value !== ($v4[$k5] ?? null)) {
+											array_key_set($this->values, $v3['options']['values_key'], $value);
+										}
 									}
 								}
 							}
@@ -1484,7 +1490,11 @@ otherFormSubmitted:
 					$this->values_saved = $this->triggerMethod('save');
 				} else if (!empty($this->collection_object)) {
 					// native save based on collection
-					$this->values_saved = $this->saveValues();
+					if (empty($this->collection['readonly'])) {
+						$this->values_saved = $this->saveValues();
+					} else {
+						$this->values_saved = true;
+					}
 				}
 				// if save was successfull we post
 				if (!$this->hasErrors()) {

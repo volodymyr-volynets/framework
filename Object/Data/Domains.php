@@ -78,7 +78,7 @@ class Domains extends \Object\Data {
 		'ledger_id_sequence' => ['name' => 'Ledger #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'language_code' => ['name' => 'Language Code', 'type' => 'char', 'length' => 3, 'validator_method' => '\Object\Validator\LowerCase::validate'],
 		'locale_code' => ['name' => 'Locale Code', 'type' => 'varchar', 'length' => 30],
-		'timezone_code' => ['name' => 'Timezone Code', 'type' => 'varchar', 'length' => 30],
+		'timezone_code' => ['name' => 'Timezone Code', 'type' => 'varchar', 'length' => 30, 'placeholder' => 'Timezone'],
 		'field_id' => ['name' => 'Field #', 'type' => 'integer', 'default' => null, 'format' => 'id', 'placeholder' => 'Field', 'searchable' => true],
 		'field_id_sequence' => ['name' => 'Field #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		// Country Management
@@ -165,6 +165,7 @@ class Domains extends \Object\Data {
 		'canvas_id_sequence' => ['name' => 'Canvas #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'dashboard_id' => ['name' => 'Dashboard #', 'type' => 'integer', 'default' => null, 'format' => 'id', 'placeholder' => 'Dashboard', 'searchable' => true],
 		'dashboard_id_sequence' => ['name' => 'Dashboard #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
+		'day_id' => ['name' => 'Day #', 'type' => 'smallint', 'placeholder' => 'Day', 'format' => 'id'],
 		// Order Management
 		'lead_id' => ['name' => 'Lead #', 'type' => 'bigint', 'default' => null, 'placeholder' => 'Lead', 'format' => 'id'],
 		'lead_id_sequence' => ['name' => 'Lead #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id'],
@@ -217,6 +218,8 @@ class Domains extends \Object\Data {
 		'gl_source_code' => ['name' => 'Source Code', 'type' => 'char', 'length' => 3, 'validator_method' => '\Object\Validator\UpperCase::validate'],
 		'tax_group_id' => ['name' => 'Tax Group #', 'type' => 'integer', 'default' => null, 'format' => 'id'],
 		'tax_group_id_sequence' => ['name' => 'Tax Group #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
+		'term_id' => ['name' => 'Term #', 'type' => 'integer', 'default' => null, 'format' => 'id', 'placeholder' => 'Term'],
+		'term_id_sequence' => ['name' => 'Term #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'document_id' => ['name' => 'Document #', 'type' => 'bigint', 'default' => null, 'format' => 'id'],
 		'document_id_sequence' => ['name' => 'Document #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'document_number' => ['name' => 'Document Number', 'type' => 'varchar', 'length' => 30],
