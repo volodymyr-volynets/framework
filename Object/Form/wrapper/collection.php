@@ -219,40 +219,49 @@ abstract class Collection {
 							'row_class' => $form_v['options']['row_class'] ?? null
 						];
 					} else {
-						$model_options = $form_v['options'] ?? [];
-						// we pass links to the form
-						$model_options['collection_link'] = $this->collection_link;
-						$model_options['collection_screen_link'] = $this->collection_screen_link;
-						$model_options['form_link'] = $form_k;
-						$model_options['__parent_options'] = $form_v ?? [];
-						// input
-						$model_options['input'] = array_merge_hard($submitted_bypass_values, $model_options['input'] ?? []);
-						$model = \Factory::model($form_v['model'], false, [$model_options]);
-						// extract bypass values
-						if (!empty($form_v['flag_main_form'])) {
-							foreach (($form_v['bypass_values'] ?? []) as $k0 => $v0) {
-								// if we need to remap keys
-								if (is_string($k0)) {
-									if (strpos($k0, '*')) {
-										$submitted_bypass_values[str_replace('*', '', $k0)] = $v0;
+						if (!empty($form_v['html'])) {
+							// render to grid
+							$result[$index]['grid']['options'][$row_k][$form_k][$form_k] = [
+								'value' => $form_v['html'],
+								'options' => $form_v['options'] ?? [],
+								'row_class' => $form_v['options']['row_class'] ?? null
+							];
+						} else {
+							$model_options = $form_v['options'] ?? [];
+							// we pass links to the form
+							$model_options['collection_link'] = $this->collection_link;
+							$model_options['collection_screen_link'] = $this->collection_screen_link;
+							$model_options['form_link'] = $form_k;
+							$model_options['__parent_options'] = $form_v ?? [];
+							// input
+							$model_options['input'] = array_merge_hard($submitted_bypass_values, $model_options['input'] ?? []);
+							$model = \Factory::model($form_v['model'], false, [$model_options]);
+							// extract bypass values
+							if (!empty($form_v['flag_main_form'])) {
+								foreach (($form_v['bypass_values'] ?? []) as $k0 => $v0) {
+									// if we need to remap keys
+									if (is_string($k0)) {
+										if (strpos($k0, '*')) {
+											$submitted_bypass_values[str_replace('*', '', $k0)] = $v0;
+										} else {
+											if (isset($model->form_object->values[$v0])) {
+												$submitted_bypass_values[$k0] = $model->form_object->values[$v0];
+											}
+										}
 									} else {
 										if (isset($model->form_object->values[$v0])) {
-											$submitted_bypass_values[$k0] = $model->form_object->values[$v0];
+											$submitted_bypass_values[$v0] = $model->form_object->values[$v0];
 										}
-									}
-								} else {
-									if (isset($model->form_object->values[$v0])) {
-										$submitted_bypass_values[$v0] = $model->form_object->values[$v0];
 									}
 								}
 							}
+							// render to grid
+							$result[$index]['grid']['options'][$row_k][$form_k][$form_k] = [
+								'value' => $model->render(),
+								'options' => $form_v['options'] ?? [],
+								'row_class' => $form_v['options']['row_class'] ?? null
+							];
 						}
-						// render to grid
-						$result[$index]['grid']['options'][$row_k][$form_k][$form_k] = [
-							'value' => $model->render(),
-							'options' => $form_v['options'] ?? [],
-							'row_class' => $form_v['options']['row_class'] ?? null
-						];
 					}
 				}
 			} else if ($row_v['options']['type'] == 'tabs') { // tabs
