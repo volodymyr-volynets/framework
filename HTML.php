@@ -591,19 +591,6 @@ class HTML {
 	}
 
 	/**
-	 * Card
-	 *
-	 * @param array $options
-	 *		string title
-	 *		string value
-	 *		string bottom
-	 * @return string
-	 */
-	public static function card(array $options = []) : string {
-		return Factory::delegate('flag.numbers.framework.html', 'card', [$options]);
-	}
-
-	/**
 	 * Popover
 	 *
 	 * @param array $options

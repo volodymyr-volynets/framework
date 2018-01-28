@@ -184,7 +184,7 @@ abstract class Collection {
 		$result = [];
 		$index = 0;
 		// sort rows in a screen
-		$rows = $this->data[$this->collection_screen_link][self::ROWS];
+		$rows = $this->data[$this->collection_screen_link][self::ROWS] ?? [];
 		array_key_sort($rows, ['order' => SORT_ASC]);
 		foreach ($rows as $row_k => $row_v) {
 			$forms = $row_v[self::FORMS];

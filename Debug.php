@@ -151,7 +151,7 @@ class Debug {
 			$result.= '<table cellpadding="2" cellspacing="2" width="100%">';
 				$result.= '<tr>';
 					$result.= '<td>';
-						$result.= '<table width="100%">';
+						$result.= '<table width="100%" class="numbers_debug_links">';
 							$result.= '<tr>';
 								$result.= '<td nowrap>&nbsp;' . \HTML::a(['value' => 'Hide All', 'href' => 'javascript:void(0);', 'onclick' => "$('.debuging_toolbar_class').hide();"]) . '&nbsp;</td>';
 								foreach (self::$data as $k => $v) {
