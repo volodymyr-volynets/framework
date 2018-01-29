@@ -54,7 +54,6 @@ class Domains extends \Object\Data {
 		'big_id' => ['name' => 'Big #', 'type' => 'bigint', 'default' => null, 'format' => 'id'],
 		'big_id_sequence' => ['name' => 'Big #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'order' => ['name' => 'Order', 'type' => 'integer', 'default' => 0, 'format' => 'id', 'placeholder' => 'Order'],
-		'percent' => ['name' => 'Percent', 'type' => 'integer', 'default' => 0, 'format' => 'id', 'placeholder' => 'Percent (%)'],
 		'counter' => ['name' => 'Counter', 'type' => 'integer', 'default' => 0, 'format' => 'id'],
 		'bigcounter' => ['name' => 'Counter (Big)', 'type' => 'bigint', 'default' => 0, 'format' => 'id'],
 		// date & time
@@ -205,6 +204,8 @@ class Domains extends \Object\Data {
 		'quantity' => ['name' => 'Quantity', 'type' => 'bcnumeric', 'precision' => 24, 'scale' => 4, 'default' => '0.0000', 'format' => 'quantity', 'align' => 'right'],
 		'bigamount' => ['name' => 'Amount (Big)', 'type' => 'bcnumeric', 'precision' => 32, 'scale' => 2, 'default' => '0.00', 'format' => 'amount', 'align' => 'right'],
 		'bigquantity' => ['name' => 'Quantity (Big)', 'type' => 'bcnumeric', 'precision' => 32, 'scale' => 4, 'default' => '0.0000', 'format' => 'quantity', 'align' => 'right'],
+		'percent' => ['name' => 'Percent', 'type' => 'integer', 'default' => 0, 'format' => 'id', 'placeholder' => 'Percent (%)'],
+		'percent_float' => ['name' => 'Percent (Float)', 'type' => 'bcnumeric', 'default' => 0, 'format' => 'id', 'placeholder' => 'Percent (%)', 'default' => '0.00', 'format' => 'number', 'align' => 'right'],
 		// Accounting
 		'customer_id' => ['name' => 'Customer #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Customer', 'format' => 'id'],
 		'customer_id_sequence' => ['name' => 'Customer #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
