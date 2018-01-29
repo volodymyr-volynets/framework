@@ -205,7 +205,7 @@ class Domains extends \Object\Data {
 		'bigamount' => ['name' => 'Amount (Big)', 'type' => 'bcnumeric', 'precision' => 32, 'scale' => 2, 'default' => '0.00', 'format' => 'amount', 'align' => 'right'],
 		'bigquantity' => ['name' => 'Quantity (Big)', 'type' => 'bcnumeric', 'precision' => 32, 'scale' => 4, 'default' => '0.0000', 'format' => 'quantity', 'align' => 'right'],
 		'percent' => ['name' => 'Percent', 'type' => 'integer', 'default' => 0, 'format' => 'id', 'placeholder' => 'Percent (%)'],
-		'percent_float' => ['name' => 'Percent (Float)', 'type' => 'bcnumeric', 'default' => 0, 'format' => 'id', 'placeholder' => 'Percent (%)', 'default' => '0.00', 'format' => 'number', 'align' => 'right'],
+		'percent_float' => ['name' => 'Percent (Float)', 'type' => 'bcnumeric', 'precision' => 24, 'scale' => 2, 'default' => 0, 'format' => 'id', 'placeholder' => 'Percent (%)', 'default' => '0.00', 'format' => 'number', 'align' => 'right'],
 		// Accounting
 		'customer_id' => ['name' => 'Customer #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Customer', 'format' => 'id'],
 		'customer_id_sequence' => ['name' => 'Customer #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
@@ -228,6 +228,8 @@ class Domains extends \Object\Data {
 		'bank_id_sequence' => ['name' => 'Bank #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'bank_deposit_number' => ['name' => 'Bank Deposit #', 'type' => 'bigint', 'default' => null, 'format' => 'id'],
 		'ic_item_id' => ['name' => 'I/C Item #', 'type' => 'varchar', 'length' => 30, 'placeholder' => 'Item', 'searchable' => true, 'tree' => true, 'format' => 'id'],
+		'billing_cycle_id' => ['name' => 'Billing Cycle #', 'type' => 'integer', 'default' => null, 'format' => 'id', 'placeholder' => 'Billing Cycle'],
+		'billing_cycle_id_sequence' => ['name' => 'Billing Cycle #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		// HTML
 		'html_color_code' => ['name' => 'HTML Color Code', 'type' => 'char', 'length' => 6, 'null' => true],
 		'html_color_group' => ['name' => 'HTML Color Group', 'type' => 'varchar', 'length' => 30, 'null' => true]
