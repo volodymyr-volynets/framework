@@ -97,7 +97,7 @@ class Factory {
 no_cache:
 			// process virtual models
 			if (strpos($class, '0Virtual0') !== false) {
-				self::$class_objects['model'][$hash] = \Object\Virtual\Models::model($class);
+				self::$class_objects['model'][$hash] = \Object\Virtual\Models::model($class, ... $constructor_parameters);
 			} else {
 				// if we need to pass options to an object
 				$class_name = ltrim($class, '\\');

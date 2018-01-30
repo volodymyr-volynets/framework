@@ -23,7 +23,6 @@ class Table extends \Object\Table\Options {
 	 * @var object
 	 */
 	public $db_object;
-	public static $skip_db_object = false;
 
 	/**
 	 * Schema name
@@ -408,10 +407,8 @@ class Table extends \Object\Table\Options {
 		// process domain in columns
 		$this->columns = \Object\Data\Common::processDomainsAndTypes($this->columns);
 		// initialize db object
-		if (empty($options['skip_db_object']) && empty(self::$skip_db_object)) {
+		if (empty($options['skip_db_object'])) {
 			$this->db_object = new \Db($this->db_link);
-		} else {
-			self::$skip_db_object = true;
 		}
 		// process widgets
 		$widgets = \Object\ACL\Resources::getStatic('widgets');
@@ -455,12 +452,13 @@ class Table extends \Object\Table\Options {
 	 * @param string $class
 	 * @param string $widget_name
 	 * @param string $virtual_class_name
+	 * @param array $options
 	 * @return boolean
 	 * @throws Exception
 	 */
-	final public function determineModelMap($class, $widget_name, $virtual_class_name) {
+	final public function determineModelMap($class, $widget_name, $virtual_class_name, $options = []) {
 		$this->virtual_class_name = $virtual_class_name;
-		$model = \Factory::model($class, true);
+		$model = \Factory::model($class, true, [$options]);
 		if (empty($model->{$widget_name}) || empty($model->{$widget_name}['map'])) {
 			Throw new \Exception("You must indicate {$widget_name} for {$class} map!");
 		}
@@ -472,7 +470,6 @@ class Table extends \Object\Table\Options {
 		$this->data_asset = $model->data_asset;
 		$this->tenant = $model->tenant;
 		$this->module = $model->module;
-		self::$skip_db_object = $model::$skip_db_object;
 		// determine pk
 		$columns = [];
 		$this->map = $model->{$widget_name}['map'];
