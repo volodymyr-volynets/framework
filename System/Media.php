@@ -1,13 +1,14 @@
 <?php
 
-class system_media {
+namespace System;
+class Media {
 
 	/**
 	 * Serve js and/or css files, mostly used in development
 	 *
 	 * @param string $filename
 	 */
-	public static function serve_media_if_exists($filename, $application_path) {
+	public static function serveMediaIfExists($filename, $application_path) {
 		// we need to remove question mark and all after it
 		if (strpos($filename, '?') !== false) {
 			$temp = explode('?' , $filename);

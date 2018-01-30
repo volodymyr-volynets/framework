@@ -104,7 +104,12 @@ class Dependencies {
 								$data['acl'] = array_merge_hard($data['acl'], $sub_data['acl']);
 							}
 							if (!empty($sub_data['media'])) {
-								$data['media'] = array_merge_hard($data['media'], $sub_data['media']);
+								foreach ($sub_data['media'] as $k78 => $v78) {
+									if (!isset($data['media'][$k78])) $data['media'][$k78] = [];
+									foreach ($v78 as $v79) {
+										$data['media'][$k78][] = $v79;
+									}
+								}
 							}
 							if (!empty($sub_data['form'])) {
 								$data['form'] = array_merge_hard($data['form'], $sub_data['form']);
