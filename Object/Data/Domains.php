@@ -89,7 +89,7 @@ class Domains extends \Object\Data {
 		'postal_codes' => ['name' => 'Postal Codes', 'type' => 'varchar', 'length' => 2000, 'placeholder' => 'Postal Code(s)'],
 		'geo_coordinate' => ['name' => 'Geo Coordinate', 'type' => 'numeric', 'precision' => 10, 'scale' => 6, 'null' => true],
 		// Currency Management
-		'currency_type' => ['name' => 'Currency Type', 'type' => 'varchar', 'length' => 12, 'validator_method' => '\Object\Validator\UpperCase::validate', 'searchable' => true],
+		'currency_type' => ['name' => 'Currency Type', 'type' => 'varchar', 'length' => 12, 'validator_method' => '\Object\Validator\UpperCase::validate', 'placeholder' => 'Currency Type', 'searchable' => true],
 		'currency_code' => ['name' => 'Currency Code', 'type' => 'char', 'length' => 3, 'validator_method' => '\Object\Validator\UpperCase::validate', 'placeholder' => 'Currency', 'searchable' => true],
 		'currency_rate_id' => ['name' => 'Currency Rate #', 'type' => 'bigint', 'default' => null, 'format' => 'id'],
 		'currency_rate_id_sequence' => ['name' => 'Currency Rate #', 'type' => 'bigserial', 'placeholder' => 'Sequence'],
@@ -217,7 +217,7 @@ class Domains extends \Object\Data {
 		'cs_segment_delimiter' => ['name' => 'Segment Delimiter', 'type' => 'char', 'length' => 1],
 		'cs_account' => ['name' => 'C/S Account', 'type' => 'varchar', 'length' => 109, 'placeholder' => 'Account', 'searchable' => true, 'tree' => true, 'format' => 'id'],
 		'gl_source_code' => ['name' => 'Source Code', 'type' => 'char', 'length' => 3, 'validator_method' => '\Object\Validator\UpperCase::validate'],
-		'tax_group_id' => ['name' => 'Tax Group #', 'type' => 'integer', 'default' => null, 'format' => 'id'],
+		'tax_group_id' => ['name' => 'Tax Group #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Tax Group', 'format' => 'id'],
 		'tax_group_id_sequence' => ['name' => 'Tax Group #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'term_id' => ['name' => 'Term #', 'type' => 'integer', 'default' => null, 'format' => 'id', 'placeholder' => 'Term'],
 		'term_id_sequence' => ['name' => 'Term #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
