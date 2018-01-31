@@ -46,7 +46,7 @@ class Dependencies {
 			// we have small chicken and egg problem with composer
 			$composer_data = [];
 			$composer_dirs = [];
-			$composer_dirs[] = 'config/';
+			$composer_dirs[] = 'Config/';
 			if (file_exists('../libraries/composer.json')) {
 				$composer_data = json_decode(file_get_contents('../libraries/composer.json'), true);
 			}

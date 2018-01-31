@@ -232,6 +232,8 @@ class Domains extends \Object\Data {
 		'billing_cycle_id_sequence' => ['name' => 'Billing Cycle #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'commission_code_id' => ['name' => 'Commission #', 'type' => 'integer', 'default' => null, 'format' => 'id', 'placeholder' => 'Commission Code'],
 		'commission_code_id_sequence' => ['name' => 'Commission #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
+		'interest_profile_id' => ['name' => 'Interest Profile #', 'type' => 'integer', 'default' => null, 'format' => 'id', 'placeholder' => 'Interest Profile'],
+		'interest_profile_id_sequence' => ['name' => 'Interest Profile #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		// HTML
 		'html_color_code' => ['name' => 'HTML Color Code', 'type' => 'char', 'length' => 6, 'null' => true],
 		'html_color_group' => ['name' => 'HTML Color Group', 'type' => 'varchar', 'length' => 30, 'null' => true]

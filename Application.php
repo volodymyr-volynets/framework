@@ -85,7 +85,7 @@ class Application {
 		// fixing location paths
 		$application_path = isset($options['application_path']) ? (rtrim($options['application_path'], '/') . '/') : '../application/';
 		$application_name = isset($options['application_name']) ? $options['application_name'] : 'default';
-		$ini_folder = isset($options['ini_folder']) ? (rtrim($options['ini_folder'], '/') . '/') : $application_path . 'config/';
+		$ini_folder = isset($options['ini_folder']) ? (rtrim($options['ini_folder'], '/') . '/') : $application_path . 'Config/';
 		// working directory is location of the application
 		chdir($application_path);
 		$application_path_full = getcwd();
