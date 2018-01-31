@@ -19,7 +19,7 @@ class Dependencies {
 		do {
 			$options['mode'] = $options['mode'] ?? 'test';
 			// processing main dependency file
-			$main_dep_filename = 'config/application.ini';
+			$main_dep_filename = 'Config/application.ini';
 			if (!file_exists($main_dep_filename)) {
 				$result['error'][] = "Main dep. file not found!";
 				break;
