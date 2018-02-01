@@ -136,7 +136,7 @@ class Bootstrap {
 			'token' => $token, // generating token to receive data from frontend
 			'controller_full' => \Application::get(['mvc', 'full']), // full controller path
 			'host' => \Request::host(),
-			'ws_host' => \Request::host(['protocol' => 'ws', 'port' => \Application::get('websocket.port')]),
+			'ws_host' => \Request::host(['protocol' => 'ws', 'port' => \Application::get('websocket.port') ?? 9000, 'mvc' => '/ws']),
 			'user_id' => \User::id(),
 			// flags set in configuration files
 			'flag' => [
