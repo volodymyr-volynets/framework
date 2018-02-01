@@ -11,7 +11,7 @@ class LowerCase extends \Object\Validator\Base {
 		$result['placeholder'] = 'lowercase only';
 		$value.= '';
 		if (strtolower($value) !== $value) {
-			$result['error'][] = \Object\Content\Messages::string_lowercase;
+			$result['error'][] = \Object\Content\Messages::STRING_LOWERCASE;
 		} else {
 			$result['success'] = true;
 			$result['data'] = $value;

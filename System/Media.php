@@ -57,6 +57,10 @@ class Media {
 				}
 				exit;
 			}
+		} else { // other files that exist on file system
+			$mime = mime_content_type($filename);
+			header('Content-type: text/css');
+			echo file_get_contents($filename);
 		}
 	}
 }

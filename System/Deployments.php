@@ -84,7 +84,7 @@ class Deployments {
 				foreach ($files_to_copy['scss'] as $k => $v) {
 					$newname = ltrim(str_replace('/', '_', $k), '_');
 					// processing scss files
-					$temp = numbers_frontend_media_scss_base::serve($v);
+					$temp = \Numbers\Frontend\Media\SCSS\Base::serve($v);
 					if ($temp['success']) {
 						file_put_contents("{$media_dir_full}/{$newname}.css", $temp['data']);
 					}
@@ -97,7 +97,7 @@ class Deployments {
 			if (!empty($result['data']['media'])) {
 				\Helper\File::mkdir($media_dir_submodule . '/numbers/media_submodules', 0777);
 				foreach ($result['data']['media'] as $k => $v) {
-					if (!in_array($k, ['js', 'css', 'scss'])) {
+					if (!in_array($k, ['js', 'css', 'scss', 'other'])) {
 						continue;
 					}
 					foreach ($v as $k2 => $v2) {
