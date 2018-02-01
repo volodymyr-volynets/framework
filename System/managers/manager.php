@@ -406,18 +406,18 @@ reask_for_migration:
 			if ($mode == 'drop') {
 reset_all_caches:
 				// initialize caches
-				$cache = Application::get('cache');
+				$cache = \Application::get('cache');
 				if (!empty($cache)) {
 					foreach ($cache as $cache_link => $cache_settings) {
 						if (empty($cache_settings['submodule']) || empty($cache_settings['autoconnect'])) continue;
-						$cache_result = cache::connectToServers($cache_link, $cache_settings);
+						$cache_result = \Cache::connectToServers($cache_link, $cache_settings);
 						if (!$cache_result['success']) {
 							Throw new Exception(implode(', ', $cache_result['error']));
 						}
 					}
 				}
 				// reset opened caches
-				$cache = Factory::get(['cache']);
+				$cache = \Factory::get(['Cache']);
 				if (!empty($cache)) {
 					foreach ($cache as $k => $v) {
 						$object = $v['object'];
