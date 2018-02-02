@@ -98,8 +98,8 @@ class Domains extends \Object\Data {
 		// Tenants
 		'tenant_id' => ['name' => 'Tenant #', 'type' => 'integer', 'default' => null, 'format' => 'id'],
 		'tenant_id_sequence' => ['name' => 'Tenant #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
-		'module_code' => ['name' => 'Module Code', 'type' => 'char', 'length' => 2, 'validator_method' => '\Object\Validator\UpperCase::validate'],
-		'module_id' => ['name' => 'Module #', 'type' => 'integer', 'default' => null, 'format' => 'id'],
+		'module_code' => ['name' => 'Module Code', 'type' => 'char', 'length' => 2, 'validator_method' => '\Object\Validator\UpperCase::validate', 'placeholder' => 'Module'],
+		'module_id' => ['name' => 'Module #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Module', 'format' => 'id'],
 		'module_id_sequence' => ['name' => 'Module #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'feature_code' => ['name' => 'Feature Code', 'type' => 'varchar', 'length' => 30, 'validator_method' => '\Object\Validator\UpperCase::validate'],
 		'resource_id' => ['name' => 'Resource #', 'type' => 'integer', 'format' => 'id'],
