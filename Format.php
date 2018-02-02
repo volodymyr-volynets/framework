@@ -82,7 +82,7 @@ class Format {
 			foreach ($user_settings as $k => $v) if (empty($v)) unset($user_settings[$k]);
 		}
 		// merge all of them together
-		self::$options = array_merge_hard(self::$defaut_options, $config, I18n::$options, $user_settings, $options);
+		self::$options = array_merge_hard(self::$defaut_options, $config, \I18n::$options, $user_settings, $options);
 		// fix utf8
 		self::$options['locale_code'] = str_replace(['utf8', 'utf-8'], 'UTF-8', self::$options['locale_code']);
 		// generate a list of available locales

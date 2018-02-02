@@ -28,7 +28,12 @@ class I18n {
 		];
 		// initialize the module
 		$i18n = \Application::get('flag.global.i18n') ?? [];
-		$i18n = array_merge_hard($i18n, $options ?? []);
+		// settings from user account
+		$user_settings = User::get('internalization');
+		if (!empty($user_settings)) {
+			foreach ($user_settings as $k => $v) if (empty($v)) unset($user_settings[$k]);
+		}
+		$i18n = array_merge_hard($i18n, $user_settings, $options ?? []);
 		if (!empty($i18n['submodule'])) {
 			// check if backend has been enabled
 			if (!\Application::get($i18n['submodule'], ['submodule_exists' => true])) {
