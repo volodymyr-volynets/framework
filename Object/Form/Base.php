@@ -1582,11 +1582,11 @@ convertMultipleColumns:
 			$mvc = \Application::get('mvc');
 			// save and new
 			if (!empty($this->process_submit[self::BUTTON_SUBMIT_SAVE_AND_NEW])) {
-				\Request::redirect($mvc['full'] . '?__module_id=' . ($this->values['__module_id'] ?? ''));
+				$this->redirect($mvc['full'] . '?__module_id=' . ($this->values['__module_id'] ?? ''));
 			}
 			// save and close
 			if (!empty($this->process_submit[self::BUTTON_SUBMIT_SAVE_AND_CLOSE])) {
-				\Request::redirect($mvc['controller'] . '/_Index' . '?__module_id=' . ($this->values['__module_id'] ?? ''));
+				$this->redirect($mvc['controller'] . '/_Index' . '?__module_id=' . ($this->values['__module_id'] ?? ''));
 			}
 		}
 		// convert multiple column to a form renderer can accept
@@ -3176,5 +3176,14 @@ convertMultipleColumns:
 			$this->error(DANGER, 'You must select primary!', $primary_first_line);
 		}
 		return $primary_pk_id;
+	}
+
+	/**
+	 * Redirect
+	 *
+	 * @param string $where
+	 */
+	public function redirect(string $where) {
+		$this->misc_settings['redirect'] = $where;
 	}
 }
