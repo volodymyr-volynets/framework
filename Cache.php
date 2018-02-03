@@ -39,7 +39,7 @@ class Cache {
 			}
 		}
 		// get object from factory
-		$temp = Factory::get(['cache', $cache_link]);
+		$temp = \Factory::get(['cache', $cache_link]);
 		// if we have class
 		if (!empty($class) && !empty($cache_link)) {
 			// check if backend has been enabled
@@ -56,7 +56,7 @@ class Cache {
 			}
 			$this->object = new $class($cache_link, $options);
 			// putting every thing into factory
-			Factory::set(['cache', $cache_link], [
+			\Factory::set(['cache', $cache_link], [
 				'object' => $this->object,
 				'class' => $class
 			]);

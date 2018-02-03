@@ -553,7 +553,10 @@ class Format {
 				}
 			}
 			$options['symbol'] = self::$cached_currencies[$options['currency_code']]['symbol'] ?? null;
-			$options['decimals'] = self::$cached_currencies[$options['currency_code']]['fraction_digits'] ?? null;
+			// override decimals only if not set
+			if (!isset($options['decimals'])) {
+				$options['decimals'] = self::$cached_currencies[$options['currency_code']]['fraction_digits'] ?? null;
+			}
 		}
 		// decimals
 		if (!isset($options['decimals'])) {
@@ -618,6 +621,31 @@ class Format {
 	public static function currencyRate($amount, $options = []) {
 		$options['decimals'] = \Object\Data\Domains::getSetting('currency_rate', 'scale');
 		$options['symbol'] = false;
+		return self::amount($amount, $options);
+	}
+
+	/**
+	 * Unit price
+	 *
+	 * @param float $amount
+	 * @param array $options
+	 * @return string
+	 */
+	public static function unitPrice($amount, $options = []) {
+		$options['decimals'] = \Object\Data\Domains::getSetting('unit_price', 'scale');
+		return self::amount($amount, $options);
+	}
+
+	/**
+	 * Unit price (no symbol)
+	 *
+	 * @param float $amount
+	 * @param array $options
+	 * @return string
+	 */
+	public static function unitPrice2($amount, $options = []) {
+		$options['symbol'] = false;
+		$options['decimals'] = \Object\Data\Domains::getSetting('unit_price', 'scale');
 		return self::amount($amount, $options);
 	}
 

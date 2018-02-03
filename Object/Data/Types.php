@@ -26,7 +26,7 @@ class Types extends \Object\Data {
 		'tree' => ['name' => 'Tree', 'type' => 'boolean']
 	];
 	public $data = [
-		'boolean' => ['name' => 'Boolean', 'default' => 0, 'null' => 0, 'php_type' => 'integer'],
+		'boolean' => ['name' => 'Boolean', 'default' => 0, 'null' => 0, 'php_type' => 'integer', 'placeholder' => 'Yes / No'],
 		// numeric types
 		'smallint' => ['name' => 'Small Integer', 'default' => 0, 'php_type' => 'integer'],
 		'integer' => ['name' => 'Integer', 'default' => 0, 'php_type' => 'integer'],

@@ -417,7 +417,7 @@ reset_all_caches:
 					}
 				}
 				// reset opened caches
-				$cache = \Factory::get(['Cache']);
+				$cache = \Factory::get(['cache']);
 				if (!empty($cache)) {
 					foreach ($cache as $k => $v) {
 						$object = $v['object'];
