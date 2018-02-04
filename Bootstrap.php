@@ -98,7 +98,7 @@ class Bootstrap {
 			\Session::start($session['options'] ?? []);
 		}
 		// load tenant
-		if (!empty($application_structure_model)) {
+		if (!empty($application_structure_model) && !empty($application_structure['tenant_multiple'])) {
 			\Factory::model($application_structure_model, true)->tenant();
 		}
 		// we need to get overrides from session and put them back to flag array
