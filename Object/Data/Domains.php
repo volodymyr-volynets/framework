@@ -207,7 +207,7 @@ class Domains extends \Object\Data {
 		'quantity_int' => ['name' => 'Quantity (Integer)', 'type' => 'integer', 'default' => 0, 'format' => 'id', 'placeholder' => 'Quantity'],
 		'percent' => ['name' => 'Percent', 'type' => 'integer', 'default' => 0, 'format' => 'id', 'placeholder' => 'Percent (%)'],
 		'percent_float' => ['name' => 'Percent (Float)', 'type' => 'bcnumeric', 'precision' => 24, 'scale' => 2, 'default' => 0, 'format' => 'id', 'placeholder' => 'Percent (%)', 'default' => '0.00', 'format' => 'number', 'align' => 'right'],
-		'unit_price' => ['name' => 'Unit Cost', 'type' => 'bcnumeric', 'precision' => 24, 'scale' => 4, 'default' => '0.0000', 'format' => 'unitPrice', 'align' => 'right'],
+		'unit_price' => ['name' => 'Unit Price', 'type' => 'bcnumeric', 'precision' => 24, 'scale' => 4, 'default' => '0.0000', 'format' => 'unitPrice', 'align' => 'right'],
 		// Accounting
 		'customer_id' => ['name' => 'Customer #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Customer', 'format' => 'id'],
 		'customer_id_sequence' => ['name' => 'Customer #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],

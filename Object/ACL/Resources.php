@@ -39,11 +39,14 @@ class Resources extends \Object\Override\Data {
 	public function get(string $type = '', string $module = '', $key = null) {
 		$result = $this->data;
 		if (!empty($type)) {
-			$result = $result[$type];
+			$result = $result[$type] ?? null;
+			if (!isset($result)) return $result;
 			if (!empty($module)) {
-				$result = $result[$module];
+				$result = $result[$module] ?? null;
+				if (!isset($result)) return $result;
 				if (!empty($key)) {
-					$result = $result[$key];
+					$result = $result[$key] ?? null;
+					if (!isset($result)) return $result;
 				} else if (!empty($result['datasource'])) {
 					// acl is skipped intentionally
 					return \Factory::model($result['datasource'], true)->get(['skip_acl' => true]);
