@@ -36,7 +36,7 @@ class Domains extends \Object\Data {
 		// codes
 		'code' => ['name' => 'Code', 'type' => 'varchar', 'length' => 255],
 		'short_code' => ['name' => 'Short Code', 'type' => 'varchar', 'length' => 6, 'validator_method' => '\Object\Validator\UpperCase::validate'],
-		'type_code' => ['name' => 'Type Code', 'type' => 'varchar', 'length' => 15, 'validator_method' => '\Object\Validator\UpperCase::validate'],
+		'type_code' => ['name' => 'Type Code', 'type' => 'varchar', 'length' => 15, 'validator_method' => '\Object\Validator\UpperCase::validate', 'placeholder' => 'Type'],
 		'group_code' => ['name' => 'Group Code', 'type' => 'varchar', 'length' => 30, 'validator_method' => '\Object\Validator\UpperCase::validate'],
 		'token' => ['name' => 'Token', 'type' => 'varchar', 'length' => 255],
 		'status_one' => ['name' => 'Status (1)', 'type' => 'char', 'length' => 1],
@@ -102,9 +102,9 @@ class Domains extends \Object\Data {
 		'module_id' => ['name' => 'Module #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Module', 'format' => 'id'],
 		'module_id_sequence' => ['name' => 'Module #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'feature_code' => ['name' => 'Feature Code', 'type' => 'varchar', 'length' => 30, 'validator_method' => '\Object\Validator\UpperCase::validate', 'placeholder' => 'Feature'],
-		'resource_id' => ['name' => 'Resource #', 'type' => 'integer', 'format' => 'id'],
+		'resource_id' => ['name' => 'Resource #', 'type' => 'integer', 'format' => 'id', 'placeholder' => 'Resource'],
 		'resource_id_sequence' => ['name' => 'Resource #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
-		'action_id' => ['name' => 'Action #', 'type' => 'smallint', 'format' => 'id'],
+		'action_id' => ['name' => 'Action #', 'type' => 'smallint', 'format' => 'id', 'placeholder' => 'Action'],
 		// User Management
 		'user_id' => ['name' => 'User #', 'type' => 'integer', 'default' => null, 'placeholder' => 'User', 'format' => 'id', 'searchable' => true],
 		'user_id_sequence' => ['name' => 'User #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id', 'searchable' => true],

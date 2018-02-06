@@ -235,7 +235,7 @@ class DataSource extends \Object\Table\Options {
 		if (method_exists($this, 'process')) {
 			// retrive data from the cache
 			if ($this->cache && !empty($db_object->object->options['cache_link'])) {
-				$cache_id = !empty($options['cache_id']) ? $options['cache_id'] : 'Db_DataSource_' . sha1($this->sql_last_query . serialize($query_settings['pk']));
+				$cache_id = !empty($options['cache_id']) ? $options['cache_id'] : 'Db_DataSource_' . trim(sha1($this->sql_last_query . serialize($query_settings['pk'])));
 				// if we cache this query
 				$cache_object = new \Cache($db_object->object->options['cache_link']);
 				$cached_result = $cache_object->get($cache_id, true);
