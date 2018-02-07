@@ -108,7 +108,7 @@ class Layout extends View {
 			asort($js);
 			foreach ($js as $k=>$v) {
 				$script = $k . (strpos($k, '?') !== false ? '&' : '?') . self::getVersion();
-				$result.= '<script type="text/javascript" src="' . $script . '"></script>';
+				$result.= '<script type="text/javascript" src="' . $script . '" crossorigin="anonymous"></script>';
 			}
 		}
 		return $result;

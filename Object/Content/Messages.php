@@ -21,6 +21,7 @@ class Messages {
 	const STRING_LOWERCASE = 'The string must be lowercase!';
 	const STRING_FUNCTION = 'The string did not pass validation function!';
 	const ERROR_500 = 'Internal Server Error!';
+	const MODAL_HAS_ERRORS = 'Modal has error messages!';
 	// warnings
 	const AMOUNT_RECALCULATED = 'The amount has been recalculated!';
 	const AMOUNT_ROUNDED = 'The amount has been rounded!';

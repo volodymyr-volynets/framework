@@ -47,7 +47,7 @@ class Domains extends \Object\Data {
 		'type_id' => ['name' => 'Type #', 'type' => 'smallint', 'default' => null, 'format' => 'id', 'placeholder' => 'Type'],
 		'type_id_sequence' => ['name' => 'Type #', 'type' => 'smallserial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'status_id' => ['name' => 'Status #', 'type' => 'smallint', 'default' => null, 'format' => 'id'],
-		'group_id' => ['name' => 'Group #', 'type' => 'integer', 'default' => null, 'format' => 'id'],
+		'group_id' => ['name' => 'Group #', 'type' => 'integer', 'default' => null, 'format' => 'id', 'placeholder' => 'Group'],
 		'group_id_sequence' => ['name' => 'Group #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'category_id' => ['name' => 'Category #', 'type' => 'integer', 'default' => null, 'format' => 'id', 'placeholder' => 'Category', 'searchable' => true],
 		'category_id_sequence' => ['name' => 'Category #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
@@ -246,6 +246,8 @@ class Domains extends \Object\Data {
 		'payment_code_id_sequence' => ['name' => 'Payment Code #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'discount_id' => ['name' => 'Discount #', 'type' => 'integer', 'default' => null, 'format' => 'id', 'placeholder' => 'Discount'],
 		'discount_id_sequence' => ['name' => 'Discount #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
+		'account_set_id' => ['name' => 'Account Set #', 'type' => 'integer', 'default' => null, 'format' => 'id', 'placeholder' => 'Account Set'],
+		'account_set_id_sequence' => ['name' => 'Account Set #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		// HTML
 		'html_color_code' => ['name' => 'HTML Color Code', 'type' => 'char', 'length' => 6, 'null' => true],
 		'html_color_group' => ['name' => 'HTML Color Group', 'type' => 'varchar', 'length' => 30, 'null' => true]
