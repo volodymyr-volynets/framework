@@ -44,6 +44,8 @@ class Types extends \Object\Data {
 		'text' => ['name' => 'Text', 'php_type' => 'string'],
 		// json types
 		'json' => ['name' => 'JSON', 'php_type' => 'mixed'],
+		// geometry
+		'geometry' => ['name' => 'Geometry', 'php_type' => 'string'],
 		// date types
 		'date' => ['name' => 'Date', 'php_type' => 'string', 'format' => 'date', 'placeholder' => 'Format::getDatePlaceholder'],
 		'time' => ['name' => 'Time', 'php_type' => 'string', 'format' => 'time', 'placeholder' => 'Format::getDatePlaceholder'],

@@ -824,6 +824,8 @@ class Base extends \Object\Form\Parent2 {
 					$k2 = $detail_key_holder['pk'];
 					// process fields
 					foreach ($fields as $k3 => $v3) {
+						// skip buttons and links
+						if (in_array(($v3['options']['method'] ?? ''), ['button', 'button2', 'submit', 'a'])) continue;
 						// default data type
 						if (empty($v3['options']['type'])) {
 							$v3['options']['type'] = 'varchar';

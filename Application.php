@@ -208,12 +208,6 @@ class Application {
 		if (!empty(self::$settings['application']['dispatch']['after_controller'])) {
 			call_user_func(self::$settings['application']['dispatch']['after_controller']);
 		}
-		// headers
-		if (!empty(self::$settings['header']) && !headers_sent()) {
-			foreach (self::$settings['header'] as $k=>$v) {
-				header($v);
-			}
-		}
 	}
 
 	/**
@@ -354,6 +348,12 @@ class Application {
 			echo str_replace($from, $to, \Helper\Ob::clean());
 		} else {
 			echo self::$controller->view;
+		}
+		// headers
+		if (!empty(self::$settings['header']) && !headers_sent()) {
+			foreach (self::$settings['header'] as $k => $v) {
+				header($v);
+			}
 		}
 		// ajax calls that has not been processed by application
 		if (self::get('flag.global.__ajax')) {

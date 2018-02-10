@@ -108,7 +108,11 @@ class Layout extends View {
 			asort($js);
 			foreach ($js as $k=>$v) {
 				$script = $k . (strpos($k, '?') !== false ? '&' : '?') . self::getVersion();
-				$result.= '<script type="text/javascript" src="' . $script . '" crossorigin="anonymous"></script>';
+				if (strpos($script, 'googleapis.com') !== false) {
+					$result.= '<script type="text/javascript" src="' . $script . '" async defer></script>';
+				} else {
+					$result.= '<script type="text/javascript" src="' . $script . '" crossorigin="anonymous"></script>';
+				}
 			}
 		}
 		return $result;

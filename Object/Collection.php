@@ -254,6 +254,9 @@ class Collection extends \Object\Override\Data {
 			'error' => []
 		];
 		foreach ($details as $k => $v) {
+			// acl
+			if (!empty($v['acl']) && !\Can::systemFeaturesExists($v['acl'])) continue;
+			// initialize model
 			$details[$k]['model_object'] = $model = \Factory::model($k, true);
 			$pk = $v['pk'] ?? $model->pk;
 			// generate keys from parent array
@@ -493,7 +496,7 @@ class Collection extends \Object\Override\Data {
 			}
 			// check for triggers only if we have changes
 			if (!empty($this->primary_model->triggers) && !empty($temp['data']['total'])) {
-				$data_combined = $data + $temp['new_pk'];
+				$data_combined = array_merge($data, $temp['new_pk']);
 				foreach ($this->primary_model->triggers as $k => $v) {
 					$method = \Factory::method($v, null, true);
 					$trigger_result = call_user_func_array($method, [$action ?? '', $data_combined, $temp['data']['audit']]);
@@ -718,6 +721,8 @@ error:
 		// step 3 process details
 		if (!empty($collection['details'])) {
 			foreach ($collection['details'] as $k => $v) {
+				// acl
+				if (!empty($v['acl']) && !\Can::systemFeaturesExists($v['acl'])) continue;
 				// we do not process readonly details
 				if (!empty($v['readonly'])) continue;
 				// create new object

@@ -552,7 +552,9 @@ class Format {
 					self::$cached_currencies = [];
 				}
 			}
-			$options['symbol'] = self::$cached_currencies[$options['currency_code']]['symbol'] ?? null;
+			if (!isset($options['symbol']) || (isset($options['symbol']) && $options['symbol'] !== false)) {
+				$options['symbol'] = self::$cached_currencies[$options['currency_code']]['symbol'] ?? null;
+			}
 			// override decimals only if not set
 			if (!isset($options['decimals'])) {
 				$options['decimals'] = self::$cached_currencies[$options['currency_code']]['fraction_digits'] ?? null;

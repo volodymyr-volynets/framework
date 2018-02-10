@@ -20,11 +20,44 @@ class cURL {
 		curl_setopt($ch, CURLOPT_URL, $url);
 		curl_setopt($ch, CURLOPT_POST, 1);
 		curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query2($options['params']));
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 		$result['data'] = curl_exec($ch);
 		if (!empty($options['json'])) {
 			$result['data'] = json_decode($result['data'], true);
 		}
 		curl_close($ch);
+		$result['success'] = true;
+		return $result;
+	}
+
+	/**
+	 * Get
+	 *
+	 * @param string $url
+	 * @param array $options
+	 * @return array
+	 */
+	public static function get(string $url, array $options = []) : array {
+		$result = [
+			'success' => false,
+			'error' => [],
+			'data' => null
+		];
+		if (strpos($url, '?') !== false) {
+			$url.= '&';
+		} else {
+			$url.= '?';
+		}
+		$url.= http_build_query2($options['params']);
+		$ch = curl_init();
+		curl_setopt($ch, CURLOPT_URL, $url);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+		$result['data'] = curl_exec($ch);
+		if (!empty($options['json'])) {
+			$result['data'] = json_decode($result['data'], true);
+		}
+		curl_close($ch);
+		$result['success'] = true;
 		return $result;
 	}
 

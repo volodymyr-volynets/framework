@@ -40,4 +40,21 @@ class Can {
 		}
 		return false;
 	}
+
+	/**
+	 * System features exist
+	 *
+	 * @param array $feature_codes
+	 * @return bool
+	 */
+	public static function systemFeaturesExists(array $feature_codes) : bool {
+		$not_found = false;
+		foreach ($feature_codes as $v) {
+			if (!self::systemFeatureExists($v)) {
+				$not_found = true;
+				break;
+			}
+		}
+		return !$not_found;
+	}
 }

@@ -11,6 +11,7 @@ class Messages {
 	const UNKNOWN_VALUE = 'Unknown value(s)!';
 	const INVALID_VALUE = 'Invalid value: [value]!';
 	const INVALID_VALUES = 'Invalid value(s)!';
+	const OUTDATED_VALUES = 'Outdated value(s)!';
 	const DUPLICATE_VALUE = 'Duplicate value(s)!';
 	const DUPLICATE_RECORD = 'Duplicate record with selected values already exists!';
 	const OPTIMISTIC_LOCK = 'Someone has updated the record while you were editing, please refresh!';

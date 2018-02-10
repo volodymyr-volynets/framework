@@ -196,15 +196,6 @@ class Dependencies {
 						echo $k . " ";
 					}
 					echo "\n";
-					/*
-					$temp = `apachectl -t -D DUMP_MODULES`;
-					$ext_have = array_map('strtolower', explode("\n", $temp));
-					$temp = array();
-					foreach ($ext_have as $k => $v) {
-						$temp[] = trim(str_replace(array('(shared)', '(static)'), '', $v));
-					}
-					$ext_have = $temp;
-					*/
 				}
 			}
 			// processing models
@@ -259,6 +250,11 @@ class Dependencies {
 					unset($data['model_processed'][$k2]);
 					$data['model_processed'][$k2] = $temp;
 				}
+			}
+			if (!empty($data['model_processed']['\Numbers\Backend\Db\Extension\PostgreSQL\PostGIS\Model\Geo\PostGIS'])) {
+				echo \Helper\Cmd::colorString('Make sure following Postgres configuration exists:', 'red') . "\n";
+				echo 'search_path = \'"$user",public,extensions\'';
+				echo "\n";
 			}
 			unset($data['__submodule_dependencies'], $data['__model_dependencies'], $data['model_import']);
 			// handling overrides, cleanup directory first
@@ -699,17 +695,12 @@ import_data:
 			}
 		}
 		// we need to generate documentation
+		/*
 		$system_documentation = Application::get('system_documentation');
 		if (!empty($system_documentation) && $options['mode'] == 'commit') {
 			$model = Factory::model($system_documentation['model']);
-			/*
-			print_r2($object_documentation);
-			$documentation_result = $model->update($object_documentation, $system_documentation);
-			if (!$documentation_result['success']) {
-				$result['error'] = array_merge($result['error'], $documentation_result['error']);
-			}
-			*/
 		}
+		*/
 		return $result;
 	}
 

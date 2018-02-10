@@ -332,6 +332,13 @@ class Table extends \Object\Table\Options {
 	public $triggers = [];
 
 	/**
+	 * Acl
+	 *
+	 * @var array
+	 */
+	public $acl = [];
+
+	/**
 	 * Constructing object
 	 *
 	 * @param array $options
