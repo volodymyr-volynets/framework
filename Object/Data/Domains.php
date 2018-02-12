@@ -195,7 +195,11 @@ class Domains extends \Object\Data {
 		'executed_workflow_id' => ['name' => 'Executed Workflow #', 'type' => 'bigint', 'default' => null, 'placeholder' => 'Executed Workflow', 'format' => 'id'],
 		'executed_workflow_id_sequence' => ['name' => 'Workflow #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'dimension' => ['name' => 'Dimension', 'type' => 'integer', 'default' => 0, 'format' => 'id'],
-		'version_code' => ['name' => 'Version Code', 'type' => 'varchar', 'length' => 30],
+		'version_code' => ['name' => 'Version Code', 'type' => 'varchar', 'length' => 30, 'placeholder' => 'Version Code'],
+		'service_script_id' => ['name' => 'Service Script #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Service Script', 'format' => 'id', 'searchable' => true],
+		'service_script_id_sequence' => ['name' => 'Service Script #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
+		'question_id' => ['name' => 'Question #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Question', 'format' => 'id', 'searchable' => true],
+		'question_id_sequence' => ['name' => 'Question #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		// relations & models
 		'relation_id' => ['name' => 'Relation #', 'type' => 'bigint', 'default' => null, 'format' => 'id'],
 		'relation_id_sequence' => ['name' => 'Relation #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id'],
