@@ -75,7 +75,7 @@ class Domains extends \Object\Data {
 		// System
 		'ledger_id' => ['name' => 'Ledger #', 'type' => 'integer', 'default' => null, 'format' => 'id'],
 		'ledger_id_sequence' => ['name' => 'Ledger #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
-		'language_code' => ['name' => 'Language Code', 'type' => 'char', 'length' => 3, 'validator_method' => '\Object\Validator\LowerCase::validate'],
+		'language_code' => ['name' => 'Language Code', 'type' => 'char', 'length' => 3, 'validator_method' => '\Object\Validator\LowerCase::validate', 'placeholder' => 'Language'],
 		'locale_code' => ['name' => 'Locale Code', 'type' => 'varchar', 'length' => 30],
 		'timezone_code' => ['name' => 'Timezone Code', 'type' => 'varchar', 'length' => 30, 'placeholder' => 'Timezone'],
 		'field_id' => ['name' => 'Field #', 'type' => 'integer', 'default' => null, 'format' => 'id', 'placeholder' => 'Field', 'searchable' => true],
@@ -198,6 +198,8 @@ class Domains extends \Object\Data {
 		'version_code' => ['name' => 'Version Code', 'type' => 'varchar', 'length' => 30, 'placeholder' => 'Version Code'],
 		'service_script_id' => ['name' => 'Service Script #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Service Script', 'format' => 'id', 'searchable' => true],
 		'service_script_id_sequence' => ['name' => 'Service Script #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
+		'executed_service_script_id' => ['name' => 'Executed Service Script #', 'type' => 'bigint', 'default' => null, 'placeholder' => 'Executed Service Script', 'format' => 'id'],
+		'executed_service_script_id_sequence' => ['name' => 'Executed Service Script #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'question_id' => ['name' => 'Question #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Question', 'format' => 'id', 'searchable' => true],
 		'question_id_sequence' => ['name' => 'Question #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		// relations & models

@@ -720,8 +720,9 @@ class Base extends \Object\Form\Parent2 {
 			// options validation
 			if (isset($value) && !empty($v['options']['options']) && empty($v['options']['options_manual_validation'])) {
 				$temp_value = is_array($value) ? $value : [$value];
-				foreach ($temp_value as $v54) {
-					if (empty($v['options']['options'][$v54])) {
+				foreach ($temp_value as $k54 => $v54) {
+					$key = is_scalar($v54) ? $v54 : $k54;
+					if (empty($v['options']['options'][$key])) {
 						$this->error('danger', \Object\Content\Messages::INVALID_VALUES, $error_name);
 					}
 				}
