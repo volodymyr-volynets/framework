@@ -1129,10 +1129,10 @@ processAllValues:
 							}
 						} else { // 1 to M
 							$v3['options']['values_key'] = [$k, $k2, $k3];
-							$value = $v2[$k3];
+							$value = $v2[$k3] ?? null;
 							$this->validateRequiredOneField($value, "{$k}[{$k2}][{$k3}]", $v3);
 							// put value back into values
-							if ($value !== $v2[$k3]) {
+							if ($value !== ($v2[$k3] ?? null)) {
 								$this->values[$k][$k2][$k3] = $value;
 							}
 						}
