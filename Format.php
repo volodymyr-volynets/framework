@@ -65,6 +65,7 @@ class Format {
 			'format_timestamp' => 'Y-m-d H:i:s.u',
 			'format_amount_frm' => 20, // Amounts In Forms
 			'format_amount_fs' => 40, // Amounts In Financial Statement
+			'format_uom' => 'METRIC',
 			// computed settings
 			'locale_locales' => [], // list of locale codes
 			'locale_locale_js' => null, // javascript locale name
@@ -874,6 +875,14 @@ class Format {
 			return $result[0];
 		} else {
 			return $result[0] . ' ' . $result[1];
+		}
+	}
+
+	public static function distance($distance_in_m) : string {
+		if (self::$options['format_uom'] == 'METRIC') {
+			return round($distance_in_m / 1000, 2) . i18n(null, 'km');
+		} else {
+			return round($distance_in_m / 1.60934 / 1000, 2) . i18n(null, 'mi');
 		}
 	}
 }
