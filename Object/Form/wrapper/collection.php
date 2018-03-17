@@ -151,7 +151,7 @@ abstract class Collection {
 				$model_options['form_link'] = $form_link;
 				$model_options['__parent_options'] = $this->options['forms'][$this->collection_screen_link][$form_link] ?? [];
 				// input
-				$model_options['input'] = array_merge_hard($this->values, $model_options['input'] ?? []);
+				$model_options['input'] = array_merge($this->values, $model_options['input'] ?? []);
 				$model = \Factory::model($this->options['forms'][$this->collection_screen_link][$form_link]['model'], false, [$model_options]);
 				$submitted_form_cached[$form_link] = $model->render();
 				if (isset($model->form_object)) {
@@ -250,14 +250,14 @@ abstract class Collection {
 							$model_options['form_link'] = $form_k;
 							$model_options['__parent_options'] = $form_v ?? [];
 							// input
-							$model_options['input'] = array_merge_hard($submitted_bypass_values, $model_options['input'] ?? []);
+							$model_options['input'] = array_merge($submitted_bypass_values, $model_options['input'] ?? []);
 							$model = \Factory::model($form_v['model'], false, [$model_options]);
 							// extract bypass values
 							if (!empty($form_v['flag_main_form'])) {
 								foreach (($form_v['bypass_values'] ?? []) as $k0 => $v0) {
 									// if we need to remap keys
 									if (is_string($k0)) {
-										if (strpos($k0, '*')) {
+										if (strpos($k0, '*') !== false) {
 											$submitted_bypass_values[str_replace('*', '', $k0)] = $v0;
 										} else {
 											if (isset($model->form_object->values[$v0])) {
@@ -315,7 +315,7 @@ abstract class Collection {
 						$model_options['form_link'] = $form_k;
 						$model_options['__parent_options'] = $form_v ?? [];
 						// input
-						$model_options['input'] = array_merge_hard($submitted_bypass_values, $model_options['input'] ?? []);
+						$model_options['input'] = array_merge($submitted_bypass_values, $model_options['input'] ?? []);
 						$model = \Factory::model($form_v['model'], false, [$model_options]);
 						$tab_values[$form_k] = $model->render();
 						$have_tabs = true;

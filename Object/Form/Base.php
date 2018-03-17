@@ -1410,6 +1410,13 @@ processAllValues:
 				}
 			}
 		}
+		// find child submits
+		foreach (new \RecursiveIteratorIterator(new \RecursiveArrayIterator($this->options['input']), \RecursiveIteratorIterator::LEAVES_ONLY) as $k0 => $v0) {
+			if (isset($this->process_submit_all[$k0]) && !empty($v0)) {
+				$this->submitted = true;
+				$this->process_submit[$k0] = true;
+			}
+		}
 		// if we delete
 		if (!empty($this->process_submit[self::BUTTON_SUBMIT_DELETE])) {
 			$this->delete = true;
@@ -2236,6 +2243,10 @@ convertMultipleColumns:
 				}
 			}
 		} else {
+			if (!empty($options['postponed'])) {
+				$_SESSION['numbers']['forms'][$this->form_link]['messages'][$type][$hash] = $message;
+				$this->misc_settings['form_postponed_messages'] = true;
+			}
 			$this->errors['general'][$type][$hash] = $message;
 		}
 	}
