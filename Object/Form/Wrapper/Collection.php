@@ -144,7 +144,7 @@ abstract class Collection {
 			if (isset($this->options['forms'][$this->collection_screen_link][$form_link])) {
 				$model_options = $this->options['forms'][$this->collection_screen_link][$form_link]['options'] ?? [];
 				if (!empty($this->options['forms'][$this->collection_screen_link][$form_link]['options']['tabs_row_id'])) {
-					$model_options['collection_current_tab_id'] = "form_collection_tabs_{$this->collection_link}_{$this->options['forms'][$this->collection_screen_link][$form_link]['options']['tabs_row_id']}";;
+					$model_options['collection_current_tab_id'] = "form_collection_tabs_{$this->collection_link}_{$this->options['forms'][$this->collection_screen_link][$form_link]['options']['tabs_row_id']}_active_hidden";;
 				}
 				$model_options['collection_link'] = $this->collection_link;
 				$model_options['collection_screen_link'] = $this->collection_screen_link;
@@ -309,7 +309,7 @@ abstract class Collection {
 					} else {
 						$model_options = $form_v['options'];
 						// we pass links to the form
-						$model_options['collection_current_tab_id'] = $tab_id;
+						$model_options['collection_current_tab_id'] = $tab_id . '_active_hidden';
 						$model_options['collection_link'] = $this->collection_link;
 						$model_options['collection_screen_link'] = $this->collection_screen_link;
 						$model_options['form_link'] = $form_k;

@@ -1412,7 +1412,7 @@ processAllValues:
 		}
 		// find child submits
 		foreach (new \RecursiveIteratorIterator(new \RecursiveArrayIterator($this->options['input']), \RecursiveIteratorIterator::LEAVES_ONLY) as $k0 => $v0) {
-			if (isset($this->process_submit_all[$k0]) && !empty($v0)) {
+			if ($k0 != $this::BUTTON_SUBMIT_REFRESH && isset($this->process_submit_all[$k0]) && !empty($v0)) {
 				$this->submitted = true;
 				$this->process_submit[$k0] = true;
 			}
@@ -1933,7 +1933,7 @@ convertMultipleColumns:
 				self::BUTTON_SUBMIT_RESET,
 				self::BUTTON_SUBMIT_DELETE,
 				self::BUTTON_CONTINUE,
-				self::BUTTON_STOP
+				self::BUTTON_STOP,
 			];
 			// process
 			$not_allowed = [];
