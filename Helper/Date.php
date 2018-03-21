@@ -46,4 +46,14 @@ class Date {
 		}
 		return $result;
 	}
+
+	/**
+	 * Extract minutes from datetime object
+	 *
+	 * @param \DateTime $datetime
+	 * @return int
+	 */
+	public static function extractMinutes(\DateTime $datetime) : int {
+		return (((int) $datetime->format('H')) * 60) + ((int) $datetime->format('i'));
+	}
 }
