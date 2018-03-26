@@ -915,14 +915,15 @@ TTT;
 	 * Load by id
 	 *
 	 * @param int $id
+	 * @param string $column
 	 * @return array | boolean
 	 */
-	public static function loadById(int $id) {
+	public static function loadById(int $id, string $column = '') {
 		$class = get_called_class();
 		$model = new $class();
 		$pk = $model->pk;
 		$last = array_pop($model->pk);
-		return $model->get([
+		$result = $model->get([
 			'where' => [
 				$last => $id
 			],
@@ -930,5 +931,9 @@ TTT;
 			'single_row' => true,
 			'skip_acl' => true
 		]);
+		if (!empty($column)) {
+			return $result[$column] ?? null;
+		}
+		return $result;
 	}
 }

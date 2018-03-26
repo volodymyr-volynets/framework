@@ -2441,6 +2441,10 @@ convertMultipleColumns:
 				$options['row_order'] = PHP_INT_MAX - 500;
 			}
 		}
+		// hidden rows
+		if ($row_link == self::HIDDEN && !isset($options['row_order'])) {
+			$options['row_order'] = -32000;
+		}
 		// processing row and container
 		$this->container($container_link, array_key_extract_by_prefix($options, 'container_'));
 		$this->row($container_link, $row_link, array_key_extract_by_prefix($options, 'row_'));
