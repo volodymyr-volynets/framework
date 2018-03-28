@@ -1390,6 +1390,10 @@ processAllValues:
 		if (!empty($this->options['input']['__form_onchange_field_values_key'])) {
 			$this->misc_settings['__form_onchange_field_values_key'] = explode('[::]', $this->options['input']['__form_onchange_field_values_key']);
 		}
+		// track previous values
+		if (!empty($this->options['input']['__track_previous_values'])) {
+			$this->misc_settings['__track_previous_values'] = $this->options['input']['__track_previous_values'];
+		}
 		// we need to see if form has been submitted
 		$this->process_submit = [];
 		if (isset($this->process_submit_all[$this::BUTTON_SUBMIT_BLANK]) && !empty($this->options['input'][$this::BUTTON_SUBMIT_BLANK])) {
