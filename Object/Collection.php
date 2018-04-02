@@ -99,7 +99,7 @@ class Collection extends \Object\Override\Data {
 			$query = $this->primary_model->queryBuilder([
 				'initiator' => 'collection',
 				'skip_acl' => true
-			])->select();
+			])->select()->columns('a.*');
 			// acl datasource
 			if (!empty($this->data['acl_datasource'])) {
 				$acl_datasource = $this->data['acl_datasource'];
@@ -118,6 +118,8 @@ class Collection extends \Object\Override\Data {
 					}
 				}, 'EXISTS');
 			}
+			// process column overrides
+			$query->columnOverrides($this->primary_model->columns);
 			// where
 			if (!empty($options['where'])) {
 				$query->whereMultiple('AND', $options['where']);
@@ -287,6 +289,8 @@ class Collection extends \Object\Override\Data {
 			$query->select()
 				->columns(['a.*'])
 				->from($model, 'a');
+			// process column overrides
+			$query->columnOverrides($model->columns);
 			// where
 			$query->where('AND', [$column, 'IN', $keys]);
 			if (!empty($v['where'])) {
