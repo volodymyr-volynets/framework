@@ -3208,4 +3208,21 @@ convertMultipleColumns:
 	public function redirect(string $where) {
 		$this->misc_settings['redirect'] = $where;
 	}
+
+	/**
+	 * Redirect on success
+	 */
+	public function redirectOnSuccess() {
+		$params = [];
+		if (!empty($this->options['bypass_hidden_from_input'])) {
+			foreach ($this->options['bypass_hidden_from_input'] as $v) {
+				$params[$v] = $this->options['input'][$v] ?? '';
+			}
+		}
+		if (!empty($this->options['collection_current_tab_id'])) {
+			$params[$this->options['collection_current_tab_id']] = $this->form_link;
+		}
+		$url = \Application::get('mvc.full') . '?' . http_build_query2($params) . '#' . ($this->options['input']['__anchor'] ?? '');
+		$this->redirect($url);
+	}
 }
