@@ -93,4 +93,15 @@ class I18n {
 			return !empty(self::$options['rtl']) ? ' dir="rtl" ' : ' dir="ltr" ';
 		}
 	}
+
+	/**
+	 * Change I/N group
+	 *
+	 * @param int $group_id
+	 */
+	public static function changeGroup(int $group_id) {
+		\Application::set('flag.global.__in_group_id', $group_id);
+		\I18n::init();
+		setcookie("__in_group_id", $group_id);
+	}
 }
