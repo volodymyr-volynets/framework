@@ -257,7 +257,7 @@ class Collection extends \Object\Override\Data {
 		];
 		foreach ($details as $k => $v) {
 			// acl
-			if (!empty($v['acl']) && !\Can::systemFeaturesExists($v['acl'])) continue;
+			if (!empty($v['acl']) && !\Can::systemFeaturesExist($v['acl'])) continue;
 			// initialize model
 			$details[$k]['model_object'] = $model = \Factory::model($k, true);
 			$pk = $v['pk'] ?? $model->pk;
@@ -726,7 +726,7 @@ error:
 		if (!empty($collection['details'])) {
 			foreach ($collection['details'] as $k => $v) {
 				// acl
-				if (!empty($v['acl']) && !\Can::systemFeaturesExists($v['acl'])) continue;
+				if (!empty($v['acl']) && !\Can::systemFeaturesExist($v['acl'])) continue;
 				// we do not process readonly details
 				if (!empty($v['readonly'])) continue;
 				// create new object

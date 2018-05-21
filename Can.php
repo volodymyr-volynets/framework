@@ -47,7 +47,7 @@ class Can {
 	 * @param array $feature_codes
 	 * @return bool
 	 */
-	public static function systemFeaturesExists(array $feature_codes) : bool {
+	public static function systemFeaturesExist(array $feature_codes) : bool {
 		$not_found = false;
 		foreach ($feature_codes as $v) {
 			if (!self::systemFeatureExists($v)) {

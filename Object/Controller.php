@@ -266,6 +266,8 @@ class Controller {
 		}
 		// if resource is not present we return false
 		if (empty(self::$cached_controllers_by_ids[$resource_id])) return false;
+		// missing features
+		if (!empty(self::$cached_controllers[self::$cached_controllers_by_ids[$resource_id]]['missing_features'])) return false;
 		// super admin
 		if (\User::get('super_admin')) return true;
 		// load all actions from datasource
@@ -302,9 +304,10 @@ class Controller {
 		if (is_null($roles)) $roles = \User::roles();
 		// authorized controllers have full access
 		if (empty(self::$cached_controllers[self::$cached_controllers_by_ids[$resource_id]]['acl_permission']) && !empty(self::$cached_controllers[self::$cached_controllers_by_ids[$resource_id]]['acl_authorized'])) {
+			// if user is logged in
 			if (\User::authorized()) return true;
 		}
-		// go though roles
+		// go through roles
 		foreach ($roles as $v) {
 			$temp = $this->processRole($v, $resource_id, $method_code, $action, $module_id);
 			if ($temp === 1) return true;
