@@ -15,7 +15,15 @@ class Tenant {
 	 * @return int
 	 */
 	public static function id() {
-		return self::$override_tenant_id ?? \Application::get('application.structure.settings.tenant.id');
+		if (!empty(self::$override_tenant_id)) {
+			return self::$override_tenant_id;
+		} else {
+			$default_tenant_id = \Application::get('application.structure.tenant_default_id');
+			if (!empty($default_tenant_id)) {
+				return $default_tenant_id;
+			}
+		}
+		return \Application::get('application.structure.settings.tenant.id');
 	}
 
 	/**
