@@ -739,4 +739,14 @@ class HTML {
 		}
 		return $align;
 	}
+
+	/**
+	 * Number
+	 *
+	 * @param mixed $number
+	 * @return string
+	 */
+	public static function number($number) : string {
+		return str_replace(',', '.', $number . '');
+	}
 }
