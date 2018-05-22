@@ -67,6 +67,7 @@ class Domains extends \Object\Data {
 		'personal_name' => ['name' => 'Name (Personal)', 'type' => 'varchar', 'length' => 50, 'placeholder' => 'Name'],
 		'personal_title' => ['name' => 'Title (Personal)', 'type' => 'varchar', 'length' => 10, 'placeholder' => 'Title'],
 		'icon' => ['name' => 'Icon', 'type' => 'varchar', 'length' => 50, 'placeholder' => 'Icon', 'searchable' => true],
+		'signature' => ['name' => 'Signature', 'type' => 'text', 'null' => true],
 		// login
 		'login' => ['name' => 'Login', 'type' => 'varchar', 'length' => 30, 'validator_method' => '\Object\Validator\LowerCase::validate'],
 		'password' => ['name' => 'Password', 'type' => 'text', 'validator_method' => '\Object\Validator\Password::validate'],
