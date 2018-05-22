@@ -702,7 +702,7 @@ class Base extends \Object\Form\Parent2 {
 			if (array_key_exists('default', $v['options'])) {
 				array_key_set($this->values, $v['options']['values_key'], $value);
 				$default = $this->processDefaultValue($k, $v['options']['default'], null, $this->values, false, $changed_field, $v);
-				if (!isset($value) && $this->canProcessDefaultValue($value, $v)) {
+				if (!isset($value) && $this->canProcessDefaultValue($value, $v, $v['options']['default'])) {
 					$value = $default;
 				} else {
 					$temp = array_key_get($this->values, $v['options']['values_key']);
@@ -2844,8 +2844,10 @@ convertMultipleColumns:
 	 * @param array $options
 	 * @return boolean
 	 */
-	public function canProcessDefaultValue($value, $options) {
+	public function canProcessDefaultValue($value, $options, $default) {
 		if (strpos($options['options']['default'], 'static::') !== false || strpos($options['options']['default'], 'master_object::') !== false || strpos($options['options']['default'], 'dependent::') !== false || (is_null($value) && empty($options['options']['null']))) {
+			return true;
+		} else if (is_string($default) || is_array($default) || is_numeric($default)) {
 			return true;
 		} else {
 			return false;

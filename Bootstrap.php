@@ -124,6 +124,8 @@ class Bootstrap {
 		// default actions
 		\Layout::addAction('refresh', ['value' => 'Refresh', 'icon' => 'fas fa-sync', 'onclick' => 'location.reload();', 'order' => -32000]);
 		\Layout::addAction('print', ['value' => 'Print', 'icon' => 'fas fa-print', 'onclick' => 'window.print();', 'order' => -31000]);
+		// include constants
+		require('Constants.php');
 	}
 
 	/**

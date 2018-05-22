@@ -994,6 +994,41 @@ function trim2($str, $what = null, $with = ' ') {
  * @return string
  */
 function nl2br2($str) {
-	$str = str_replace("\t", '&nbsp;&nbsp;&nbsp;', $str);
+	$str = str_replace("\t", '&nbsp;&nbsp;&nbsp;', $str . '');
 	return nl2br($str);
+}
+
+/**
+ * Check if array has string keys
+ *
+ * @param array $arr
+ * @return bool
+ */
+function array_has_string_keys(array $arr) : bool {
+	return count(array_filter(array_keys($arr), 'is_string')) > 0;
+}
+
+/**
+ * Array get all keys recursively
+ *
+ * @param array $arr
+ * @param array $result
+ * @param array $path
+ * @param array $options
+ */
+function array_iterate_recursive_get_keys(array $arr, array & $result, array $path = [], array $options = []) {
+	$prefix = $options['prefix'] ?? '';
+	foreach ($arr as $k => $v) {
+		$path2 = $path;
+		$path2[] = $k;
+		if (is_scalar($v) || is_null($v) || (is_array($v) && !array_has_string_keys($v))) {
+			// if we need to convert to uppercase and prefix it
+			if (!empty($options['uppercase'])) {
+				$path2 = $prefix . strtoupper(implode('_', $path2));
+			}
+			array_key_set($result, $path2, $v);
+		} else if (is_array($v)) {
+			array_iterate_recursive_get_keys($v, $result, $path2, $options);
+		}
+	}
 }

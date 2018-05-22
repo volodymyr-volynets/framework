@@ -387,6 +387,7 @@ class Application {
 		$input = \Request::input(null, true, true);
 		foreach ($variables as $k => $v) {
 			if (!array_key_exists($k, $input)) {
+				self::$settings['flag']['global'][$k] = null;
 				continue;
 			}
 			if ($k == '__content_type') {
