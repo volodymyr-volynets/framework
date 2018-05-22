@@ -56,4 +56,17 @@ class Date {
 	public static function extractMinutes(\DateTime $datetime) : int {
 		return (((int) $datetime->format('H')) * 60) + ((int) $datetime->format('i'));
 	}
+
+	/**
+	 * Between
+	 *
+	 * @param string $date
+	 * @param string $date1
+	 * @param string $date2
+	 * @return bool
+	 */
+	public static function between($date, $date1, $date2) : bool {
+		$date = strtotime($date);
+		return ($date >= strtotime($date1) && $date <= strtotime($date2));
+	}
 }
