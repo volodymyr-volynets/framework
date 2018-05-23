@@ -381,6 +381,16 @@ class HTML {
 	}
 
 	/**
+	 * Signature
+	 *
+	 * @param array $options
+	 * @return string
+	 */
+	public static function signature(array $options = []) : string {
+		return Factory::delegate('flag.numbers.framework.html', 'signature', [$options]);
+	}
+
+	/**
 	 * Captcha
 	 *
 	 * @param array $options
@@ -705,7 +715,8 @@ class HTML {
 		return [
 			'success' => true,
 			'error' => [],
-			'data' => $arr['final']
+			'data' => $arr['final'],
+			'percent' => $arr['percent']
 		];
 	}
 
