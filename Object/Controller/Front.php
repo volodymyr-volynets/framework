@@ -14,6 +14,7 @@ class Front {
 			'controller' => '',
 			'controller_extension' => '',
 			'action' => '',
+			'post_action' => [],
 			'id' => 0,
 			'controllers' => [],
 		);
@@ -41,6 +42,10 @@ class Front {
 			if ($v . '' == '') {
 				continue;
 			}
+			if ($flag_action_found) {
+				$result['post_action'][] = $v;
+				continue;
+			}
 			if (isset($v[0]) && $v[0] == '_' && !$flag_action_found) {
 				$flag_action_found = true;
 				$result['action'] = substr($v, 1);
@@ -48,10 +53,14 @@ class Front {
 			}
 			if (!$flag_action_found) {
 				$result['controllers'][] = $v;
+			} else {
+				$result['post_action'][] = $v;
 			}
 			if ($flag_action_found) {
-				$result['id'] = $v;
-				break;
+				if (is_numeric($v)) {
+					$result['id'] = $v;
+				}
+				$result['post_action'][] = $v;
 			}
 		}
 		// set default values for action and controller
@@ -133,11 +142,16 @@ class Front {
 	private static function route($uri) {
 		$result = $uri;
 		$routes = \Application::get('routes');
+		if (empty($routes)) $routes = [];
+		$extra_routes = \Object\ACL\Resources::getStatic('routes');
+		if (!empty($extra_routes)) {
+			$routes = array_merge($routes, $extra_routes);
+		}
 		if (!empty($routes)) {
 			foreach ($routes as $v) {
 				$regex = '#^' . $v['regex'] . '#i';
 				if (preg_match($regex, $result, $values)) {
-					$result = $v['new'];
+					$result = str_replace($v['regex'], $v['new'], $result);
 				}
 			}
 		}

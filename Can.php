@@ -57,4 +57,20 @@ class Can {
 		}
 		return !$not_found;
 	}
+
+	/**
+	 * File exist in path
+	 *
+	 * @param string $filename
+	 * @return mixed
+	 */
+	public static function fileExistsInPath(string $filename) {
+		$paths = explode(';', str_replace(':', ';', get_include_path()));
+		foreach($paths as $v) {
+			if (file_exists($v . DIRECTORY_SEPARATOR . $filename)) {
+				return $v . DIRECTORY_SEPARATOR . $filename;
+			}
+		}
+		return false;
+	}
 }

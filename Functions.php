@@ -946,6 +946,52 @@ function is_json($input) {
 }
 
 /**
+ * Check if its a valid XML string
+ *
+ * @param mixed $input
+ * @return boolean
+ */
+function is_xml($input) {
+    libxml_use_internal_errors(true);
+    $doc = new DOMDocument('1.0', 'utf-8');
+    $doc->loadXML($input);
+    $errors = libxml_get_errors();
+    return empty($errors);
+}
+
+/**
+ * XML to array
+ *
+ * @param SimpleXMLElement $input
+ * @return array
+ */
+function xml2array(SimpleXMLElement $input) {
+    $string = json_encode($input);
+    return json_decode($string, true);
+}
+
+/**
+ * Array to xml
+ *
+ * @param array $arr
+ * @param SimpleXMLElement $xml
+ * @return type
+ */
+function array2xml($arr, $xml = false){
+    if ($xml === false){
+        $xml = new SimpleXMLElement('<root/>');
+    }
+    foreach ($arr as $k => $v) {
+        if (is_array($v)){
+            array2xml($v, $xml->addChild($k));
+        } else {
+            $xml->addChild($k, $v);
+        }
+    }
+    return $xml->asXML();
+}
+
+/**
  * Hex to RGB
  *
  * @param string $hex
@@ -1031,4 +1077,14 @@ function array_iterate_recursive_get_keys(array $arr, array & $result, array $pa
 			array_iterate_recursive_get_keys($v, $result, $path2, $options);
 		}
 	}
+}
+
+/**
+ * Split on upper case
+ *
+ * @param string $str
+ * @return array
+ */
+function split_on_uppercase(string $str) : array {
+	return preg_split('/(?=[A-Z])/', $str, -1, PREG_SPLIT_NO_EMPTY);
 }
