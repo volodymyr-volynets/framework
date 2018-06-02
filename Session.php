@@ -56,6 +56,11 @@ class Session {
 				ini_set("session.$k", $v);
 			}
 		}
+		// session # replacement
+		$__session_id = \Application::get('flag.global.__session_id');
+		if (!empty($__session_id)) {
+			session_id($__session_id);
+		}
 		// starting session submodule if we have one
 		$class = Application::get('flag.global.session.submodule', ['class' => 1]);
 		// check if backend has been enabled

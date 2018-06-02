@@ -15,6 +15,7 @@ class Variables extends \Object\Data {
 		'__in_group_id' => ['no_magic_variable_description' => 'I/N Group #'],
 		'__skip_layout' => ['no_magic_variable_description' => 'Skip Layout'],
 		'__skip_session' => ['no_magic_variable_description' => 'Skip Session'],
-		'__ajax' => ['no_magic_variable_description' => 'Ajax Call']
+		'__ajax' => ['no_magic_variable_description' => 'Ajax Call'],
+		'__session_id' => ['no_magic_variable_description' => 'Session #'],
 	];
 }
