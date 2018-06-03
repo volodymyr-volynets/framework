@@ -68,6 +68,52 @@ class API {
 	}
 
 	/**
+	 * Insert
+	 *
+	 * @param array $input
+	 * @return array
+	 */
+	public function insert(array $input) : array {
+		if (\Application::get('flag.numbers.framework.api.enforce_rest')) {
+			$temp2 = $this->get($input);
+			if (!$temp2['values_loaded']) {
+				return $this->save($input);
+			} else {
+				return [
+					'success' => false,
+					'error' => ['Can not create, record exists!'],
+					'values' => []
+				];
+			}
+		} else {
+			return $this->save($input);
+		}
+	}
+
+	/**
+	 * Update
+	 *
+	 * @param array $input
+	 * @return array
+	 */
+	public function update(array $input) : array {
+		if (\Application::get('flag.numbers.framework.api.enforce_rest')) {
+			$temp2 = $this->get($input);
+			if ($temp2['values_loaded']) {
+				return $this->save($input);
+			} else {
+				return [
+					'success' => false,
+					'error' => ['Can not update, record does not exists!'],
+					'values' => []
+				];
+			}
+		} else {
+			return $this->save($input);
+		}
+	}
+
+	/**
 	 * Ready to post
 	 *
 	 * @param array $input
@@ -132,6 +178,20 @@ class API {
 	public function markDeleted(array $input) : array {
 		$input[\Object\Form\Parent2::BUTTON_SUBMIT_SAVE] = true;
 		$input[\Object\Form\Parent2::BUTTON_SUBMIT_MARK_DELETED] = true;
+		$this->form->form_object->addInput($input);
+		$this->form->form_object->process();
+		return $this->form->form_object->apiResult();
+	}
+
+	/**
+	 * Deleted
+	 *
+	 * @param array $input
+	 * @return array
+	 */
+	public function delete(array $input) : array {
+		$input[\Object\Form\Parent2::BUTTON_SUBMIT_SAVE] = true;
+		$input[\Object\Form\Parent2::BUTTON_SUBMIT_DELETE] = true;
 		$this->form->form_object->addInput($input);
 		$this->form->form_object->process();
 		return $this->form->form_object->apiResult();

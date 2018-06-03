@@ -2638,7 +2638,8 @@ convertMultipleColumns:
 			'success' => false,
 			'error' => [],
 			'pk' => $this->pk,
-			'values' => $this->values
+			'values' => $this->values,
+			'values_loaded' => $this->values_loaded
 		];
 		if ($this->hasErrors()) {
 			$message = [];
