@@ -316,7 +316,11 @@ class Layout extends View {
 				echo json_encode($data);
 				break;
 			case 'application/xml':
-				echo array2xml($data);
+				if (is_array($data)) {
+					echo array2xml($data);
+				} else {
+					echo $data;
+				}
 				break;
 			case 'text/html':
 				\Helper\Ob::start();
