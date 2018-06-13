@@ -42,6 +42,7 @@ class Dependencies {
 			$data['unit_tests'] = [];
 			$data['form'] = $data['form'] ?? [];
 			$data['__submodule_dependencies'] = [];
+			$data['components'] = [];
 			$dummy = [];
 			// we have small chicken and egg problem with composer
 			$composer_data = [];
@@ -60,6 +61,15 @@ class Dependencies {
 					self::processDepsArray($data['submodule'], $composer_data['require'], $composer_dirs, 'dummy', $dummy);
 				}
 			}
+			// process components
+			$components = \Helper\File::iterate('../libraries/components/', ['recursive' => true, 'only_files' => ['module.ini']]);
+			foreach ($components as $v) {
+				$k = str_replace(['../libraries/components/', '/module.ini'], '', $v);
+				$k2 = str_replace(['module.ini'], '', $v);
+				$composer_dirs['Numbers/Components/' . $k] = $k2;
+				$data['components'][$k] = $k2;
+			}
+
 			// processing submodules
 			$mutex = [];
 			$__any = [];
@@ -578,8 +588,6 @@ run_again:
 					}
 				}
 			}
-//			print_r($schema_diff);
-//			exit;
 
 			// executing sql
 			foreach ($total_per_db_link as $k => $v) {

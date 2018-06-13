@@ -20,9 +20,32 @@ class Deployments {
 			$deployed_dir = $temp . '/../../deployed';
 			$code_dir = $temp . '/../../application';
 			// for development we handle deployment differently, just symlink to the code
+			$data = \System\Dependencies::processDepsAll(['mode' => 'test']);
 			if ($options['mode'] == 'development') {
 				\Helper\File::delete($deployed_dir);
 				symlink($code_dir, $deployed_dir);
+				// process components
+				if (!empty($data['data']['components'])) {
+					// create directories
+					\Helper\File::mkdir($code_dir . '/application/Components');
+					\Helper\File::mkdir($code_dir . '/application/../public_html/components');
+					foreach ($data['data']['components'] as $k => $v) {
+						\Helper\File::delete($code_dir . '/application/Components/' . $k . '/');
+						\Helper\File::delete($code_dir . '/application/../public_html/components/' . $k . '/');
+						\Helper\File::mkdir($code_dir . '/application/Components/' . $k . '/');
+						\Helper\File::mkdir($code_dir . '/application/../public_html/components/' . $k . '/');
+						foreach (['application', 'public_html'] as $v2) {
+							$files = \Helper\File::iterate($v . $v2, ['recursive' => true]);
+							foreach ($files as $v3) {
+								if ($v2 == 'application') {
+									symlink($code_dir . '/' . $v2 . '/' . $v3, $code_dir . '/application/Components/' . $k . '/' . basename($v3));
+								} else {
+									symlink($code_dir . '/' . $v2 . '/' . $v3, $code_dir . '/application/../public_html/components/' . $k . '/' . basename($v3));
+								}
+							}
+						}
+					}
+				}
 				$result['success'] = true;
 				break;
 			}
@@ -40,6 +63,23 @@ class Deployments {
 			if (!\Helper\File::copy($code_dir, $dep_dir, ['skip_files' => ['.git', 'Makefile', '.gitignore']])) {
 				$result['error'][] = ' - unable to copy code!';
 				break;
+			}
+			// copy components
+			\Helper\File::mkdir($dep_dir . '/application/Components');
+			\Helper\File::mkdir($dep_dir . '/application/../public_html/components');
+			foreach ($data['data']['components'] as $k => $v) {
+				\Helper\File::mkdir($code_dir . '/application/Components/' . $k . '/');
+				\Helper\File::mkdir($code_dir . '/application/../public_html/components/' . $k . '/');
+				foreach (['application', 'public_html'] as $v2) {
+					$files = \Helper\File::iterate($v . $v2, ['recursive' => true]);
+					foreach ($files as $v3) {
+						if ($v2 == 'application') {
+							\Helper\File::copy($code_dir . '/' . $v2 . '/' . $v3, $dep_dir . '/application/Components/' . $k . '/' . basename($v3));
+						} else {
+							\Helper\File::copy($code_dir . '/' . $v2 . '/' . $v3, $dep_dir . '/application/../public_html/components/' . $k . '/' . basename($v3));
+						}
+					}
+				}
 			}
 			// js, css, scss, files here
 			$files_to_copy = [];
