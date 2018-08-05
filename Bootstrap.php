@@ -60,7 +60,7 @@ class Bootstrap {
 				// establish connection
 				$db_result = \Db::connectToServers($db_link, $db_settings);
 				// checking if not connected
-				if (!$db_result['success'] || !$db_result['status']) {
+				if (!$db_result['success']) {
 					// if wrong database name is provided we redirect to special url
 					if (!empty($application_structure['db_not_found_url']) && isset($application_structure['settings']['db'][$db_link])) {
 						\Request::redirect($application_structure['db_not_found_url']);
