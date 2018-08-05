@@ -4,6 +4,11 @@ namespace Object;
 class Table extends \Object\Table\Options {
 
 	/**
+	 * Include common trait
+	 */
+	use \Object\Table\Trait2;
+
+	/**
 	 * Link to database
 	 *
 	 * @var string
@@ -364,12 +369,17 @@ class Table extends \Object\Table\Options {
 				Throw new \Exception('Could not determine db link in model!');
 			}
 		}
-		// process table name and schema
-		if (!empty($this->schema)) {
-			$this->full_table_name = $this->schema . '.' . $this->name;
-		} else {
-			$this->full_table_name = $this->name;
-			$this->schema = '';
+		// see if we have special handling
+		$db_object = \Factory::get(['db', $this->db_link, 'object']);
+		if (method_exists($db_object, 'handleName')) {
+			$this->full_table_name = $db_object->handleName($this->schema, $this->name);
+		} else { // process table name and schema
+			if (!empty($this->schema)) {
+				$this->full_table_name = $this->schema . '.' . $this->name;
+			} else {
+				$this->full_table_name = $this->name;
+				$this->schema = '';
+			}
 		}
 		// tenant column
 		if ($this->tenant) {
@@ -653,13 +663,13 @@ class Table extends \Object\Table\Options {
 	 * @param int|null $module
 	 * @return int
 	 */
-	public function sequence(string $column, string $type = 'nextval', $tenant = null, $module = null) {
+	public function sequence(string $column, string $type = 'nextval', $tenant = null, $module = null) : int {
 		// add tenant
 		if (empty($tenant) && $this->tenant) {
 			$tenant = \Tenant::id();
 		}
 		$temp = $this->db_object->sequence($this->full_table_name . '_' . $column . '_seq', $type, $tenant, $module);
-		return $temp['rows'][0]['counter'];
+		return $temp['rows'][0]['counter'] ?? 0;
 	}
 
 	/**
@@ -828,61 +838,18 @@ TTT;
 	}
 
 	/**
-	 * Query builder
-	 *
-	 * @param array $options
-	 *		string alias, default a
-	 *		boolean skip_tenant
-	 *		boolean skip_acl
-	 * @return \Object\Query\Builder
-	 */
-	public function queryBuilder(array $options = []) : \Object\Query\Builder {
-		$model = $this;
-		// alias
-		$alias = $options['alias'] ?? 'a';
-		unset($options['alias']);
-		// set tenant parameter
-		if ($model->tenant && empty($options['skip_tenant'])) {
-			$options['tenant'] = true;
-		}
-		$object = new \Object\Query\Builder($model->db_link, $options);
-		$object->from($model, $alias);
-		// inject tenant into the query
-		if ($model->tenant && empty($options['skip_tenant'])) {
-			$object->where('AND', [$alias . '.' . $model->column_prefix . 'tenant_id', '=', \Tenant::id()]);
-		}
-		// registered ALC
-		if (empty($options['skip_acl'])) {
-			\Object\ACL\Registered::process('\\' . get_called_class(), $object, [
-				'initiator' => $options['initiator'] ?? null,
-				'existing_values' => $options['existing_values'] ?? null
-			]);
-		}
-		return $object;
-	}
-
-	/**
-	 * Query builder (static)
-	 *
-	 * @param array $options
-	 *		string alias, default a
-	 *		boolean skip_tenant
-	 *		boolean skip_acl
-	 * @return \Object\Query\Builder
-	 */
-	public static function queryBuilderStatic(array $options = []) : \Object\Query\Builder {
-		$class = get_called_class();
-		$model = new $class();
-		return $model->queryBuilder($options);
-	}
-
-	/**
 	 * Check if table exists in database
 	 *
 	 * @return boolean
 	 */
 	public function dbPresent() {
-		$temp_result = $this->db_object->query("SELECT count(*) counter FROM (" . $this->db_object->sqlHelper('fetch_tables') . ") a WHERE a.schema_name = '{$this->schema}' AND table_name = '{$this->name}'");
+		$query = new \Object\Query\Builder($this->db_link);
+		$query->select();
+		$query->columns(['counter' => 'COUNT(*)']);
+		$query->from('(' . $this->db_object->sqlHelper('fetch_tables') . ')', 'a');
+		$query->where('AND', ['a.schema_name', '=', $this->schema]);
+		$query->where('AND', ['a.table_name', '=', $this->name]);
+		$temp_result = $query->query();
 		return !empty($temp_result['rows'][0]['counter']);
 	}
 

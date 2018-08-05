@@ -95,12 +95,17 @@ class Sequence extends \Object\Override\Data {
 				Throw new \Exception('Could not determine db link in sequnce!');
 			}
 		}
-		// process table name and schema
-		if (!empty($this->schema)) {
-			$this->full_sequence_name = $this->schema . '.' . $this->name;
+		// process sequence name and schema
+		$db_object = \Factory::get(['db', $this->db_link, 'object']);
+		if (method_exists($db_object, 'handleName')) {
+			$this->full_sequence_name = $db_object->handleName($this->schema, $this->name);
 		} else {
-			$this->full_sequence_name = $this->name;
-			$this->schema = '';
+			if (!empty($this->schema)) {
+				$this->full_sequence_name = $this->schema . '.' . $this->name;
+			} else {
+				$this->full_sequence_name = $this->name;
+				$this->schema = '';
+			}
 		}
 	}
 

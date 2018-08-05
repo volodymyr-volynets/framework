@@ -51,12 +51,12 @@ try {
 		// migration - code, mode: test, commit, drop
 		case 'migration_code':
 			// get settings for default db_link
-			$settings = Numbers\Backend\Db\Common\Schemas::getSettings([
+			$settings = \Numbers\Backend\Db\Common\Schemas::getSettings([
 				'db_link' => 'default'
 			]);
 			if ($settings['success']) {
 				// process models
-				$code_result = Numbers\Backend\Db\Common\Schemas::processCodeModels([
+				$code_result = \Numbers\Backend\Db\Common\Schemas::processCodeModels([
 					'db_link' => 'default',
 					'db_schema_owner' => $settings['db_schema_owner'],
 					'skip_db_object' => true
@@ -99,7 +99,7 @@ try {
 					$result['hint'][] = "   -> Migrations dropped: {$drop_result['count']};";
 				} else {
 					// compare objects
-					$compare_result = Numbers\Backend\Db\Common\Schemas::compareTwoSetsOfObjects($code_result['objects']['default'] ?? [], $migration_result['objects']['default'] ?? [], [
+					$compare_result = \Numbers\Backend\Db\Common\Schemas::compareTwoSetsOfObjects($code_result['objects']['default'] ?? [], $migration_result['objects']['default'] ?? [], [
 						'type' => 'migration',
 						'db_link' => 'default'
 					]);
@@ -160,6 +160,9 @@ reask_for_migration:
 				// go through each database
 				foreach ($settings['db_list'] as $v) {
 					$schema_temp = $settings['db_settings'];
+					if (isset($schema_temp['dbname']) && $schema_temp['dbname'] !=$v) {
+						$schema_temp['__original_dbname'] = $schema_temp['dbname'];
+					}
 					$schema_temp['dbname'] = $v;
 					$db_object = new \Db('default', $schema_temp['submodule']);
 					$db_status = $db_object->connect($schema_temp);
@@ -296,13 +299,17 @@ reask_for_migration:
 				Throw new Exception('Direct schema changes are disabled, you must use migration commands!');
 			}
 			// get settings for default db_link
-			$settings = Numbers\Backend\Db\Common\Schemas::getSettings([
+			$settings = \Numbers\Backend\Db\Common\Schemas::getSettings([
 				'db_link' => 'default'
 			]);
 			if ($settings['success']) {
 				// go through each database
 				foreach ($settings['db_list'] as $v) {
 					$schema_temp = $settings['db_settings'];
+					// for multi database we need to store original database name
+					if ($schema_temp['dbname'] != $v) {
+						$schema_temp['__original_dbname'] = $schema_temp['dbname'];
+					}
 					$schema_temp['dbname'] = $v;
 					$db_object = new \Db('default', $schema_temp['submodule']);
 					$db_status = $db_object->connect($schema_temp);
@@ -313,7 +320,8 @@ reask_for_migration:
 					// start transaction
 					$db_object->begin();
 					// process models
-					$code_result = Numbers\Backend\Db\Common\Schemas::processCodeModels([
+					\Helper\Cmd::progressBar(0, 100, 'Loading Code objects');
+					$code_result = \Numbers\Backend\Db\Common\Schemas::processCodeModels([
 						'db_link' => 'default',
 						'db_schema_owner' => $settings['db_schema_owner']
 					]);
@@ -326,7 +334,8 @@ reask_for_migration:
 					foreach ($code_result['count']['default'] as $k2 => $v2) {
 						$result['hint'][] = "       * {$k2}: $v2";
 					}
-					$db_result = Numbers\Backend\Db\Common\Schemas::processDbSchema(['db_link' => 'default']);
+					\Helper\Cmd::progressBar(25, 100, 'Loading DB objects');
+					$db_result = \Numbers\Backend\Db\Common\Schemas::processDbSchema(['db_link' => 'default']);
 					if (!$db_result['success']) {
 						$result['error'] = array_merge($result['error'], $db_result['error']);
 						$db_object->rollback();
@@ -343,7 +352,8 @@ reask_for_migration:
 						$code_result['objects']['default'] = [];
 					}
 					// compare objects
-					$compare_result = Numbers\Backend\Db\Common\Schemas::compareTwoSetsOfObjects($code_result['objects']['default'] ?? [], $db_result['objects']['default'] ?? [], [
+					\Helper\Cmd::progressBar(50, 100, 'Comparing objects');
+					$compare_result = \Numbers\Backend\Db\Common\Schemas::compareTwoSetsOfObjects($code_result['objects']['default'] ?? [], $db_result['objects']['default'] ?? [], [
 						'type' => 'schema',
 						'db_link' => 'default'
 					]);
@@ -354,7 +364,8 @@ reask_for_migration:
 					}
 					// make schema changes
 					if ($compare_result['count'] > 0 && ($mode == 'drop' || $mode == 'commit')) {
-						$sql_result = Numbers\Backend\Db\Common\Schemas::generateSqlFromDiffAndExecute('default', $compare_result['up'], [
+						\Helper\Cmd::progressBar(50, 100, 'Executing SQL changes');
+						$sql_result = \Numbers\Backend\Db\Common\Schemas::generateSqlFromDiffAndExecute('default', $compare_result['up'], [
 							'mode' => $mode,
 							'execute' => true,
 							'legend' => $compare_result['legend']['up']
@@ -367,7 +378,16 @@ reask_for_migration:
 						$result['hint'][] = "   -> SQL changes: {$sql_result['count']};";
 						// set permissions to allow access for query user
 						if ($mode == 'commit' && !empty($code_result['permissions']['default'])) {
-							$permission_result = Numbers\Backend\Db\Common\Schemas::setPermissions('default', $settings['db_query_owner'], $code_result['permissions']['default'], ['database' => $v]);
+							\Helper\Cmd::progressBar(75, 100, 'Setting permissions');
+							$permission_result = \Numbers\Backend\Db\Common\Schemas::setPermissions(
+								'default',
+								$settings['db_query_owner'],
+								$code_result['permissions']['default'],
+								[
+									'database' => $v,
+									'db_query_password' => $settings['db_query_password']
+								]
+							);
 							if (!$permission_result['success']) {
 								$result['error'] = array_merge($result['error'], $permission_result['error']);
 								goto error;
@@ -381,7 +401,8 @@ reask_for_migration:
 					}
 					// import data
 					if ($mode == 'commit' && !empty($code_result['data']['\Object\Import'])) {
-						$import_data_result = Numbers\Backend\Db\Common\Schemas::importData('default', $code_result['data'], []);
+						\Helper\Cmd::progressBar(90, 100, 'Importing preset data');
+						$import_data_result = \Numbers\Backend\Db\Common\Schemas::importData('default', $code_result['data'], []);
 						if (!$import_data_result['success']) {
 							$result['error'] = array_merge($result['error'], $import_data_result['error']);
 							goto error;
@@ -393,6 +414,7 @@ reask_for_migration:
 						}
 					}
 					// commit
+					\Helper\Cmd::progressBar(100, 100, 'Commit changes');
 					$db_object->commit();
 				}
 				$result['success'] = true;
@@ -430,7 +452,7 @@ reset_all_caches:
 		// dependencies - mode: test, commit
 		case 'dependency':
 		default:
-			$result = \System\Dependencies::processDepsAll(['mode' => $mode, 'skip_confirmation' => $skip_confirmation]);
+			$result = \System\Dependencies::processDepsAll(['mode' => $mode, 'skip_confirmation' => $skip_confirmation, 'show_warnings' => true]);
 			if ($result['success']) {
 				echo "\n" . \Helper\Cmd::colorString('Dependency is OK', 'green', null, true) . "\n\n";
 			}

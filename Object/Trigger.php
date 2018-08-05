@@ -84,15 +84,24 @@ class Trigger {
 			}
 			// if we could not determine the link we throw exception
 			if (empty($this->db_link)) {
-				Throw new Exception('Could not determine db link in trigger!');
+				Throw new \Exception('Could not determine db link in trigger!');
 			}
 		}
-		// process function name and schema
-		if (!empty($this->schema)) {
-			$this->full_function_name = $this->schema . '.' . $this->name;
-		} else {
-			$this->full_function_name = $this->name;
-			$this->schema = '';
+		// see if we have special handling
+		$db_object = \Factory::get(['db', $this->db_link, 'object']);
+		if (method_exists($db_object, 'handleName')) {
+			$this->full_function_name = $db_object->handleName($this->schema, $this->name);
+		} else { // process table name and schema
+			if (!empty($this->schema)) {
+				$this->full_function_name = $this->schema . '.' . $this->name;
+			} else {
+				$this->full_function_name = $this->name;
+				$this->schema = '';
+			}
+		}
+		// we need to fix full table name
+		if (!empty($this->schema) && strpos($this->full_table_name, '.') === false) {
+			$this->full_table_name = $this->schema . '.' . $this->full_table_name;
 		}
 	}
 }

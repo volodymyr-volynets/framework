@@ -36,6 +36,13 @@ class Alive {
  * Echo and flush spaces
  */
 function alive_tick() {
+	// we exit if configured to
+	if (\Application::get('flag.alive.exit_on_disconnect')) {
+		if (connection_aborted()) {
+			exit;
+		}
+	}
+	// send space to frontend
 	echo ' ';
 	flush();
 }

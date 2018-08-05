@@ -31,7 +31,7 @@ class Domains extends \Object\Data {
 		'name' => ['name' => 'Name', 'type' => 'varchar', 'length' => 120, 'placeholder' => 'Name'],
 		'reference' => ['name' => 'Reference', 'type' => 'varchar', 'length' => 255, 'placeholder' => 'Reference'],
 		'description' => ['name' => 'Description', 'type' => 'varchar', 'length' => 2000, 'placeholder' => 'Description'],
-		'comment' => ['name' => 'Comment', 'type' => 'varchar', 'length' => 5000, 'placeholder' => 'Comment'],
+		'comment' => ['name' => 'Comment', 'type' => 'text', 'placeholder' => 'Comment'],
 		'symlink' => ['name' => 'Symlink', 'type' => 'varchar', 'length' => 255, 'placeholder' => 'Symlink'],
 		// codes
 		'code' => ['name' => 'Code', 'type' => 'varchar', 'length' => 255],

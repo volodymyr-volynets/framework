@@ -113,9 +113,6 @@ class File {
 				if ($filename === '.' || $filename === '..') {
 					continue;
 				}
-				if (!empty($options['only_files']) && !in_array($filename, $options['only_files'])) {
-					continue;
-				}
 			}
 			if (!empty($options['only_extensions']) && !in_array($v->getExtension(), $options['only_extensions'])) {
 				continue;

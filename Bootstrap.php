@@ -15,9 +15,13 @@ class Bootstrap {
 			\Format::init();
 			return;
 		}
-		// get flags & dependencies
+		// get flags & backend
 		$flags = \Application::get('flag');
 		$backend = \Application::get('Numbers.Backend', ['backend_exists' => true]);
+		// alive
+		if (!empty($flags['alive']['autoconnect'])) {
+			\Alive::start();
+		}
 		// initialize cryptography
 		$crypt = \Application::get('crypt');
 		if (!empty($crypt) && $backend) {
@@ -53,30 +57,15 @@ class Bootstrap {
 		if (!empty($db) && $backend) {
 			foreach ($db as $db_link => $db_settings) {
 				if (empty($db_settings['autoconnect']) || empty($db_settings['servers']) || empty($db_settings['submodule'])) continue;
-				$connected = false;
-				$db_options = $db_settings;
-				unset($db_options['servers']);
-				foreach ($db_settings['servers'] as $server_key => $server_values) {
-					$db_object = new \Db($db_link, $db_settings['submodule'], $db_options);
-					// application structure
-					if (isset($application_structure['settings']['db'][$db_link])) {
-						$server_values = array_merge_hard($server_values, $application_structure['settings']['db'][$db_link]);
-					}
-					// connecting
-					$server_values = array_merge2($server_values, $db_settings);
-					$db_status = $db_object->connect($server_values);
-					if ($db_status['success'] && $db_status['status']) {
-						$connected = true;
-						break;
-					}
-				}
+				// establish connection
+				$db_result = \Db::connectToServers($db_link, $db_settings);
 				// checking if not connected
-				if (!$connected) {
+				if (!$db_result['success'] || !$db_result['status']) {
 					// if wrong database name is provided we redirect to special url
 					if (!empty($application_structure['db_not_found_url']) && isset($application_structure['settings']['db'][$db_link])) {
 						\Request::redirect($application_structure['db_not_found_url']);
 					} else {
-						Throw new Exception('Unable to open database connection!');
+						Throw new \Exception('Unable to open database connection!');
 					}
 				}
 			}
@@ -88,7 +77,7 @@ class Bootstrap {
 				if (empty($cache_settings['submodule']) || empty($cache_settings['autoconnect'])) continue;
 				$cache_result = \Cache::connectToServers($cache_link, $cache_settings);
 				if (!$cache_result['success']) {
-					Throw new Exception(implode(', ', $cache_result['error']));
+					Throw new \Exception(implode(', ', $cache_result['error']));
 				}
 			}
 		}

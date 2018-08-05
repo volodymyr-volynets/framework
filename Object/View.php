@@ -1,7 +1,12 @@
 <?php
 
 namespace Object;
-class Function2 {
+abstract class View {
+
+	/**
+	 * Include common trait
+	 */
+	use \Object\Table\Trait2;
 
 	/**
 	 * Link to database
@@ -39,18 +44,11 @@ class Function2 {
 	public $backend;
 
 	/**
-	 * Full function name
+	 * Full view name
 	 *
 	 * @var string
 	 */
-	public $full_function_name;
-
-	/**
-	 * Header
-	 *
-	 * @var string
-	 */
-	public $header;
+	public $full_view_name;
 
 	/**
 	 * Definition
@@ -58,6 +56,34 @@ class Function2 {
 	 * @var string
 	 */
 	public $definition;
+
+	/**
+	 * Grant tables
+	 *
+	 * @var array
+	 */
+	public $grant_tables = [];
+
+	/**
+	 * Query
+	 *
+	 * @var object
+	 */
+	public $query;
+
+	/**
+	 * Tenant
+	 *
+	 * @var int
+	 */
+	public $tenant;
+
+	/**
+	 * Column prefix
+	 *
+	 * @var string
+	 */
+	public $column_prefix;
 
 	/**
 	 * Constructing object
@@ -77,20 +103,35 @@ class Function2 {
 			}
 			// if we could not determine the link we throw exception
 			if (empty($this->db_link)) {
-				Throw new \Exception('Could not determine db link in function!');
+				Throw new \Exception('Could not determine db link in trigger!');
 			}
 		}
 		// see if we have special handling
 		$db_object = \Factory::get(['db', $this->db_link, 'object']);
 		if (method_exists($db_object, 'handleName')) {
-			$this->full_function_name = $db_object->handleName($this->schema, $this->name);
+			$this->full_view_name = $db_object->handleName($this->schema, $this->name);
 		} else { // process table name and schema
 			if (!empty($this->schema)) {
-				$this->full_function_name = $this->schema . '.' . $this->name;
+				$this->full_view_name = $this->schema . '.' . $this->name;
 			} else {
-				$this->full_function_name = $this->name;
+				$this->full_view_name = $this->name;
 				$this->schema = '';
 			}
 		}
+		// initialize query object
+		$this->query = new \Object\Query\Builder($this->db_link);
+		$this->definition();
+		$this->definition = $this->query->sql();
+		$this->grant_tables = array_values($this->query->data['from']);
+		// view must not contain asterisk
+		$temp = explode('FROM', strtoupper($this->definition));
+		if (strpos($temp[0], '*') !== false) {
+			Throw new \Exception('View ' . $this->full_view_name . ' contains asterisk!');
+		}
 	}
+
+	/**
+	 * Definition
+	 */
+	abstract public function definition();
 }

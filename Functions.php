@@ -428,6 +428,21 @@ function array_to_field(array $arr) : string {
 }
 
 /**
+ * Change key name in array
+ *
+ * @param array $arr
+ * @param int|string $old_key
+ * @param int|string $new_key
+ * @return array
+ */
+function array_change_key_name(array $arr, $old_key, $new_key) : array {
+    if(!array_key_exists($old_key, $arr)) return $arr;
+    $keys = array_keys($arr);
+    $keys[array_search($old_key, $keys)] = $new_key;
+    return array_combine($keys, $arr);
+}
+
+/**
  * Sort an array by certain keys with certain methods
  * 
  * @param array $arr
@@ -729,6 +744,35 @@ function array_compare_level1($arr1, $arr2) {
 	}
 	foreach ($arr2 as $k => $v) {
 		if (!isset($arr1[$k]) || $v != $arr1[$k]) {
+			return false;
+		}
+	}
+	return true;
+}
+
+/**
+ * Compares two array in inteligent way
+ *
+ * @param array $arr1
+ * @param array $arr2
+ * @param array $arr1a
+ * @param array $arr2a
+ * @return boolean
+ */
+function array_compare_inteligent($arr1, $arr2, $arr1a, $arr2a) {
+	if (count($arr1) <> count($arr2) || count($arr1a) <> count($arr2a)) {
+		return false;
+	}
+	$temp1 = [];
+	$temp2 = [];
+	foreach ($arr1 as $k => $v) {
+		$hashed1 = sha1($arr1[$k] . '::' . ($arr1a[$k] ?? 0));
+		$hashed2 = sha1($arr2[$k] . '::' . ($arr2a[$k] ?? 0));
+		$temp1[$hashed1] = $hashed1;
+		$temp2[$hashed2] = $hashed2;
+	}
+	foreach ($temp1 as $v) {
+		if (!isset($temp2[$v])) {
 			return false;
 		}
 	}

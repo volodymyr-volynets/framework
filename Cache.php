@@ -181,7 +181,7 @@ class Cache {
 			'error' => []
 		];
 		foreach ($cache_settings['servers'] as $cache_server) {
-			$cache_object = new Cache($cache_link, $cache_settings['submodule'], $cache_settings);
+			$cache_object = new \Cache($cache_link, $cache_settings['submodule'], $cache_settings);
 			$cache_status = $cache_object->connect($cache_server);
 			if ($cache_status['success']) {
 				$result['success'] = true;

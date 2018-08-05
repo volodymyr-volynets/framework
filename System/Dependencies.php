@@ -61,6 +61,7 @@ class Dependencies {
 					self::processDepsArray($data['submodule'], $composer_data['require'], $composer_dirs, 'dummy', $dummy);
 				}
 			}
+
 			// process components
 			$components = \Helper\File::iterate('../libraries/components/', ['recursive' => true, 'only_files' => ['module.ini']]);
 			foreach ($components as $v) {
@@ -200,7 +201,7 @@ class Dependencies {
 							$result['error'][] = " - Apache module \"$k\" is not loaded!";
 						}
 					}
-				} else {
+				} else if (!empty($options['show_warnings'])) {
 					echo \Helper\Cmd::colorString('Make sure following Apache modules are enabled:', 'red') . "\n";
 					foreach ($data['apache']['module'] as $k => $v) {
 						echo $k . " ";

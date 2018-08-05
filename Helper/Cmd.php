@@ -114,4 +114,18 @@ class Cmd {
 	public static function isCli() : bool {
 		return (php_sapi_name() == 'cli');
 	}
+
+	/**
+	 * Show progress bar
+	 *
+	 * @param int $done
+	 * @param int $total
+	 */
+	public static function progressBar(int $done, int $total = 100, string $description = '') {
+		if (!self::isCli()) return;
+		$percent = round(($done / $total) * 100, 0);
+		$left = 100 - $percent;
+		$write = sprintf("\033[0G\033[2K[%'={$percent}s>%-{$left}s] - $percent%% - $done/$total - $description", "", "");
+		fwrite(STDERR, $write);
+	}
 }

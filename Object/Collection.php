@@ -94,6 +94,10 @@ class Collection extends \Object\Override\Data {
 			'data' => []
 		];
 		do {
+			// if we have import from command line we need to intialize
+			if (method_exists($this->primary_model->db_object->object, 'initialzeWhenNeeded')) {
+				$this->primary_model->db_object->object->initialzeWhenNeeded(['import' => true]);
+			}
 			$this->primary_model->db_object->begin();
 			// building query
 			$query = $this->primary_model->queryBuilder([
@@ -405,6 +409,10 @@ class Collection extends \Object\Override\Data {
 				$result['error'][] = 'No data!';
 				break;
 			}
+			// if we have import from command line we need to intialize
+			if (method_exists($this->primary_model->db_object->object, 'initialzeWhenNeeded')) {
+				$this->primary_model->db_object->object->initialzeWhenNeeded(['import' => true]);
+			}
 			// start transaction
 			$this->primary_model->db_object->begin();
 			// preset tenant
@@ -539,6 +547,10 @@ error:
 			if (empty($data)) {
 				$result['error'][] = 'No data to merge!';
 				break;
+			}
+			// if we have import from command line we need to intialize
+			if (method_exists($this->primary_model->db_object->object, 'initialzeWhenNeeded')) {
+				$this->primary_model->db_object->object->initialzeWhenNeeded(['import' => true]);
 			}
 			// start transaction
 			$this->primary_model->db_object->begin();

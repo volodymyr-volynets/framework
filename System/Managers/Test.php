@@ -38,18 +38,7 @@ $result = [
 try {
 
 	// add your code here
-	$cache = new numbers_backend_cache_memcached_base('memcached', ['tags' => true]);
-	$temp = $cache->connect(['host' => '127.0.0.1', 'port' => 11211]);
-	print_r2($temp);
-	// set tag
-	$temp = $cache->set('test', ['some key' => 'some value'], null, ['+test1', 'test2']);
-	print_r2($temp);
-	// get tag
-	$temp = $cache->get('test');
-	print_r2($temp);
-	// clear tags
-	$temp = $cache->gc(3, [['+test1', 'test2', 'test3']]);
-	print_r2($temp);
+
 
 // error label
 error:
