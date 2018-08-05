@@ -126,7 +126,12 @@ class Debug {
 		}
 		// we do not send suppresed errors to admin for now. !empty(self::$data['suppressed'])
 		if ($found || !empty(self::$data['js'])) {
-			$message = str_replace('display: none;', '', self::render());
+			$message = '<hr/>';
+			$message.= '<br/>IP: ' . \Request::ip();
+			$message.= '<br/>Host: ' . \Request::host();
+			$message.= '<br/>Script folder: ' . getcwd();
+			$message.= '<hr/>';
+			$message.= str_replace('display: none;', '', self::render());
 			return \Mail::send([
 				'to' => self::$email,
 				'subject' => 'application error',
