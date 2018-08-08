@@ -29,7 +29,7 @@ ini_set('memory_limit', '2048M');
 set_time_limit(0);
 
 // confirmation whether to run the script
-if (empty($skip_confirmation)) {
+if (empty($skip_confirmation) || $skip_confirmation == 2) {
 	if (!\Helper\Cmd::confirm("Conitune operation \"$type\" with mode \"$mode\"?")) exit;
 }
 
