@@ -55,6 +55,7 @@ try {
 				'db_link' => 'default'
 			]);
 			if ($settings['success']) {
+				$db_object = new \Db('default', $settings['db_settings']['submodule']);
 				// process models
 				$code_result = \Numbers\Backend\Db\Common\Schemas::processCodeModels([
 					'db_link' => 'default',
@@ -136,6 +137,7 @@ reask_for_migration:
 			]);
 			if ($settings['success']) {
 				// load all migrations from the code
+				\Helper\Cmd::progressBar(0, 100, 'Loading migrations');
 				$migration_result = \Numbers\Backend\Db\Common\Migration\Processor::loadCodeMigrations([
 					'db_link' => 'default',
 					'load_migration_objects' => true
@@ -151,12 +153,6 @@ reask_for_migration:
 						goto error;
 					}
 				}
-				// load all import models from the code
-				$code_result = \Numbers\Backend\Db\Common\Schemas::processCodeModels([
-					'db_link' => 'default',
-					'db_schema_owner' => $settings['db_schema_owner'],
-					'skip_db_object' => true
-				]);
 				// go through each database
 				foreach ($settings['db_list'] as $v) {
 					$schema_temp = $settings['db_settings'];
@@ -167,7 +163,7 @@ reask_for_migration:
 					$db_object = new \Db('default', $schema_temp['submodule']);
 					$db_status = $db_object->connect($schema_temp);
 					if (!($db_status['success'] && $db_status['status'])) {
-						Throw new Exception('Unable to open database connection!');
+						Throw new \Exception('Unable to open database connection!');
 					}
 					$result['hint'][] = " * Connected to {$v} database:";
 					// fetch last migration name and count
@@ -239,6 +235,7 @@ reask_for_migration:
 						$result['hint'][] = "   -> Applying migration(s):";
 						$permissions = [];
 						// apply migrations one by one
+						$counter = 0;
 						foreach ($new_migrations as $k2 => $v2) {
 							// execute migration in commit mode
 							$execute_result = $v2['object']->execute($action);
@@ -250,6 +247,9 @@ reask_for_migration:
 							$result['hint'][] = "       * {$k2}: {$action} " . \Helper\Cmd::colorString('OK', 'green');
 							// assemble permissions
 							$permissions = array_merge_hard($permissions, $execute_result['permissions']);
+							// progress bar
+							$counter++;
+							\Helper\Cmd::progressBar(25 + round($counter / count($new_migrations) * 100 / 2, 0), 100, 'Executing migrations');
 						}
 						// cleanup permissions
 						foreach ($permissions as $k2 => $v2) {
@@ -259,8 +259,17 @@ reask_for_migration:
 							if (empty($permissions[$k2])) unset($permissions[$k2]);
 						}
 						// set permissions
+						\Helper\Cmd::progressBar(75, 100, 'Setting permissions');
 						if (!empty($permissions)) {
-							$permission_result = \Numbers\Backend\Db\Common\Schemas::setPermissions('default', $settings['db_query_owner'], $permissions, ['database' => $v]);
+							$permission_result = \Numbers\Backend\Db\Common\Schemas::setPermissions(
+								'default',
+								$settings['db_query_owner'],
+								$permissions,
+								[
+									'database' => $v,
+									'db_query_password' => $settings['db_query_password']
+								]
+							);
 							if (!$permission_result['success']) {
 								$result['error'] = array_merge($result['error'], $permission_result['error']);
 								goto error;
@@ -273,18 +282,27 @@ reask_for_migration:
 						}
 					}
 					// import data
-					if ($mode == 'commit' && !empty($code_result['data']['\Object\Import'])) {
-						$import_data_result = \Numbers\Backend\Db\Common\Schemas::importData('default', $code_result['data'], []);
-						if (!$import_data_result['success']) {
-							$result['error'] = array_merge($result['error'], $import_data_result['error']);
-							goto error;
-						}
-						$result['hint'][] = "   -> Import data: {$import_data_result['count']};";
-						// building hint
-						if (!empty($verbose)) {
-							$result['hint'] = array_merge($result['hint'], $import_data_result['legend']);
+					if ($mode == 'commit') {
+						\Helper\Cmd::progressBar(90, 100, 'Importing preset data');
+						$code_result = \Numbers\Backend\Db\Common\Schemas::processCodeModels([
+							'db_link' => 'default',
+							'db_schema_owner' => $settings['db_schema_owner'],
+							'skip_db_object' => true
+						]);
+						if (!empty($code_result['data']['\Object\Import'])) {
+							$import_data_result = \Numbers\Backend\Db\Common\Schemas::importData('default', $code_result['data'], []);
+							if (!$import_data_result['success']) {
+								$result['error'] = array_merge($result['error'], $import_data_result['error']);
+								goto error;
+							}
+							$result['hint'][] = "   -> Import data: {$import_data_result['count']};";
+							// building hint
+							if (!empty($verbose)) {
+								$result['hint'] = array_merge($result['hint'], $import_data_result['legend']);
+							}
 						}
 					}
+					\Helper\Cmd::progressBar(100, 100, 'Migration completed');
 				}
 				$result['success'] = true;
 			} else {

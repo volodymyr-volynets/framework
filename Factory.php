@@ -133,7 +133,7 @@ no_cache:
 			$temp_method = $temp[0];
 		}
 		if ($model) {
-			$temp_model = Factory::model($temp_model, true, $constructor_parameters);
+			$temp_model = \Factory::model($temp_model, false, $constructor_parameters);
 		}
 		return [& $temp_model, $temp_method];
 	}

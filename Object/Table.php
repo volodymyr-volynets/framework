@@ -843,14 +843,7 @@ TTT;
 	 * @return boolean
 	 */
 	public function dbPresent() {
-		$query = new \Object\Query\Builder($this->db_link);
-		$query->select();
-		$query->columns(['counter' => 'COUNT(*)']);
-		$query->from('(' . $this->db_object->sqlHelper('fetch_tables') . ')', 'a');
-		$query->where('AND', ['a.schema_name', '=', $this->schema]);
-		$query->where('AND', ['a.table_name', '=', $this->name]);
-		$temp_result = $query->query();
-		return !empty($temp_result['rows'][0]['counter']);
+		return $this->db_object->tableExists($this->full_table_name);
 	}
 
 	/**

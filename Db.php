@@ -3,6 +3,13 @@
 class Db {
 
 	/**
+	 * Db link
+	 *
+	 * @var string
+	 */
+	public $db_link;
+
+	/**
 	 * Database object
 	 *
 	 * @var object
@@ -40,6 +47,7 @@ class Db {
 				Throw new Exception('You must specify database link and/or class!');
 			}
 		}
+		$this->db_link = $db_link;
 		// get object from factory
 		$temp = Factory::get(['db', $db_link]);
 		// if we have class
@@ -50,7 +58,7 @@ class Db {
 			}
 			// if we are replacing database connection with the same link we
 			// need to manually close database connection
-			if (!empty($temp['object']) && $temp['class'] != $class) {
+			if (!empty($temp['object'])) {
 				$object = $temp['object'];
 				$object->close();
 				unset($this->object);
@@ -63,7 +71,7 @@ class Db {
 			// backend
 			$this->backend = $this->object->backend;
 			// putting every thing into factory
-			Factory::set(['db', $db_link], [
+			\Factory::set(['db', $db_link], [
 				'object' => $this->object,
 				'class' => $class,
 				'backend' => $this->backend,
