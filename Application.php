@@ -92,6 +92,7 @@ class Application {
 		// setting include_path
 		$paths = [];
 		$paths[] = $application_path_full;
+		$paths[] = str_replace(['/vendor/Numbers/Framework', '/vendor/numbers/Framework'], '/private', __DIR__); // private repositories first
 		$paths[] = __DIR__;
 		$paths[] = str_replace(['/Numbers/Framework', '/numbers/Framework'], '', __DIR__);
 		set_include_path(implode(PATH_SEPARATOR, $paths));

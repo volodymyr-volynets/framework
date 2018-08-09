@@ -117,6 +117,9 @@ class File {
 			if (!empty($options['only_extensions']) && !in_array($v->getExtension(), $options['only_extensions'])) {
 				continue;
 			}
+			if (!empty($options['only_files']) && !in_array($filename, $options['only_files'])) {
+				continue;
+			}
 			$result[] = $v->getPathname();
 		}
 		return $result;
