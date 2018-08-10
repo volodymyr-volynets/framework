@@ -1067,13 +1067,19 @@ function hex2rgb(string $hex) : array {
  *   "\x0B" - Vertical Tab
  *   "\r" - New Line in Mac
  *   " " - Space
- * @param type $with
- * @return type
+ *	 "[str]$" Replace from end of string
+ * 	 "^[str]" Replace from start of string
+ * @param string $with
+ * @return string
  */
 function trim2($str, $what = null, $with = ' ') {
-    if($what === null) {
+    if ($what === null) {
         $what = "\\x00-\\x20";    //all white-spaces and control chars
-    }
+    } else if (strpos($what, '$') !== false) { // string from the end
+		return preg_replace('/' . preg_quote($str, '/') . '/', $with, $str);
+	} else if (strpos($what, '^') !== false) {
+		return preg_replace('/' . preg_quote($str, '/') . '/', $with, $str);
+	}
     return trim(preg_replace("/[".$what."]+/", $with, $str), $what);
 }
 

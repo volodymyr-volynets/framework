@@ -92,9 +92,10 @@ class Application {
 		// setting include_path
 		$paths = [];
 		$paths[] = $application_path_full;
-		$paths[] = str_replace(['/vendor/Numbers/Framework', '/vendor/numbers/Framework'], '/private', __DIR__); // private repositories first
-		$paths[] = __DIR__;
-		$paths[] = str_replace(['/Numbers/Framework', '/numbers/Framework'], '', __DIR__);
+		$application_path_temp = preg_replace('/\/application$/', '', $application_path_full);
+		$paths[] = $application_path_temp . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'Numbers' . DIRECTORY_SEPARATOR . 'Framework';
+		$paths[] = $application_path_temp . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . 'private';
+		$paths[] = $application_path_temp . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . 'vendor';
 		set_include_path(implode(PATH_SEPARATOR, $paths));
 		// autoloader
 		spl_autoload_register(array('Application', 'autoloader'));

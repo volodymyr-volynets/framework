@@ -43,6 +43,7 @@ class Dependencies {
 			$data['form'] = $data['form'] ?? [];
 			$data['__submodule_dependencies'] = [];
 			$data['components'] = [];
+			$data['extra_configs'] = [];
 			$dummy = [];
 			// we have small chicken and egg problem with composer
 			$composer_data = [];
@@ -87,21 +88,30 @@ class Dependencies {
 							$data['submodule_dirs'][$v] = $v;
 							$sub_data = \System\Config::ini($v . 'module.ini', 'dependencies');
 							$sub_data = isset($sub_data['dep']) ? $sub_data['dep'] : [];
+							// composer
 							if (!empty($sub_data['composer'])) {
 								self::processDepsArray($sub_data['composer'], $composer_data['require'], $composer_dirs, $k, $dummy);
 								$data['composer'] = array_merge_hard($data['composer'], $sub_data['composer']);
 							}
+							// submodules
 							if (!empty($sub_data['submodule'])) {
 								self::processDepsArray($sub_data['submodule'], $composer_data['require'], $composer_dirs, $k, $data['__submodule_dependencies'], 'vendor');
 								self::processDepsArray($sub_data['submodule'], $composer_data['require'], $composer_dirs, $k, $data['__submodule_dependencies'], 'private');
 								$data['submodule'] = array_merge_hard($data['submodule'], $sub_data['submodule']);
 							}
+							// apache
 							if (!empty($sub_data['apache'])) {
 								$data['apache'] = array_merge_hard($data['apache'], $sub_data['apache']);
 							}
+							// php
 							if (!empty($sub_data['php'])) {
 								$data['php'] = array_merge_hard($data['php'], $sub_data['php']);
 							}
+							// extra configs
+							if (!empty($sub_data['extra_configs'])) {
+								$data['extra_configs'] = array_merge_hard($data['extra_configs'], $sub_data['extra_configs']);
+							}
+							// model
 							if (!empty($sub_data['model'])) {
 								$data['model'] = array_merge_hard($data['model'], $sub_data['model']);
 								$temp = [];
@@ -110,12 +120,15 @@ class Dependencies {
 									$data['__model_dependencies'][$k][$k0] = $k0;
 								}
 							}
+							// override
 							if (!empty($sub_data['override'])) {
 								$data['override'] = array_merge_hard($data['override'], $sub_data['override']);
 							}
+							// acl
 							if (!empty($sub_data['acl'])) {
 								$data['acl'] = array_merge_hard($data['acl'], $sub_data['acl']);
 							}
+							// media
 							if (!empty($sub_data['media'])) {
 								foreach ($sub_data['media'] as $k78 => $v78) {
 									if (!isset($data['media'][$k78])) $data['media'][$k78] = [];
@@ -124,6 +137,7 @@ class Dependencies {
 									}
 								}
 							}
+							// forms
 							if (!empty($sub_data['form'])) {
 								$data['form'] = array_merge_hard($data['form'], $sub_data['form']);
 							}
@@ -207,11 +221,20 @@ class Dependencies {
 					}
 				} else if (!empty($options['show_warnings'])) {
 					echo \Helper\Cmd::colorString('Make sure following Apache modules are enabled:', 'red') . "\n";
+					echo "\t";
 					foreach ($data['apache']['module'] as $k => $v) {
 						echo $k . " ";
 					}
 					echo "\n";
 				}
+			}
+			// extra configs
+			if (!empty($data['extra_configs']['warnings'])) {
+				echo \Helper\Cmd::colorString('Additional configuration settings:', 'red') . "\n";
+				foreach ($data['extra_configs']['warnings'] as $k => $v) {
+					echo "\t" . $k . ": " . $v . "\n";
+				}
+				echo "\n";
 			}
 			// processing models
 			if (!empty($data['model'])) {
@@ -265,11 +288,6 @@ class Dependencies {
 					unset($data['model_processed'][$k2]);
 					$data['model_processed'][$k2] = $temp;
 				}
-			}
-			if (!empty($data['model_processed']['\Numbers\Backend\Db\Extension\PostgreSQL\PostGIS\Model\Geo\PostGIS'])) {
-				echo \Helper\Cmd::colorString('Make sure following Postgres configuration exists:', 'red') . "\n";
-				echo 'search_path = \'"$user",public,extensions\'';
-				echo "\n";
 			}
 			unset($data['__submodule_dependencies'], $data['__model_dependencies'], $data['model_import']);
 			// handling overrides, cleanup directory first
