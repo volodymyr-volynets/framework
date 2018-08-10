@@ -109,14 +109,15 @@ class Front {
 		// parsing request
 		$data = self::mvc($request_uri);
 		// forming class name and file
-		// todo: add full path here instead of relative
 		if (in_array('Controller', $data['controllers'])) {
-			// todo: custom modules handling
 			$controller_class = str_replace(' ', '\\', implode(' ', $data['controllers']));
-			$file = './../libraries/vendor/' . str_replace('\\', '/', $controller_class . '.php');
+			$file = './../libraries/private/' . str_replace('\\', DIRECTORY_SEPARATOR, $controller_class . '.php');
+			if (!file_exists($file)) {
+				$file = './../libraries/vendor/' . str_replace('\\', DIRECTORY_SEPARATOR, $controller_class . '.php');
+			}
 		} else {
 			$controller_class = 'Controller\\' . str_replace(' ', '\\', implode(' ', $data['controllers']));
-			$file = './' . str_replace('\\', '/', $controller_class . '.php');
+			$file = './' . str_replace('\\', DIRECTORY_SEPARATOR, $controller_class . '.php');
 		}
 		$controller_class = '\\' . $controller_class;
 		// assembling everything into settings
