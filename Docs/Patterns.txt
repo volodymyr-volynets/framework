@@ -1,0 +1,45 @@
+Database Session State - Keeps the session state on a server in serialized form.
+
+Lazy Load - An object that does not contain all of the data you need but knows
+			how to get it.
+
+Mediator - The intent of this pattern is encapsulating the interactions of a set
+		   of objects, preventing aggressive coupling from each of them towards
+		   the other ones. A Mediator acts as a central point of convergence
+		   between the Colleague objects.
+
+Model View Controller - Splits user interface interaction into three distinct
+						roles.
+
+Notification - A way to return list of errors instead on throwing exceptions.
+
+Optimistic Offline Lock - Prevents conflicts between concurrent business
+						  transactions by detecting a conflict and rolling back
+						  the transaction.
+
+Plugin - Links classes during configuration rather than compilation.
+
+Proxy - In the proxy pattern one class stands in for and handles all access to
+		another class.
+
+Query Object - An object that represents a database query.
+
+Record Set - An in-memory representation of tabular data.
+
+Registry - A well known object that other ones can use to find related objects 
+		   or service.
+
+Table Data Gateway - An object that acts as gateway to a database table. One
+					 instance handles all rows in a table.
+
+Table Module - A single instance that handles the business logic for all rows in
+			   a database table or view.
+
+Transform View - A view that processes domain data element by element and
+				 transforms it into HTML.
+
+Two Step View - Turns domain data into HTML in two steps.
+
+Unit of Work - Maintains a list of objects affected by a business transaction
+			   and coordinates writing out of changes and the resolution of
+			   concurrency problems.

@@ -559,22 +559,33 @@ function array_key_math(& $arr, $key, $type = 'add') {
 }
 
 /**
+ * Prepare and convert keys to used in other functions
+ *
+ * @param mixed $keys
+ * @return array
+ */
+function array_key_convert_key($keys) : array {
+	if (!is_array($keys)) {
+		$keys = str_replace('.', ',', $keys . '');
+		$keys = explode(',', $keys);
+	}
+	return $keys;
+}
+
+/**
  * Get value from array by keys
  * 
  * @param array $arr
  * @param mixed $keys - keys can be in this format: "1,2,3", "a", 1, array(1,2,3)
  * @param array $options
- *		unset
+ *		unset - if we need to unset the key
  * @return mixed
  */
 function array_key_get(& $arr, $keys = null, $options = []) {
 	if ($keys === null || (is_array($keys) && empty($keys))) {
 		return $arr;
 	} else {
-		if (!is_array($keys)) {
-			$keys = str_replace('.', ',', $keys . '');
-			$keys = explode(',', $keys);
-		}
+		$keys = array_key_convert_key($keys);
 		$key = $keys;
 		$last = array_pop($key);
 		$pointer = & $arr;
@@ -611,11 +622,7 @@ function array_key_set(& $arr, $keys = null, $value, $options = []) {
 	if ($keys === null) {
 		$arr = $value;
 	} else {
-		// processing keys
-		if (!is_array($keys)) {
-			$keys = str_replace('.', ',', $keys . '');
-			$keys = explode(',', $keys);
-		}
+		$keys = array_key_convert_key($keys);
 		$key = $keys;
 		$pointer = & $arr;
 		foreach ($key as $k2) {
