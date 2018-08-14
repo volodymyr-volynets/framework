@@ -22,10 +22,10 @@ class Math {
 	/**
 	 * Double the scale
 	 *
-	 * @param mixed scale
+	 * @param int scale
 	 * @return integer
 	 */
-	public static function double($scale) : int {
+	public static function double(int $scale) : int {
 		return (intval($scale) * 2) + 2;
 	}
 
@@ -287,5 +287,20 @@ class Math {
 			$result = \Math::add($result, $v . '', $scale);
 		}
 		return $result;
+	}
+
+	/**
+	 * Truncate
+	 *
+	 * @param mixed $arg1
+	 * @param int $scale
+	 * @return string
+	 */
+	public static function truncate($arg1, $scale = null) : string {
+		$scale = $scale ?? self::$scale;
+		if (($position = strpos($arg1 . '', '.')) !== false) {
+			return substr($arg1 . '', 0, $position + 1 + $scale);
+		}
+		return $val;
 	}
 }
