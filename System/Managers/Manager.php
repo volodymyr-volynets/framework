@@ -259,6 +259,8 @@ reask_for_migration:
 							if (empty($permissions[$k2])) unset($permissions[$k2]);
 						}
 						// set permissions
+						// todo: maybe reset permissions for old migrations,
+						// useful when we make changes to DDL classes
 						\Helper\Cmd::progressBar(75, 100, 'Setting permissions');
 						if (!empty($permissions)) {
 							$permission_result = \Numbers\Backend\Db\Common\Schemas::setPermissions(
@@ -394,27 +396,27 @@ reask_for_migration:
 							goto error;
 						}
 						$result['hint'][] = "   -> SQL changes: {$sql_result['count']};";
-						// set permissions to allow access for query user
-						if ($mode == 'commit' && !empty($code_result['permissions']['default'])) {
-							\Helper\Cmd::progressBar(75, 100, 'Setting permissions');
-							$permission_result = \Numbers\Backend\Db\Common\Schemas::setPermissions(
-								'default',
-								$settings['db_query_owner'],
-								$code_result['permissions']['default'],
-								[
-									'database' => $v,
-									'db_query_password' => $settings['db_query_password']
-								]
-							);
-							if (!$permission_result['success']) {
-								$result['error'] = array_merge($result['error'], $permission_result['error']);
-								goto error;
-							}
-							$result['hint'][] = "   -> Set permissions: {$permission_result['count']};";
-							// building hint
-							if (!empty($verbose)) {
-								$result['hint'] = array_merge($result['hint'], $permission_result['legend']);
-							}
+					}
+					// set permissions to allow access for query user
+					if ($mode == 'commit' && !empty($code_result['permissions']['default'])) {
+						\Helper\Cmd::progressBar(75, 100, 'Setting permissions');
+						$permission_result = \Numbers\Backend\Db\Common\Schemas::setPermissions(
+							'default',
+							$settings['db_query_owner'],
+							$code_result['permissions']['default'],
+							[
+								'database' => $v,
+								'db_query_password' => $settings['db_query_password']
+							]
+						);
+						if (!$permission_result['success']) {
+							$result['error'] = array_merge($result['error'], $permission_result['error']);
+							goto error;
+						}
+						$result['hint'][] = "   -> Set permissions: {$permission_result['count']};";
+						// building hint
+						if (!empty($verbose)) {
+							$result['hint'] = array_merge($result['hint'], $permission_result['legend']);
 						}
 					}
 					// import data
