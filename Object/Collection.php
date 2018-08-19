@@ -687,7 +687,8 @@ error:
 				$pk = extract_keys($collection['pk'], $original_row);
 				$delete = [
 					'table' => $model->full_table_name,
-					'pk' => $pk
+					'pk' => $pk,
+					'primary_key' => $model->pk
 				];
 				// audit
 				$action = 'delete';
@@ -793,7 +794,7 @@ error:
 			$model->processWhoColumns(['updated', 'optimistic_lock'], $update, $this->timestamp);
 			if (!empty($update)) {
 				// update record
-				$temp = $this->primary_model->db_object->update($model->full_table_name, $update, [], ['where' => $pk]);
+				$temp = $this->primary_model->db_object->update($model->full_table_name, $update, [], ['where' => $pk, 'primary_key' => $model->pk]);
 				if (!$temp['success']) {
 					$result['error'] = $temp['error'];
 					return $result;
@@ -809,7 +810,7 @@ error:
 		}
 		// step 5 delete record after we deleted all childrens
 		if (!empty($delete)) {
-			$temp = $this->primary_model->db_object->delete($delete['table'], [], [], ['where' => $delete['pk']]);
+			$temp = $this->primary_model->db_object->delete($delete['table'], [], [], ['where' => $delete['pk'], 'primary_key' => $delete['primary_key']]);
 			if (!$temp['success']) {
 				$result['error'] = $temp['error'];
 				return $result;

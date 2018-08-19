@@ -1,0 +1,28 @@
+PHP:
+	1) Variable and object properties must be lowercase and separated by
+	   underscore; Example $this->test_property;
+	2) Function names properties must be lowercase and separated by
+	   underscore; Example my_test_function();
+	3) Constants must be uppercase. Example MY_TEST_CONSTANT;
+	4) Class names must be name spaced and first letter upper case.
+	   Example My\Test\Class;
+	5) Methods in classes must be camel case. Example $this->myTestMethod();
+
+JavaScript:
+	1) Variable and object properties must be lowercase and separated by
+	   underscore; Example this.test_property;
+	2) Function names properties must be lowercase and separated by
+	   underscore; Example my_test_function();
+	3) Methods in objects must be camel case. Example this.myTestMethod();
+
+Database:
+	1) All objects names must be lowercase and no longer than 63 characters;
+	2) All tables should be prefixed by module code.
+	   Example [module code]_[table name]
+	3) All columns must be prefixed by module code and short table name.
+	   Example [module code]_[short table name]_[column name].
+	4) All primary keys must be formed like this [full table name]_pk.
+	5) All unique constraints must be formed like this [column_name]_un.
+	6) All foreign key constraints must be formed like this [column_name]_fk.
+	7) All btree indexes must be formed like this: [column_name]_idx.
+	8) All text indexes must be formed like this: [column_name]_[fulltext]_idx.

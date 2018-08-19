@@ -344,6 +344,24 @@ class Table extends \Object\Table\Options {
 	public $acl = [];
 
 	/**
+	 * Whether its a temp table
+	 *
+	 * @var bool
+	 */
+	public $temporary = false;
+
+	/**
+	 * Data asset (default)
+	 *
+	 * @var array
+	 */
+	public $data_asset = [
+		'classification' => 'public',
+		'protection' => 0,
+		'scope' => 'global'
+	];
+
+	/**
 	 * Constructing object
 	 *
 	 * @param array $options
@@ -372,7 +390,7 @@ class Table extends \Object\Table\Options {
 		// see if we have special handling
 		$db_object = \Factory::get(['db', $this->db_link, 'object']);
 		if (method_exists($db_object, 'handleName')) {
-			$this->full_table_name = $db_object->handleName($this->schema, $this->name);
+			$this->full_table_name = $db_object->handleName($this->schema, $this->name, ['temporary' => $this->temporary]);
 		} else { // process table name and schema
 			if (!empty($this->schema)) {
 				$this->full_table_name = $this->schema . '.' . $this->name;

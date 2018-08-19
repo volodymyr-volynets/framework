@@ -220,6 +220,7 @@ class Dependencies {
 						}
 					}
 				} else if (!empty($options['show_warnings'])) {
+					echo "\n";
 					echo \Helper\Cmd::colorString('Make sure following Apache modules are enabled:', 'red') . "\n";
 					echo "\t";
 					foreach ($data['apache']['module'] as $k => $v) {
@@ -230,6 +231,7 @@ class Dependencies {
 			}
 			// extra configs
 			if (!empty($data['extra_configs']['warnings'])) {
+				echo "\n";
 				echo \Helper\Cmd::colorString('Additional configuration settings:', 'red') . "\n";
 				foreach ($data['extra_configs']['warnings'] as $k => $v) {
 					echo "\t" . $k . ": " . $v . "\n";
