@@ -28,6 +28,7 @@ trait Trait2 {
 		// inject tenant into the query
 		if ($model->tenant && empty($options['skip_tenant'])) {
 			$object->where('AND', [$alias . '.' . $model->column_prefix . 'tenant_id', '=', \Tenant::id()]);
+			$object->where('AND', [$model->column_prefix . 'tenant_id', '=', \Tenant::id()], false, ['for_delete' => true]);
 		}
 		// registered ALC
 		if (empty($options['skip_acl'])) {
