@@ -389,23 +389,34 @@ class Controller {
 	/**
 	 * Render menu
 	 *
+	 * @param array $options
+	 *		class
+	 *		brand_logo
+	 *		brand_url
 	 * @return string
 	 */
-	public static function renderMenu() : string {
+	public static function renderMenu(array $options = []) : string {
 		if (!\Object\Error\Base::$flag_database_tenant_not_found) {
 			$data = \Object\ACL\Resources::getStatic('menu', 'primary');
-			// get logo URL
+			// get logo image
 			$brand_logo = \Object\ACL\Resources::getStatic('layout', 'logo', 'method');
-			if (!empty($brand_logo)) {
-				$method = \Factory::method($brand_logo, null, true);
-				$brand_logo = call_user_func_array($method, []);
+			if (!empty($options['brand_logo'])) {
+				$brand_logo = $options['brand_logo'];
+			} else {
+				$brand_logo = \Object\ACL\Resources::getStatic('layout', 'logo', 'method');
+				if (!empty($brand_logo)) {
+					$method = \Factory::method($brand_logo, null, true);
+					$brand_logo = call_user_func_array($method, []);
+				}
 			}
+			// logo url
 			return \HTML::menu([
 				'brand_name' => \Application::get('application.layout.name'),
 				'brand_logo' => $brand_logo,
-				'brand_url' => \Object\ACL\Resources::getStatic('postlogin_brand_url', 'url', 'url'),
+				'brand_url' => $options['brand_url'] ?? \Object\ACL\Resources::getStatic('postlogin_brand_url', 'url', 'url'),
 				'options' => $data[200] ?? [],
-				'options_right' => $data[210] ?? []
+				'options_right' => $data[210] ?? [],
+				'class' => $options['class'] ?? null
 			]);
 		} else {
 			return '';
