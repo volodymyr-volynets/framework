@@ -94,12 +94,12 @@ class Session {
 			if ($ip_data['success']) {
 				$_SESSION['numbers']['ip'] = array_merge2(['ip' => $ip], $ip_data['data']);
 			}
-			// we only store ip address if its not set
-			if (!isset($_SESSION['numbers']['ip']['ip'])) {
-				$_SESSION['numbers']['ip'] = [
-					'ip' => $ip
-				];
-			}
+		}
+		// we only store ip address if its not set
+		if (!isset($_SESSION['numbers']['ip']['ip'])) {
+			$_SESSION['numbers']['ip'] = [
+				'ip' => $ip
+			];
 		}
 		// add anonymous role
 		if (!\User::authorized()) {

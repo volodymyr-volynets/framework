@@ -48,6 +48,8 @@ class Messages {
 	const REPORT_ROWS_NUMBER = 'Rows: [Number]';
 	// configuration messages
 	const CONFIG_MODULE_IS_NOT_CONFIGURED = 'You must configure ledger first before you can use it!';
+	// place holders
+	const PLEASE_CHOOSE = 'Please choose';
 
 	/**
 	 * Active

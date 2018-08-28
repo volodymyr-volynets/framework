@@ -325,6 +325,13 @@ class Base extends \Object\Form\Parent2 {
 	public $cached_options = [];
 
 	/**
+	 * Whether its AJAX reload
+	 *
+	 * @var bool
+	 */
+	public $is_ajax_reload = false;
+
+	/**
 	 * Constructor
 	 *
 	 * @param string $form_link
@@ -1343,6 +1350,7 @@ processAllValues:
 		}
 		// ajax requests from other forms are filtered by id
 		if (!empty($this->options['input']['__ajax'])) {
+			$this->is_ajax_reload = true;
 			// if its ajax call to this form
 			if (($this->options['input']['__ajax_form_id'] ?? '') == "form_{$this->form_link}_form") {
 				// if its a call to auto complete
