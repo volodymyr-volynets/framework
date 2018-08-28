@@ -86,6 +86,13 @@ abstract class View {
 	public $column_prefix;
 
 	/**
+	 * SQL version
+	 *
+	 * @var string
+	 */
+	public $sql_version;
+
+	/**
 	 * Constructing object
 	 *
 	 * @throws Exception
@@ -106,6 +113,10 @@ abstract class View {
 				Throw new \Exception('Could not determine db link in trigger!');
 			}
 		}
+		// SQL version
+		if (empty($this->sql_version)) {
+			Throw new \Exception('You must provide SQL version!');
+		}
 		// see if we have special handling
 		$db_object = \Factory::get(['db', $this->db_link, 'object']);
 		if (method_exists($db_object, 'handleName')) {
@@ -121,13 +132,12 @@ abstract class View {
 		// initialize query object
 		$this->query = new \Object\Query\Builder($this->db_link);
 		$this->definition();
+		// for view we need to inject SQL version
+		$this->query->columns([
+			'sql_version' => '\'[[[SQL Version: ' . $this->sql_version . ']]]\''
+		]);
 		$this->definition = $this->query->sql();
 		$this->grant_tables = array_values($this->query->data['from']);
-		// view must not contain asterisk
-		$temp = explode('FROM', strtoupper($this->definition));
-		if (strpos($temp[0], '*') !== false) {
-			Throw new \Exception('View ' . $this->full_view_name . ' contains asterisk!');
-		}
 	}
 
 	/**

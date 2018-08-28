@@ -559,6 +559,7 @@ class Table extends \Object\Table\Options {
 	 *		pk - primary key to be used by query
 	 *		columns - if we need to get certain columns
 	 *		limit - set this integer if we need to limit query
+	 *		skip_tenant - if we need to skip tenant
 	 * @return array
 	 */
 	public function get($options = []) {
