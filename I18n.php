@@ -65,6 +65,27 @@ class I18n {
 	 * @return string
 	 */
 	public static function get($i18n, $text, $options = []) {
+		if (is_array($text)) {
+			$result = [];
+			foreach ($text as $v) {
+				$result[] = self::getOne($i18n, $v, $options);
+			}
+			return implode('', $result);
+		} else {
+			return self::getOne($i18n, $text, $options);
+		}
+		return $text;
+	}
+
+	/**
+	 * Get one
+	 *
+	 * @param int $i18n
+	 * @param string $text
+	 * @param array $options
+	 * @return type
+	 */
+	public static function getOne($i18n, $text, $options = []) {
 		// get text from submodule
 		if (!empty(self::$options['submodule'])) {
 			$text = \Factory::model(self::$options['submodule'], true)->get($i18n, $text, $options);

@@ -23,15 +23,21 @@ class Complementary {
 			} else {
 				$only_columns = false;
 			}
-			if (!empty($result[0][$c]) && $result[0][$c] != 'null') {
-				$temp = json_decode($result[0][$c], true);
-				foreach ($temp as $k => $v) {
-					if (!empty($only_columns) && !in_array($k, $only_columns)) continue;
-					if (is_array($v) && !empty($v) && empty($values[$k])) {
-						$values[$k] = $v;
-					} else if (($values[$k] ?? '') == '') {
-						$values[$k] = $v ?? null;
+			if (!empty($result[0][$c])) {
+				if (is_json($result[0][$c])) { // json columns
+					if ($result[0][$c] != 'null') {
+						$temp = json_decode($result[0][$c], true);
+						foreach ($temp as $k => $v) {
+							if (!empty($only_columns) && !in_array($k, $only_columns)) continue;
+							if (is_array($v) && !empty($v) && empty($values[$k])) {
+								$values[$k] = $v;
+							} else if (($values[$k] ?? '') == '') {
+								$values[$k] = $v ?? null;
+							}
+						}
 					}
+				} else { // scalar columns
+					$values[$c] = $result[0][$c];
 				}
 			}
 		}

@@ -51,7 +51,7 @@ class Domains extends \Object\Data {
 		'group_id_sequence' => ['name' => 'Group #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'category_id' => ['name' => 'Category #', 'type' => 'integer', 'default' => null, 'format' => 'id', 'placeholder' => 'Category', 'searchable' => true],
 		'category_id_sequence' => ['name' => 'Category #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
-		'big_id' => ['name' => 'Big #', 'type' => 'bigint', 'default' => null, 'format' => 'id'],
+		'big_id' => ['name' => 'Big #', 'type' => 'bigint', 'default' => null, 'format' => 'id', 'placeholder' => 'Big #'],
 		'big_id_sequence' => ['name' => 'Big #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'order' => ['name' => 'Order', 'type' => 'integer', 'default' => 0, 'format' => 'id', 'placeholder' => 'Order'],
 		'counter' => ['name' => 'Counter', 'type' => 'integer', 'default' => 0, 'format' => 'id'],

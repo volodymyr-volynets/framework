@@ -670,7 +670,15 @@ class Format {
 	 * @param array $options
 	 */
 	public static function id($id, $options = []) {
-		return self::numberToFromNativeLanguage($id . '', $options);
+		if (is_array($id)) {
+			$result = [];
+			foreach ($id as $v) {
+				$result[] = self::numberToFromNativeLanguage($v . '', $options);
+			}
+			return implode(self::$symbol_comma . ' ', $result);
+		} else {
+			return self::numberToFromNativeLanguage($id . '', $options);
+		}
 	}
 
 	/**
