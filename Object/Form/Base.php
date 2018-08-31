@@ -88,6 +88,13 @@ class Base extends \Object\Form\Parent2 {
 	public $original_values = [];
 
 	/**
+	 * Tracked values
+	 *
+	 * @var array
+	 */
+	public $tracked_values = [];
+
+	/**
 	 * Snapshot values
 	 *
 	 * @var array
@@ -202,6 +209,7 @@ class Base extends \Object\Form\Parent2 {
 	public $values_deleted = false;
 	public $values_inserted = false;
 	public $values_updated = false;
+	public $values_no_changes = false;
 
 	/**
 	 * Indicator whether transaction has been started
@@ -1231,6 +1239,7 @@ processAllValues:
 		$this->values_deleted = false;
 		$this->values_inserted = false;
 		$this->values_updated = false;
+		$this->values_no_changes = false;
 		$this->transaction = false;
 		$this->rollback = false;
 		$this->list_rendered = false;
@@ -1400,7 +1409,7 @@ processAllValues:
 		}
 		// track previous values
 		if (!empty($this->options['input']['__track_previous_values'])) {
-			$this->misc_settings['__track_previous_values'] = $this->options['input']['__track_previous_values'];
+			$this->tracked_values = $this->options['input']['__track_previous_values'];
 		}
 		// we need to see if form has been submitted
 		$this->process_submit = [];
@@ -1515,6 +1524,12 @@ otherFormSubmitted:
 					if (empty($this->collection['readonly'])) {
 						$this->values_saved = $this->saveValues();
 					} else {
+						$this->values_saved = true;
+					}
+				}
+				// if we have post or success we need to change values_saved
+				if ($this->values_no_changes) {
+					if (!empty($this->wrapper_methods['post']) || !empty($this->wrapper_methods['success'])) {
 						$this->values_saved = true;
 					}
 				}
@@ -2122,6 +2137,7 @@ convertMultipleColumns:
 				// merge updated pk
 				$this->pk = array_merge_hard($this->pk, $result['new_pk']);
 			} else { // if no update/insert/delete we rollback
+				$this->values_no_changes = true;
 				return false;
 			}
 			return true;
@@ -3219,6 +3235,13 @@ convertMultipleColumns:
 	 */
 	public function redirect(string $where) {
 		$this->misc_settings['redirect'] = $where;
+	}
+
+	/**
+	 * Make form readonly
+	 */
+	public function readonly() {
+		$this->misc_settings['global']['readonly'] = true;
 	}
 
 	/**

@@ -108,7 +108,7 @@ class Crypt {
 	 * Verify token
 	 *
 	 * @param string $token - urldecoded
-	 * @param array $options
+	 * @param array $tokens
 	 * @return array
 	 */
 	public function tokenVerify($token, $tokens) {
