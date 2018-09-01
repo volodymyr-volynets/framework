@@ -149,7 +149,7 @@ class Request {
 	 * @return boolean
 	 */
 	public static function isSSL() : bool {
-		if (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && strtolower($_SERVER['HTTP_X_FORWARDED_PROTO'])=='https') {
+		if (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && strtolower($_SERVER['HTTP_X_FORWARDED_PROTO']) == 'https') {
 			return true;
 		} else if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off') {
 			return true;

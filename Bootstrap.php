@@ -15,6 +15,14 @@ class Bootstrap {
 			\Format::init();
 			return;
 		}
+		// enforcing https
+		$enforce_https = \Application::get('application.https.enforce');
+		if (!empty($enforce_https)) {
+			if (!\Request::isSSL()) {
+				$url = \Request::host(['protocol' => 'https', 'request' => true]);
+				\Request::redirect($url);
+			}
+		}
 		// get flags & backend
 		$flags = \Application::get('flag');
 		$backend = \Application::get('Numbers.Backend', ['backend_exists' => true]);
