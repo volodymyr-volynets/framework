@@ -9,6 +9,8 @@ class PostalCode extends \Object\Validator\Base {
 	public function validate($value, $options = []) {
 		$result = $this->result;
 		$value.= '';
+		// strip all white spaces
+		$value = preg_replace('/\s+/', '', trim($value));
 		// find country
 		$country = null;
 		foreach ($options['neighbouring_values'] as $k => $v) {
