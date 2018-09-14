@@ -125,4 +125,30 @@ class I18n {
 		\I18n::init();
 		setcookie("__in_group_id", $group_id);
 	}
+
+	/**
+	 * Process message
+	 *
+	 * @param string $message
+	 * @param array|json $replace
+	 * @return string
+	 */
+	public static function processMessage(string $message, $replace) : string {
+		if (is_json($replace)) {
+			$replace = json_decode($replace, true);
+		}
+		foreach ($replace as $k => $v) {
+			if (is_string($v)) {
+				if (substr($v, 0, 2) == '~~') {
+					$v = substr($v, 2);
+				} else {
+					$v = i18n(null, $v);
+				}
+			} else {
+				$v = \Format::id($v);
+			}
+			$replace[$k] = $v;
+		}
+		return i18n(null, $message, ['replace' => $replace]);
+	}
 }

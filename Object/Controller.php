@@ -123,6 +123,13 @@ class Controller {
 	private static $cached_modules;
 
 	/**
+	 * Usage actions
+	 *
+	 * @var array
+	 */
+	private static $usage_actions = [];
+
+	/**
 	 * Constructor
 	 */
 	public function __construct() {
@@ -159,7 +166,7 @@ class Controller {
 			$this->icon = self::$cached_controllers[$class]['icon'];
 			$this->breadcrumbs = self::$cached_controllers[$class]['breadcrumbs'];
 			$this->actions = self::$cached_controllers[$class]['actions'];
-			// data
+			// controller data
 			$this->controller_data = self::$cached_controllers[$class];
 			// ids
 			$this->controller_id = self::$cached_controllers[$class]['id'];
@@ -171,8 +178,16 @@ class Controller {
 		}
 		// view
 		$this->data = new \stdClass();
+		// fix module_code
+		if (empty($this->controller_data['module_code'])) {
+			if (!empty(self::$cached_modules['AN'])) {
+				$this->controller_data['module_code'] = 'AN';
+			} else {
+				$this->controller_data['module_code'] = 'SM';
+			}
+		}
 		// determine module_id
-		if (!empty($this->controller_data['module_code'])) {
+		if (!empty(self::$cached_modules)) {
 			if (empty(self::$cached_modules[$this->controller_data['module_code']]['module_multiple'])) {
 				$this->module_id = key(self::$cached_modules[$this->controller_data['module_code']]['module_ids']);
 			} else {
@@ -186,6 +201,31 @@ class Controller {
 					$this->module_id = $module_id;
 				}
 			}
+		}
+		// add usages
+		if (!empty(self::$cached_modules) && !empty(self::$cached_modules[$this->controller_data['module_code']])) {
+			$this->controller_data['module_name'] = $module_name = self::$cached_modules[$this->controller_data['module_code']]['module_ids'][$this->module_id]['name'];
+			$__menu_id = \Application::get('flag.global.__menu_id');
+			if (!empty($__menu_id)) {
+				$__menu_id = (int) $__menu_id;
+				$data = \Object\ACL\Resources::getStatic('menu', 'usage');
+				if (!empty($data) && !empty($data[$__menu_id])) {
+					$this->addUsageAction('menu_item_click', [
+						'replace' => [
+							'[menu_name]' => $data[$__menu_id]['name'],
+							'[module_name]' => $module_name,
+						],
+					]);
+				}
+			}
+			$this->addUsageAction('controller_opened', [
+				'replace' => [
+					'[page_name]' => $this->title ?? $class,
+					'[module_name]' => $module_name,
+				],
+			]);
+		} else {
+			$this->controller_data['module_name'] = 'A/N Application';
 		}
 	}
 
@@ -431,5 +471,48 @@ class Controller {
 	 */
 	public static function getSystemModuleByModuleCode(string $module_code) : array {
 		return self::$cached_modules[$module_code] ?? [];
+	}
+
+	/**
+	 * Add usage action
+	 *
+	 * @param string $usage_code
+	 * @param array $options
+	 *		array replace
+	 *		string message
+	 *		integer affected_rows
+	 *		integer error_rows
+	 *		string url
+	 *		boolean history
+	 */
+	public function addUsageAction(string $usage_code, array $options = []) {
+		$codes = \Object\Controller\Model\UsageCodes::getStatic();
+		if (empty($codes[$usage_code])) {
+			Throw new \Exception('You must register usage code in overrides: ' . $usage_code);
+		}
+		// generate url
+		if (empty($options['url'])) {
+			if (in_array('*', $codes[$usage_code]['methods']) || in_array(\Request::method(), $codes[$usage_code]['methods'])) {
+				$options['url'] = \Application::get('mvc.full') . '?' . http_build_query2(\Request::input());
+			}
+		}
+		self::$usage_actions[] = [
+			'usage_code' => $usage_code,
+			'message' => $options['message'] ?? $codes[$usage_code]['message'],
+			'replace' => $options['replace'] ?? [],
+			'affected_rows' => $options['affected_rows'] ?? 0,
+			'error_rows' => $options['error_rows'] ?? 0,
+			'url' => $options['url'] ?? null,
+			'history' => ($options['history'] ?? $codes[$usage_code]['history']) ? 1 : 0
+		];
+	}
+
+	/**
+	 * Get usage actions
+	 *
+	 * @return array
+	 */
+	public function getUsageActions() : array {
+		return self::$usage_actions;
 	}
 }

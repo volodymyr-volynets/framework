@@ -37,7 +37,7 @@ class Table extends \Object\Table\Options {
 	public $schema = '';
 
 	/**
-	 * Table name
+	 * Name
 	 *
 	 * @var string
 	 */

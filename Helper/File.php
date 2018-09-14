@@ -94,6 +94,7 @@ class File {
 	 * @param array $options
 	 *		boolean recursive
 	 *		array only_extensions
+	 *		array only_files
 	 * @return array
 	 */
 	public static function iterate($dir, $options = []) {

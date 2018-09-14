@@ -177,8 +177,6 @@ class Bootstrap {
 				}
 			}
 		}
-		// write sessions
-		session_write_close();
 		// final benchmark
 		if (\Debug::$debug) {
 			\Debug::benchmark('application end');
@@ -211,6 +209,8 @@ class Bootstrap {
 				call_user_func_array($method, []);
 			}
 		}
+		// write sessions
+		session_write_close();
 		// close db connections
 		$dbs = \Factory::get(['db']);
 		if (!empty($dbs)) {

@@ -1,12 +1,7 @@
 <?php
 
 namespace Object;
-abstract class View {
-
-	/**
-	 * Include common trait
-	 */
-	use \Object\Table\Trait2;
+abstract class Check {
 
 	/**
 	 * Link to database
@@ -44,11 +39,18 @@ abstract class View {
 	public $backend;
 
 	/**
-	 * Full view name
+	 * Full check name
 	 *
 	 * @var string
 	 */
-	public $full_view_name;
+	public $full_check_name;
+
+	/**
+	 * Full table name
+	 *
+	 * @var string
+	 */
+	public $full_table_name;
 
 	/**
 	 * Definition
@@ -58,32 +60,11 @@ abstract class View {
 	public $definition;
 
 	/**
-	 * Grant tables
-	 *
-	 * @var array
-	 */
-	public $grant_tables = [];
-
-	/**
 	 * Query
 	 *
 	 * @var object
 	 */
 	public $query;
-
-	/**
-	 * Tenant
-	 *
-	 * @var int
-	 */
-	public $tenant;
-
-	/**
-	 * Column prefix
-	 *
-	 * @var string
-	 */
-	public $column_prefix;
 
 	/**
 	 * SQL version
@@ -110,31 +91,42 @@ abstract class View {
 			}
 			// if we could not determine the link we throw exception
 			if (empty($this->db_link)) {
-				Throw new \Exception('Could not determine db link in view!');
+				Throw new \Exception('Could not determine db link in check!');
 			}
 		}
 		// SQL version
 		if (empty($this->sql_version)) {
 			Throw new \Exception('You must provide SQL version!');
 		}
+		// table name
+		if (empty($this->full_table_name)) {
+			Throw new \Exception('You must provide table name!');
+		}
+		// check must end with _check
+		if (substr($this->name, -6, 6) !== '_check') {
+			Throw new \Exception('Check must end with "_check"!');
+		}
 		// see if we have special handling
 		$db_object = \Factory::get(['db', $this->db_link, 'object']);
 		if (method_exists($db_object, 'handleName')) {
-			$this->full_view_name = $db_object->handleName($this->schema, $this->name);
+			$this->full_check_name = $db_object->handleName($this->schema, $this->name);
 		} else { // process table name and schema
 			if (!empty($this->schema)) {
-				$this->full_view_name = $this->schema . '.' . $this->name;
+				$this->full_check_name = $this->schema . '.' . $this->name;
 			} else {
-				$this->full_view_name = $this->name;
+				$this->full_check_name = $this->name;
 				$this->schema = '';
 			}
 		}
+		// we need to fix full table name
+		if (!empty($this->schema) && strpos($this->full_table_name, '.') === false) {
+			$this->full_table_name = $this->schema . '.' . $this->full_table_name;
+		}
 		// initialize query object
 		$this->query = new \Object\Query\Builder($this->db_link);
-		$this->query->select();
+		$this->query->check();
 		$this->definition();
 		$this->definition = $this->query->sql();
-		$this->grant_tables = array_values($this->query->data['from']);
 	}
 
 	/**

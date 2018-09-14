@@ -71,7 +71,7 @@ class Domains extends \Object\Data {
 		// login
 		'login' => ['name' => 'Login', 'type' => 'varchar', 'length' => 30, 'validator_method' => '\Object\Validator\LowerCase::validate'],
 		'password' => ['name' => 'Password', 'type' => 'text', 'validator_method' => '\Object\Validator\Password::validate'],
-		'ip' => ['name' => 'IP', 'type' => 'varchar', 'length' => 46],
+		'ip' => ['name' => 'IP', 'type' => 'varchar', 'length' => 46, 'placeholder' => 'IP'],
 		'domain_part' => ['name' => 'Domain Part', 'type' => 'varchar', 'length' => 30, 'validator_method' => 'object_validator_domain_part::validate'],
 		// System
 		'ledger_id' => ['name' => 'Ledger #', 'type' => 'integer', 'default' => null, 'format' => 'id'],
@@ -107,7 +107,7 @@ class Domains extends \Object\Data {
 		'resource_id_sequence' => ['name' => 'Resource #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'action_id' => ['name' => 'Action #', 'type' => 'smallint', 'format' => 'id', 'placeholder' => 'Action'],
 		// User Management
-		'user_id' => ['name' => 'User #', 'type' => 'integer', 'default' => null, 'placeholder' => 'User', 'format' => 'id', 'searchable' => true],
+		'user_id' => ['name' => 'User #', 'type' => 'integer', 'default' => null, 'placeholder' => 'User #', 'format' => 'id', 'searchable' => true],
 		'user_id_sequence' => ['name' => 'User #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id', 'searchable' => true],
 		'role_id' => ['name' => 'Role #', 'type' => 'integer', 'default' => null, 'format' => 'id', 'placeholder' => 'Role'],
 		'role_id_sequence' => ['name' => 'Role #', 'type' => 'serial', 'placeholder' => 'Sequence'],

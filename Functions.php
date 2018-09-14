@@ -365,6 +365,23 @@ function http_build_query2($arr) {
 }
 
 /**
+ * Add parameters to URL
+ *
+ * @param string $url
+ * @param array $parameters
+ * @return string
+ */
+function http_append_to_url(string $url, array $parameters) : string {
+	if (!strpos($url, '?')) {
+		$url.= '?';
+	}
+	foreach ($parameters as $k => $v) {
+		$url.= '&' . $k . '=' . ($v . '');
+	}
+	return $url;
+}
+
+/**
  * Strip tags
  * 
  * @param array|string $arr
@@ -1083,9 +1100,11 @@ function trim2($str, $what = null, $with = ' ') {
     if ($what === null) {
         $what = "\\x00-\\x20";    //all white-spaces and control chars
     } else if (strpos($what, '$') !== false) { // string from the end
-		return preg_replace('/' . preg_quote($str, '/') . '/', $with, $str);
+		$what = rtrim($what, '$');
+		return preg_replace('/' . preg_quote($what, '/') . '$/', $with, $str);
 	} else if (strpos($what, '^') !== false) {
-		return preg_replace('/' . preg_quote($str, '/') . '/', $with, $str);
+		$what = ltrim($what, '^');
+		return preg_replace('/^' . preg_quote($what, '/') . '/', $with, $str);
 	}
     return trim(preg_replace("/[".$what."]+/", $with, $str), $what);
 }

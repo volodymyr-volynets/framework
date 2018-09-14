@@ -25,7 +25,7 @@ class Function2 {
 	public $schema;
 
 	/**
-	 * Function name
+	 * Name
 	 *
 	 * @var string
 	 */

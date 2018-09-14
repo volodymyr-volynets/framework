@@ -51,6 +51,7 @@ class Messages {
 	const EMAIL_RESENT = 'Email re-sent!';
 	// place holders
 	const PLEASE_CHOOSE = 'Please choose';
+	const CLICK_HERE = 'Click here';
 
 	/**
 	 * Active

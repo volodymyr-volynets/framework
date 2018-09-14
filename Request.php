@@ -184,4 +184,15 @@ class Request {
 		$controller = ltrim($controller, '/');
 		return $host . $controller . '?' . http_build_query2($params);
 	}
+
+	/**
+	 * Get request method
+	 *
+	 * @return string
+	 *		GET,HEAD,POST,PUT,DELETE,CONNECT,OPTIONS,TRACE,PATCH
+	 *		CONSOLE is returned if not set
+	 */
+	public static function method() : string {
+		return $_SERVER['REQUEST_METHOD'] ?? 'CONSOLE';
+	}
 }

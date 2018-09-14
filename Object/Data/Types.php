@@ -51,7 +51,8 @@ class Types extends \Object\Data {
 		'time' => ['name' => 'Time', 'php_type' => 'string', 'format' => 'time', 'placeholder' => 'Format::getDatePlaceholder'],
 		'datetime' => ['name' => 'Date & Time', 'php_type' => 'string', 'format' => 'datetime', 'placeholder' => 'Format::getDatePlaceholder'],
 		'timestamp' => ['name' => 'Timestamp', 'php_type' => 'string', 'format' => 'timestamp', 'placeholder' => 'Format::getDatePlaceholder'],
-		// mixed data type
-		'mixed' => ['name' => 'Mixed', 'php_type' => 'mixed']
+		// other
+		'mixed' => ['name' => 'Mixed', 'php_type' => 'mixed'],
+		'array' => ['name' => 'Array', 'php_type' => 'array']
 	];
 }

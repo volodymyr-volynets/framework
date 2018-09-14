@@ -25,7 +25,7 @@ class Trigger {
 	public $schema;
 
 	/**
-	 * Function name
+	 * Name
 	 *
 	 * @var string
 	 */
@@ -101,6 +101,10 @@ class Trigger {
 		// version in definition
 		if (strpos($this->definition, '/* version */') === false) {
 			Throw new \Exception('You must include /* version */ in definition!');
+		}
+		// table name
+		if (empty($this->full_table_name)) {
+			Throw new \Exception('You must provide table name!');
 		}
 		// see if we have special handling
 		$db_object = \Factory::get(['db', $this->db_link, 'object']);

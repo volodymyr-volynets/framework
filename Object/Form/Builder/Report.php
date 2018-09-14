@@ -27,6 +27,13 @@ class Report {
 	}
 
 	/**
+	 * From
+	 *
+	 * @var \Object\Content\Form
+	 */
+	private $form;
+
+	/**
 	 * Add report
 	 *
 	 * @param string $report_name
@@ -45,6 +52,7 @@ class Report {
 		// extrace filter out of form
 		if (isset($form)) {
 			$this->data[$report_name]['filter'] = $form->generateFilter();
+			$this->form = & $form;
 		}
 	}
 
@@ -90,7 +98,9 @@ class Report {
 	 *
 	 * @param string $report_name
 	 * @param string $header_name
-	 * @param mixed $data_column1
+	 * @param type $odd_even
+	 * @param array $data_columns
+	 * @param array $options
 	 */
 	public function addData(string $report_name, string $header_name, $odd_even, array $data_columns, array $options = []) {
 		// process header
@@ -116,7 +126,6 @@ class Report {
 	 * Add separator
 	 *
 	 * @param string $report_name
-	 * @param string $header_name
 	 */
 	public function addSeparator(string $report_name) {
 		$this->data[$report_name]['data'][] = [
@@ -134,5 +143,20 @@ class Report {
 		$this->data[$report_name]['data'][] = [
 			4 => $message
 		];
+	}
+
+	/**
+	 * Add number of rows
+	 *
+	 * @param string $report_name
+	 * @param int $num_rows
+	 */
+	public function addNumberOfRows(string $report_name, int $num_rows) {
+		$this->addSeparator($report_name);
+		$this->addLegend($report_name, i18n(null, \Object\Content\Messages::REPORT_ROWS_NUMBER, ['replace' => ['[Number]' => \Format::id($num_rows)]]));
+		// we need to trigger form update
+		if (!empty($this->form)) {
+			$this->form->misc_settings['report']['num_rows'] = $num_rows;
+		}
 	}
 }

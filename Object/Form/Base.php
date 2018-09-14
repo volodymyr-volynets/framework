@@ -1695,6 +1695,16 @@ convertMultipleColumns:
 			$this->misc_settings['list']['columns'] = $this->data[$this::LIST_CONTAINER]['rows'];
 			$this->misc_settings['list']['full_text_search'] = $this->values['full_text_search'] ?? null;
 		}
+		// usage
+		if ($this->initiator_class == 'list') {
+			\Application::$controller->addUsageAction('list_opened', [
+				'replace' => [
+					'[list_name]' => $this->title,
+				],
+				'affected_rows' => $this->misc_settings['list']['num_rows'] ?? 0,
+				'error_rows' => $this->errors['flag_num_errors'],
+			]);
+		}
 		// report, filter form must be submitted
 		if ($this->initiator_class == 'report' && !$this->hasErrors() && $this->submitted) {
 			$result = $this->triggerMethod('buildReport');
@@ -1713,6 +1723,16 @@ convertMultipleColumns:
 				'default_row_type' => 'grid',
 				'order' => PHP_INT_MAX,
 				'__html' => & $report_html
+			]);
+		}
+		// usage
+		if ($this->initiator_class == 'report') {
+			\Application::$controller->addUsageAction('report_opened', [
+				'replace' => [
+					'[report_name]' => $this->title,
+				],
+				'affected_rows' => $this->misc_settings['report']['num_rows'] ?? 0,
+				'error_rows' => $this->errors['flag_num_errors'],
 			]);
 		}
 		// process all values
@@ -2262,6 +2282,7 @@ convertMultipleColumns:
 				// set special flag that we have error in fields
 				if ($type == 'danger') {
 					$this->errors['flag_error_in_fields'] = true;
+					$this->errors['flag_num_errors']++;
 				}
 				if ($type == 'warning') {
 					$this->errors['flag_warning_in_fields'] = true;
@@ -2277,6 +2298,9 @@ convertMultipleColumns:
 				$this->misc_settings['form_postponed_messages'] = true;
 			}
 			$this->errors['general'][$type][$hash] = $message;
+			if ($type == 'danger') {
+				$this->errors['flag_num_errors']++;
+			}
 		}
 	}
 
@@ -2309,6 +2333,7 @@ convertMultipleColumns:
 		$this->errors = [
 			'flag_error_in_fields' => false,
 			'flag_warning_in_fields' => false,
+			'flag_num_errors' => 0,
 		];
 	}
 
