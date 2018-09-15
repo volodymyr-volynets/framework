@@ -8,7 +8,7 @@ class File {
 
 	/**
 	 * Write content to file and sets permissions
-	 * 
+	 *
 	 * @param string $filename
 	 * @param mixed $data
 	 * @param int $permission
@@ -32,7 +32,7 @@ class File {
 
 	/**
 	 * Read file
-	 * 
+	 *
 	 * @param string $filename
 	 * @return string|boolean false
 	 */
@@ -53,7 +53,7 @@ class File {
 
 	/**
 	 * Delete file/directory
-	 * 
+	 *
 	 * @param string $dir
 	 * @param arary $options
 	 *		only_contents - whether to remove directory contents only
@@ -95,10 +95,22 @@ class File {
 	 *		boolean recursive
 	 *		array only_extensions
 	 *		array only_files
+	 *		boolean extended
 	 * @return array
 	 */
-	public static function iterate($dir, $options = []) {
+	public static function iterate(string $dir, array $options = []) : array {
 		$result = [];
+		$relative_path = realpath($dir);
+		// inner helper function to remove absolute path
+		function iterate_process_path_inner_helper(string $dir, string $relative_path) {
+			if ($relative_path == '') {
+				return $dir;
+			} else {
+				$dir = trim2($dir, '^' . $relative_path, '');
+				$dir = ltrim($dir, DIRECTORY_SEPARATOR);
+				return $dir;
+			}
+		}
 		if (empty($options['recursive'])) {
 			$iterator = new \DirectoryIterator($dir);
 		} else {
@@ -121,7 +133,23 @@ class File {
 			if (!empty($options['only_files']) && !in_array($filename, $options['only_files'])) {
 				continue;
 			}
-			$result[] = $v->getPathname();
+			if (empty($options['extended'])) {
+				$result[] = $v->getPathname();
+			} else {
+				$pathname = $v->getPathname();
+				$result[$pathname] = [
+					'pathname' => $pathname,
+					'access' => $v->getATime(),
+					'modified' => $v->getMTime(),
+					'permissions' => $v->getPerms(),
+					'size' => $v->getSize(),
+					'type' => $v->getType(),
+					'directory' => $v->getPath(),
+					'basename' => $v->getBasename(),
+					'filename' => $v->getFilename(),
+					'relative_directory' => iterate_process_path_inner_helper($v->getPath(), $relative_path),
+				];
+			}
 		}
 		return $result;
 	}
