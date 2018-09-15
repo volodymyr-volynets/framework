@@ -13,7 +13,7 @@ define('EVEN', 2);
 
 /**
  * Concatenate parameters if not empty
- * 
+ *
  * @param string $delimiter
  * @param mized $arg1
  * @return string
@@ -49,22 +49,24 @@ function concat_ws_array($delimiter, $arr) {
 
 /**
  * Compare and swap two variables if needed, order can be different
- * 
+ *
  * @param mixed $a
  * @param mixed $b
  * @param boolean $min
  */
 function swap(& $a, & $b, $min = true) {
 	if ($min) {
-		if ($a > $b) list($a, $b) = array($b, $a);
+		if ($a > $b)
+			list($a, $b) = array($b, $a);
 	} else {
-		if ($a < $b) list($a, $b) = array($b, $a);
+		if ($a < $b)
+			list($a, $b) = array($b, $a);
 	}
 }
 
 /**
  * Merge values into an array
- * 
+ *
  * @param array $arr
  * @param array $val
  * @return array
@@ -78,7 +80,7 @@ function array_merge_values($arr, $val) {
 
 /**
  * Transform options to string
- * 
+ *
  * @param array $options
  * @param mixed $option
  * @param string $implode
@@ -97,7 +99,7 @@ function array_options_to_string($options, $option, $implode = ',') {
 
 /**
  * Fix an array string
- * 
+ *
  * @param mixed $tokens
  * @param string $explode_on
  * @return array
@@ -109,7 +111,7 @@ function array_fix($tokens, $explode_on = null) {
 		if ($tokens . '' == '') {
 			return [];
 		} else {
-			$tokens.= '';
+			$tokens .= '';
 			if ($explode_on !== null) {
 				return explode($explode_on, $tokens);
 			} else {
@@ -121,7 +123,7 @@ function array_fix($tokens, $explode_on = null) {
 
 /**
  * Add token to an array
- * 
+ *
  * @param array $tokens
  * @param string $token
  * @param string $explode_on
@@ -135,7 +137,7 @@ function array_add_token($tokens, $token, $explode_on = null) {
 
 /**
  * Remove a token from array
- * 
+ *
  * @param array $tokens
  * @param string $token
  * @return array
@@ -152,7 +154,7 @@ function array_remove_token($tokens, $token) {
 
 /**
  * Print variable
- * 
+ *
  * @param mixed $data
  * @param string $name
  * @param boolean $return
@@ -190,7 +192,7 @@ function var_export2($data, $return = false) {
  *
  * @param mixed $data
  * @param array $options
- *		boolean skip_objects
+ * 		boolean skip_objects
  * @return string
  */
 function var_export_condensed($data, $options = []) {
@@ -211,7 +213,7 @@ function var_export_condensed($data, $options = []) {
 
 /**
  * Primary key
- * 
+ *
  * @param mixed $pk
  * @param array $data
  * @param boolean $return_extracted
@@ -219,7 +221,8 @@ function var_export_condensed($data, $options = []) {
  */
 function pk($pk, & $data, $return_extracted = false) {
 	$pk = array_fix($pk);
-	if (!is_array($data)) $data = [];
+	if (!is_array($data))
+		$data = [];
 	if (!$return_extracted) {
 		$result = [];
 		foreach ($data as $k => $v) {
@@ -238,7 +241,7 @@ function pk($pk, & $data, $return_extracted = false) {
 
 /**
  * Merge multiple arrays recursively
- * 
+ *
  * @param array $arr1
  * @param array $arr2
  * @return array
@@ -268,7 +271,7 @@ function array_merge2($arr1, $arr2) {
 
 /**
  * Merge multiple arrays, result is first array in parameters
- * 
+ *
  * @param array $arr1
  * @param array $arr2
  */
@@ -278,7 +281,7 @@ function array_merge3(& $arr1, $arr2) {
 
 /**
  * Hard merging
- * 
+ *
  * @param array $arr1
  * @param array $arr2
  * @return array
@@ -304,7 +307,7 @@ function array_merge_hard($arr1, $arr2) {
 
 /**
  * Extract primary key values from an array
- * 
+ *
  * @param mixed $keys
  * @param array $data
  * @return array
@@ -324,10 +327,10 @@ function extract_keys($keys, $data) {
  * @param array $array
  * @param string $key
  * @param array $options
- *		boolean unique
+ * 		boolean unique
  * @return array
  */
-function array_extract_values_by_key(array $array, string $key, array $options = []) : array {
+function array_extract_values_by_key(array $array, string $key, array $options = []): array {
 	$result = [];
 	foreach ($array as $v) {
 		if (!empty($options['where'])) {
@@ -338,7 +341,8 @@ function array_extract_values_by_key(array $array, string $key, array $options =
 					break;
 				}
 			}
-			if (!$found) continue;
+			if (!$found)
+				continue;
 		}
 		$result[] = $v[$key];
 	}
@@ -351,9 +355,9 @@ function array_extract_values_by_key(array $array, string $key, array $options =
 
 /**
  * Build a query string and strip empty fields
- * 
+ *
  * @param array $arr
- * @return string 
+ * @return string
  */
 function http_build_query2($arr) {
 	foreach ($arr as $k => $v) {
@@ -371,26 +375,26 @@ function http_build_query2($arr) {
  * @param array $parameters
  * @return string
  */
-function http_append_to_url(string $url, array $parameters) : string {
+function http_append_to_url(string $url, array $parameters): string {
 	if (!strpos($url, '?')) {
-		$url.= '?';
+		$url .= '?';
 	}
 	foreach ($parameters as $k => $v) {
-		$url.= '&' . $k . '=' . ($v . '');
+		$url .= '&' . $k . '=' . ($v . '');
 	}
 	return $url;
 }
 
 /**
  * Strip tags
- * 
+ *
  * @param array|string $arr
  * @return array
  */
 function strip_tags2($arr) {
 	if (is_array($arr)) {
 		$result = [];
-		foreach ($arr as $k=>$v) {
+		foreach ($arr as $k => $v) {
 			if (is_string($k)) {
 				$k = strip_tags($k);
 			}
@@ -405,7 +409,7 @@ function strip_tags2($arr) {
 
 /**
  * Remap keys in an array
- * 
+ *
  * @param array $data
  * @param array $map
  * @return array
@@ -418,7 +422,7 @@ function remap(& $data, $map) {
 			if (isset($result[$k][$v2])) {
 				if (isset($v[$k2])) {
 					if ($v[$k2] . '' !== '') {
-						$result[$k][$v2].= Format::$symbol_semicolon . ' ' . $v[$k2];
+						$result[$k][$v2] .= Format::$symbol_semicolon . ' ' . $v[$k2];
 					}
 				}
 			} else {
@@ -435,11 +439,11 @@ function remap(& $data, $map) {
  * @param array $arr
  * @return string
  */
-function array_to_field(array $arr) : string {
+function array_to_field(array $arr): string {
 	$first = array_shift($arr);
 	$result = $first;
 	foreach ($arr as $v) {
-		$result.= '[' . $v . ']';
+		$result .= '[' . $v . ']';
 	}
 	return $result;
 }
@@ -452,22 +456,23 @@ function array_to_field(array $arr) : string {
  * @param int|string $new_key
  * @return array
  */
-function array_change_key_name(array $arr, $old_key, $new_key) : array {
-    if(!array_key_exists($old_key, $arr)) return $arr;
-    $keys = array_keys($arr);
-    $keys[array_search($old_key, $keys)] = $new_key;
-    return array_combine($keys, $arr);
+function array_change_key_name(array $arr, $old_key, $new_key): array {
+	if (!array_key_exists($old_key, $arr))
+		return $arr;
+	$keys = array_keys($arr);
+	$keys[array_search($old_key, $keys)] = $new_key;
+	return array_combine($keys, $arr);
 }
 
 /**
  * Sort an array by certain keys with certain methods
- * 
+ *
  * @param array $arr
  * @param array $keys
- *		['id' => SORT_ASC, 'name' => SORT_DESC]
- *		['id' => 'asc', 'name' => 'desc']
+ * 		['id' => SORT_ASC, 'name' => SORT_DESC]
+ * 		['id' => 'asc', 'name' => 'desc']
  * @param array $methods
- *		['id' => SORT_NUMERIC, 'name' => SORT_NATURAL]
+ * 		['id' => SORT_NUMERIC, 'name' => SORT_NATURAL]
  */
 function array_key_sort(& $arr, $keys, $methods = []) {
 	// prepare keys
@@ -500,10 +505,10 @@ function array_key_sort(& $arr, $keys, $methods = []) {
  * Prepare orderby
  *
  * @param array $keys
- *		['id' => SORT_ASC, 'name' => SORT_DESC]
- *		['id' => 'asc', 'name' => 'desc']
+ * 		['id' => SORT_ASC, 'name' => SORT_DESC]
+ * 		['id' => 'asc', 'name' => 'desc']
  * @param boolean $flag_string
- *		set this and you can use result in order by clauses
+ * 		set this and you can use result in order by clauses
  * @return mixed
  */
 function array_key_sort_prepare_keys($keys, $flag_string = false) {
@@ -563,13 +568,13 @@ function array_key_math(& $arr, $key, $type = 'add') {
 	$result = 0;
 	foreach ($arr as $v) {
 		if ($type == 'add') {
-			$result+= $v[$key];
+			$result += $v[$key];
 		} else if ($type == 'sub') {
-			$result-= $v[$key];
+			$result -= $v[$key];
 		} else if ($type == 'mul') {
-			$result*= $v[$key];
+			$result *= $v[$key];
 		} else if ($type == 'div') {
-			$result/= $v[$key];
+			$result /= $v[$key];
 		}
 	}
 	return $result;
@@ -581,7 +586,7 @@ function array_key_math(& $arr, $key, $type = 'add') {
  * @param mixed $keys
  * @return array
  */
-function array_key_convert_key($keys) : array {
+function array_key_convert_key($keys): array {
 	if (!is_array($keys)) {
 		$keys = str_replace('.', ',', $keys . '');
 		$keys = explode(',', $keys);
@@ -591,11 +596,11 @@ function array_key_convert_key($keys) : array {
 
 /**
  * Get value from array by keys
- * 
+ *
  * @param array $arr
  * @param mixed $keys - keys can be in this format: "1,2,3", "a", 1, array(1,2,3)
  * @param array $options
- *		unset - if we need to unset the key
+ * 		unset - if we need to unset the key
  * @return mixed
  */
 function array_key_get(& $arr, $keys = null, $options = []) {
@@ -607,7 +612,8 @@ function array_key_get(& $arr, $keys = null, $options = []) {
 		$last = array_pop($key);
 		$pointer = & $arr;
 		foreach ($key as $k2) {
-			if (!isset($pointer[$k2])) return null;
+			if (!isset($pointer[$k2]))
+				return null;
 			$pointer = & $pointer[$k2];
 		}
 		if (isset($pointer[$last])) {
@@ -625,12 +631,12 @@ function array_key_get(& $arr, $keys = null, $options = []) {
 
 /**
  * Set value in the array
- * 
+ *
  * @param array $arr
  * @param mixed $keys - keys can be in this format: "1,2,3", "a", 1, array(1,2,3)
  * @param mixed $value
  * @param array $options
- *		boolean append - whether to append value to array
+ * 		boolean append - whether to append value to array
  */
 function array_key_set(& $arr, $keys = null, $value, $options = []) {
 	if (!isset($arr)) {
@@ -665,7 +671,7 @@ function array_key_set(& $arr, $keys = null, $value, $options = []) {
  * @param array $arr
  * @param mixed $keys
  * @param mixed $value
- * @param array $options 
+ * @param array $options
  */
 function array_key_set_by_key_name(& $arr, $keys = null, $value, $options = array()) {
 	// transform keys
@@ -697,8 +703,10 @@ function array_diff_assoc_recursive_by_keys($arr1, $arr2, $options = array()) {
 	// if we are dealing with arrays
 	if (is_array($arr1) || empty($arr1)) {
 		if (is_array($arr2) || empty($arr2)) {
-			if (empty($arr1)) $arr1 = array();
-			if (empty($arr2)) $arr2 = array();
+			if (empty($arr1))
+				$arr1 = array();
+			if (empty($arr2))
+				$arr2 = array();
 			// merging to get union of two sets
 			$full = Core::array_merge($arr1, $arr2);
 			foreach ($full as $k => $v) {
@@ -726,7 +734,8 @@ function array_diff_assoc_recursive_by_keys($arr1, $arr2, $options = array()) {
 			}
 		}
 	}
-	if (isset($difference) && !is_array($difference) && floatval($difference) == 0) unset($difference);
+	if (isset($difference) && !is_array($difference) && floatval($difference) == 0)
+		unset($difference);
 	return !isset($difference) ? false : $difference;
 }
 
@@ -775,7 +784,7 @@ function array_compare_level1($arr1, $arr2) {
 }
 
 /**
- * Compares two array in inteligent way
+ * Compares two array in intelligent way
  *
  * @param array $arr1
  * @param array $arr2
@@ -830,7 +839,7 @@ function array_key_extract_by_prefix(& $arr, $key_prefix, $unset = true) {
  * @param array $arr
  * @param array $keys
  * @param array $options
- *		boolean preserve - keep only these
+ * 		boolean preserve - keep only these
  */
 function array_key_unset(& $arr, $keys, $options = []) {
 	if (empty($options['preserve'])) {
@@ -956,7 +965,8 @@ function mb_str_split($string, $limit = -1, $pattern = null) {
 		$strlen = mb_strlen($string);
 		while ($strlen) {
 			$counter++;
-			if ($limit != -1 && $counter > $limit) break;
+			if ($limit != -1 && $counter > $limit)
+				break;
 			$result[] = mb_substr($string, 0, 1, 'UTF-8');
 			$string = mb_substr($string, 1, $strlen, 'UTF-8');
 			$strlen = mb_strlen($string);
@@ -977,7 +987,7 @@ function mb_str_split($string, $limit = -1, $pattern = null) {
 function mb_str_pad($input, $length, $string = ' ', $type = STR_PAD_LEFT, $encoding = 'UTF-8') {
 	if ($type == STR_PAD_RIGHT) {
 		while (mb_strlen($input, $encoding) < $length) {
-			$input.= $string;
+			$input .= $string;
 		}
 	} else if ($type == STR_PAD_LEFT) {
 		while (mb_strlen($input, $encoding) < $length) {
@@ -988,7 +998,7 @@ function mb_str_pad($input, $length, $string = ' ', $type = STR_PAD_LEFT, $encod
 		$counter = 1;
 		while (mb_strlen($input, $encoding) < $length) {
 			if ($counter % 2) {
-				$input.= $string;
+				$input .= $string;
 			} else {
 				$input = $string . $input;
 			}
@@ -1020,11 +1030,11 @@ function is_json($input) {
  * @return boolean
  */
 function is_xml($input) {
-    libxml_use_internal_errors(true);
-    $doc = new DOMDocument('1.0', 'utf-8');
-    $doc->loadXML($input);
-    $errors = libxml_get_errors();
-    return empty($errors);
+	libxml_use_internal_errors(true);
+	$doc = new DOMDocument('1.0', 'utf-8');
+	$doc->loadXML($input);
+	$errors = libxml_get_errors();
+	return empty($errors);
 }
 
 /**
@@ -1034,8 +1044,8 @@ function is_xml($input) {
  * @return array
  */
 function xml2array(SimpleXMLElement $input) {
-    $string = json_encode($input);
-    return json_decode($string, true);
+	$string = json_encode($input);
+	return json_decode($string, true);
 }
 
 /**
@@ -1045,18 +1055,18 @@ function xml2array(SimpleXMLElement $input) {
  * @param SimpleXMLElement $xml
  * @return type
  */
-function array2xml($arr, $xml = false){
-    if ($xml === false){
-        $xml = new SimpleXMLElement('<root/>');
-    }
-    foreach ($arr as $k => $v) {
-        if (is_array($v)){
-            array2xml($v, $xml->addChild($k));
-        } else {
-            $xml->addChild($k, $v);
-        }
-    }
-    return $xml->asXML();
+function array2xml($arr, $xml = false) {
+	if ($xml === false) {
+		$xml = new SimpleXMLElement('<root/>');
+	}
+	foreach ($arr as $k => $v) {
+		if (is_array($v)) {
+			array2xml($v, $xml->addChild($k));
+		} else {
+			$xml->addChild($k, $v);
+		}
+	}
+	return $xml->asXML();
 }
 
 /**
@@ -1065,19 +1075,19 @@ function array2xml($arr, $xml = false){
  * @param string $hex
  * @return array
  */
-function hex2rgb(string $hex) : array {
-   $hex = str_replace('#', '', $hex);
-   $result = [];
-   if(strlen($hex) == 3) {
-      $result[0] = hexdec(substr($hex, 0, 1) . substr($hex, 0, 1));
-      $result[1] = hexdec(substr($hex, 1, 1) . substr($hex, 1, 1));
-      $result[2] = hexdec(substr($hex, 2, 1) . substr($hex, 2, 1));
-   } else {
-      $result[0] = hexdec(substr($hex, 0, 2));
-      $result[1] = hexdec(substr($hex, 2, 2));
-      $result[2] = hexdec(substr($hex, 4, 2));
-   }
-   return $result;
+function hex2rgb(string $hex): array {
+	$hex = str_replace('#', '', $hex);
+	$result = [];
+	if (strlen($hex) == 3) {
+		$result[0] = hexdec(substr($hex, 0, 1) . substr($hex, 0, 1));
+		$result[1] = hexdec(substr($hex, 1, 1) . substr($hex, 1, 1));
+		$result[2] = hexdec(substr($hex, 2, 1) . substr($hex, 2, 1));
+	} else {
+		$result[0] = hexdec(substr($hex, 0, 2));
+		$result[1] = hexdec(substr($hex, 2, 2));
+		$result[2] = hexdec(substr($hex, 4, 2));
+	}
+	return $result;
 }
 
 /**
@@ -1091,22 +1101,22 @@ function hex2rgb(string $hex) : array {
  *   "\x0B" - Vertical Tab
  *   "\r" - New Line in Mac
  *   " " - Space
- *	 "[str]$" Replace from end of string
+ * 	 "[str]$" Replace from end of string
  * 	 "^[str]" Replace from start of string
  * @param string $with
  * @return string
  */
 function trim2($str, $what = null, $with = ' ') {
-    if ($what === null) {
-        $what = "\\x00-\\x20";    //all white-spaces and control chars
-    } else if (strpos($what, '$') !== false) { // string from the end
+	if ($what === null) {
+		$what = "\\x00-\\x20";	//all white-spaces and control chars
+	} else if (strpos($what, '$') !== false) { // string from the end
 		$what = rtrim($what, '$');
 		return preg_replace('/' . preg_quote($what, '/') . '$/', $with, $str);
 	} else if (strpos($what, '^') !== false) {
 		$what = ltrim($what, '^');
 		return preg_replace('/^' . preg_quote($what, '/') . '/', $with, $str);
 	}
-    return trim(preg_replace("/[".$what."]+/", $with, $str), $what);
+	return trim(preg_replace("/[" . $what . "]+/", $with, $str), $what);
 }
 
 /**
@@ -1126,7 +1136,7 @@ function nl2br2($str) {
  * @param array $arr
  * @return bool
  */
-function array_has_string_keys(array $arr) : bool {
+function array_has_string_keys(array $arr): bool {
 	return count(array_filter(array_keys($arr), 'is_string')) > 0;
 }
 
@@ -1161,6 +1171,6 @@ function array_iterate_recursive_get_keys(array $arr, array & $result, array $pa
  * @param string $str
  * @return array
  */
-function split_on_uppercase(string $str) : array {
+function split_on_uppercase(string $str): array {
 	return preg_split('/(?=[A-Z])/', $str, -1, PREG_SPLIT_NO_EMPTY);
 }
