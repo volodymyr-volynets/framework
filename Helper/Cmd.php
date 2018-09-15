@@ -34,14 +34,26 @@ class Cmd {
 	 *
 	 * @param string $message
 	 * @param array $options
+	 *	boolean mandatory
+	 *	boolean bold
+	 *	string background_color
+	 *	string text_color
 	 * @return string
 	 */
 	public static function ask($message, $options = []) {
 		$options['text_color'] = $options['text_color'] ?? 'green';
 		$options['background_color'] = $options['background_color'] ?? null;
 		$options['bold'] = $options['bold'] ?? true;
+reask:
 		echo "\n" . self::colorString($message, $options['text_color'], $options['background_color'], $options['bold']) . ": ";
-		return trim(fgets(STDIN));
+		$result = trim(fgets(STDIN));
+		if (!empty($options['function'])) {
+			$result = $options['function']($result);
+		}
+		if (!empty($options['mandatory'])) {
+			if (empty($result)) goto reask;
+		}
+		return $result;
 	}
 
 	/**
@@ -127,5 +139,28 @@ class Cmd {
 		$left = 100 - $percent;
 		$write = sprintf("\033[0G\033[2K[%'={$percent}s>%-{$left}s] - $percent%% - $done/$total - $description", "", "");
 		fwrite(STDERR, $write);
+	}
+
+	/**
+	 * Execute command
+	 *
+	 * @param string $command
+	 * @return array
+	 */
+	public static function executeCommand(string $command) : array {
+		$result = [
+		    'success' => false,
+		    'error' => [],
+		    'data' => null
+		];
+		$escaped_command = escapeshellcmd($command);
+		$temp = null;
+		exec("{$escaped_command} 2>&1", $result['data'], $temp);
+		if (empty($temp)) {
+			$result['success'] = true;
+		} else {
+			$result['error'][] = 'Cmd error occured, status = ' . $temp;
+		}
+		return $result;
 	}
 }
