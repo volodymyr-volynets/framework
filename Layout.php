@@ -252,7 +252,7 @@ class Layout extends View {
 	 */
 	public static function addAction(string $code, array $action) {
 		$action['order'] = $action['order'] ?? 0;
-		Application::set(array('layout', 'actions', $code), $action);
+		\Application::set(array('layout', 'actions', $code), $action);
 	}
 
 	/**
@@ -262,7 +262,7 @@ class Layout extends View {
 	 */
 	public static function renderActions() : string {
 		$result = '';
-		$data = Application::get(array('layout', 'actions'));
+		$data = \Application::get(array('layout', 'actions'));
 		if (!empty($data)) {
 			// sorting first
 			array_key_sort($data, ['order' => SORT_ASC], ['order' => SORT_NUMERIC]);
@@ -274,7 +274,7 @@ class Layout extends View {
 				$onclick = !empty($v['onclick']) ? $v['onclick'] : '';
 				$value = !empty($v['value']) ? i18n(null, $v['value']) : '';
 				$href = $v['href'] ?? 'javascript:void(0);';
-				$temp[] = \HTML::a(array('value' => $icon . $value, 'href' => $href, 'onclick' => $onclick));
+				$temp[] = \HTML::a(['value' => $icon . $value, 'href' => $href, 'onclick' => $onclick, 'title' => $v['title'] ?? '']);
 			}
 			$result = implode(' ', $temp);
 		}
