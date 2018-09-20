@@ -1,7 +1,7 @@
 <?php
 
 namespace Object;
-abstract class View {
+abstract class View extends \Object\Table\Options {
 
 	/**
 	 * Include common trait
@@ -21,6 +21,13 @@ abstract class View {
 	 * @var string
 	 */
 	public $db_link_flag;
+
+	/**
+	 * Module code
+	 *
+	 * @var string
+	 */
+	public $module_code;
 
 	/**
 	 * Schema
@@ -51,6 +58,13 @@ abstract class View {
 	public $full_view_name;
 
 	/**
+	 * Table primary key in format ['id1'] or ['id1', 'id2', 'id3']
+	 *
+	 * @var array
+	 */
+	public $pk;
+
+	/**
 	 * Definition
 	 *
 	 * @var string
@@ -72,13 +86,6 @@ abstract class View {
 	public $query;
 
 	/**
-	 * Tenant
-	 *
-	 * @var int
-	 */
-	public $tenant;
-
-	/**
 	 * Column prefix
 	 *
 	 * @var string
@@ -91,6 +98,48 @@ abstract class View {
 	 * @var string
 	 */
 	public $sql_version;
+
+	/**
+	 * SQL last query
+	 *
+	 * @var string
+	 */
+	public $sql_last_query;
+
+	/**
+	 * Whether we need to cache this table
+	 *
+	 * @var bool
+	 */
+	public $cache = false;
+
+	/**
+	 * These tags will be added to caches and then will be used in cache::gc();
+	 *
+	 * @var type
+	 */
+	public $cache_tags = [];
+
+	/**
+	 * Whether we need to cache in memory
+	 *
+	 * @var bool
+	 */
+	public $cache_memory = false;
+
+	/**
+	 * Tenant
+	 *
+	 * @var boolean
+	 */
+	public $tenant = false;
+
+	/**
+	 * Tenant column
+	 *
+	 * @var string
+	 */
+	public $tenant_column;
 
 	/**
 	 * Constructing object
@@ -129,6 +178,13 @@ abstract class View {
 				$this->schema = '';
 			}
 		}
+		// tenant column
+		if ($this->tenant) {
+			$this->tenant_column = $this->column_prefix . 'tenant_id';
+		}
+		// cache tags
+		$this->cache_tags[] = $this->full_table_name;
+		if ($this->tenant) $this->cache_tags[] = '+numbers_tenant_' . \Tenant::id();
 		// initialize query object
 		$this->query = new \Object\Query\Builder($this->db_link);
 		$this->query->select();

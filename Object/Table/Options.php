@@ -107,6 +107,17 @@ class Options extends \Object\Override\Data {
 	}
 
 	/**
+	 * Options (static)
+	 *
+	 * @see $this::get()
+	 */
+	public static function optionsStatic(array $options = []) {
+		$class = get_called_class();
+		$object = new $class();
+		return $object->options($options);
+	}
+
+	/**
 	 * Optgroups
 	 *
 	 * @param array $options

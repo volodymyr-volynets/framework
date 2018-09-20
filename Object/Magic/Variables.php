@@ -19,5 +19,5 @@ class Variables extends \Object\Data {
 		'__session_id' => ['no_magic_variable_description' => 'Session #'],
 		'__menu_id' => ['no_magic_variable_description' => 'Menu #'],
 		'__history_id' => ['no_magic_variable_description' => 'History #'],
-ß	];
+	];
 }
