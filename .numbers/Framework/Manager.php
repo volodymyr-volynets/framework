@@ -173,34 +173,39 @@ try {
 			if ($mode == 'commit') {
 				// show what is going on
 				echo "\n" . \Helper\Cmd::colorString(implode("\n", $stats), null, null, false) . "\n\n";
-				$commit = ['number_of_questions' => 0, 'answers' => []];
+				$commit = [];
 				// ask questions
-				$commit['number_of_questions'] = \Helper\Cmd::ask('How many tickets were resolved?', ['mandatory' => true, 'function' => 'intval']);
-				for ($i = 1; $i <= $commit['number_of_questions']; $i++) {
-reask_type:
-					$commit['answers'][$i]['type'] = \Helper\Cmd::ask('Type (' . print_options_array($numbers_enhancement_types) . ')', ['mandatory' => true]);
-					if (!in_array($commit['answers'][$i]['type'], array_keys($numbers_enhancement_types))) goto reask_type;
-					$commit['answers'][$i]['group'] = \Helper\Cmd::ask('Group', ['mandatory' => true]);
-					$commit['answers'][$i]['ticket'] = \Helper\Cmd::ask('Ticket #', ['mandatory' => true, 'function' => 'intval']);
-					$commit['answers'][$i]['notes'] = \Helper\Cmd::ask('Notes', ['mandatory' => true]);
-				}
-				// generate commit message
-				$message = '';
-				$temp = [];
-				foreach ($commit['answers'] as $k => $v) {
-					if (!isset($temp[$v['group']])) {
-						$temp[$v['group']] = [];
+				while (true) {
+another_group:
+					$temp_group = \Helper\Cmd::ask('Group / Submodule', ['mandatory' => true, 'text_color' => 'red']);
+					if (!isset($commit[$temp_group])) {
+						$commit[$temp_group] = [];
 					}
-					$temp[$v['group']][]= "\t" . $numbers_enhancement_types[$v['type']] . ' #' . $v['ticket'] . ' (' . $v['notes'] . ')';
+another_fix:
+					$temp_type = \Helper\Cmd::ask('Type (' . print_options_array($numbers_enhancement_types) . ')', ['mandatory' => true, 'only_these' => array_keys($numbers_enhancement_types)]);
+					$temp_ticket = \Helper\Cmd::ask('Ticket #', ['mandatory' => true, 'function' => 'intval']);
+					$temp_notes = \Helper\Cmd::ask('Notes', ['mandatory' => true]);
+					$commit[$temp_group][] = "\t" . $numbers_enhancement_types[$temp_type] . ' #' . $temp_ticket . ' (' . $temp_notes . ')';
+					// ask if we have another fix
+					if (\Helper\Cmd::confirm('Another fix in this Group and/or Submodule?', ['text_color' => 'green', 'suppress_echo' => true])) {
+						goto another_fix;
+					} else {
+						if (\Helper\Cmd::confirm('Another Group / Submodule?', ['text_color' => 'red', 'suppress_echo' => true])) {
+							goto another_group;
+						} else {
+							break;
+						}
+					}
 				}
 				$short = [];
 				$changes = [];
-				foreach ($temp as $k => $v) {
+				$message = [];
+				foreach ($commit as $k => $v) {
 					$short[$k] = $k;
-					$message.= $k . ":\n" . implode("\n", $v);
+					$message[]= $k . ":\n" . implode("\n", $v);
 					$changes[$k] = '<li>' . implode('</li><li>', $v) . '</li>';
 				}
-				$message = implode(', ', $short) . "\n\n" . $message;
+				$message = implode(', ', $short) . "\n\n --- \n\n" . implode("\n", $message);
 				$changes_formatted = '<ul>';
 				foreach ($changes as $k => $v) {
 					$changes_formatted.= '<li>';
@@ -260,10 +265,11 @@ reask_type:
 					}
 				}
 				$replaces = [
-				    '[version]' => $repository_version,
-				    '[date_commit]' => date('Y-m-d'),
-				    '[changes]' => $changes_formatted,
-				    '[affected_files]' => implode("\n", $stats)
+					'[version]' => $repository_version,
+					'[developer]' => $git_params['user.name'],
+					'[date_commit]' => date('Y-m-d'),
+					'[changes]' => $changes_formatted,
+					'[affected_files]' => implode("\n", $stats)
 				];
 				$template = \Helper\File::read($working_directory . '.numbers' . DIRECTORY_SEPARATOR . 'Framework' . DIRECTORY_SEPARATOR . 'Template' . DIRECTORY_SEPARATOR . 'ChangeLog.html');
 				$template = str_replace(array_keys($replaces), array_values($replaces), $template);

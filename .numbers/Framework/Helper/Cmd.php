@@ -11,6 +11,7 @@ class Cmd {
 	 *
 	 * @param string $message
 	 * @param array $options
+	 *		boolean suppress_echo
 	 * @return boolean
 	 */
 	public static function confirm($message, $options = []) {
@@ -21,10 +22,14 @@ class Cmd {
 		$line = fgets(STDIN);
 		$line = strtolower(trim($line));
 		if (!($line == 'y' || $line == 'yes')) {
-			echo self::colorString("\nAborted...\n\n", $options['text_color'], $options['background_color'], $options['bold']);
+			if (empty($options['suppress_echo'])) {
+				echo self::colorString("\nAborted...\n\n", $options['text_color'], $options['background_color'], $options['bold']);
+			}
 			return false;
 		} else {
-			echo "\n";
+			if (empty($options['suppress_echo'])) {
+				echo "\n";
+			}
 			return true;
 		}
 	}
@@ -34,10 +39,11 @@ class Cmd {
 	 *
 	 * @param string $message
 	 * @param array $options
-	 *	boolean mandatory
-	 *	boolean bold
-	 *	string background_color
-	 *	string text_color
+	 *		boolean mandatory
+	 *		array only_these
+	 *		boolean bold
+	 *		string background_color
+	 *		string text_color
 	 * @return string
 	 */
 	public static function ask($message, $options = []) {
@@ -52,6 +58,10 @@ reask:
 		}
 		if (!empty($options['mandatory'])) {
 			if (empty($result)) goto reask;
+		}
+		if (!empty($options['only_these'])) {
+			if (!is_array($options['only_these'])) $options['only_these'] = [$options['only_these']];
+			if (!in_array($result, $options['only_these'])) goto reask;
 		}
 		return $result;
 	}

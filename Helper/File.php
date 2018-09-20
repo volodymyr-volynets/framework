@@ -200,4 +200,23 @@ class File {
 			return chmod($dir_or_file, $permission);
 		}
 	}
+
+	/**
+	 * Replace string in a file
+	 *
+	 * @param string $filename
+	 * @param string $find
+	 * @param string $replace
+	 * @return bool
+	 */
+	public static function replace(string $filename, string $find, string $replace) : bool {
+		if (!file_exists($filename)) return false;
+		$lines = file($filename, FILE_IGNORE_NEW_LINES);
+		foreach ($lines as $k => $v) {
+			if (stripos($v, $find) !== false) {
+				$lines[$k] = $replace;
+			}
+		}
+		return self::write($filename, implode("\n", $lines));
+	}
 }
