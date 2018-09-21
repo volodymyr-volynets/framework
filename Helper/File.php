@@ -101,16 +101,6 @@ class File {
 	public static function iterate(string $dir, array $options = []) : array {
 		$result = [];
 		$relative_path = realpath($dir);
-		// inner helper function to remove absolute path
-		function iterate_process_path_inner_helper(string $dir, string $relative_path) {
-			if ($relative_path == '') {
-				return $dir;
-			} else {
-				$dir = trim2($dir, '^' . $relative_path, '');
-				$dir = ltrim($dir, DIRECTORY_SEPARATOR);
-				return $dir;
-			}
-		}
 		if (empty($options['recursive'])) {
 			$iterator = new \DirectoryIterator($dir);
 		} else {
@@ -147,11 +137,28 @@ class File {
 					'directory' => $v->getPath(),
 					'basename' => $v->getBasename(),
 					'filename' => $v->getFilename(),
-					'relative_directory' => iterate_process_path_inner_helper($v->getPath(), $relative_path),
+					'relative_directory' => self::iterateProcessPathInnerHelper($v->getPath(), $relative_path),
 				];
 			}
 		}
 		return $result;
+	}
+
+	/**
+	 * Function to remove absolute path
+	 *
+	 * @param string $dir
+	 * @param string $relative_path
+	 * @return string
+	 */
+	private static function iterateProcessPathInnerHelper(string $dir, string $relative_path) {
+		if ($relative_path == '') {
+			return $dir;
+		} else {
+			$dir = trim2($dir, '^' . $relative_path, '');
+			$dir = ltrim($dir, DIRECTORY_SEPARATOR);
+			return $dir;
+		}
 	}
 
 	/**
