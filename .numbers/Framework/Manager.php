@@ -217,6 +217,8 @@ another_fix:
 				// bump versions
 				$repository_version = null;
 				foreach ($modules as $k => $v) {
+					// skip version increase
+					if (!empty($v['data']['module.skip_change_log'])) continue;
 					$version = version_increment($v['data']['module.version']);
 					if (!empty($v['data']['module.repository'])) {
 						$repository_version = $version;

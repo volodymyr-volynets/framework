@@ -183,7 +183,7 @@ abstract class View extends \Object\Table\Options {
 			$this->tenant_column = $this->column_prefix . 'tenant_id';
 		}
 		// cache tags
-		$this->cache_tags[] = $this->full_table_name;
+		$this->cache_tags[] = $this->full_view_name;
 		if ($this->tenant) $this->cache_tags[] = '+numbers_tenant_' . \Tenant::id();
 		// initialize query object
 		$this->query = new \Object\Query\Builder($this->db_link);
