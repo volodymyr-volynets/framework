@@ -28,7 +28,7 @@ class Request {
 			$result = trim($temp[sizeof($temp) - 1]);
 		}
 		// unknown
-		if ($result == 'unknown') {
+		if ($result == 'unknown' || is_null($result)) {
 			$result = '127.0.0.1';
 		}
 		return $result;

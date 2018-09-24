@@ -98,10 +98,6 @@ class Trigger {
 		if (empty($this->sql_version)) {
 			Throw new \Exception('You must provide SQL version!');
 		}
-		// version in definition
-		if (strpos($this->definition, '/* version */') === false) {
-			Throw new \Exception('You must include /* version */ in definition!');
-		}
 		// table name
 		if (empty($this->full_table_name)) {
 			Throw new \Exception('You must provide table name!');
@@ -122,7 +118,5 @@ class Trigger {
 		if (!empty($this->schema) && strpos($this->full_table_name, '.') === false) {
 			$this->full_table_name = $this->schema . '.' . $this->full_table_name;
 		}
-		// replace version
-		$this->definition = str_replace('/* version */', '/* [[[SQL Version: ' . $this->sql_version . ']]] */', $this->definition);
 	}
 }

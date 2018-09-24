@@ -125,12 +125,16 @@ abstract class Check {
 		// initialize query object
 		$this->query = new \Object\Query\Builder($this->db_link);
 		$this->query->check();
+		$this->query->from($this->full_table_name, 'table_name');
+		$this->query->from($this->full_check_name, 'check_name');
 		$this->definition();
 		$this->definition = $this->query->sql();
 	}
 
 	/**
 	 * Definition
+	 *
+	 * Important: all columns in where clauses should be prefixed with "[NEW]."
 	 */
 	abstract public function definition();
 }

@@ -91,10 +91,6 @@ class Function2 {
 		if (empty($this->sql_version)) {
 			Throw new \Exception('You must provide SQL version!');
 		}
-		// version in definition
-		if (strpos($this->definition, '/* version */') === false) {
-			Throw new \Exception('You must include /* version */ in definition!');
-		}
 		// see if we have special handling
 		$db_object = \Factory::get(['db', $this->db_link, 'object']);
 		if (method_exists($db_object, 'handleName')) {
@@ -107,7 +103,5 @@ class Function2 {
 				$this->schema = '';
 			}
 		}
-		// replace version
-		$this->definition = str_replace('/* version */', '/* [[[SQL Version: ' . $this->sql_version . ']]] */', $this->definition);
 	}
 }

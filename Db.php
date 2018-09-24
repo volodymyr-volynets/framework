@@ -266,6 +266,10 @@ class Db {
 					$db_server[$k] = $v;
 				}
 			}
+			// fix database issue for multi database configurations
+			if (empty($db_server['dbname'])) {
+				$db_server['dbname'] = \Application::get("db.{$db_link}_schema.dbname");
+			}
 			// try to connect
 			$db_status = $db_object->connect($db_server);
 			if ($db_status['success']) {

@@ -61,13 +61,22 @@ try {
 			$totals = ['addition' => 0, 'deletion' => 0];
 			foreach ($result['data'] as $v) {
 				$v = explode("\t", $v);
+				// we need to fix directory and pathname for deleted items
+				$realpath = realpath(dirname($v[2]));
+				if (empty($realpath)) {
+					$realpath = $working_directory . dirname($v[2]);
+				}
+				$pathname = realpath($v[2]);
+				if (empty($pathname)) {
+					$pathname = $working_directory . $v[2];
+				}
 				$files[$v[2]] = [
 					'shortname' => $v[2],
-					'pathname' => realpath($v[2]),
+					'pathname' => $pathname,
 					'filename' => basename($v[2]),
 					'addition' => (int) $v[0],
 					'deletion' => (int) $v[1],
-					'directory' => realpath(dirname($v[2])),
+					'directory' => $realpath,
 				];
 				$totals['addition']+= (int) $v[0];
 				$totals['deletion']+= (int) $v[1];
@@ -102,6 +111,7 @@ try {
 						$modules[$v['directory']]['files'][$k2] = $v2;
 						$modules[$v['directory']]['totals']['addition']+= $v2['addition'];
 						$modules[$v['directory']]['totals']['deletion']+= $v2['deletion'];
+						unset($files[$k2]);
 						break;
 					}
 				}

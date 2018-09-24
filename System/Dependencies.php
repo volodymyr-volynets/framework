@@ -343,7 +343,7 @@ class Dependencies {
 			// submodule tests first
 			if (!empty($data['unit_tests'])) {
 				$xml = '';
-				$xml.= '<phpunit bootstrap="../../../libraries/vendor/numbers/framework/System/Managers/UnitTests.php">';
+				$xml.= '<phpunit bootstrap="../../../libraries/vendor/Numbers/Framework/System/Managers/UnitTests.php">';
 					$xml.= '<testsuites>';
 						foreach ($data['unit_tests'] as $k => $v) {
 							$xml.= '<testsuite name="' . $k . '">';
@@ -360,7 +360,7 @@ class Dependencies {
 			$application_tests = \Helper\File::iterate('Miscellaneous/UnitTests', ['recursive' => true, 'only_extensions' => ['php']]);
 			if (!empty($application_tests)) {
 				$xml = '';
-				$xml.= '<phpunit bootstrap="../../../libraries/vendor/numbers/framework/System/Managers/UnitTests.php">';
+				$xml.= '<phpunit bootstrap="../../../libraries/vendor/Numbers/Framework/System/Managers/UnitTests.php">';
 					$xml.= '<testsuites>';
 							$xml.= '<testsuite name="application/unit/tests">';
 								foreach ($application_tests as $v) {
