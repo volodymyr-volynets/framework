@@ -108,6 +108,7 @@ reask:
 	 * @param string $string
 	 * @param string $text_color
 	 * @param string $background_color
+	 * @param boolean $bold
 	 * @return string
 	 */
 	public static function colorString($string, $text_color = null, $background_color = null, $bold = false) {
@@ -172,5 +173,17 @@ reask:
 			$result['error'][] = 'Cmd error occured, status = ' . $temp;
 		}
 		return $result;
+	}
+
+	/**
+	 * Echo message
+	 *
+	 * @param string $string
+	 * @param string $text_color
+	 * @param string $background_color
+	 * @param boolean $bold
+	 */
+	public static function message($string, $text_color = null, $background_color = null, $bold = false) {
+		echo "\n" . \Helper\Cmd::colorString($string, $text_color, $background_color, $bold) . "\n";
 	}
 }

@@ -137,7 +137,7 @@ reask_for_migration:
 			]);
 			if ($settings['success']) {
 				// load all migrations from the code
-				\Helper\Cmd::progressBar(0, 100, 'Loading migrations');
+				\Helper\Cmd::message('Loading migrations...', 'blue');
 				$migration_result = \Numbers\Backend\Db\Common\Migration\Processor::loadCodeMigrations([
 					'db_link' => 'default',
 					'load_migration_objects' => true
@@ -155,8 +155,9 @@ reask_for_migration:
 				}
 				// go through each database
 				foreach ($settings['db_list'] as $v) {
+					\Helper\Cmd::message('Processing database: ' . $v, 'blue');
 					$schema_temp = $settings['db_settings'];
-					if (isset($schema_temp['dbname']) && $schema_temp['dbname'] !=$v) {
+					if (isset($schema_temp['dbname']) && $schema_temp['dbname'] != $v) {
 						$schema_temp['__original_dbname'] = $schema_temp['dbname'];
 					}
 					$schema_temp['dbname'] = $v;
@@ -315,7 +316,7 @@ reask_for_migration:
 		case 'schema':
 			// check settings to see if we can run this command
 			$temp = \Application::get('application.structure.db_migration');
-			if (!empty($temp) && $mode != 'drop') {
+			if (!empty($temp) && $mode == 'commit') {
 				Throw new Exception('Direct schema changes are disabled, you must use migration commands!');
 			}
 			// get settings for default db_link
@@ -325,6 +326,7 @@ reask_for_migration:
 			if ($settings['success']) {
 				// go through each database
 				foreach ($settings['db_list'] as $v) {
+					\Helper\Cmd::message('Processing database: ' . $v, 'blue');
 					$schema_temp = $settings['db_settings'];
 					// for multi database we need to store original database name
 					if ($schema_temp['dbname'] != $v) {
