@@ -88,6 +88,8 @@ class Import {
 			$collection_object = null;
 			$flag_collection = false;
 			// regular model
+			$primary_model_name = null;
+			$primary_model_object = null;
 			if (is_a($object, '\Object\Table')) {
 				if (!$object->dbPresent()) continue;
 				$db_object = $object->db_object;
@@ -129,10 +131,36 @@ class Import {
 							}
 						}
 					} else if (is_string($v3)) {
+						// primary model
+						if (strpos($v3, '::primary_model::') === 0) {
+							$primary_model_name = str_replace('::primary_model::', '', $v3);
+							$primary_model_object = new $primary_model_name();
+							$v3 = '::id::' . $primary_model_name;
+						}
 						// if we need id
 						if (strpos($v3, '::id::') === 0) {
 							$temp = $this->findAliasedValue($k3, $v3);
 							if ($temp !== false) $v2[$k3] = $temp;
+							continue;
+						}
+						// from columns
+						if (strpos($v3, '::from::') === 0) {
+							$v3 = explode('::', str_replace('::from::', '', $v3));
+							$first_type = trim(array_shift($v3));
+							$temp = $primary_model_object->{$first_type};
+							end($v3);
+							$last_type = $v3[key($v3)];
+							$v3 = array_key_get($temp, $v3);
+							// some overrides
+							if ($first_type == 'columns') {
+								if ($last_type == 'domain') {
+									$v3 = \Object\Data\Domains::getNonSequenceDomain($v3);
+								}
+								if ($last_type == 'type') {
+									$v3 = \Object\Data\Types::getNonSequenceType($v3);
+								}
+							}
+							$v2[$k3] = $v3;
 							continue;
 						}
 					}

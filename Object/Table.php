@@ -199,16 +199,6 @@ class Table extends \Object\Table\Options {
 	public $cache_memory = false;
 
 	/**
-	 * Relation
-	 *
-	 * @var array
-	 */
-	public $relation = [
-		//'field' => '[field name]',
-		//'inactive' => 1 or 0
-	];
-
-	/**
 	 * Attributes
 	 *
 	 * @var boolean
@@ -412,20 +402,6 @@ class Table extends \Object\Table\Options {
 		if ($this->tenant) $this->cache_tags[] = '+numbers_tenant_' . \Tenant::id();
 		// history table name
 		$this->history_name = $this->full_table_name . '__history';
-		// process relations
-		if (!empty($this->relation)) {
-			// add a column if not exists
-			if (empty($this->columns[$this->relation['field']])) {
-				$this->columns[$this->relation['field']] = ['name' => 'Relation #', 'domain' => 'relation_id_sequence'];
-				// add unique constraint
-				$temp = [];
-				if ($this->tenant) $temp[] = $this->tenant_column; // a must
-				$temp[] = $this->relation['field'];
-				$this->constraints[$this->relation['field'] . '_un'] = ['type' => 'unique', 'columns' => $temp];
-			}
-		} else {
-			$this->relation = false;
-		}
 		// optimistic lock
 		if ($this->optimistic_lock) {
 			$this->optimistic_lock_column = $this->column_prefix . 'optimistic_lock';

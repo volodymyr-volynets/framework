@@ -79,8 +79,22 @@ class Domains extends \Object\Data {
 		'language_code' => ['name' => 'Language Code', 'type' => 'char', 'length' => 3, 'validator_method' => '\Object\Validator\LowerCase::validate', 'placeholder' => 'Language'],
 		'locale_code' => ['name' => 'Locale Code', 'type' => 'varchar', 'length' => 30],
 		'timezone_code' => ['name' => 'Timezone Code', 'type' => 'varchar', 'length' => 30, 'placeholder' => 'Timezone'],
+		'module_code' => ['name' => 'Module Code', 'type' => 'char', 'length' => 2, 'validator_method' => '\Object\Validator\UpperCase::validate', 'placeholder' => 'Module'],
+		'module_id' => ['name' => 'Module #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Module', 'format' => 'id'],
+		'module_id_sequence' => ['name' => 'Module #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
+		'feature_code' => ['name' => 'Feature Code', 'type' => 'varchar', 'length' => 63, 'validator_method' => '\Object\Validator\UpperCase::validate', 'placeholder' => 'Feature'],
+		'resource_id' => ['name' => 'Resource #', 'type' => 'integer', 'format' => 'id', 'placeholder' => 'Resource'],
+		'resource_id_sequence' => ['name' => 'Resource #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
+		'action_id' => ['name' => 'Action #', 'type' => 'smallint', 'format' => 'id', 'placeholder' => 'Action'],
+		'field_code' => ['name' => 'Field Code', 'type' => 'varchar', 'length' => 63],
 		'field_id' => ['name' => 'Field #', 'type' => 'integer', 'default' => null, 'format' => 'id', 'placeholder' => 'Field', 'searchable' => true],
 		'field_id_sequence' => ['name' => 'Field #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
+		'attribute_id' => ['name' => 'Attribute #', 'type' => 'integer', 'default' => null, 'format' => 'id', 'placeholder' => 'Attribute'],
+		'attribute_id_sequence' => ['name' => 'Attribute #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
+		'service_id' => ['name' => 'Service #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Service', 'format' => 'id', 'searchable' => true],
+		'service_id_sequence' => ['name' => 'Service #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
+		'model_id' => ['name' => 'Model #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Model', 'format' => 'id', 'searchable' => true],
+		'model_id_sequence' => ['name' => 'Model #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		// Country Management
 		'country_code' => ['name' => 'Country Code', 'type' => 'char', 'length' => 2, 'validator_method' => '\Object\Validator\UpperCase::validate', 'placeholder' => 'Country', 'searchable' => true],
 		'country_code3' => ['name' => 'Country Code (3)', 'type' => 'char', 'length' => 3, 'validator_method' => '\Object\Validator\UpperCase::validate'],
@@ -99,13 +113,6 @@ class Domains extends \Object\Data {
 		// Tenants
 		'tenant_id' => ['name' => 'Tenant #', 'type' => 'integer', 'default' => null, 'format' => 'id'],
 		'tenant_id_sequence' => ['name' => 'Tenant #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
-		'module_code' => ['name' => 'Module Code', 'type' => 'char', 'length' => 2, 'validator_method' => '\Object\Validator\UpperCase::validate', 'placeholder' => 'Module'],
-		'module_id' => ['name' => 'Module #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Module', 'format' => 'id'],
-		'module_id_sequence' => ['name' => 'Module #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
-		'feature_code' => ['name' => 'Feature Code', 'type' => 'varchar', 'length' => 30, 'validator_method' => '\Object\Validator\UpperCase::validate', 'placeholder' => 'Feature'],
-		'resource_id' => ['name' => 'Resource #', 'type' => 'integer', 'format' => 'id', 'placeholder' => 'Resource'],
-		'resource_id_sequence' => ['name' => 'Resource #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
-		'action_id' => ['name' => 'Action #', 'type' => 'smallint', 'format' => 'id', 'placeholder' => 'Action'],
 		// User Management
 		'user_id' => ['name' => 'User #', 'type' => 'bigint', 'default' => null, 'placeholder' => 'User #', 'format' => 'id', 'searchable' => true],
 		'user_id_sequence' => ['name' => 'User #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id', 'searchable' => true],
@@ -153,8 +160,6 @@ class Domains extends \Object\Data {
 		'item_master_id_sequence' => ['name' => 'Item Master #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'territory_id' => ['name' => 'Territory #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Territory', 'format' => 'id', 'searchable' => true, 'tree' => true],
 		'territory_id_sequence' => ['name' => 'Territory #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id', 'searchable' => true, 'tree' => true],
-		'service_id' => ['name' => 'Product / Service #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Product / Service', 'format' => 'id', 'searchable' => true],
-		'service_id_sequence' => ['name' => 'Product / Service #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'channel_id' => ['name' => 'Channel #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Channel', 'format' => 'id'],
 		'channel_id_sequence' => ['name' => 'Channel #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'queue_id' => ['name' => 'Queue #', 'type' => 'bigint', 'default' => null, 'placeholder' => 'Queue', 'format' => 'id'],
@@ -274,5 +279,18 @@ class Domains extends \Object\Data {
 			}
 		}
 		return $data;
+	}
+
+	/**
+	 * Get non sequence domain
+	 *
+	 * @param string $domain
+	 * @return string
+	 */
+	public static function getNonSequenceDomain(string $domain) : string {
+		if (strpos($domain, '_sequence') !== false) {
+			return str_replace('_sequence', '', $domain);
+		}
+		return $domain;
 	}
 }

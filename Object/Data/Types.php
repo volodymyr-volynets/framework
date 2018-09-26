@@ -23,21 +23,23 @@ class Types extends \Object\Data {
 		'align' => ['name' => 'Align', 'type' => 'text'],
 		'placeholder' => ['name' => 'Placeholder', 'type' => 'text'],
 		'searchable' => ['name' => 'Searchable', 'type' => 'boolean'],
-		'tree' => ['name' => 'Tree', 'type' => 'boolean']
+		'tree' => ['name' => 'Tree', 'type' => 'boolean'],
+		// other
+		'is_numeric_key' => ['name' => 'Is Numeric Key', 'type' => 'boolean', 'default' => 0],
 	];
 	public $data = [
 		'boolean' => ['name' => 'Boolean', 'default' => 0, 'null' => 0, 'php_type' => 'integer', 'placeholder' => 'Yes / No'],
 		// numeric types
-		'smallint' => ['name' => 'Small Integer', 'default' => 0, 'php_type' => 'integer'],
-		'integer' => ['name' => 'Integer', 'default' => 0, 'php_type' => 'integer'],
-		'bigint' => ['name' => 'Big Integer', 'default' => 0, 'php_type' => 'integer'],
+		'smallint' => ['name' => 'Small Integer', 'default' => 0, 'php_type' => 'integer', 'is_numeric_key' => 1],
+		'integer' => ['name' => 'Integer', 'default' => 0, 'php_type' => 'integer', 'is_numeric_key' => 1],
+		'bigint' => ['name' => 'Big Integer', 'default' => 0, 'php_type' => 'integer', 'is_numeric_key' => 1],
 		'numeric' => ['name' => 'Numeric', 'default' => 0, 'php_type' => 'float'],
 		'bcnumeric' => ['name' => 'BC Numeric', 'default' => '0', 'php_type' => 'bcnumeric'],
 		// todo: add float/double
 		// numbers with sequences
-		'smallserial' => ['name' => 'Serial Smallint', 'php_type' => 'integer', 'sequence' => 1],
-		'serial' => ['name' => 'Serial Integer', 'php_type' => 'integer', 'sequence' => 1],
-		'bigserial' => ['name' => 'Big Serial', 'php_type' => 'integer', 'sequence' => 1],
+		'smallserial' => ['name' => 'Serial Smallint', 'php_type' => 'integer', 'sequence' => 1, 'is_numeric_key' => 1],
+		'serial' => ['name' => 'Serial Integer', 'php_type' => 'integer', 'sequence' => 1, 'is_numeric_key' => 1],
+		'bigserial' => ['name' => 'Big Serial', 'php_type' => 'integer', 'sequence' => 1, 'is_numeric_key' => 1],
 		// text data types
 		'char' => ['name' => 'Character', 'php_type' => 'string'],
 		'varchar' => ['name' => 'Character Varying', 'php_type' => 'string'],
@@ -55,4 +57,17 @@ class Types extends \Object\Data {
 		'mixed' => ['name' => 'Mixed', 'php_type' => 'mixed'],
 		'array' => ['name' => 'Array', 'php_type' => 'array']
 	];
+
+	/**
+	 * Get non sequence type
+	 *
+	 * @param string $type
+	 * @return string
+	 */
+	public static function getNonSequenceType(string $type) : string {
+		if ($type == 'smallserial') return 'smallint';
+		if ($type == 'serial') return 'integer';
+		if ($type == 'bigserial') return 'bigint';
+		return $type;
+	}
 }
