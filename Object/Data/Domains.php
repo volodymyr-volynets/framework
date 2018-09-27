@@ -95,6 +95,8 @@ class Domains extends \Object\Data {
 		'service_id_sequence' => ['name' => 'Service #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'model_id' => ['name' => 'Model #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Model', 'format' => 'id', 'searchable' => true],
 		'model_id_sequence' => ['name' => 'Model #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
+		'assignment_id' => ['name' => 'Assignment #', 'type' => 'integer', 'default' => null, 'format' => 'id', 'placeholder' => 'Assignment'],
+		'assignment_id_sequence' => ['name' => 'Assignment #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		// Country Management
 		'country_code' => ['name' => 'Country Code', 'type' => 'char', 'length' => 2, 'validator_method' => '\Object\Validator\UpperCase::validate', 'placeholder' => 'Country', 'searchable' => true],
 		'country_code3' => ['name' => 'Country Code (3)', 'type' => 'char', 'length' => 3, 'validator_method' => '\Object\Validator\UpperCase::validate'],

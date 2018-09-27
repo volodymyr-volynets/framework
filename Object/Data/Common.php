@@ -10,7 +10,7 @@ class Common {
 	 */
 	public static $attributes = [
 		'global' => ['domain', 'type'],
-		'schema' => ['default', 'length', 'null', 'precision', 'scale', 'sequence'],
+		'schema' => ['default', 'length', 'null', 'precision', 'scale', 'sequence', 'is_numeric_key'],
 		'php' => ['php_type'],
 		'misc' => ['format', 'format_options', 'align', 'validator_method', 'validator_params', 'placeholder', 'searchable', 'tree']
 	];
