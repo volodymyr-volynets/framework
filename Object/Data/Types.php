@@ -59,6 +59,22 @@ class Types extends \Object\Data {
 	];
 
 	/**
+	 * Options without sequences
+	 *
+	 * @param array $options
+	 * @return array
+	 */
+	public function optionsNoSequences($options = []) {
+		$data = $this->options($options);
+		foreach ($data as $k => $v) {
+			if (strpos($k, 'serial') !== false) {
+				unset($data[$k]);
+			}
+		}
+		return $data;
+	}
+
+	/**
 	 * Get non sequence type
 	 *
 	 * @param string $type

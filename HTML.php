@@ -331,6 +331,17 @@ class HTML {
 	}
 
 	/**
+	 * Tree
+	 *
+	 * @param array $options
+	 *		options - array of items
+	 * @return string
+	 */
+	public static function tree(array $options = []) : string {
+		return Factory::delegate('flag.numbers.framework.html', 'tree', [$options]);
+	}
+
+	/**
 	 * Image
 	 *
 	 * @param array $options
