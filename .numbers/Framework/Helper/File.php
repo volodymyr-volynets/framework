@@ -101,16 +101,6 @@ class File {
 	public static function iterate(string $dir, array $options = []) : array {
 		$result = [];
 		$relative_path = realpath($dir);
-		// inner helper function to remove absolute path
-		function iterate_process_path_inner_helper(string $dir, string $relative_path) {
-			if ($relative_path == '') {
-				return $dir;
-			} else {
-				$dir = trim2($dir, '^' . $relative_path, '');
-				$dir = ltrim($dir, DIRECTORY_SEPARATOR);
-				return $dir;
-			}
-		}
 		if (empty($options['recursive'])) {
 			$iterator = new \DirectoryIterator($dir);
 		} else {
@@ -147,7 +137,7 @@ class File {
 					'directory' => $v->getPath(),
 					'basename' => $v->getBasename(),
 					'filename' => $v->getFilename(),
-					'relative_directory' => iterate_process_path_inner_helper($v->getPath(), $relative_path),
+					'relative_directory' => self::iterateProcessPathInnerHelper($v->getPath(), $relative_path),
 				];
 			}
 		}
@@ -155,20 +145,46 @@ class File {
 	}
 
 	/**
+	 * Function to remove absolute path
+	 *
+	 * @param string $dir
+	 * @param string $relative_path
+	 * @return string
+	 */
+	private static function iterateProcessPathInnerHelper(string $dir, string $relative_path) {
+		if ($relative_path == '') {
+			return $dir;
+		} else {
+			$dir = trim2($dir, '^' . $relative_path, '');
+			$dir = ltrim($dir, DIRECTORY_SEPARATOR);
+			return $dir;
+		}
+	}
+
+	/**
 	 * Copy file/directory
 	 *
 	 * @param string $source
 	 * @param string $destination
-	 * @return bool
+	 * @param array $options
+	 *		array skip_files
+	 *		array skip_directories
+	 * @return boolean
 	 */
 	public static function copy(string $source, string $destination, array $options = []) : bool {
 		if (is_dir($source)) {
+			// we need to skip directories
+			if (!empty($options['skip_directories']) && in_array(basename($source), $options['skip_directories'])) {
+				return true;
+			}
+			// open directory for reading
 			$dir = opendir($source);
 			if (!file_exists($destination)) {
 				if (!self::mkdir($destination)) return false;
 			}
 			while (($file = readdir($dir)) !== false) {
-				if ($file != '.' && $file != '..' && (empty($options['skip_files']) || (!empty($options['skip_files']) && !in_array($file, $options['skip_files'])))) {
+				if ($file == '.' || $file == '..') continue;
+				if (empty($options['skip_files']) || (!empty($options['skip_files']) && !in_array($file, $options['skip_files']))) {
 					if (!self::copy($source . DIRECTORY_SEPARATOR . $file, $destination . DIRECTORY_SEPARATOR . $file, $options)) return false;
 				}
 			}

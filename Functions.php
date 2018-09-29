@@ -888,7 +888,7 @@ function mixedtolower($mixed) {
 }
 
 /**
- * i18n, alias
+ * I18n, alias
  *
  * @param int $i18n
  * @param mixed $text
@@ -912,6 +912,16 @@ function i18n_if($text, $translate) {
 	} else {
 		return $text;
 	}
+}
+
+/**
+ * Registry, alias
+ *
+ * @param string $key
+ * @return mixed
+ */
+function registry(string $key) {
+	return \Registry::get($key);
 }
 
 /**

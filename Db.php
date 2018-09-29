@@ -33,6 +33,13 @@ class Db {
 	public $options = [];
 
 	/**
+	 * Flag database loaded
+	 *
+	 * @var boolen
+	 */
+	public static $flag_db_loaded = false;
+
+	/**
 	 * Constructing database object
 	 *
 	 * @param string $db_link
@@ -80,6 +87,7 @@ class Db {
 			]);
 			// set options without credentials
 			$this->options = $options;
+			self::$flag_db_loaded = true;
 		} else if (!empty($temp['object'])) {
 			$this->object = & $temp['object'];
 			$this->backend = $temp['backend'];
