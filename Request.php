@@ -164,7 +164,7 @@ class Request {
 	 * @param string $url
 	 */
 	public static function redirect($url) {
-		// todo: handle flow
+		session_write_close(); // a must
 		header('Location: ' . $url);
 		exit;
 	}
