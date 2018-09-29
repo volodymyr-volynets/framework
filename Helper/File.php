@@ -166,16 +166,25 @@ class File {
 	 *
 	 * @param string $source
 	 * @param string $destination
-	 * @return bool
+	 * @param array $options
+	 *		array skip_files
+	 *		array skip_directories
+	 * @return boolean
 	 */
 	public static function copy(string $source, string $destination, array $options = []) : bool {
 		if (is_dir($source)) {
+			// we need to skip directories
+			if (!empty($options['skip_directories']) && in_array(basename($source), $options['skip_directories'])) {
+				return true;
+			}
+			// open directory for reading
 			$dir = opendir($source);
 			if (!file_exists($destination)) {
 				if (!self::mkdir($destination)) return false;
 			}
 			while (($file = readdir($dir)) !== false) {
-				if ($file != '.' && $file != '..' && (empty($options['skip_files']) || (!empty($options['skip_files']) && !in_array($file, $options['skip_files'])))) {
+				if ($file == '.' || $file == '..') continue;
+				if (empty($options['skip_files']) || (!empty($options['skip_files']) && !in_array($file, $options['skip_files']))) {
 					if (!self::copy($source . DIRECTORY_SEPARATOR . $file, $destination . DIRECTORY_SEPARATOR . $file, $options)) return false;
 				}
 			}
