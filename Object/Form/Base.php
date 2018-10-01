@@ -3285,4 +3285,15 @@ convertMultipleColumns:
 		$url = \Application::get('mvc.full') . '?' . http_build_query2($params) . '#' . ($this->options['input']['__anchor'] ?? '');
 		$this->redirect($url);
 	}
+
+	/**
+	 * Validate as required
+	 *
+	 * @param array $fields
+	 */
+	public function validateAsRequiredFields(array $fields) {
+		foreach ($fields as $v) {
+			$this->validateRequiredOneField($this->values[$v], $v, $this->fields[$v]);
+		}
+	}
 }
