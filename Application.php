@@ -102,7 +102,7 @@ class Application {
 		// support functions
 		require('Functions.php');
 		// load ini settings
-		self::$settings = System\Config::load($ini_folder);
+		self::$settings = \System\Config::load($ini_folder);
 		self::$settings['application']['system']['request_time'] = $application_request_time;
 		// special handling of media files for development, so there's no need to redeploy application
 		if (self::$settings['environment'] == 'development' && isset($_SERVER['REQUEST_URI'])) {

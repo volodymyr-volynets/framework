@@ -69,4 +69,18 @@ class Registry {
 		}
 		array_key_set(self::$settings, $key, $value);
 	}
+
+	/**
+	 * Load ini file
+	 *
+	 * @param string $filename
+	 */
+	public static function load(string $filename) {
+		$data = parse_ini_file($filename, true);
+		if (!empty($data['registry'])) {
+			foreach ($data['registry'] as $k => $v) {
+				array_key_set(self::$settings, explode('.', $k), $v);
+			}
+		}
+	}
 }

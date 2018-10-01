@@ -352,6 +352,13 @@ class Table extends \Object\Table\Options {
 	];
 
 	/**
+	 * All widgets
+	 *
+	 * @var array
+	 */
+	public $all_widgets = [];
+
+	/**
 	 * Constructing object
 	 *
 	 * @param array $options
@@ -423,10 +430,12 @@ class Table extends \Object\Table\Options {
 		}
 		// process widgets
 		$widgets = \Object\ACL\Resources::getStatic('widgets');
-		$widgets = array_merge(['attributes' => false, 'addresses' => false, 'audit' => false, 'comments' => false, 'documents' => false], $widgets);
+		$table_widgets = \Object\Table\Widgets::getStatic();
+		foreach ($table_widgets as $k => $v) $table_widgets[$k] = false;
+		$widgets = array_merge($table_widgets, $widgets);
 		foreach ($widgets as $widget => $widget_data) {
 			if (!empty($this->{$widget}) && !empty($widget_data)) {
-				$this->{$widget . '_model'} = '\\' . get_class($this) . '\0Virtual0\Widgets\\' . ucwords($widget);
+				$this->all_widgets[$widget] = $this->{$widget . '_model'} = '\\' . get_class($this) . '\0Virtual0\Widgets\\' . ucwords($widget);
 			} else {
 				$this->{$widget} = false;
 			}

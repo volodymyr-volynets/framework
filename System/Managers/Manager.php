@@ -471,6 +471,49 @@ reset_all_caches:
 				$result['success'] = true;
 			}
 			break;
+		// import
+		case 'data_import':
+			$class = \Helper\Cmd::ask('Enter model class name: ', ['mandatory' => true]);
+			// get settings for default db_link
+			$settings = \Numbers\Backend\Db\Common\Schemas::getSettings([
+				'db_link' => 'default'
+			]);
+			if ($settings['success']) {
+				// go through each database
+				foreach ($settings['db_list'] as $v) {
+					\Helper\Cmd::message('Processing database: ' . $v, 'blue');
+					$schema_temp = $settings['db_settings'];
+					// for multi database we need to store original database name
+					if ($schema_temp['dbname'] != $v) {
+						$schema_temp['__original_dbname'] = $schema_temp['dbname'];
+					}
+					$schema_temp['dbname'] = $v;
+					$db_object = new \Db('default', $schema_temp['submodule']);
+					$db_status = $db_object->connect($schema_temp);
+					if (!($db_status['success'] && $db_status['status'])) {
+						Throw new Exception('Unable to open database connection!');
+					}
+					// start transaction
+					$db_object->begin();
+					$model = new $class();
+					if (method_exists($model, 'activate')) {
+						$temp = $model->activate();
+					} else {
+						$temp = $model->process();
+					}
+					if (!$temp['success']) {
+						$result['error'] = array_merge($result['error'], $temp['error']);
+						goto error;
+					}
+					\Helper\Cmd::message('Completed!', 'green');
+					// commit
+					$db_object->commit();
+				}
+				$result['success'] = true;
+			} else {
+				$result = $settings;
+			}
+			break;
 		// dependencies - mode: test, commit
 		case 'dependency':
 		default:
