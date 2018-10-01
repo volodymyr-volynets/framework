@@ -73,7 +73,7 @@ class Domains extends \Object\Data {
 		'password' => ['name' => 'Password', 'type' => 'text', 'validator_method' => '\Object\Validator\Password::validate'],
 		'ip' => ['name' => 'IP', 'type' => 'varchar', 'length' => 46, 'placeholder' => 'IP'],
 		'domain_part' => ['name' => 'Domain Part', 'type' => 'varchar', 'length' => 30, 'validator_method' => 'object_validator_domain_part::validate'],
-		// System
+		// system
 		'ledger_id' => ['name' => 'Ledger #', 'type' => 'integer', 'default' => null, 'format' => 'id'],
 		'ledger_id_sequence' => ['name' => 'Ledger #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'language_code' => ['name' => 'Language Code', 'type' => 'char', 'length' => 3, 'validator_method' => '\Object\Validator\LowerCase::validate', 'placeholder' => 'Language'],
@@ -115,6 +115,8 @@ class Domains extends \Object\Data {
 		// Tenants
 		'tenant_id' => ['name' => 'Tenant #', 'type' => 'integer', 'default' => null, 'format' => 'id'],
 		'tenant_id_sequence' => ['name' => 'Tenant #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
+		'folder_id' => ['name' => 'Folder #', 'type' => 'integer', 'default' => null, 'format' => 'id', 'placeholder' => 'Folder'],
+		'folder_id_sequence' => ['name' => 'Folder #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		// User Management
 		'user_id' => ['name' => 'User #', 'type' => 'bigint', 'default' => null, 'placeholder' => 'User #', 'format' => 'id', 'searchable' => true],
 		'user_id_sequence' => ['name' => 'User #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id', 'searchable' => true],

@@ -423,7 +423,7 @@ class Table extends \Object\Table\Options {
 			}
 		}
 		// process domain in columns
-		$this->columns = \Object\Data\Common::processDomainsAndTypes($this->columns);
+		$this->columns = \Object\Data\Common::processDomainsAndTypes($this->columns, null, $this);
 		// initialize db object
 		if (empty($options['skip_db_object'])) {
 			$this->db_object = new \Db($this->db_link);

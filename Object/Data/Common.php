@@ -34,9 +34,10 @@ class Common {
 	 *
 	 * @param array $columns
 	 * @param array $types
+	 * @param \Object\Table $model
 	 * @return array
 	 */
-	public static function processDomainsAndTypes($columns, $types = null) {	
+	public static function processDomainsAndTypes($columns, $types = null, $model = null) {
 		// cache domains and types
 		if (empty(self::$domains)) {
 			$object = new \Object\Data\Domains();
@@ -78,6 +79,16 @@ class Common {
 			// we default to string
 			if (empty($columns[$k]['php_type'])) {
 				$columns[$k]['php_type'] = 'string';
+			}
+			// sequence type and name
+			if (!empty($columns[$k]['sequence']) && !empty($model)) {
+				$columns[$k]['sequence_type'] = 'global_simple';
+				if ($model->tenant) {
+					$columns[$k]['sequence_type'] = 'tenant_simple';
+				}
+				if ($model->module) {
+					$columns[$k]['sequence_type'] = 'module_simple';
+				}
 			}
 		}
 		return $columns;
