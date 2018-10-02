@@ -3293,7 +3293,9 @@ convertMultipleColumns:
 	 */
 	public function validateAsRequiredFields(array $fields) {
 		foreach ($fields as $v) {
-			$this->validateRequiredOneField($this->values[$v], $v, $this->fields[$v]);
+			$options = $this->fields[$v];
+			$options['options']['required'] = true;
+			$this->validateRequiredOneField($this->values[$v], $v, $options);
 		}
 	}
 }
