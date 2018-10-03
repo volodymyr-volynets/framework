@@ -1318,9 +1318,13 @@ processAllValues:
 			}
 		}
 		// preserve blank
+		$refetch_values_on_change = [];
 		foreach ($this->fields as $k => $v) {
 			if (!empty($v['options']['preserve_blank'])) {
 				$blank_reset_var[$k] = $this->options['input'][$k] ?? null;
+			}
+			if (!empty($v['options']['refetch_values_on_change'])) {
+				$refetch_values_on_change[] = $k;
 			}
 		}
 		// hidden buttons to handle form though javascript
@@ -1410,6 +1414,14 @@ processAllValues:
 		// track previous values
 		if (!empty($this->options['input']['__track_previous_values'])) {
 			$this->tracked_values = $this->options['input']['__track_previous_values'];
+		}
+		// we need to refetch data
+		if (!empty($refetch_values_on_change)) {
+			foreach ($refetch_values_on_change as $v) {
+				if (($this->options['input'][$v] ?? '') != ($this->tracked_values[$v] ?? '')) {
+					goto otherFormSubmitted;
+				}
+			}
 		}
 		// we need to see if form has been submitted
 		$this->process_submit = [];
@@ -2389,8 +2401,19 @@ convertMultipleColumns:
 				$options['details_rendering_type'] = $options['details_rendering_type'] ?? 'grid_with_label';
 				$options['details_new_rows'] = $options['details_new_rows'] ?? 0;
 			}
+			if ($type == 'trees') {
+				if (empty($options['details_key']) || empty($options['details_pk'])) {
+					Throw new \Exception('Detail key or pk?');
+				}
+				if (empty($options['details_tree_parent_key']) || empty($options['details_tree_key'])) {
+					Throw new \Exception('Detail tree key or parent key?');
+				}
+				$options['details_collection_key'] = $options['details_collection_key'] ?? ['details', $options['details_key']];
+				$options['details_rendering_type'] = $options['details_rendering_type'] ?? 'name_only';
+				$options['details_new_rows'] = 0;
+			}
 			// processing subdetails
-			if ($type == 'subdetails') {
+			if ($type == 'subdetails' || $type == 'subtrees') {
 				if (empty($options['details_key']) || empty($options['details_pk']) || empty($options['details_parent_key'])) {
 					Throw new \Exception('Subdetail key, parent key or pk?');
 				}
@@ -2416,7 +2439,7 @@ convertMultipleColumns:
 					$this->element($container_link, $this::HIDDEN, $model->relation['field'], ['label_name' => 'Relation #', 'domain' => 'relation_id_sequence', 'method'=> 'input', 'persistent' => true]);
 				}
 			}
-			if ($type == 'details' || $type == 'subdetails') {
+			if ($type == 'details' || $type == 'subdetails' || $type == 'trees' || $type == 'subtrees') {
 				// if we have autoincrement
 				if (!empty($options['details_autoincrement'])) {
 					$model = \Factory::model($options['details_key'], true);
@@ -2512,7 +2535,8 @@ convertMultipleColumns:
 				$this->misc_settings['tabs'][$container] = $this->data[$container_link]['rows'][$row_link]['options']['label_name'];
 			} else {
 				// name & id
-				if (($this->data[$container_link]['type'] ?? '') == 'details' || ($this->data[$container_link]['type'] ?? '') == 'subdetails') { // details & subdetails
+				$type = $this->data[$container_link]['type'] ?? '';
+				if (in_array($type, ['details', 'subdetails', 'trees', 'subtrees'])) { // details & subdetails
 					$options['values_key'] = $options['error_name'] = $options['name'] = null;
 					$options['id'] = null;
 					$options['details_key'] = $this->data[$container_link]['options']['details_key'];
@@ -2562,6 +2586,12 @@ convertMultipleColumns:
 						$options['label_name'] = 'Active';
 						$options['oposite_checkbox'] = true;
 					}
+					// we need to make inactive column disabled
+					if ($element_link == (($this->collection_object->primary_model->column_prefix ?? '') . 'inactive')) {
+						if (!\Application::$controller->can('Record_Inactivate', 'Edit')) {
+							$options['readonly'] = true;
+						}
+					}
 				} else if (in_array($this->initiator_class, ['list', 'report']) && ($options['type'] ?? '') == 'boolean') {
 					// we revert inactive if set
 					if (\Application::get('flag.numbers.frontend.html.form.revert_inactive') && ($options['label_name'] ?? '') == 'Inactive') {
@@ -2587,7 +2617,7 @@ convertMultipleColumns:
 				];
 				// we need to put values into fields and details
 				$persistent_key = [];
-				if (($this->data[$container_link]['type'] ?? '') == 'details') {
+				if ($type == 'details' || $type == 'trees') {
 					array_key_set($this->detail_fields, [$this->data[$container_link]['options']['details_key'], 'elements', $element_link], $field);
 					array_key_set($this->detail_fields, [$this->data[$container_link]['options']['details_key'], 'options'], $this->data[$container_link]['options']);
 					// details_unique_select
@@ -2598,7 +2628,7 @@ convertMultipleColumns:
 					$persistent_key[] = 'details';
 					$persistent_key[] = $this->data[$container_link]['options']['details_key'];
 					$persistent_key[] = $element_link;
-				} else if (($this->data[$container_link]['type'] ?? '') == 'subdetails') {
+				} else if ($type == 'subdetails' || $type == 'subtrees') {
 					$this->data[$container_link]['options']['container_link'] = $container_link;
 					array_key_set($this->detail_fields, [$this->data[$container_link]['options']['details_parent_key'], 'subdetails', $this->data[$container_link]['options']['details_key'], 'elements', $element_link], $field);
 					array_key_set($this->detail_fields, [$this->data[$container_link]['options']['details_parent_key'], 'subdetails', $this->data[$container_link]['options']['details_key'], 'options'], $this->data[$container_link]['options']);

@@ -130,6 +130,13 @@ class Controller {
 	private static $usage_actions = [];
 
 	/**
+	 * Cached can requests
+	 *
+	 * @var array
+	 */
+	private $cached_can_requests = [];
+
+	/**
 	 * Constructor
 	 */
 	public function __construct() {
@@ -279,6 +286,21 @@ class Controller {
 		}
 		// run permission
 		return $this->canExtended($this->controller_id, $method_code ?? $this->method_code, $action, $module_id, $roles);
+	}
+
+	/**
+	 * Can (Cached)
+	 *
+	 * @param int|string $action
+	 * @param string|null $method_code
+	 * @return boolean
+	 */
+	public function canCached($action, $method_code = null) : bool {
+		$method_code = $method_code ?? $this->method_code;
+		if (!isset($this->cached_can_requests[$method_code][$action])) {
+			$this->cached_can_requests[$method_code][$action] = $this->can($action, $method_code);
+		}
+		return $this->cached_can_requests[$method_code][$action];
 	}
 
 	/**
