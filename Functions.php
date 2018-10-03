@@ -637,6 +637,7 @@ function array_key_get(& $arr, $keys = null, $options = []) {
  * @param mixed $value
  * @param array $options
  * 		boolean append - whether to append value to array
+ *		boolean append_unique
  */
 function array_key_set(& $arr, $keys = null, $value, $options = []) {
 	if (!isset($arr)) {
@@ -658,7 +659,11 @@ function array_key_set(& $arr, $keys = null, $value, $options = []) {
 			if (!is_array($pointer)) {
 				$pointer = [];
 			}
-			$pointer[] = $value;
+			if (!empty($options['append_unique']) && in_array($value, $pointer)) {
+				// nothing
+			} else {
+				$pointer[] = $value;
+			}
 		} else {
 			$pointer = $value;
 		}

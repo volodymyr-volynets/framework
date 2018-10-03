@@ -127,12 +127,13 @@ class Session {
 
 	/**
 	 * Set session values as static
-	 * 
-	 * @param type $key
-	 * @param type $value
+	 *
+	 * @param mixed $key
+	 * @param mixed $value
+	 * @param array $options
 	 */
-	public static function set($key, $value) {
-		array_key_set($_SESSION, $key, $value);
+	public static function set($key, $value, $options = []) {
+		array_key_set($_SESSION, $key, $value, $options);
 	}
 
 	/**
