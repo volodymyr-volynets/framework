@@ -2614,7 +2614,7 @@ convertMultipleColumns:
 					}
 					// we need to make inactive column disabled
 					if ($element_link == (($this->collection_object->primary_model->column_prefix ?? '') . 'inactive')) {
-						if (!\Application::$controller->can('Record_Inactivate', 'Edit')) {
+						if (empty($this->options['skip_acl']) && !\Application::$controller->can('Record_Inactivate', 'Edit')) {
 							$options['readonly'] = true;
 						}
 					}
