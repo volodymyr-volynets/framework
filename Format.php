@@ -298,10 +298,53 @@ class Format {
 	}
 
 	/**
+	 * Format nice datetime
+	 *
+	 * @param mixed $value
+	 * @param array $options
+	 *		boolean skip_user_timezone
+	 * @return string
+	 */
+	public static function niceDatetime($value, array $options = []) {
+		try {
+			$server_timezone = self::$options['server_timezone_code'] ?? Application::get('php.date.timezone');
+			$object = new DateTime($value, new DateTimeZone($server_timezone));
+			// change timezone
+			if (empty($options['skip_user_timezone'])) {
+				$object->setTimezone(new DateTimeZone(self::$options['timezone_code']));
+			}
+			$value = i18n(null, $object->format('F')) . ' ' . $object->format('j') . self::$symbol_comma . ' ' . $object->format('Y');
+			// process time
+			$hours = intval($object->format('G'));
+			$minutes = intval($object->format('i'));
+			$seconds = intval($object->format('s'));
+			// if we have time
+			if (!($hours == 0 && $minutes == 0 && $seconds == 0)) {
+				$timeformat = self::getDateFormat('time');
+				$am_pm = stripos($timeformat, 'a') !== false;
+				$timeformat = str_ireplace(['a', ' '], '', $timeformat);
+				$time = $object->format($timeformat);
+				$time = trim2($time, ':00$', '');
+				$time = trim2($time, ':00$', '');
+				if (!empty($time)) {
+					$value.= ' ' . $time;
+					if ($am_pm) {
+						$value.= ' ' . str_ireplace(['am', 'pm'], [i18n(null, 'am', ['skip_i_symbol' => true]), i18n(null, 'pm', ['skip_i_symbol' => true])], $object->format('a'));
+					}
+				}
+			}
+		} catch (Exception $e) {
+			// on exception we return as is
+		}
+		return $value;
+	}
+
+	/**
 	 * Format nice timestamp
 	 *
 	 * @param mixed $value
 	 * @param array $options
+	 *		boolean skip_user_timezone
 	 * @return string
 	 */
 	public static function niceTimestamp($value, array $options = []) {
