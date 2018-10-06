@@ -112,11 +112,13 @@ class Domains extends \Object\Data {
 		'currency_rate_id_sequence' => ['name' => 'Currency Rate #', 'type' => 'bigserial', 'placeholder' => 'Sequence'],
 		'currency_rate' => ['name' => 'Currency Rate', 'type' => 'bcnumeric', 'precision' => 16, 'scale' => 8, 'default' => '1.00000000', 'format' => 'currencyRate', 'align' => 'right'],
 		'fraction_digits' => ['name' => 'Fraction Digits', 'type' => 'smallint', 'default' => 2],
-		// Tenants
+		// tenants
 		'tenant_id' => ['name' => 'Tenant #', 'type' => 'integer', 'default' => null, 'format' => 'id'],
 		'tenant_id_sequence' => ['name' => 'Tenant #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
-		'folder_id' => ['name' => 'Folder #', 'type' => 'integer', 'default' => null, 'format' => 'id', 'placeholder' => 'Folder'],
+		'folder_id' => ['name' => 'Folder #', 'type' => 'integer', 'default' => null, 'format' => 'id', 'placeholder' => 'Folder', 'tree' => true],
 		'folder_id_sequence' => ['name' => 'Folder #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
+		'policy_id' => ['name' => 'Policy #', 'type' => 'integer', 'default' => null, 'format' => 'id', 'placeholder' => 'Policy'],
+		'policy_id_sequence' => ['name' => 'Policy #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		// User Management
 		'user_id' => ['name' => 'User #', 'type' => 'bigint', 'default' => null, 'placeholder' => 'User #', 'format' => 'id', 'searchable' => true],
 		'user_id_sequence' => ['name' => 'User #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id', 'searchable' => true],

@@ -112,19 +112,33 @@ class Sequence extends \Object\Override\Data {
 	/**
 	 * Get next sequence number
 	 *
+	 * @param string|null $type
+	 *	simple
+	 *	advanced
 	 * @return array
 	 */
-	public function nextval() {
-		return $this->getByType('nextval');
+	public function nextval($type = null) {
+		$result = $this->getByType('nextval');
+		if (!empty($type)) {
+			return $result[$type];
+		}
+		return $result;
 	}
 
 	/**
 	 * Get current sequence value
 	 *
+	 * @param string|null $type
+	 *	simple
+	 *	advanced
 	 * @return type
 	 */
-	public function currval() {
-		return $this->getByType('currval');
+	public function currval($type = null) {
+		$result = $this->getByType('currval');
+		if (!empty($type)) {
+			return $result[$type];
+		}
+		return $result;
 	}
 
 	/**

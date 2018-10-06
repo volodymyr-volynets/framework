@@ -359,6 +359,13 @@ class Table extends \Object\Table\Options {
 	public $all_widgets = [];
 
 	/**
+	 * Tree settings
+	 *
+	 * @var array
+	 */
+	public $tree;
+
+	/**
 	 * Constructing object
 	 *
 	 * @param array $options

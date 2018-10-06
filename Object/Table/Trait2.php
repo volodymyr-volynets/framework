@@ -24,6 +24,8 @@ trait Trait2 {
 		// we must set pk
 		$options['primary_key'] = $model->pk ?? null;
 		$object = new \Object\Query\Builder($model->db_link, $options);
+		$object->primary_model = $model;
+		$object->primary_alias = $alias;
 		$object->from($model, $alias);
 		// inject tenant into the query
 		if ($model->tenant && empty($options['skip_tenant'])) {
