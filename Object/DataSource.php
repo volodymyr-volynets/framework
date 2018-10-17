@@ -102,7 +102,7 @@ class DataSource extends \Object\Table\Options {
 	/**
 	 * Query
 	 *
-	 * @var object
+	 * @var \Object\Query\Builder
 	 */
 	public $query;
 

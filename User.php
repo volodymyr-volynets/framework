@@ -66,6 +66,15 @@ class User {
 	}
 
 	/**
+	 * Teams
+	 *
+	 * @return array
+	 */
+	public static function teams() : array {
+		return $_SESSION['numbers']['user']['teams'] ?? [];
+	}
+
+	/**
 	 * Grant role(s)
 	 *
 	 * @param string|array $role

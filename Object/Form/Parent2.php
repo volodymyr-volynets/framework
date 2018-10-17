@@ -128,6 +128,8 @@ class Parent2 extends \Object\Override\Data {
 	 */
 	const BUTTON_SUBMIT_DELETE = '__submit_delete';
 	const BUTTON_SUBMIT_DELETE_DATA = ['order' => 32000, 'button_group' => 'right', 'value' => 'Delete', 'type' => 'danger', 'method' => 'button2', 'icon' => 'far fa-trash-alt', 'accesskey' => 'd', 'process_submit' => true, 'confirm_message' => \Object\Content\Messages::CONFIRM_DELETE];
+	const BUTTON_SUBMIT_OTHER_DELETE = '__submit_other_delete';
+	const BUTTON_SUBMIT_OTHER_DELETE_DATA = ['order' => 32000, 'button_group' => 'right', 'value' => 'Delete', 'type' => 'danger', 'method' => 'button2', 'icon' => 'far fa-trash-alt', 'accesskey' => 'd', 'process_submit' => 'other', 'confirm_message' => \Object\Content\Messages::CONFIRM_DELETE];
 
 	/**
 	 * Reset button

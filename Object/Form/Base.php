@@ -940,11 +940,26 @@ class Base extends \Object\Form\Parent2 {
 									$flag_subdetail_change_detected = false;
 									// put pk into detail
 									$subdetail = $subdetail_key_holder['parent_pks'];
+									// process json_contains
+									foreach ($subdetail_fields as $k30 => $v30) {
+										if (empty($v30['options']['json_contains'])) continue;
+										// get value, grab from neighbouring values first
+										$value = $v5[$k30] ?? null;
+										if (is_json($value)) {
+											$value = json_decode($value, true);
+											foreach ($v30['options']['json_contains'] as $k31 => $v31) {
+												$v5[$v31] = $value[$k31] ?? null;
+											}
+										} else if (empty($value)) {
+											foreach ($v30['options']['json_contains'] as $k31 => $v31) {
+												$subdetail[$v31] = $v5[$v31] = null;
+											}
+										}
+									}
 									// process pk
 									$this->generateDetailsPrimaryKey($subdetail_key_holder, 'pk', $v5, [$k, $k2, $k0], $v0);
 									$subdetail_error_name = $subdetail_key_holder['error_name'];
 									$k5 = $subdetail_key_holder['pk'];
-									//print_r2($subdetail_fields);
 									// process fields
 									foreach ($subdetail_fields as $k6 => $v6) {
 										// default data type
@@ -969,7 +984,6 @@ class Base extends \Object\Form\Parent2 {
 										} else {
 											$subdetail_access_key = array_merge($detail_access_key, [$k0, $k5]);
 										}
-										//print_r2($subdetail_access_key);
 										$original_values = array_key_get($this->original_values, array_merge($subdetail_access_key, [$k6]));
 										if ($this->values_loaded && !empty($this->misc_settings['persistent']['subdetails'][$k][$k0][$k6]) && isset($original_values)) {
 											// todo: handle if_set
@@ -1161,6 +1175,9 @@ processAllValues:
 							// 1 to 1
 							if (!empty($v3['options']['details_11'])) {
 								$subdetails = [$subdetails];
+								$error_values_key = array_merge($values_key, [$k3]);
+							} else {
+								$error_values_key = array_merge($values_key, [$k3, 1]);
 							}
 							foreach ($subdetails as $k4 => $v4) {
 								// 1 to 1
@@ -1190,6 +1207,26 @@ processAllValues:
 									}
 								}
 							}
+							// see if subdetail is required, we display
+							if (!empty($v3['options']['required']) && empty($subdetails)) {
+								// add error to pk
+								$counter = 1;
+								foreach ($v3['options']['details_pk'] as $v8) {
+									if (empty($v3['elements'][$v8]['options']['row_link']) || $v3['elements'][$v8]['options']['row_link'] == $this::HIDDEN) continue;
+									$this->error(DANGER, \Object\Content\Messages::REQUIRED_FIELD, $this->parentKeysToErrorName(array_merge($error_values_key,[$v8])));
+									$counter++;
+								}
+								// sometimes pk can be hidden, so we add error to two more
+								if ($counter == 1) {
+									array_key_sort($v3['elements'], ['row_order' => SORT_ASC, 'order' => SORT_ASC]);
+									foreach ($v3['elements'] as $k8 => $v8) {
+										if (($v8['options']['required'] ?? '') . '' == '1' && !in_array($k8, $v3['options']['details_pk']) && $counter == 1) {
+											$this->error(DANGER, \Object\Content\Messages::REQUIRED_FIELD, $this->parentKeysToErrorName(array_merge($error_values_key,[$k8])));
+											$counter++;
+										}
+									}
+								}
+							}
 						}
 					}
 				}
@@ -1199,7 +1236,7 @@ processAllValues:
 					$counter = 1;
 					foreach ($v['options']['details_pk'] as $v8) {
 						if (empty($v['elements'][$v8]['options']['row_link']) || $v['elements'][$v8]['options']['row_link'] == $this::HIDDEN) continue;
-						$this->error('danger', \Object\Content\Messages::REQUIRED_FIELD, "{$k}[1][{$v8}]");
+						$this->error(DANGER, \Object\Content\Messages::REQUIRED_FIELD, "{$k}[1][{$v8}]");
 						$counter++;
 					}
 					// sometimes pk can be hidden, so we add error to two more
@@ -1207,7 +1244,7 @@ processAllValues:
 						array_key_sort($v['elements'], ['row_order' => SORT_ASC, 'order' => SORT_ASC]);
 						foreach ($v['elements'] as $k8 => $v8) {
 							if (($v8['options']['required'] ?? '') . '' == '1' && !in_array($k8, $v['options']['details_pk']) && $counter == 1) {
-								$this->error('danger', \Object\Content\Messages::REQUIRED_FIELD, "{$k}[1][{$k8}]");
+								$this->error(DANGER, \Object\Content\Messages::REQUIRED_FIELD, "{$k}[1][{$k8}]");
 								$counter++;
 							}
 						}
@@ -2046,6 +2083,7 @@ convertMultipleColumns:
 				self::BUTTON_SUBMIT_SAVE_AND_NEW,
 				self::BUTTON_SUBMIT_SAVE_AND_CLOSE,
 				self::BUTTON_SUBMIT_DELETE,
+				self::BUTTON_SUBMIT_OTHER_DELETE,
 				self::BUTTON_CONTINUE,
 				self::BUTTON_STOP
 			];
@@ -2317,6 +2355,13 @@ convertMultipleColumns:
 				}
 			} else {
 				array_key_set($this->errors, ['fields', $field, $type, $hash], $message);
+				// modals
+				if (!empty($this->fields[$field])) {
+					$container_link = $this->fields[$field]['options']['container_link'];
+					if ($this->data[$container_link]['type'] == 'modal') {
+						$this->misc_settings['errors_in_modal'][$container_link] = $this->data[$container_link]['options']['modal_id'];
+					}
+				}
 				// set special flag that we have error in fields
 				if ($type == 'danger') {
 					$this->errors['flag_error_in_fields'] = true;
@@ -2447,6 +2492,10 @@ convertMultipleColumns:
 				$options['details_collection_key'] = $options['details_collection_key'] ?? ['details', $options['details_parent_key'], 'details', $options['details_key']];
 				$options['details_rendering_type'] = $options['details_rendering_type'] ?? 'table';
 				$options['details_new_rows'] = $options['details_new_rows'] ?? 0;
+			}
+			// modal
+			if ($type == 'modal') {
+				$options['modal_id'] = "form_{$this->form_link}_modal_{$container_link}_dialog";
 			}
 			$this->data[$container_link] = [
 				'options' => $options,
@@ -3316,6 +3365,36 @@ convertMultipleColumns:
 	 */
 	public function redirect(string $where) {
 		$this->misc_settings['redirect'] = $where;
+	}
+
+	/**
+	 * Refresh
+	 */
+	public function refresh() {
+		$params = [];
+		// add primary key
+		if ($this->values_loaded) {
+			$params = $this->pk;
+			// remove tenant
+			if (!empty($this->collection_object->primary_model->tenant)) {
+				unset($params[$this->collection_object->primary_model->tenant_column]);
+			}
+		}
+		// we need to pass module #
+		if ($this->collection_object->primary_model->module ?? false) {
+			$params['__module_id'] = $params[$this->collection_object->primary_model->module_column] = $this->values[$this->collection_object->primary_model->module_column];
+		}
+		// bypass variables
+		if (!empty($this->options['bypass_hidden_from_input'])) {
+			foreach ($this->options['bypass_hidden_from_input'] as $v) {
+				$params[$v] = $this->options['input'][$v] ?? '';
+			}
+		}
+		if (!empty($this->options['collection_current_tab_id'])) {
+			$params[$this->options['collection_current_tab_id']] = $this->form_link;
+		}
+		$params['__refresh'] = rand(1000, 9999) . '_' . rand(1000, 9999) . '_' . rand(1000, 9999);
+		$this->misc_settings['redirect'] = \Application::get('mvc.full') . '?' . http_build_query2($params) . "#form_{$this->form_link}_form_anchor";
 	}
 
 	/**

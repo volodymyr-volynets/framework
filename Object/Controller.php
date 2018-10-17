@@ -116,6 +116,13 @@ class Controller {
 	private static $cached_roles;
 
 	/**
+	 * Cached teams
+	 *
+	 * @var array
+	 */
+	private static $cached_teams;
+
+	/**
 	 * Cached modules
 	 *
 	 * @var array
@@ -374,6 +381,11 @@ class Controller {
 			$temp = $this->processRole($v, $resource_id, $method_code, $action, $module_id);
 			if ($temp === 1) return true;
 		}
+		// go through teams
+		foreach (\User::teams() as $v) {
+			$temp = $this->processTeam($v, $resource_id, $method_code, $action, $module_id);
+			if ($temp === 1) return true;
+		}
 		return false;
 	}
 
@@ -425,6 +437,48 @@ class Controller {
 			if (!empty($v)) continue;
 			$temp = $this->processRole($k, $resource_id, $method_code, $action_id);
 			if ($temp === 1) return 1;
+		}
+		return 0;
+	}
+
+	/**
+	 * Process team
+	 *
+	 * @param int $team_id
+	 * @param int $resource_id
+	 * @param string $method_code
+	 * @param int $action_id
+	 * @return int
+	 */
+	private function processTeam(int $team_id, int $resource_id, string $method_code, int $action_id, $module_id = null) : int {
+		// load all roles from datasource
+		if (is_null(self::$cached_teams) && !\Object\Error\Base::$flag_database_tenant_not_found) {
+			self::$cached_teams = \Object\ACL\Resources::getStatic('roles', 'teams');
+		}
+		// if role is not found
+		if (empty(self::$cached_teams[$team_id])) return 0;
+		// process permissions
+		$all_actions = self::$cached_teams[$team_id]['permissions'][$resource_id]['AllActions'][-1] ?? [];
+		$actual_action = self::$cached_teams[$team_id]['permissions'][$resource_id][$method_code][$action_id] ?? [];
+		$temp = array_merge_hard($all_actions, $actual_action);
+		if (!empty($temp)) {
+			if (!empty($module_id)) {
+				$temp = $temp[$module_id] ?? null;
+			} else { // find any active permision
+				$temp2 = $temp;
+				$temp = null;
+				foreach ($temp2 as $k => $v) {
+					if ($v === 0) {
+						$temp = 0;
+						break;
+					}
+				}
+			}
+		}
+		if ($temp === 0) {
+			return 1;
+		} else if ($temp === 1) {
+			return 2;
 		}
 		return 0;
 	}

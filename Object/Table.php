@@ -363,7 +363,22 @@ class Table extends \Object\Table\Options {
 	 *
 	 * @var array
 	 */
-	public $tree;
+	public $tree = [
+		//'id' => '[id column]',
+	    //'name' => '[name column]',
+	    //'parent_id' => '[parent_column]',
+	];
+
+	/**
+	 * Pre-validate unique constraints
+	 *
+	 * @var array
+	 */
+	public $unique = [
+		//'[field]' => '[name of unique constraint]',
+		// or
+		//'[field]' => ['[column 1]', ...]
+	];
 
 	/**
 	 * Constructing object
@@ -434,6 +449,14 @@ class Table extends \Object\Table\Options {
 		// initialize db object
 		if (empty($options['skip_db_object'])) {
 			$this->db_object = new \Db($this->db_link);
+		}
+		// unique constraints pre validation
+		if (!empty($this->unique)) {
+			foreach ($this->unique as $k => $v) {
+				if (is_string($v)) {
+					$this->unique[$k] = $this->constraints[$v]['columns'];
+				}
+			}
 		}
 		// process widgets
 		$widgets = \Object\ACL\Resources::getStatic('widgets');
@@ -636,5 +659,38 @@ class Table extends \Object\Table\Options {
 		}
 		$result = $query->query($options['pk'] ?? null);
 		return $result['rows'];
+	}
+
+	/**
+	 * Check unique constraint
+	 *
+	 * @param string $name
+	 * @param array $pk
+	 * @param array $values
+	 * @return bool
+	 */
+	public function checkUniqueConstraint(string $name, array $pk, array $values) : bool {
+		// create a query bulder
+		$query = $this->queryBuilder(['alias' => 'a'])->select()->columns($pk);
+		foreach ($this->unique[$name] as $v2) {
+			if ($v2 == $this->tenant_column) {
+				$values[$v2] = \Tenant::id();
+				continue;
+			}
+			$query->whereMultiple('AND', [
+				'a.' . $v2 => $values[$v2] ?? null,
+			]);
+		}
+		$result = $query->query(null, ['cache' => false]);
+		if ($result['num_rows'] > 0) {
+			foreach ($result['rows'] as $v2) {
+				foreach ($pk as $v3) {
+					if (($v2[$v3] ?? '') != ($values[$v3] ?? '')) {
+						return false;
+					}
+				}
+			}
+		}
+		return true;
 	}
 }
