@@ -113,14 +113,14 @@ class Controller {
 	 *
 	 * @var array
 	 */
-	private static $cached_roles;
+	public static $cached_roles;
 
 	/**
 	 * Cached teams
 	 *
 	 * @var array
 	 */
-	private static $cached_teams;
+	public static $cached_teams;
 
 	/**
 	 * Cached modules
@@ -367,6 +367,8 @@ class Controller {
 			}
 			if ($temp === 0) {
 				return true;
+			} else if ($temp === 1) {
+				return false;
 			}
 		}
 		// load user roles
@@ -379,12 +381,20 @@ class Controller {
 		// go through roles
 		foreach ($roles as $v) {
 			$temp = $this->processRole($v, $resource_id, $method_code, $action, $module_id);
-			if ($temp === 1) return true;
+			if ($temp === 1) {
+				return true;
+			} else if ($temp === 2) {
+				return false;
+			}
 		}
 		// go through teams
 		foreach (\User::teams() as $v) {
 			$temp = $this->processTeam($v, $resource_id, $method_code, $action, $module_id);
-			if ($temp === 1) return true;
+			if ($temp === 1) {
+				return true;
+			} else if ($temp === 2) {
+				return false;
+			}
 		}
 		return false;
 	}
@@ -436,7 +446,11 @@ class Controller {
 		foreach (self::$cached_roles[$role]['parents'] as $k => $v) {
 			if (!empty($v)) continue;
 			$temp = $this->processRole($k, $resource_id, $method_code, $action_id);
-			if ($temp === 1) return 1;
+			if ($temp === 1) {
+				return 1;
+			} else if ($temp === 2) {
+				return 2;
+			}
 		}
 		return 0;
 	}
