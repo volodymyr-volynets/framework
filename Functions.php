@@ -1039,6 +1039,16 @@ function is_json($input) {
 }
 
 /**
+ * Check if its a HTML string
+ *
+ * @param string $input
+ * @return bool
+ */
+function is_html($input) {
+	return !(strip_tags($input) == $input);
+}
+
+/**
  * Check if its a valid XML string
  *
  * @param mixed $input

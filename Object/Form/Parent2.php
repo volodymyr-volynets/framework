@@ -23,7 +23,7 @@ class Parent2 extends \Object\Override\Data {
 			'__format' => ['order' => 1, 'container_order' => PHP_INT_MAX - 1000, 'container_class' => 'numbers_form_filter_sort_container', 'label_name' => 'Format', 'percent' => 25, 'required' => true, 'method' => 'select', 'default' => 'text/html', 'no_choose' => true, 'options_model' => '\Object\Form\Model\Content\Types', 'options_options' => ['i18n' => 'skip_sorting']]
 		],
 		self::BUTTONS => [
-			self::BUTTON_SUBMIT => self::BUTTON_SUBMIT_DATA,
+			self::BUTTON_SUBMIT => self::BUTTON_SUBMIT_DATA + ['onclick' => '$(this.form).attr(\'no_ajax\', 1); return true;'],
 			self::BUTTON_SUBMIT_BLANK => self::BUTTON_SUBMIT_BLANK_DATA,
 			self::BUTTON_SUBMIT_RESET => self::BUTTON_SUBMIT_RESET_DATA
 		]
@@ -38,7 +38,7 @@ class Parent2 extends \Object\Override\Data {
 			'__format' => ['order' => 1, 'container_order' => PHP_INT_MAX - 1000, 'container_class' => 'numbers_form_filter_sort_container', 'label_name' => 'Format', 'percent' => 25, 'required' => true, 'method' => 'select', 'default' => 'text/html', 'no_choose' => true, 'options_model' => '\Object\Form\Model\Report\Types', 'options_options' => ['i18n' => 'skip_sorting']]
 		],
 		self::BUTTONS => [
-			self::BUTTON_SUBMIT => self::BUTTON_SUBMIT_DATA,
+			self::BUTTON_SUBMIT => self::BUTTON_SUBMIT_DATA + ['onclick' => '$(this.form).attr(\'no_ajax\', 1); return true;'],
 			self::BUTTON_SUBMIT_BLANK => self::BUTTON_SUBMIT_BLANK_DATA,
 			self::BUTTON_SUBMIT_RESET => self::BUTTON_SUBMIT_RESET_DATA
 		]
@@ -94,6 +94,18 @@ class Parent2 extends \Object\Override\Data {
 	const BUTTON_SUBMIT_OTHER_DATA = ['order' => -100, 'button_group' => 'left', 'value' => 'Submit', 'method' => 'button2', 'icon' => 'fas fa-mouse-pointer', 'accesskey' => 's', 'process_submit' => 'other'];
 
 	/**
+	 * Approve button
+	 */
+	const BUTTON_SUBMIT_APPROVE = '__approve_button';
+	const BUTTON_SUBMIT_APPROVE_DATA = ['order' => -100, 'button_group' => 'left', 'value' => 'Approve', 'method' => 'button2', 'icon' => 'far fa-handshake', 'accesskey' => 's', 'process_submit' => 'other'];
+
+	/**
+	 * Approve button
+	 */
+	const BUTTON_SUBMIT_DECLINE = '__decline_button';
+	const BUTTON_SUBMIT_DECLINE_DATA = ['order' => -100, 'button_group' => 'left', 'type' => 'danger', 'value' => 'Decline', 'method' => 'button2', 'icon' => 'fas fa-stop', 'accesskey' => 'x', 'process_submit' => 'other'];
+
+	/**
 	 * Continue button
 	 */
 	const BUTTON_CONTINUE = '__continue_button';
@@ -103,7 +115,7 @@ class Parent2 extends \Object\Override\Data {
 	 * Stop button
 	 */
 	const BUTTON_STOP = '__stop_button';
-	const BUTTON_STOP_DATA = ['order' => -100, 'button_group' => 'left', 'type' => 'danger', 'value' => 'Stop', 'method' => 'button2', 'accesskey' => 'x', 'process_submit' => true];
+	const BUTTON_STOP_DATA = ['order' => -100, 'button_group' => 'left', 'type' => 'danger', 'value' => 'Stop', 'method' => 'button2', 'icon' => 'fas fa-stop', 'accesskey' => 'x', 'process_submit' => true];
 
 	/**
 	 * Submit save
@@ -261,6 +273,17 @@ class Parent2 extends \Object\Override\Data {
 		'header' => [
 			'icon' => ['type' => 'fas fa-pen-square'],
 			'title' => 'View / Edit:'
+		]
+	];
+
+	/**
+	 * Segment form
+	 */
+	const SEGMENT_ACTIVATE = [
+		'type' => 'success',
+		'header' => [
+			'icon' => ['type' => 'fas fa-link'],
+			'title' => 'Activate:'
 		]
 	];
 

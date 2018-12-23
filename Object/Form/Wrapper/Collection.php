@@ -290,7 +290,11 @@ abstract class Collection {
 					// check if submodule exists
 					if ((!empty($form_v['submodule']) && !\Can::submoduleExists($form_v['submodule'])) || empty($form_v['model'])) continue;
 					// check if user can perform action
-					if (!empty($form_v['action_code']) && !\Application::$controller->can($form_v['action_code'], 'Edit')) continue;
+					if (!empty($form_v['acl_subresource_hide'])) {
+						if (!\Application::$controller->canSubresourceMultiple($form_v['acl_subresource_hide'], 'Record_View')) {
+							continue;
+						}
+					}
 					// continue with logic
 					$this->current_tab[] = "{$tab_id}_{$form_k}";
 					$labels = '';
@@ -334,6 +338,13 @@ abstract class Collection {
 						'header' => $tab_header,
 						'options' => $tab_values,
 						'tab_options' => $tab_options
+					]);
+				} else {
+					$result[$index]['html'] = \HTML::message([
+						'type' => WARNING,
+						'options' => [
+							i18n(null, \Object\Content\Messages::NO_PERMISSIONS_FOUND),
+						]
 					]);
 				}
 			}

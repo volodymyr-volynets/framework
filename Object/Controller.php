@@ -142,6 +142,14 @@ class Controller {
 	 * @var array
 	 */
 	private $cached_can_requests = [];
+	private $cached_can_subresource_requests = [];
+
+	/**
+	 * Cached sub-resources
+	 *
+	 * @var array
+	 */
+	private static $cached_subresources;
 
 	/**
 	 * Constructor
@@ -279,10 +287,9 @@ class Controller {
 	 * @param string|int $action
 	 * @param string $method_code
 	 * @param int $module_id
-	 * @param array $roles
 	 * @return boolean
 	 */
-	public function can($action, $method_code = null, $module_id = null, $roles = null) : bool {
+	public function can($action, $method_code = null, $module_id = null) : bool {
 		if (empty($this->controller_id)) return false;
 		// module id
 		if (empty($module_id)) {
@@ -292,7 +299,7 @@ class Controller {
 			}
 		}
 		// run permission
-		return $this->canExtended($this->controller_id, $method_code ?? $this->method_code, $action, $module_id, $roles);
+		return $this->canExtended($this->controller_id, $method_code ?? $this->method_code, $action, $module_id);
 	}
 
 	/**
@@ -311,17 +318,162 @@ class Controller {
 	}
 
 	/**
+	 * Can sub-resource
+	 *
+	 * @param int|string $subresource
+	 * @param int|string $action
+	 * @param int $module_id
+	 * @return bool
+	 * @throws \Exception
+	 */
+	public function canSubresource($subresource, $action, $module_id = null) : bool {
+		if (empty($this->controller_id)) return false;
+		// module id
+		if (empty($module_id)) {
+			$module_id = $this->module_id;
+			if (empty($module_id)) {
+				Throw new \Exception('You must specify correct module #');
+			}
+		}
+		// run permission
+		return $this->canSubresourceExtended($this->controller_id, $subresource, $action, $module_id);
+	}
+
+	/**
+	 * Can sub-resource (Cached)
+	 *
+	 * @param int|string $action
+	 * @param string|null $method_code
+	 * @return boolean
+	 */
+	public function canSubresourceCached($subresource, $action) : bool {
+		if (!isset($this->cached_can_subresource_requests[$subresource][$action])) {
+			$this->cached_can_subresource_requests[$subresource][$action] = $this->canSubresource($subresource, $action);
+		}
+		return $this->cached_can_subresource_requests[$subresource][$action];
+	}
+
+	/**
+	 * Can sub-resource (Multiple)
+	 *
+	 * @param array|string $subresources
+	 * @param string|int $action
+	 * @return bool
+	 */
+	public function canSubresourceMultiple($subresources, $action) : bool {
+		if (!is_array($subresources)) {
+			$subresources = [$subresources];
+		}
+		foreach ($subresources as $v) {
+			if (!$this->canSubresourceCached($v, $action)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * Can sub-resource (extended)
+	 *
+	 * @param int|string $resource_id
+	 * @param int|string $subresource
+	 * @param string|int $action
+	 * @param int $module_id
+	 * @return bool
+	 * @throws Exception
+	 */
+	public function canSubresourceExtended($resource_id, $subresource, $action, $module_id = null) : bool {
+		// rearrange controllers
+		if (!isset(self::$cached_controllers_by_ids)) {
+			self::$cached_controllers_by_ids = [];
+			foreach (self::$cached_controllers as $k => $v) {
+				self::$cached_controllers_by_ids[$v['id']] = $k;
+			}
+		}
+		// if we got a string
+		if (is_string($resource_id)) {
+			$resource_id = self::$cached_controllers[$resource_id]['id'] ?? null;
+		}
+		// if resource is not present we return false
+		if (empty(self::$cached_controllers_by_ids[$resource_id])) return false;
+		// missing features
+		if (!empty(self::$cached_controllers[self::$cached_controllers_by_ids[$resource_id]]['missing_features'])) return false;
+		// super admin
+		if (\User::get('super_admin')) return true;
+		// load all actions from datasource
+		if (is_null(self::$cached_actions) && !\Object\Error\Base::$flag_database_tenant_not_found) {
+			self::$cached_actions = \Object\ACL\Resources::getStatic('actions', 'primary');
+		}
+		if (is_string($action)) $action = self::$cached_actions[$action]['id'];
+		// load all sub-resources from datasource
+		if (is_null(self::$cached_subresources) && !\Object\Error\Base::$flag_database_tenant_not_found) {
+			self::$cached_subresources = \Object\ACL\Resources::getStatic('subresources', 'primary');
+		}
+		if (is_string($subresource)) $subresource = self::$cached_subresources[$subresource]['id'];
+		// see if we have subresources overrides
+		$subresources = \User::get('subresources');
+		if (!empty($subresources)) {
+			// process permissions
+			$all_actions = $subresources[$resource_id][$subresource][-1] ?? [];
+			$actual_action = $subresources[$resource_id][$subresource][$action] ?? [];
+			$temp = array_merge_hard($all_actions, $actual_action);
+			if (!empty($temp)) {
+				if (!empty($module_id)) {
+					$temp = $temp[$module_id] ?? null;
+				} else { // find any active permision
+					$temp2 = $temp;
+					$temp = null;
+					foreach ($temp2 as $k => $v) {
+						if ($v === 0) {
+							$temp = 0;
+							break;
+						}
+					}
+				}
+			}
+			if ($temp === 0) {
+				return true;
+			} else if ($temp === 1) {
+				return false;
+			}
+		}
+		// authorized controllers have full access
+		if (empty(self::$cached_controllers[self::$cached_controllers_by_ids[$resource_id]]['acl_permission']) && !empty(self::$cached_controllers[self::$cached_controllers_by_ids[$resource_id]]['acl_authorized'])) {
+			// if user is logged in
+			if (\User::authorized()) return true;
+		}
+		// go through roles
+		foreach (\User::roles() as $v) {
+			$temp = $this->processSubresourceRole($v, $resource_id, $subresource, $action, $module_id);
+			if ($temp === 1) {
+				return true;
+			} else if ($temp === 2) {
+				return false;
+			}
+		}
+		// go through teams
+		foreach (\User::teams() as $v) {
+			$temp = $this->processSuresourceTeam($v, $resource_id, $subresource, $action, $module_id);
+			if ($temp === 1) {
+				return true;
+			} else if ($temp === 2) {
+				return false;
+			}
+		}
+		return false;
+	}
+
+	/**
 	 * Can (extended)
 	 *
 	 * @param int|string $resource_id
 	 * @param string $method_code
 	 * @param string|int $action
 	 * @param int $module_id
-	 * @param array $roles
 	 * @return bool
 	 * @throws Exception
 	 */
-	public function canExtended($resource_id, $method_code, $action, $module_id = null, $roles = null) : bool {
+	public function canExtended($resource_id, $method_code, $action, $module_id = null) : bool {
 		// rearrange controllers
 		if (!isset(self::$cached_controllers_by_ids)) {
 			self::$cached_controllers_by_ids = [];
@@ -372,7 +524,7 @@ class Controller {
 			}
 		}
 		// load user roles
-		if (is_null($roles)) $roles = \User::roles();
+		$roles = \User::roles();
 		// authorized controllers have full access
 		if (empty(self::$cached_controllers[self::$cached_controllers_by_ids[$resource_id]]['acl_permission']) && !empty(self::$cached_controllers[self::$cached_controllers_by_ids[$resource_id]]['acl_authorized'])) {
 			// if user is logged in
@@ -456,6 +608,62 @@ class Controller {
 	}
 
 	/**
+	 * Process role (sub-resource)
+	 *
+	 * @param string $role
+	 * @param int $resource_id
+	 * @param int $subresource
+	 * @param int $action_id
+	 * @return int
+	 */
+	private function processSubresourceRole(string $role, int $resource_id, int $subresource, int $action_id, $module_id = null) : int {
+		// load all roles from datasource
+		if (is_null(self::$cached_roles) && !\Object\Error\Base::$flag_database_tenant_not_found) {
+			self::$cached_roles = \Object\ACL\Resources::getStatic('roles', 'primary');
+		}
+		// if role is not found
+		if (empty(self::$cached_roles[$role])) return 0;
+		// process permissions
+		$all_actions = self::$cached_roles[$role]['subresources'][$resource_id][$subresource][-1] ?? [];
+		$actual_action = self::$cached_roles[$role]['subresources'][$resource_id][$subresource][$action_id] ?? [];
+		$temp = array_merge_hard($all_actions, $actual_action);
+		if (!empty($temp)) {
+			if (!empty($module_id)) {
+				$temp = $temp[$module_id] ?? null;
+			} else { // find any active permision
+				$temp2 = $temp;
+				$temp = null;
+				foreach ($temp2 as $k => $v) {
+					if ($v === 0) {
+						$temp = 0;
+						break;
+					}
+				}
+			}
+		}
+		if ($temp === 0) {
+			return 1;
+		} else if ($temp === 1) {
+			return 2;
+		}
+		// super admin
+		if (!empty(self::$cached_roles[$role]['super_admin'])) return 1;
+		// if permission is not found we need to check parents
+		if (empty(self::$cached_roles[$role]['parents'])) return 0;
+		// go though parents
+		foreach (self::$cached_roles[$role]['parents'] as $k => $v) {
+			if (!empty($v)) continue;
+			$temp = $this->processSubresourceRole($k, $resource_id, $subresource, $action_id);
+			if ($temp === 1) {
+				return 1;
+			} else if ($temp === 2) {
+				return 2;
+			}
+		}
+		return 0;
+	}
+
+	/**
 	 * Process team
 	 *
 	 * @param int $team_id
@@ -474,6 +682,48 @@ class Controller {
 		// process permissions
 		$all_actions = self::$cached_teams[$team_id]['permissions'][$resource_id]['AllActions'][-1] ?? [];
 		$actual_action = self::$cached_teams[$team_id]['permissions'][$resource_id][$method_code][$action_id] ?? [];
+		$temp = array_merge_hard($all_actions, $actual_action);
+		if (!empty($temp)) {
+			if (!empty($module_id)) {
+				$temp = $temp[$module_id] ?? null;
+			} else { // find any active permision
+				$temp2 = $temp;
+				$temp = null;
+				foreach ($temp2 as $k => $v) {
+					if ($v === 0) {
+						$temp = 0;
+						break;
+					}
+				}
+			}
+		}
+		if ($temp === 0) {
+			return 1;
+		} else if ($temp === 1) {
+			return 2;
+		}
+		return 0;
+	}
+
+	/**
+	 * Process team (sub-resource)
+	 *
+	 * @param int $team_id
+	 * @param int $resource_id
+	 * @param int $subresource
+	 * @param int $action_id
+	 * @return int
+	 */
+	private function processSuresourceTeam(int $team_id, int $resource_id, int $subresource, int $action_id, $module_id = null) : int {
+		// load all roles from datasource
+		if (is_null(self::$cached_teams) && !\Object\Error\Base::$flag_database_tenant_not_found) {
+			self::$cached_teams = \Object\ACL\Resources::getStatic('roles', 'teams');
+		}
+		// if role is not found
+		if (empty(self::$cached_teams[$team_id])) return 0;
+		// process permissions
+		$all_actions = self::$cached_teams[$team_id]['subresources'][$resource_id][$subresource][-1] ?? [];
+		$actual_action = self::$cached_teams[$team_id]['subresources'][$resource_id][$subresource][$action_id] ?? [];
 		$temp = array_merge_hard($all_actions, $actual_action);
 		if (!empty($temp)) {
 			if (!empty($module_id)) {

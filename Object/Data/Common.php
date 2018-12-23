@@ -225,7 +225,7 @@ class Common {
 			if (!empty($generate_photo)) {
 				if (!empty($v['photo_id'])) {
 					$data[$k]['photo_id'] = call_user_func_array(explode('::', $photo_method_url), [$v['photo_id']]);
-				} else {
+				} else if (empty($data[$k]['icon_class'])) {
 					$data[$k]['photo_id'] = call_user_func_array(explode('::', $photo_method_icon), [strip_tags($v['name']), 32, 32]);
 				}
 			}

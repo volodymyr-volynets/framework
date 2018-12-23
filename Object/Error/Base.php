@@ -126,8 +126,12 @@ class Base {
 	 * @param Exception $e
 	 */
 	public static function exceptionHandler(\Throwable $e) {
+		$code = $e->getCode();
+		if (get_class($e) == 'Object\Error\UserException') {
+			$code = -1;
+		}
 		self::$errors[] = [
-			'errno' => $e->getCode(),
+			'errno' => $code,
 			'error' => [$e->getMessage()],
 			'file' => $e->getFile(),
 			'line' => $e->getLine(),

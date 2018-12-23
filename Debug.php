@@ -327,7 +327,7 @@ class Debug {
 								// backtrace
 								if (!empty($v['backtrace'])) {
 									$result.= '<tr>';
-										$result.= '<td valign="top" colspan="4"><pre style="width: 1130px;">' . $v['backtrace'] . '</pre></td>';
+										$result.= '<td valign="top" colspan="4"><pre style="width: 1130px;">' . strip_tags($v['backtrace']) . '</pre></td>';
 									$result.= '</tr>';
 								}
 								// empty separator

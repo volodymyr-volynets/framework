@@ -26,7 +26,7 @@ class Tree {
 				}
 				$pointers[$k] = & $data[$v[$parent_field]]['options'][$k];
 				unset($data[$k]);
-			} else {
+			} else if (!empty($pointers[$v[$parent_field]])) {
 				$pointer = & $pointers[$v[$parent_field]];
 				$pointer['options'][$k] = $data[$k];
 				$pointers[$k] = & $pointer['options'][$k];

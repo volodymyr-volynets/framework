@@ -21,9 +21,11 @@ class Aliases extends \Object\Data {
 	 * @param string $alias
 	 * @param string $code
 	 * @param boolean $id_only
+	 * @param array $options
+	 *		boolean skip_acl
 	 * @return mixed
 	 */
-	public function getIdByCode($alias, $code, $id_only = true) {
+	public function getIdByCode($alias, $code, $id_only = true, array $options = []) {
 		$class = $this->data[$alias]['no_data_alias_model'];
 		$model = new $class();
 		$columns = [];
@@ -35,7 +37,9 @@ class Aliases extends \Object\Data {
 			'where' => [
 				$this->data[$alias]['no_data_alias_column'] => $code . ''
 			],
-			'single_row' => true
+			'single_row' => true,
+			'skip_acl' => $options['skip_acl'] ?? false,
+			'no_cache' => true,
 		]);
 		if (!$id_only) {
 			return $data;

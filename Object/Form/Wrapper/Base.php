@@ -132,6 +132,16 @@ class Base extends \Object\Form\Parent2 {
 		if (!empty($this->buttons_model)) {
 			$this->form_object->buttons_model = new $this->buttons_model();
 		}
+		// overrides
+		$overrides_model = new \Object\Form\Model\Overrides();
+		$overrides_data = $overrides_model->getOverrides($this->form_object->form_class);
+		$overrides_objects = [];
+		if (!empty($overrides_data)) {
+			foreach ($overrides_data as $v) {
+				$one_override = new $v($this);
+				$overrides_objects[$v] = & $one_override;
+			}
+		}
 		// add collection
 		$this->form_object->collection = $this->collection;
 		$this->form_object->preloadCollectionObject(); // must initialize it before calls to container/row/element
@@ -154,6 +164,14 @@ class Base extends \Object\Form\Parent2 {
 			'processOptionsModels', 'processAllValues', 'listQuery', 'buildReport'] as $v) {
 			if (method_exists($this, $v)) {
 				$this->form_object->wrapper_methods[$v]['main'] = [& $this, $v];
+			}
+			// overrides can also have methods
+			if (!empty($overrides_objects)) {
+				foreach ($overrides_objects as $v2) {
+					if (method_exists($v2, $v)) {
+						$this->form_object->wrapper_methods[$v]['main'] = [& $v2, $v];
+					}
+				}
 			}
 		}
 		// extensions can have their own verify methods

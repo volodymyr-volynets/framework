@@ -52,11 +52,20 @@ class Collection extends \Object\Override\Data {
 	public $timestamp;
 
 	/**
+	 * Options
+	 *
+	 * @var array
+	 */
+	public $options = [];
+
+	/**
 	 * Constructing object
 	 *
 	 * @param $options
 	 */
 	public function __construct($options = []) {
+		$this->options = $options;
+		$this->options['skip_acl'] = $this->options['skip_acl'] ?? false;
 		// we need to handle overrrides
 		parent::overrideHandle($this);
 		// data can be passed in constructor
@@ -102,26 +111,8 @@ class Collection extends \Object\Override\Data {
 			// building query
 			$query = $this->primary_model->queryBuilder([
 				'initiator' => 'collection',
-				'skip_acl' => true
+				'skip_acl' => $this->options['skip_acl']
 			])->select()->columns('a.*');
-			// acl datasource
-			if (!empty($this->data['acl_datasource'])) {
-				$acl_datasource = $this->data['acl_datasource'];
-				$acl_pk = [];
-				foreach (($this->data['pk'] ?? $this->primary_model->pk) as $v) {
-					if ($v == $this->primary_model->tenant_column) continue;
-					$acl_pk[] = ['a.' . $v, '=', 'inner_a.' . $v, true];
-				}
-				$acl_parameters = $this->data['acl_parameters'] ?? [];
-				$query->where('AND', function (& $query) use ($acl_datasource, $acl_pk, $acl_parameters) {
-					$model = new $acl_datasource();
-					$query = $model->queryBuilder(['alias' => 'inner_a', 'where' => $acl_parameters])->select();
-					$query->columns(1);
-					foreach ($acl_pk as $v) {
-						$query->where('AND', $v);
-					}
-				}, 'EXISTS');
-			}
 			// process column overrides
 			$query->columnOverrides($this->primary_model->columns);
 			// where
@@ -263,7 +254,7 @@ class Collection extends \Object\Override\Data {
 			// acl
 			if (!empty($v['acl']) && !\Can::systemFeaturesExist($v['acl'])) continue;
 			// initialize model
-			$details[$k]['model_object'] = $model = \Factory::model($k);
+			$details[$k]['model_object'] = $model = \Factory::model($k, false);
 			$pk = $v['pk'] ?? $model->pk;
 			// generate keys from parent array
 			$keys = [];
@@ -289,10 +280,10 @@ class Collection extends \Object\Override\Data {
 				array_key_set($parent_rows, $v0, []);
 			}
 			// building query
-			$query = new \Object\Query\Builder($model->db_link);
-			$query->select()
-				->columns(['a.*'])
-				->from($model, 'a');
+			$query = $model->queryBuilder([
+				'initiator' => 'collection',
+				'skip_acl' => $this->options['skip_acl']
+			])->select()->columns(['a.*']);
 			// process column overrides
 			$query->columnOverrides($model->columns);
 			// where
@@ -374,9 +365,9 @@ class Collection extends \Object\Override\Data {
 	 */
 	public static function collectionToModel($collection) {
 		if (is_string($collection)) {
-			return \Factory::model($this->collection);
+			return \Factory::model($collection);
 		} else if (!empty($collection['model'])) {
-			return new \Object\Collection(['data' => $collection]);
+			return new \Object\Collection(['data' => $collection, 'skip_acl' => $collection['skip_acl'] ?? false]);
 		} else {
 			return null;
 		}

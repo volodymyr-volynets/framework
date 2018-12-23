@@ -32,11 +32,24 @@ trait Trait2 {
 			$object->where('AND', [$alias . '.' . $model->column_prefix . 'tenant_id', '=', \Tenant::id()]);
 			$object->where('AND', [$model->column_prefix . 'tenant_id', '=', \Tenant::id()], false, ['for_delete' => true]);
 		}
-		// registered ALC
+		// ABAC ACL
 		if (empty($options['skip_acl'])) {
-			\Object\ACL\Registered::process('\\' . get_called_class(), $object, [
+			$abac_class = \Object\ACL\Resources::getStatic('abac', 'model', 'get');
+			if (!empty($abac_class)) {
+				$abac_model = \Factory::model($abac_class, false);
+				$abac_model->process(get_called_class(), $object, $alias, [
+					'initiator' => $options['initiator'] ?? null,
+					'existing_values' => $options['existing_values'] ?? null,
+					'pk' => $model->pk,
+				]);
+			}
+		}
+		// registered ACL
+		if (empty($options['skip_acl'])) {
+			\Object\ACL\Registered::process(get_called_class(), $object, [
 				'initiator' => $options['initiator'] ?? null,
-				'existing_values' => $options['existing_values'] ?? null
+				'existing_values' => $options['existing_values'] ?? null,
+				'pk' => $model->pk,
 			]);
 		}
 		return $object;
@@ -78,16 +91,6 @@ trait Trait2 {
 		if ($this->tenant && empty($options['skip_tenant'])) {
 			$options['where'][$this->tenant_column] = \Tenant::id();
 		}
-		// handle acl init
-		/*
-		if (!empty($options['acl'])) {
-			$acl_key = get_called_class();
-			if (\Factory::model('\Object\ACL\Class2', true)->aclInit($acl_key, $data, $this->acl_get_options) === false) {
-				return $data;
-			}
-			$options = $this->acl_get_options;
-		}
-		*/
 		$options_query = [];
 		// if we are caching
 		if (!empty($this->cache) && empty($options['no_cache'])) {
@@ -126,7 +129,17 @@ trait Trait2 {
 		}
 		// where
 		if (!empty($options['where'])) {
-			$query->whereMultiple('AND', $options['where']);
+			if (!empty($options['existing_values'])) {
+				$pk2 = end($pk);
+				$query->where('AND', function (& $query) use ($options, $pk2) {
+					$query->where('OR', [$pk2, '=', $options['existing_values'], false]);
+					$query->where('OR', function (& $query) use ($options) {
+						$query->whereMultiple('AND', $options['where']);
+					});
+				});
+			} else {
+				$query->whereMultiple('AND', $options['where']);
+			}
 		}
 		// todo
 		//$sql.= !empty($options['search']) ? (' AND (' . $this->db_object->prepareCondition($options['search'], 'OR') . ')') : '';
@@ -148,7 +161,7 @@ trait Trait2 {
 			$query->limit(1);
 		}
 		// memory caching
-		if ($this->cache_memory) {
+		if ($this->cache_memory && empty($options['no_cache'])) {
 			// hash is query + primary key
 			$sql_hash = sha1($query->sql() . serialize($pk));
 			if (isset(\Cache::$memory_storage[$sql_hash])) {
@@ -167,16 +180,8 @@ trait Trait2 {
 		} else {
 			$data = $result['rows'];
 		}
-		// handle acl
-		/*
-		if (!empty($options['acl'])) {
-			if (\Factory::model('\Object\ACL\Class2', true)->aclFinish($acl_key, $data, $this->acl_get_options) === false) {
-				return $data;
-			}
-		}
-		*/
 		// memory caching
-		if ($this->cache_memory) {
+		if ($this->cache_memory && empty($options['no_cache'])) {
 			\Cache::$memory_storage[$sql_hash] = & $data;
 		}
 		return $data;

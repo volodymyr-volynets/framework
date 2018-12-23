@@ -175,6 +175,9 @@ class DataSource extends \Object\Table\Options {
 			$this->db_link = $model->db_link;
 			if (empty($this->pk)) $this->pk = $model->pk;
 			$this->cache_tags = array_merge($this->cache_tag ?? [], $model->cache_tags);
+			if (!empty($this->primary_params)) {
+				$options = array_merge_hard($options, $this->primary_params);
+			}
 			// query
 			$this->query = call_user_func_array([$this->primary_model, 'queryBuilderStatic'], [$options])->select();
 		}

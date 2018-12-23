@@ -850,7 +850,11 @@ class Base extends \Object\Form\Parent2 {
 						$value = $detail[$k3] ?? $v2[$k3] ?? null;
 						// validate data type
 						if (!empty($v3['options']['multiple_column'])) {
-							$value = $this->generateMultipleColumns($value, $error_name, $detail, [$k], $v3);
+							if (!empty($value)) {
+								$value = $this->generateMultipleColumns($value, $error_name, $detail, [$k], $v3);
+							} else {
+								$value = null;
+							}
 						} else {
 							$temp = $this->validateDataTypesSingleValue($k3, $v3, $value, "{$error_name}[{$k3}]");
 							if (empty($temp['flag_error'])) {
@@ -1291,10 +1295,6 @@ processAllValues:
 			if (!empty($this->collection_object->primary_model->optimistic_lock)) {
 				$this->element($this::HIDDEN, $this::HIDDEN, $this->collection_object->primary_model->optimistic_lock_column, ['label_name' => 'Optimistic Lock', 'type' => 'text', 'null' => true, 'default' => null, 'method'=> 'hidden', 'skip_during_export' => true]);
 			}
-		}
-		// for reports we do not user ajax
-		if ($this->initiator_class == 'report') {
-			$this->options['no_ajax_form_reload'] = true;
 		}
 		// module #
 		$blank_reset_var = [];
@@ -1763,6 +1763,17 @@ convertMultipleColumns:
 				$temp = $this->query->query();
 				$this->misc_settings['list']['num_rows'] = count($temp['rows']);
 				$this->misc_settings['list']['rows'] = & $temp['rows'];
+				// fix subquery columns
+				if (!empty($this->misc_settings['list']['subquery'])) {
+					foreach ($this->misc_settings['list']['rows'] as $k => $v) {
+						foreach ($this->misc_settings['list']['subquery'] as $k2 => $v2) {
+							if (!empty($v[$k2])) {
+								// todo: maybe add type casting
+								$this->misc_settings['list']['rows'][$k][$k2] = explode($v2['delimiter'], $v[$k2]);
+							}
+						}
+					}
+				}
 			}
 			$this->misc_settings['list']['limit'] = $this->values['__limit'];
 			$this->misc_settings['list']['offset'] = $this->values['__offset'];
@@ -1855,9 +1866,48 @@ convertMultipleColumns:
 	public function processReportQueryFilter(& $query) {
 		$where = [];
 		foreach ($this->fields as $k => $v) {
+			// filter by value
 			if (!empty($v['options']['query_builder']) && isset($this->values[$k])) {
 				if (is_array($this->values[$k]) && empty($this->values[$k])) continue;
 				$where[$v['options']['query_builder']] = $this->values[$k];
+			}
+			// subquery - fetch data
+			if (!empty($v['options']['subquery'])) {
+				$on = [];
+				foreach ($v['options']['subquery']['on'] as $v2) {
+					$v2[3] = true;
+					$on[] = ['AND', $v2, false];
+				}
+				$query->join('LEFT', function (& $query) use ($v) {
+					$model = new $v['options']['subquery']['model']();
+					$query = $model->queryBuilder(['skip_acl' => true, 'alias' => $v['options']['subquery']['alias'] . '_inner'])->select();
+					$query->columns([
+						$v['options']['subquery']['groupby'],
+						$v['name'] => $query->db_object->sqlHelper('string_agg', ['expression' => $query->db_object->cast($v['name'], 'varchar'), 'delimiter' => ';;'])
+					]);
+					$query->groupby([$v['options']['subquery']['groupby']]);
+				}, $v['options']['subquery']['alias'], 'ON', $on);
+				// special constants to fix
+				$this->misc_settings['list']['subquery'][$v['name']] = ['delimiter' => ';;'];
+			}
+			// subquery - filter
+			if (!empty($v['options']['subquery_builder'])) {
+				if (is_array($this->values[$k]) && empty($this->values[$k])) continue;
+				$on = [];
+				foreach ($v['options']['subquery_builder']['on'] as $v2) {
+					$v2[3] = true;
+					$on[] = $v2;
+				}
+				$values = $this->values[$k];
+				$query->where('AND', function (& $query) use ($values, $on, $v) {
+					$model = new $v['options']['subquery_builder']['model']();
+					$query = $model->queryBuilder(['alias' => $v['options']['subquery_builder']['alias']])->select();
+					$query->columns(1);
+					foreach ($on as $v2) {
+						$query->where('AND', $v2);
+					}
+					$query->where('AND', [$v['options']['subquery_builder']['column'], '=', $values, false]);
+				}, 'EXISTS');
 			}
 		}
 		if (isset($this->values['full_text_search'])) {
@@ -2248,12 +2298,46 @@ convertMultipleColumns:
 	final public function preloadCollectionObject() {
 		if (empty($this->collection)) return false;
 		if (empty($this->collection_object)) {
+			// handling acl_subresource
+			if (!empty($this->collection['details'])) {
+				$this->tempAclSubresourceUnsetFromCollection($this->collection['details']);
+			}
 			$this->collection_object = \Object\Collection::collectionToModel($this->collection);
 			if (empty($this->collection_object)) {
 				return false;
 			}
 		}
 		return true;
+	}
+
+	/**
+	 * Unset collection sub-resources based on acl
+	 *
+	 * @param array $details
+	 */
+	private function tempAclSubresourceUnsetFromCollection(array & $details) {
+		foreach ($details as $k0 => $v0) {
+			if (!empty($v0['acl_subresource'])) {
+				if (!is_array($v0['acl_subresource'])) {
+					$v0['acl_subresource'] = [$v0['acl_subresource']];
+				}
+				$found = true;
+				foreach ($v0['acl_subresource'] as $v) {
+					if (!\Application::$controller->canSubresourceCached($v, 'Record_View')) {
+						$found = false;
+						break;
+					}
+				}
+				if (!$found) {
+					unset($details[$k0]);
+					continue;
+				}
+			}
+			// if we have more details
+			if (!empty($v0['details'])) {
+				$this->tempAclSubresourceUnsetFromCollection($details[$k0]['details']);
+			}
+		}
 	}
 
 	/**
@@ -2302,6 +2386,10 @@ convertMultipleColumns:
 	 */
 	final public function loadValues($for_update = false) {
 		if ($this->full_pk) {
+			// temporary disable for update flag
+			// todo check if we have acl
+			$for_update = false;
+			// load using collection
 			$result = $this->collection_object->get(['where' => $this->pk, 'single_row' => true, 'for_update' => $for_update]);
 			if ($result['success']) {
 				return $result['data'];
@@ -2323,6 +2411,8 @@ convertMultipleColumns:
 	 * @param mixed $message
 	 * @param mixed $field
 	 * @param array $options - same parameters as in i18n
+	 *		array replace
+	 *		boolean unique_options_hash
 	 */
 	public function error($type, $message, $field = null, $options = []) {
 		// if its an array of message we process them one by one
@@ -2333,7 +2423,11 @@ convertMultipleColumns:
 			return;
 		}
 		// generate hash
-		$hash = sha1($message);
+		if (!empty($options['unique_options_hash'])) {
+			$hash = sha1($message . serialize($options));
+		} else {
+			$hash = sha1($message);
+		}
 		// i18n
 		if (empty($options['skip_i18n'])) {
 			$message = i18n(null, $message, $options);
@@ -2441,12 +2535,55 @@ convertMultipleColumns:
 	}
 
 	/**
+	 * Process ACL sub-resources
+	 *
+	 * @param mixed $subresources
+	 * @param mixed $action
+	 * @return bool
+	 */
+	public function tempProcessACLSubresources($subresources, $action) : bool {
+		if (!is_array($subresources)) {
+			$subresources = [$subresources];
+		}
+		foreach ($subresources as $v) {
+			if (empty($this->options['skip_acl']) && !\Application::$controller->canSubresourceCached($v, $action)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
 	 * Add container to the form
 	 *
 	 * @param string $container_link
 	 * @param array $options
 	 */
 	public function container($container_link, $options = []) {
+		// handling acl_subresource
+		if (!empty($options['acl_subresource_remove']) && !$this->tempProcessACLSubresources($options['acl_subresource_remove'], 'Record_View')) {
+			$this->misc_settings['acl_subresource_locks'][$container_link]['remove'] = true;
+			return;
+		}
+		if (!empty($options['acl_subresource_edit'])) {
+			if ($this->tempProcessACLSubresources($options['acl_subresource_edit'], 'All_Actions')) {
+				// nothing
+			} else {
+				if (!$this->tempProcessACLSubresources($options['acl_subresource_edit'], 'Record_New')) {
+					$this->misc_settings['acl_subresource_locks'][$container_link]['no_new'] = true;
+				}
+				if (!$this->tempProcessACLSubresources($options['acl_subresource_edit'], 'Record_Edit')) {
+					$this->misc_settings['acl_subresource_locks'][$container_link]['no_edit'] = true;
+				}
+				if (!$this->tempProcessACLSubresources($options['acl_subresource_edit'], 'Record_Inactivate')) {
+					$this->misc_settings['acl_subresource_locks'][$container_link]['no_inactivate'] = true;
+				}
+				if (!$this->tempProcessACLSubresources($options['acl_subresource_edit'], 'Record_Delete')) {
+					$this->misc_settings['acl_subresource_locks'][$container_link]['no_delete'] = true;
+				}
+			}
+		}
+		// see if we have container already
 		if (!isset($this->data[$container_link])) {
 			$options['container_link'] = $container_link;
 			$type = $options['type'] = $options['type'] ?? 'fields';
@@ -2539,6 +2676,19 @@ convertMultipleColumns:
 	 * @param array $options
 	 */
 	public function row($container_link, $row_link, $options = []) {
+		// if we have a lock we do not add elements
+		if (!empty($this->misc_settings['acl_subresource_locks'][$container_link]['remove'])) {
+			return;
+		}
+		// process acl_subresource
+		if (!empty($options['acl_subresource_remove']) && !$this->tempProcessACLSubresources($options['acl_subresource_remove'], 'Record_View')) {
+			$this->misc_settings['acl_subresource_locks'][$container_link . '::' . $row_link]['remove'] = true;
+			return;
+		}
+		// process acl_subresource_hide
+		if (!empty($options['acl_subresource_hide']) && !$this->tempProcessACLSubresources($options['acl_subresource_hide'], 'Record_View')) {
+			$options['hidden'] = true;
+		}
 		$this->container($container_link, array_key_extract_by_prefix($options, 'container_'));
 		if (!isset($this->data[$container_link]['rows'][$row_link])) {
 			// hidden rows
@@ -2586,6 +2736,13 @@ convertMultipleColumns:
 	 * @param array $options
 	 */
 	public function element($container_link, $row_link, $element_link, $options = []) {
+		// if we have a lock we do not add elements
+		if (!empty($this->misc_settings['acl_subresource_locks'][$container_link]['remove']) || !empty($this->misc_settings['acl_subresource_locks'][$container_link . '::' . $row_link]['remove'])) {
+			return;
+		}
+		if (!empty($this->misc_settings['acl_subresource_locks'][$container_link]['no_edit'])) {
+			$options['readonly'] = true;
+		}
 		// presetting options for buttons, making them last
 		if (in_array($row_link, [$this::BUTTONS, $this::TRANSACTION_BUTTONS])) {
 			$options['row_type'] = 'grid';
@@ -2656,6 +2813,10 @@ convertMultipleColumns:
 					}
 				} else if (($options['type'] ?? '') == 'boolean' && !isset($options['method'])) { // fix boolean type for forms
 					$options['method'] = 'checkbox';
+					// acl Record_Inactivate
+					if (($options['label_name'] ?? '') == 'Inactive' && !empty($this->misc_settings['acl_subresource_locks'][$container_link]['no_inactivate'])) {
+						$options['readonly'] = true;
+					}
 					// we revert inactive if set
 					if (\Application::get('flag.numbers.frontend.html.form.revert_inactive') && ($options['label_name'] ?? '') == 'Inactive') {
 						$options['label_name'] = 'Active';

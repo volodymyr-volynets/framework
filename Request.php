@@ -48,8 +48,22 @@ class Request {
 		// fix files
 		$files = [];
 		foreach (($_FILES ?? []) as $k => $v) {
-			if (empty($v['tmp_name'])) continue;
-			$files[$k] = $v;
+			// we need to convert
+			if (is_array($v['name'])) {
+				foreach ($v['name'] as $k2 => $v2) {
+					if (empty($v['tmp_name'][$k2])) continue;
+					$files[$k][$k2] = [
+						'name' => $v2,
+						'type' => $v['type'][$k2],
+						'tmp_name' => $v['tmp_name'][$k2],
+						'error' => $v['error'][$k2],
+						'size' => $v['size'][$k2],
+					];
+				}
+			} else {
+				if (empty($v['tmp_name'])) continue;
+				$files[$k] = $v;
+			}
 		}
 		if ($cookie) {
 			$result = array_merge($_COOKIE, $_GET, $_POST, $files);

@@ -133,6 +133,33 @@ class Options extends \Object\Override\Data {
 	}
 
 	/**
+	 * Grouped
+	 *
+	 * @param array $options
+	 * @return array
+	 */
+	public function optionsGrouped($options = []) {
+		$result = $this->options($options);
+		if (!empty($result)) {
+			$converted = \Helper\Tree::convertByParent($result, 'parent_id');
+			$result = [];
+			\Helper\Tree::convertTreeToOptionsMulti($converted, 0, ['name_field' => 'name'], $result);
+		}
+		return $result;
+	}
+
+	/**
+	 * Grouped (active)
+	 *
+	 * @param array $options
+	 * @return array
+	 */
+	public function optionsGroupedActive($options = []) {
+		$options['__options_active'] = true;
+		return $this->optionsGrouped($options);
+	}
+
+	/**
 	 * Presets
 	 *
 	 * @see $this->get()

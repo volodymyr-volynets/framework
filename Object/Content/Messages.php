@@ -5,6 +5,7 @@ class Messages {
 	// error messages
 	const NO_ROWS_FOUND = 'No rows found!';
 	const RECORD_NOT_FOUND = 'Record not found!';
+	const NO_PERMISSIONS_FOUND = 'You do not have permissions to view this content!';
 	const PREV_OR_NEXT_RECORD_NOT_FOUND = 'Previous/next record not found!';
 	const REQUIRED_FIELD = 'Required field!';
 	const MULTIPLE_VALUES_ARE_NOT_ALLOWED = 'Multiple values not allowed!';
@@ -24,6 +25,7 @@ class Messages {
 	const ERROR_500 = 'Internal Server Error!';
 	const MODAL_HAS_ERRORS = 'Modal has error messages!';
 	const NO_MODIFICATION_ALLOWED = 'Modification of existing record(s) is not allowed!';
+	const TOKEN_EXPIRED = 'Your token is not valid or expired!';
 	// warnings
 	const AMOUNT_RECALCULATED = 'The amount has been recalculated!';
 	const AMOUNT_ROUNDED = 'The amount has been rounded!';

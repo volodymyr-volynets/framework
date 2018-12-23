@@ -68,7 +68,7 @@ class Import {
 			'legend' => [],
 		];
 		if (empty($this->data)) {
-			Throw new Exception('You must specify "data" parameter.');
+			Throw new \Exception('You must specify "data" parameter.');
 		}
 		// if we have fixes to the data
 		if (method_exists($this, 'overrides')) {
@@ -98,13 +98,15 @@ class Import {
 				if (!empty($this->data[$k]['options']['pk'])) {
 					$collection_options['pk'] = $this->data[$k]['options']['pk'];
 				}
+				$collection_options['skip_acl'] = true;
 				$collection_object = $model::collectionStatic($collection_options);
 			} else if (is_a($object, '\Object\Collection')) { // collections
 				if (!$object->primary_model->dbPresent()) continue;
-				$db_object = $object->primary_model->db_object;
-				$collection_object = $object;
+				$collection_object = new $model(['skip_acl' => true]);
+				$db_object = $collection_object->primary_model->db_object;
 				$flag_collection = true;
 			}
+			unset($object);
 			// start transaction
 			if (!empty($db_object)) {
 				$db_object->begin();
@@ -232,10 +234,11 @@ class Import {
 			// todo: maybe need column prefix with alias
 			if (strpos($column, $k) !== false) {
 				$alias = $k;
+				break;
 			}
 		}
 		if (!empty($alias)) {
-			return $this->alias_object->getIdByCode($alias, str_replace('::id::', '', $value));
+			return $this->alias_object->getIdByCode($alias, str_replace('::id::', '', $value), true, ['skip_acl' => true]);
 		} else {
 			return false;
 		}

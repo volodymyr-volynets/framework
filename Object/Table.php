@@ -646,7 +646,7 @@ class Table extends \Object\Table\Options {
 	 *		array pk
 	 * @return array
 	 */
-	public static function aggregate(array $options) : array {
+	public static function aggregateStatic(array $options) : array {
 		$query = self::queryBuilderStatic()->select();
 		if (!empty($options['columns'])) {
 			$query->columns($options['columns']);
@@ -659,6 +659,43 @@ class Table extends \Object\Table\Options {
 		}
 		$result = $query->query($options['pk'] ?? null);
 		return $result['rows'];
+	}
+
+	/**
+	 * @see self::aggregateStatic
+	 */
+	public function aggregate(array $options) : array {
+		return self::aggregateStatic($options);
+	}
+
+	/**
+	 * Soft sequence
+	 *
+	 * @param string $column
+	 * @param array $where
+	 * @param array $group
+	 * @return array
+	 */
+	public function softSequence(string $column, array $where, array $group) : array {
+		$result = [
+			'success' => true,
+			'error' => [],
+			'current' => 0,
+			'next' => 1
+		];
+		$temp = $this->aggregate([
+			'columns' => [
+				'new_sequence_id' => 'MAX(' . $column . ')'
+			],
+			'where' => $where,
+			'groupby' => $group,
+			'pk' => null
+		]);
+		if (!empty($temp[0])) {
+			$result['current'] = $temp[0]['new_sequence_id'];
+			$result['next'] = $result['current'] + 1;
+		}
+		return $result;
 	}
 
 	/**
