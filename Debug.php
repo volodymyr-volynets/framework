@@ -315,13 +315,18 @@ class Debug {
 								// results second
 								if (!empty($v['rows'])) {
 									$temp2 = current($v['rows']);
-									if (!is_array($temp2)) $temp2 = $v['rows'];
-									$temp = array_keys($temp2);
-									$header = array_combine($temp, $temp);
-									if (!empty($header)) {
+									if (!is_array($temp2)) {
 										$result.= '<tr>';
-											$result.= '<td valign="top" colspan="8" style="max-width: 1000px; overflow: scroll;">' . \HTML::table(['header' => $header, 'options' => $v['rows']]) . '</td>';
-										$result.= '</tr>';
+												$result.= '<td valign="top" colspan="8" style="max-width: 1000px; overflow: scroll;">' . print_r2($v['rows'], '', true) . '</td>';
+											$result.= '</tr>';
+									} else {
+										$temp = array_keys($temp2);
+										$header = array_combine($temp, $temp);
+										if (!empty($header)) {
+											$result.= '<tr>';
+												$result.= '<td valign="top" colspan="8" style="max-width: 1000px; overflow: scroll;">' . \HTML::table(['header' => $header, 'options' => $v['rows']]) . '</td>';
+											$result.= '</tr>';
+										}
 									}
 								}
 								// backtrace

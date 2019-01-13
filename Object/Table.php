@@ -520,6 +520,8 @@ class Table extends \Object\Table\Options {
 		$this->data_asset = $model->data_asset;
 		$this->tenant = $model->tenant;
 		$this->module = $model->module;
+		// we need to reset tags
+		$this->cache_tags = array_merge($model->cache_tags, $this->cache_tags);
 		// determine pk
 		$columns = [];
 		$this->map = $model->{$widget_name}['map'];

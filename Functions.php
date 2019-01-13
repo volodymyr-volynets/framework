@@ -7,6 +7,10 @@ define('DANGER', 'danger');
 define('WARNING', 'warning');
 define('SUCCESS', 'success');
 define('DEF', 'default');
+define('DEF2', 'default2');
+define('DEF3', 'default3');
+define('DEF4', 'default4');
+define('DEF5', 'default5');
 define('NONE', 0);
 define('ODD', 1);
 define('EVEN', 2);
@@ -389,22 +393,68 @@ function http_append_to_url(string $url, array $parameters): string {
  * Strip tags
  *
  * @param array|string $arr
+ * @param array $options
+ *		array skip_xss_on_keys
+ *		boolean trim_empty_html_input
+ *		boolean remove_script_tag
  * @return array
  */
-function strip_tags2($arr) {
+function strip_tags2($arr, array $options = []) {
 	if (is_array($arr)) {
 		$result = [];
 		foreach ($arr as $k => $v) {
 			if (is_string($k)) {
 				$k = strip_tags($k);
 			}
-			$result[$k] = strip_tags2($v);
+			// when we need to skip some keys
+			if (!empty($options['skip_xss_on_keys'])) {
+				foreach ($options['skip_xss_on_keys'] as $v2) {
+					if (strpos($k, $v2) !== false) {
+						// remove javascript tags
+						if (!empty($options['remove_script_tag'])) {
+							$v = sanitize_string_tags($v, 'script_only');
+						}
+						// sanitize empty string
+						if (!empty($options['trim_empty_html_input'])) {
+							$temp = sanitize_string_tags($v, 'all');
+							$temp = trim($temp, "'\n\t\" ");
+							if ($temp == '') {
+								$v = null;
+							}
+						}
+						$result[$k] = $v;
+						goto end_of_loop;
+					}
+				}
+			}
+			$result[$k] = strip_tags2($v, $options);
+end_of_loop:
 		}
 		return $result;
 	} else if (is_string($arr)) {
-		return strip_tags($arr);
+		return sanitize_string_tags($arr, 'all');
 	}
 	return $arr;
+}
+
+/**
+ * Sanitize tags
+ *
+ * @param type $str
+ * @param string $type
+ * @return string
+ */
+function sanitize_string_tags($str, string $type = 'all') : string {
+	switch ($type) {
+		case 'script_only':
+			return preg_replace('/<script[^>]*?.*?<\/script>/siu', ' ', $str . '');
+		case 'all':
+		default:
+			$str = preg_replace(['/<head[^>]*?>.*?<\/head>/siu', '/<style[^>]*?>.*?<\/style>/siu', '/<script[^>]*?.*?<\/script>/siu', '/<object[^>]*?.*?<\/object>/siu', '/<embed[^>]*?.*?<\/embed>/siu', '/<applet[^>]*?.*?<\/applet>/siu', '/<noframes[^>]*?.*?<\/noframes>/siu', '/<noscript[^>]*?.*?<\/noscript>/siu', '/<noembed[^>]*?.*?<\/noembed>/siu'], ' ', $str . '');
+			$str = preg_replace(['/<((br)|(hr))/iu', '/<\/?((address)|(blockquote)|(center)|(del))/iu', '/<\/?((div)|(h[1-9])|(ins)|(isindex)|(p)|(pre))/iu', '/<\/?((dir)|(dl)|(dt)|(dd)|(li)|(menu)|(ol)|(ul))/iu', '/<\/?((table)|(th)|(td)|(caption))/iu', '/<\/?((form)|(button)|(fieldset)|(legend)|(input))/iu', '/<\/?((label)|(select)|(optgroup)|(option)|(textarea))/iu', '/<\/?((frameset)|(frame)|(iframe))/iu'], "\n\$0", $str);
+			$str = str_replace('&nbsp;', ' ', $str);
+	}
+	return strip_tags($str);
 }
 
 /**

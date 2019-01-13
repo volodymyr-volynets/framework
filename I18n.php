@@ -151,4 +151,19 @@ class I18n {
 		}
 		return i18n(null, $message, ['replace' => $replace]);
 	}
+
+	/**
+	 * Translate and sort an array
+	 *
+	 * @param array $data
+	 * @param bool $sort
+	 */
+	public static function translateArray(array & $data, bool $sort = false) {
+		foreach ($data as $k => $v) {
+			$data[$k]['name'] = i18n(null, $v['name']);
+		}
+		if ($sort) {
+			array_key_sort($data, ['name' => SORT_ASC], ['name' => SORT_NATURAL]);
+		}
+	}
 }

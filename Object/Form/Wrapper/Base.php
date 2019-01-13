@@ -219,6 +219,7 @@ class Base extends \Object\Form\Parent2 {
 						continue;
 					}
 					// if we have an override
+					// todo - revisit, only allow disabling
 					if (!empty($overrides_fields[$k3])) {
 						if ($overrides_fields[$k3]['action'] == 10) {
 							$v3['readonly'] = true;

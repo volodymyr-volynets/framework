@@ -69,7 +69,7 @@ class Layout extends View {
 
 	/**
 	 * Render css files
-	 *  
+	 *
 	 *  @return string
 	 */
 	public static function renderCss() {
@@ -86,8 +86,8 @@ class Layout extends View {
 	}
 
 	/**
-	 * Add javascript file to the layout
-	 * 
+	 * Add JavaScript file to the layout
+	 *
 	 * @param string $js
 	 * @param int $sort
 	 */

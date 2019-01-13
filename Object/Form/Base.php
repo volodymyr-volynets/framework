@@ -939,6 +939,23 @@ class Base extends \Object\Form\Parent2 {
 							} else {
 								$subdetail_data = $v2[$k0] ?? [];
 							}
+							// handle auto increment
+							$autoincrement_subdetails = [];
+							if (!empty($v0['options']['details_autoincrement']) && empty($v0['options']['details_11'])) {
+								foreach ($v0['options']['details_autoincrement'] as $v72) {
+									$autoincrement_subdetails[$v72] = 0;
+								}
+								// find maximum in new values
+								if (!empty($subdetail_data)) {
+									foreach ($subdetail_data as $k71 => $v71) {
+										foreach ($v0['options']['details_autoincrement'] as $v72) {
+											if (!empty($v71[$v72]) && intval($v71[$v72]) > $autoincrement_subdetails[$v72]) {
+												$autoincrement_subdetails[$v72] = $v71[$v72];
+											}
+										}
+									}
+								}
+							}
 							if (!empty($subdetail_data)) {
 								foreach ($subdetail_data as $k5 => $v5) {
 									$flag_subdetail_change_detected = false;
@@ -1017,6 +1034,15 @@ class Base extends \Object\Form\Parent2 {
 										if (!empty($v0['options']['details_11'])) {
 											$detail[$k0] = $subdetail;
 										} else {
+											// autoincrement
+											if (!empty($autoincrement_subdetails)) {
+												foreach ($autoincrement_subdetails as $k71 => $v71) {
+													if (empty($subdetail[$k71])) {
+														$subdetail[$k71] = $v71 + 1;
+														$autoincrement_subdetails[$k71]++;
+													}
+												}
+											}
 											$detail[$k0][$k5] = $subdetail;
 										}
 									}
@@ -2452,7 +2478,7 @@ convertMultipleColumns:
 				// modals
 				if (!empty($this->fields[$field])) {
 					$container_link = $this->fields[$field]['options']['container_link'];
-					if ($this->data[$container_link]['type'] == 'modal') {
+					if (($this->data[$container_link]['type'] ?? '') == 'modal') {
 						$this->misc_settings['errors_in_modal'][$container_link] = $this->data[$container_link]['options']['modal_id'];
 					}
 				}
@@ -2651,15 +2677,17 @@ convertMultipleColumns:
 					$this->element($container_link, $this::HIDDEN, $model->relation['field'], ['label_name' => 'Relation #', 'domain' => 'relation_id_sequence', 'method'=> 'input', 'persistent' => true]);
 				}
 			}
+			/*
 			if ($type == 'details' || $type == 'subdetails' || $type == 'trees' || $type == 'subtrees') {
 				// if we have autoincrement
 				if (!empty($options['details_autoincrement'])) {
 					$model = \Factory::model($options['details_key'], true);
 					foreach ($options['details_autoincrement'] as $v) {
-						$this->element($container_link, $this::HIDDEN, $v, $model->columns[$v]);
+						$this->element($container_link, $this::HIDDEN, $v, array_merge_hard($model->columns[$v], ['default' => 0]));
 					}
 				}
 			}
+			*/
 		} else {
 			$this->data[$container_link]['options'] = array_merge_hard($this->data[$container_link]['options'] ?? [], $options);
 			if (isset($options['order'])) {

@@ -40,9 +40,13 @@ class Request {
 	 * @param mixed $key
 	 * @param boolean $xss
 	 * @param boolean $cookie
+	 * @param array $options
+	 *		array skip_xss_on_keys
+	 *		boolean trim_empty_html_input
+	 *		boolean remove_script_tag
 	 * @return mixed
 	 */
-	public static function input($key = '', bool $xss = true, bool $cookie = false) {
+	public static function input($key = '', bool $xss = true, bool $cookie = false, array $options = []) {
 		// cookie first, get and post after
 		$_GET = $_GET ?? $_REQUEST ?? [];
 		// fix files
@@ -71,7 +75,7 @@ class Request {
 			$result = array_merge($_GET, $_POST, $files);
 		}
 		// protection against XSS attacks is on by default
-		if ($xss) $result = strip_tags2($result);
+		if ($xss) $result = strip_tags2($result, $options);
 		// we need to get rid of session id from the result
 		if (!$cookie) {
 			unset($result[session_name()]);

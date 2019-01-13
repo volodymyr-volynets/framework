@@ -132,6 +132,7 @@ abstract class Collection {
 		$submitted_form_cached = [];
 		$submitted_bypass_values = [];
 		$submitted_form_errors = [];
+		$submitted_form_list_rows = [];
 		if (!empty($this->values['__form_link'])) {
 			// see if we have a collection
 			$form_link = $this->values['__form_link'];
@@ -155,7 +156,8 @@ abstract class Collection {
 				$model = \Factory::model($this->options['forms'][$this->collection_screen_link][$form_link]['model'], false, [$model_options]);
 				$submitted_form_cached[$form_link] = $model->render();
 				if (isset($model->form_object)) {
-					$submitted_form_errors[$form_link] = $model->form_object->hasErrors();
+					$submitted_form_errors[$form_link] = $model->form_object->errors['flag_num_errors'] ?? null;
+					$submitted_form_list_rows[$form_link] = $model->form_object->misc_settings['list']['total'] ?? null;
 				}
 				// bypass values
 				if (isset($this->options['forms'][$this->collection_screen_link][$form_link]['bypass_values'])) {
@@ -299,6 +301,7 @@ abstract class Collection {
 					$this->current_tab[] = "{$tab_id}_{$form_k}";
 					$labels = '';
 					$error_id = implode('__', $this->current_tab) . '__danger';
+					$records_id = implode('__', $this->current_tab) . '__records';
 					foreach (['records', 'danger', 'warning', 'success', 'info'] as $v78) {
 						$labels.= \HTML::label2(['type' => ($v78 == 'records' ? 'primary' : $v78), 'style' => 'display: none;', 'value' => 0, 'id' => implode('__', $this->current_tab) . '__' . $v78]);
 					}
@@ -307,7 +310,12 @@ abstract class Collection {
 					if (isset($submitted_form_cached[$form_k])) {
 						$tab_values[$form_k] = $submitted_form_cached[$form_k];
 						if (!empty($submitted_form_errors[$form_k])) {
-							\Layout::onLoad("$('#{$error_id}').html(1); $('#{$error_id}').show();");
+							$num = \Format::id($submitted_form_errors[$form_k]);
+							\Layout::onLoad("$('#{$error_id}').html({$num}); $('#{$error_id}').show();");
+						}
+						if (!empty($submitted_form_list_rows[$form_k])) {
+							$num = \Format::id($submitted_form_list_rows[$form_k]);
+							\Layout::onLoad("$('#{$records_id}').html({$num}); $('#{$records_id}').show();");
 						}
 						$have_tabs = true;
 					} else {
@@ -325,7 +333,12 @@ abstract class Collection {
 						$have_tabs = true;
 						// js to update counters in tabs
 						if (isset($model->form_object) && $model->form_object->hasErrors()) {
-							\Layout::onLoad("$('#{$error_id}').html(1); $('#{$error_id}').show();");
+							$num = \Format::id($model->form_object->errors['flag_num_errors']);
+							\Layout::onLoad("$('#{$error_id}').html({$num}); $('#{$error_id}').show();");
+						}
+						if (!empty($model->form_object->misc_settings['list']['total'])) {
+							$num = \Format::id($model->form_object->misc_settings['list']['total']);
+							\Layout::onLoad("$('#{$records_id}').html({$num}); $('#{$records_id}').show();");
 						}
 					}
 					// remove last element from an array

@@ -51,7 +51,9 @@ class Report {
 		];
 		// extrace filter out of form
 		if (isset($form)) {
-			$this->data[$report_name]['filter'] = $form->generateFilter();
+			if (empty($options['skip_filter'])) {
+				$this->data[$report_name]['filter'] = $form->generateFilter();
+			}
 			$this->form = & $form;
 		}
 	}

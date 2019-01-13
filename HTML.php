@@ -34,7 +34,7 @@ class HTML {
 	 * Segment
 	 *
 	 * @param array $options
-	 *		type - one of object_type_html_button
+	 *		type - one of \Object\HTML\Button
 	 *		value - body
 	 *		header - top part
 	 *		footer - bottom part
@@ -370,6 +370,17 @@ class HTML {
 	 */
 	public static function icon(array $options = []) : string {
 		return Factory::delegate('flag.numbers.framework.html', 'icon', [$options]);
+	}
+
+	/**
+	 * Flag
+	 *
+	 * @param array $options
+	 *		string country_code
+	 * @return string
+	 */
+	public static function flag(array $options = []) : string {
+		return Factory::delegate('flag.numbers.framework.html', 'flag', [$options]);
 	}
 
 	/**

@@ -165,7 +165,7 @@ class Common {
 				}
 			} else {
 				$options_map_new[$k] = $v;
-				if (!empty($options['i18n']) && $v != 'icon_class') {
+				if (!empty($options['i18n']) && $v != 'icon_class' && $v != 'flag_country_code') {
 					$i18n[$k] = true;
 				}
 			}
@@ -218,6 +218,9 @@ class Common {
 			}
 		}
 		foreach ($data as $k => $v) {
+			if (!empty($v['flag_country_code'])) {
+				$data[$k]['flag_class'] = \HTML::flag(['country_code' => $v['flag_country_code'], 'class_only' => true]);
+			}
 			if (!empty($v['icon_class'])) {
 				$data[$k]['icon_class'] = \HTML::icon(['type' => $v['icon_class'], 'class_only' => true]);
 			}
