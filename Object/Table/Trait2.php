@@ -100,7 +100,7 @@ trait Trait2 {
 		// pk
 		$pk = array_key_exists('pk', $options) ? $options['pk'] : $this->pk;
 		// query
-		$query = self::queryBuilderStatic([
+		$query = $this->queryBuilder([
 			'skip_tenant' => $options['skip_tenant'] ?? false,
 			'skip_acl' => $options['skip_acl'] ?? false,
 			'initiator' => 'table',

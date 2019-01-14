@@ -13,6 +13,7 @@ class Widgets extends \Object\Data {
 		'addresses' => ['name' => 'Addresses'],
 		'audit' => ['name' => 'Audit'],
 		'comments' => ['name' => 'Comments'],
-		'documents' => ['name' => 'Documents']
+		'documents' => ['name' => 'Documents'],
+		'tags' => ['name' => 'Tags']
 	];
 }
