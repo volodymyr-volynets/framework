@@ -249,8 +249,10 @@ class Common {
 	public static function buildOptions($data, $options_map, $orderby, $options) {
 		$data = \Object\Data\Common::options($data, $options_map, $options);
 		// sorting
-		if (!empty($options['i18n']) && $options['i18n'] !== 'skip_sorting') {
-			array_key_sort($data, ['name' => SORT_ASC], ['name' => SORT_NATURAL]);
+		if (!empty($options['i18n'])) {
+			if ($options['i18n'] !== 'skip_sorting') {
+				array_key_sort($data, ['name' => SORT_ASC], ['name' => SORT_NATURAL]);
+			}
 		} else if (empty($orderby)) {
 			array_key_sort($data, ['name' => SORT_ASC], ['name' => SORT_NATURAL]);
 		}

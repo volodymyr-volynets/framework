@@ -689,7 +689,7 @@ class Base extends \Object\Form\Parent2 {
 			// multiple column
 			if (!empty($v['options']['multiple_column'])) {
 				// todo - validate
-				$value = $this->generateMultipleColumns($value, $error_name, $this->values, null, $v);
+				$value = $this->generateMultipleColumns($value, $error_name, array_merge($input, $this->values), null, $v);
 			} else {
 				$temp = $this->validateDataTypesSingleValue($k, $v, $value, $error_name);
 				if (empty($temp['flag_error'])) {
@@ -730,7 +730,7 @@ class Base extends \Object\Form\Parent2 {
 			array_key_set($this->values, $v['options']['values_key'], $value);
 			// options_model validation
 			if (isset($value) && !empty($v['options']['options_model']) && empty($v['options']['options_manual_validation'])) {
-				$this->checkOptionsModel($v['options'], $value, $error_name, $this->values);
+				$this->checkOptionsModel($v['options'], $value, $error_name, array_merge($input, $this->values));
 			}
 			// options validation
 			if (isset($value) && !empty($v['options']['options']) && empty($v['options']['options_manual_validation'])) {
@@ -1593,10 +1593,9 @@ otherFormSubmitted:
 				// create a snapshot of values for rollback
 				$this->snapshot_values = $this->values;
 				// execute validate method
+				$this->triggerMethod('validate');
 				if (method_exists($this, 'validate')) {
 					$this->validate($this);
-				} else if (!empty($this->wrapper_methods['validate'])) {
-					$this->triggerMethod('validate');
 				}
 			}
 			if ($this->initiator_class == 'list') {
@@ -3521,7 +3520,7 @@ convertMultipleColumns:
 	 * @param string $pk_column
 	 * @return int | null
 	 */
-	public function validateDetailsPrimaryColumn(string $detail, string $primary_column, string $inactive_column, string $pk_column) {
+	public function validateDetailsPrimaryColumn(string $detail, string $primary_column, string $inactive_column, string $pk_column, string & $key = null) {
 		if (empty($this->values[$detail])) return null;
 		$primary_found = 0;
 		$primary_first_line = null;
@@ -3538,6 +3537,10 @@ convertMultipleColumns:
 				}
 				if ($primary_found > 1) {
 					$this->error(DANGER, 'There can be only one primary!', "{$detail}[{$k}][{$primary_column}]");
+				}
+				// we need to pass first primary back
+				if ($primary_found == 1) {
+					$key = $k;
 				}
 			}
 		}

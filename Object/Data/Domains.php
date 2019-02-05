@@ -110,7 +110,7 @@ class Domains extends \Object\Data {
 		'province_code' => ['name' => 'Province Code', 'type' => 'varchar', 'length' => 30, 'validator_method' => '\Object\Validator\UpperCase::validate', 'placeholder' => 'Province', 'searchable' => true],
 		'postal_code' => ['name' => 'Postal Code', 'type' => 'varchar', 'length' => 15, 'validator_method' => '\Object\Validator\PostalCode::validate'],
 		'postal_codes' => ['name' => 'Postal Codes', 'type' => 'varchar', 'length' => 2000, 'placeholder' => 'Postal Code(s)'],
-		'geo_coordinate' => ['name' => 'Geo Coordinate', 'type' => 'numeric', 'precision' => 10, 'scale' => 6, 'placeholder' => 'Coordinate', 'null' => true, 'default' => null],
+		'geo_coordinate' => ['name' => 'Geo Coordinate', 'type' => 'numeric', 'precision' => 14, 'scale' => 10, 'placeholder' => 'Coordinate', 'null' => true, 'default' => null],
 		// Currency Management
 		'currency_type' => ['name' => 'Currency Type', 'type' => 'varchar', 'length' => 12, 'validator_method' => '\Object\Validator\UpperCase::validate', 'placeholder' => 'Currency Type', 'searchable' => true],
 		'currency_code' => ['name' => 'Currency Code', 'type' => 'char', 'length' => 3, 'validator_method' => '\Object\Validator\UpperCase::validate', 'placeholder' => 'Currency', 'searchable' => true],
@@ -126,7 +126,7 @@ class Domains extends \Object\Data {
 		'policy_id' => ['name' => 'Policy #', 'type' => 'integer', 'default' => null, 'format' => 'id', 'placeholder' => 'Policy'],
 		'policy_id_sequence' => ['name' => 'Policy #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		// User Management
-		'user_id' => ['name' => 'User #', 'type' => 'bigint', 'default' => null, 'placeholder' => 'User #', 'format' => 'id', 'searchable' => true],
+		'user_id' => ['name' => 'User #', 'type' => 'bigint', 'default' => null, 'placeholder' => 'User', 'format' => 'id', 'searchable' => true],
 		'user_id_sequence' => ['name' => 'User #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id', 'searchable' => true],
 		'role_id' => ['name' => 'Role #', 'type' => 'integer', 'default' => null, 'format' => 'id', 'placeholder' => 'Role'],
 		'role_id_sequence' => ['name' => 'Role #', 'type' => 'serial', 'placeholder' => 'Sequence'],
@@ -189,6 +189,8 @@ class Domains extends \Object\Data {
 		'lead_id_sequence' => ['name' => 'Lead #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'order_id' => ['name' => 'Order #', 'type' => 'bigint', 'default' => null, 'placeholder' => 'Order', 'format' => 'id'],
 		'order_id_sequence' => ['name' => 'Order #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id'],
+		'job_id' => ['name' => 'Job #', 'type' => 'bigint', 'default' => null, 'placeholder' => 'Job', 'format' => 'id'],
+		'job_id_sequence' => ['name' => 'Job #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		// Document Management
 		'file_id' => ['name' => 'File #', 'type' => 'bigint', 'default' => null, 'format' => 'id'],
 		'file_id_sequence' => ['name' => 'File #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id'],

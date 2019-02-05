@@ -14,6 +14,9 @@ class Widgets extends \Object\Data {
 		'audit' => ['name' => 'Audit'],
 		'comments' => ['name' => 'Comments'],
 		'documents' => ['name' => 'Documents'],
-		'tags' => ['name' => 'Tags']
+		'tags' => ['name' => 'Tags'],
+		'owners' => ['name' => 'Owners'],
+		'dates' => ['name' => 'Dates'],
+		'service_scripts' => ['name' => 'Service Scripts'],
 	];
 }

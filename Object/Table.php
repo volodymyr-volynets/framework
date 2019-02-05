@@ -615,7 +615,12 @@ class Table extends \Object\Table\Options {
 	 * @return object
 	 */
 	public function collection(array $options = []) : \Object\Collection {
-		return self::collectionStatic($options);
+		if (!empty($this->virtual_class_name)) {
+			$options['model'] = $this->virtual_class_name;
+			return \Object\Collection::collectionToModel($options);
+		} else {
+			return self::collectionStatic($options);
+		}
 	}
 
 	/**

@@ -181,7 +181,7 @@ class Dependencies {
 			if (empty($options['skip_confirmation'])) {
 				if (!empty($composer_data['require'])) {
 					foreach ($composer_data['require'] as $k => $v) {
-						if (!file_exists('../libraries/vendor/' . $k)) {
+						if (!file_exists('../libraries/vendor/' . $k) && !file_exists('../libraries/private/' . $k)) {
 							$result['error'][] = " - Composer library \"$k\" is not loaded!";
 						}
 					}

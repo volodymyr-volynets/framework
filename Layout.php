@@ -91,9 +91,12 @@ class Layout extends View {
 	 * @param string $js
 	 * @param int $sort
 	 */
-	public static function addJs(string $js, int $sort = 0) {
+	public static function addJs(string $js, int $sort = 0, array $options = []) {
 		$js = str_replace('\\', '/', $js);
-		Application::set(array('layout', 'js', $js), $sort);
+		Application::set(['layout', 'js', $js], $sort);
+		if (!empty($options)) {
+			Application::set(['layout', 'js_options', $js], $options);
+		}
 	}
 
 	/**
@@ -103,16 +106,18 @@ class Layout extends View {
 	 */
 	public static function renderJs() {
 		$result = '';
-		$js = Application::get(array('layout', 'js'));
+		$js = Application::get(['layout', 'js']);
 		if (!empty($js)) {
 			asort($js);
-			foreach ($js as $k=>$v) {
+			foreach ($js as $k => $v) {
 				$script = $k . (strpos($k, '?') !== false ? '&' : '?') . self::getVersion();
-				if (strpos($script, 'googleapis.com') !== false) {
-					$result.= '<script type="text/javascript" src="' . $script . '" async defer></script>';
-				} else {
-					$result.= '<script type="text/javascript" src="' . $script . '" crossorigin="anonymous"></script>';
+				$options = Application::get(['layout', 'js_options', $k]) ?? [];
+				if (empty($options)) {
+					$options['crossorigin'] = 'anonymous';
 				}
+				$options['type'] = 'text/javascript';
+				$options['src'] = $script;
+				$result.= \HTML::script($options);
 			}
 		}
 		return $result;

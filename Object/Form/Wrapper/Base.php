@@ -163,13 +163,13 @@ class Base extends \Object\Form\Parent2 {
 			'owners', 'overrideFieldValue', 'overrideTabs', 'processDefaultValue',
 			'processOptionsModels', 'processAllValues', 'listQuery', 'buildReport'] as $v) {
 			if (method_exists($this, $v)) {
-				$this->form_object->wrapper_methods[$v]['main'] = [& $this, $v];
+				$this->form_object->wrapper_methods[$v]['main'] = [$this, $v];
 			}
 			// overrides can also have methods
 			if (!empty($overrides_objects)) {
-				foreach ($overrides_objects as $v2) {
+				foreach ($overrides_objects as $k2 => $v2) {
 					if (method_exists($v2, $v)) {
-						$this->form_object->wrapper_methods[$v]['main'] = [& $v2, $v];
+						$this->form_object->wrapper_methods[$v][$k2] = [$v2, $v];
 					}
 				}
 			}

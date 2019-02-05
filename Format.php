@@ -586,6 +586,7 @@ class Format {
 	 * @return string
 	 */
 	public static function amount($amount, $options = []) {
+		$amount = trim($amount . '');
 		// if currency code is passed we need to load symbol
 		if (!empty($options['currency_code'])) {
 			if (!isset(self::$cached_currencies)) {

@@ -40,6 +40,12 @@ $result = [
 	'hint' => []
 ];
 
+// we need to put command into application
+\Application::set('manager.enabled', true);
+\Application::set('manager.command.type', $type);
+\Application::set('manager.command.mode', $mode);
+\Application::set('manager.command.full', $type . '_' . $mode);
+
 // wrapping everything into try-catch block for system exceptions
 try {
 	// running proper class
