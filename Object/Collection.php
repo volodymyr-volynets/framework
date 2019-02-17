@@ -100,7 +100,8 @@ class Collection extends \Object\Override\Data {
 		$result = [
 			'success' => false,
 			'error' => [],
-			'data' => []
+			'data' => [],
+			'max_records' => []
 		];
 		do {
 			// if we have import from command line we need to intialize
@@ -157,6 +158,10 @@ class Collection extends \Object\Override\Data {
 				if (!$detail_result['success']) {
 					$result['error'] = array_merge($result['error'], $detail_result['error']);
 					break;
+				} else {
+					if (!empty($detail_result['max_records'])) {
+						$result['max_records'] = $detail_result['max_records'];
+					}
 				}
 			}
 			// single row
@@ -248,7 +253,8 @@ class Collection extends \Object\Override\Data {
 	private function processDetails(& $details, & $parent_rows, $options, $parent_keys = [], $parent_types = [], $parent_maps = [], $parent_settings = []) {
 		$result = [
 			'success' => false,
-			'error' => []
+			'error' => [],
+			'max_records' => []
 		];
 		foreach ($details as $k => $v) {
 			// acl
@@ -310,6 +316,15 @@ class Collection extends \Object\Override\Data {
 				$result['error'] = array_merge($result['error'], $query_result['error']);
 				return $result;
 			}
+			// process max records
+			if (!empty($v['max_records'])) {
+				$result['max_records'][$k] = $query_result['num_rows'];
+				$v['max_records_model_name'] = $k;
+			}
+			if (!empty($parent_settings['max_records_model_name'])) {
+				$result['max_records'][$parent_settings['max_records_model_name']] = $query_result['num_rows'];
+				$v['max_records_model_name'] = $parent_settings['max_records_model_name'];
+			}
 			// if we got rows
 			if (!empty($query_result['rows'])) {
 				$reverse_map = array_reverse($parent_maps2, true);
@@ -349,6 +364,12 @@ class Collection extends \Object\Override\Data {
 					if (!$detail_result['success']) {
 						$result['error'] = array_merge($result['error'], $detail_result['error']);
 						return $result;
+					} else {
+						if (!empty($detail_result['max_records'])) {
+							foreach ($detail_result['max_records'] as $k19 => $v19) {
+								$result['max_records'][$k19]+= $v19;
+							}
+						}
 					}
 				}
 			}
@@ -449,7 +470,8 @@ class Collection extends \Object\Override\Data {
 			$temp = $this->compareOneRow($data, $original, $this->data, [
 				'flag_delete_row' => $options['flag_delete_row'] ?? false,
 				'flag_main_record' => true,
-				'skip_type_validation' => $options['skip_type_validation'] ?? false
+				'skip_type_validation' => $options['skip_type_validation'] ?? false,
+				'max_records' => $options['max_records'] ?? [],
 			]);
 			// if we goe an error
 			if (!empty($temp['error'])) {
@@ -731,6 +753,12 @@ error:
 			foreach ($collection['details'] as $k => $v) {
 				// acl
 				if (!empty($v['acl']) && !\Can::systemFeaturesExist($v['acl'])) continue;
+				// we do not process max records details
+				if (!empty($v['max_records']) && isset($options['max_records'][$k])) {
+					if ($options['max_records'][$k] > $v['max_records']) {
+						continue;
+					}
+				}
 				// we do not process readonly details
 				if (!empty($v['readonly'])) continue;
 				// create new object

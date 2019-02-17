@@ -29,7 +29,7 @@ class I18n {
 		// initialize the module
 		$i18n = \Application::get('flag.global.i18n') ?? [];
 		// settings from user account
-		$user_settings = User::get('internalization');
+		$user_settings = \User::get('internalization');
 		if (!empty($user_settings)) {
 			foreach ($user_settings as $k => $v) if (empty($v)) unset($user_settings[$k]);
 		}

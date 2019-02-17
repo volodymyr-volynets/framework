@@ -2264,7 +2264,8 @@ convertMultipleColumns:
 			'flag_delete_row' => $this->process_submit[self::BUTTON_SUBMIT_DELETE] ?? false,
 			'skip_type_validation' => true,
 			'skip_optimistic_lock' => $this->options['skip_optimistic_lock'] ?? false,
-			'form_class' => $this->form_class
+			'form_class' => $this->form_class,
+			'max_records' => $this->misc_settings['max_records'] ?? [],
 		];
 		// we do not need to reload values from database because we locked them
 		if ($this->values_loaded) {
@@ -2417,6 +2418,7 @@ convertMultipleColumns:
 			// load using collection
 			$result = $this->collection_object->get(['where' => $this->pk, 'single_row' => true, 'for_update' => $for_update]);
 			if ($result['success']) {
+				$this->misc_settings['max_records'] = $result['max_records'];
 				return $result['data'];
 			}
 		}

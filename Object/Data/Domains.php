@@ -33,6 +33,8 @@ class Domains extends \Object\Data {
 		'description' => ['name' => 'Description', 'type' => 'varchar', 'length' => 2000, 'placeholder' => 'Description'],
 		'comment' => ['name' => 'Comment', 'type' => 'text', 'placeholder' => 'Comment'],
 		'symlink' => ['name' => 'Symlink', 'type' => 'varchar', 'length' => 255, 'placeholder' => 'Symlink'],
+		'address' => ['name' => 'Address', 'type' => 'varchar', 'length' => 255, 'placeholder' => 'Address'],
+		'city' => ['name' => 'City', 'type' => 'varchar', 'length' => 255, 'placeholder' => 'City'],
 		// codes
 		'code' => ['name' => 'Code', 'type' => 'varchar', 'length' => 255],
 		'short_code' => ['name' => 'Short Code', 'type' => 'varchar', 'length' => 6, 'validator_method' => '\Object\Validator\UpperCase::validate'],

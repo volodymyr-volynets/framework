@@ -21,12 +21,30 @@ class PostalCode extends \Object\Validator\Base {
 		}
 		// postal code is different based on country
 		switch ($country) {
+			case 'BR':
+				$result['placeholder'] = '#####-000';
+				if (!(preg_match('/^[0-9]{5}$/', $value) || preg_match('/^([0-9]{5})-([0-9]{3})$/', $value))) {
+					$result['error'][] = 'Invalid postal code!';
+				} else {
+					$result['data'] = $value;
+					$result['success'] = true;
+				}
+				break;
 			case 'CA':
 				$result['placeholder'] = 'A#B#C#';
 				if (!preg_match('/^[a-z][0-9][a-z][0-9][a-z][0-9]$/i', $value)) {
 					$result['error'][] = 'Invalid postal code!';
 				} else {
 					$result['data'] = strtoupper($value);
+					$result['success'] = true;
+				}
+				break;
+			case 'MX':
+				$result['placeholder'] = '#####';
+				if (!(preg_match('/^[0-9]{5}$/', $value))) {
+					$result['error'][] = 'Invalid postal code!';
+				} else {
+					$result['data'] = $value;
 					$result['success'] = true;
 				}
 				break;

@@ -37,10 +37,14 @@ class Aliases extends \Object\Data {
 			'where' => [
 				$this->data[$alias]['no_data_alias_column'] => $code . ''
 			],
-			'single_row' => true,
+			'pk' => null,
 			'skip_acl' => $options['skip_acl'] ?? false,
 			'no_cache' => true,
 		]);
+		// if we have results we need to make it single row
+		if (isset($data[0])) {
+			$data = $data[0];
+		}
 		if (!$id_only) {
 			return $data;
 		} else {

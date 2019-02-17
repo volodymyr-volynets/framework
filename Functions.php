@@ -453,6 +453,7 @@ function sanitize_string_tags($str, string $type = 'all') : string {
 			$str = preg_replace(['/<head[^>]*?>.*?<\/head>/siu', '/<style[^>]*?>.*?<\/style>/siu', '/<script[^>]*?.*?<\/script>/siu', '/<object[^>]*?.*?<\/object>/siu', '/<embed[^>]*?.*?<\/embed>/siu', '/<applet[^>]*?.*?<\/applet>/siu', '/<noframes[^>]*?.*?<\/noframes>/siu', '/<noscript[^>]*?.*?<\/noscript>/siu', '/<noembed[^>]*?.*?<\/noembed>/siu'], ' ', $str . '');
 			$str = preg_replace(['/<((br)|(hr))/iu', '/<\/?((address)|(blockquote)|(center)|(del))/iu', '/<\/?((div)|(h[1-9])|(ins)|(isindex)|(p)|(pre))/iu', '/<\/?((dir)|(dl)|(dt)|(dd)|(li)|(menu)|(ol)|(ul))/iu', '/<\/?((table)|(th)|(td)|(caption))/iu', '/<\/?((form)|(button)|(fieldset)|(legend)|(input))/iu', '/<\/?((label)|(select)|(optgroup)|(option)|(textarea))/iu', '/<\/?((frameset)|(frame)|(iframe))/iu'], "\n\$0", $str);
 			$str = str_replace('&nbsp;', ' ', $str);
+			$str = str_replace('&amp;', '&', $str);
 	}
 	return strip_tags($str);
 }
@@ -462,20 +463,35 @@ function sanitize_string_tags($str, string $type = 'all') : string {
  *
  * @param array $data
  * @param array $map
+ * @param boolean $unique
  * @return array
  */
-function remap(& $data, $map) {
+function remap(& $data, $map, $unique = false) {
 	$result = [];
+	$lock = [];
 	foreach ($data as $k => $v) {
 		foreach ($map as $k2 => $v2) {
 			$k2 = str_replace('*', '', $k2);
 			if (isset($result[$k][$v2])) {
 				if (isset($v[$k2])) {
 					if ($v[$k2] . '' !== '') {
-						$result[$k][$v2] .= Format::$symbol_semicolon . ' ' . $v[$k2];
+						if ($unique) {
+							if (!isset($lock[$k][$v2])) {
+								$result[$k][$v2].= Format::$symbol_semicolon . ' ' . $v[$k2];
+								$lock[$k][$v2] = [$v[$k2]];
+							} else if (!in_array($v[$k2], $lock[$k][$v2])) {
+								$result[$k][$v2].= Format::$symbol_semicolon . ' ' . $v[$k2];
+								$lock[$k][$v2][] = $v[$k2];
+							}
+						} else {
+							$result[$k][$v2].= Format::$symbol_semicolon . ' ' . $v[$k2];
+						}
 					}
 				}
 			} else {
+				if ($unique && isset($v[$k2])) {
+					$lock[$k][$v2] = [$v[$k2]];
+				}
 				$result[$k][$v2] = $v[$k2] ?? null;
 			}
 		}

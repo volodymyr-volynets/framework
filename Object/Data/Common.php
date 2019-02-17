@@ -208,7 +208,7 @@ class Common {
 				$data[$k]['__prepend2'] = $i18n_mandatory;
 			}
 		}
-		$data = remap($data, $options_map_new);
+		$data = remap($data, $options_map_new, true);
 		// if we have photo #
 		if (in_array('photo_id', $options_map_new)) {
 			$generate_photo = \Object\ACL\Resources::getStatic('generate_photo');

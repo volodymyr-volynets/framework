@@ -94,7 +94,7 @@ class Tree {
 				$data[$k]['name'] = !empty($options['i18n']) ? i18n(null, $v[$options['name_field']]) : $v[$options['name_field']];
 			}
 			// handle inactive
-			if (!empty($v['inactive'])) {
+			if (!empty($v['inactive']) && strpos($data[$k]['name'], \Format::$symbol_comma . ' ' . $inactive) !== false) {
 				$data[$k]['name'].= \Format::$symbol_comma . ' ' . $inactive;
 			}
 		}
