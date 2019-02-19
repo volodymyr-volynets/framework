@@ -301,6 +301,19 @@ class Collection extends \Object\Override\Data {
 			if (!empty($v['sql']['where'])) {
 				$query->whereMultiple('AND', $v['sql']['where']);
 			}
+			// if we need to count # of records
+			if (!empty($parent_settings['max_records_model_name'])) {
+				$counter_query = clone $query;
+				$counter_query->columns(['counter' => 'COUNT(*)'], ['empty_existing' => true]);
+				$temp = $counter_query->query();
+				if (!empty($temp['rows'][0]['counter'])) {
+					if ($temp['rows'][0]['counter'] >= $parent_settings['max_records']) {
+						$result['max_records'][$parent_settings['max_records_model_name']] = $temp['rows'][0]['counter'];
+						$result['success'] = true;
+						return $result;
+					}
+				}
+			}
 			// orderby
 			$orderby = $options['orderby'] ?? (!empty($model->orderby) ? $model->orderby : null);
 			if (!empty($orderby)) {
@@ -324,6 +337,7 @@ class Collection extends \Object\Override\Data {
 			if (!empty($parent_settings['max_records_model_name'])) {
 				$result['max_records'][$parent_settings['max_records_model_name']] = $query_result['num_rows'];
 				$v['max_records_model_name'] = $parent_settings['max_records_model_name'];
+				$v['max_records'] = $parent_settings['max_records'];
 			}
 			// if we got rows
 			if (!empty($query_result['rows'])) {

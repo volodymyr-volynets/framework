@@ -630,7 +630,7 @@ class Base extends \Object\Form\Parent2 {
 	 *		validate_required
 	 * @return array
 	 */
-	private function getAllValues($input, $options = []) {
+	public function getAllValues($input, $options = []) {
 		// reset values
 		$this->values = [];
 		// sort fields
@@ -1906,11 +1906,15 @@ convertMultipleColumns:
 				$query->join('LEFT', function (& $query) use ($v) {
 					$model = new $v['options']['subquery']['model']();
 					$query = $model->queryBuilder(['skip_acl' => true, 'alias' => $v['options']['subquery']['alias'] . '_inner'])->select();
-					$query->columns([
-						$v['options']['subquery']['groupby'],
-						$v['name'] => $query->db_object->sqlHelper('string_agg', ['expression' => $query->db_object->cast($v['name'], 'varchar'), 'delimiter' => ';;'])
-					]);
-					$query->groupby([$v['options']['subquery']['groupby']]);
+					$columns = [];
+					if (is_array($v['options']['subquery']['groupby'])) {
+						$columns = $v['options']['subquery']['groupby'];
+					} else {
+						$columns[] = $v['options']['subquery']['groupby'];
+					}
+					$columns[$v['name']] = $query->db_object->sqlHelper('string_agg', ['expression' => $query->db_object->cast($v['name'], 'varchar'), 'delimiter' => ';;']);
+					$query->columns($columns);
+					$query->groupby(is_array($v['options']['subquery']['groupby']) ? $v['options']['subquery']['groupby'] : [$v['options']['subquery']['groupby']]);
 				}, $v['options']['subquery']['alias'], 'ON', $on);
 				// special constants to fix
 				$this->misc_settings['list']['subquery'][$v['name']] = ['delimiter' => ';;'];
@@ -2440,6 +2444,7 @@ convertMultipleColumns:
 	 * @param array $options - same parameters as in i18n
 	 *		array replace
 	 *		boolean unique_options_hash
+	 *		boolean postponed
 	 */
 	public function error($type, $message, $field = null, $options = []) {
 		// if its an array of message we process them one by one
