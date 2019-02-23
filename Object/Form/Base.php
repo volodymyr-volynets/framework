@@ -1446,8 +1446,40 @@ processAllValues:
 		// ajax requests from other forms are filtered by id
 		if (!empty($this->options['input']['__ajax'])) {
 			$this->is_ajax_reload = true;
-			// if its ajax call to this form
-			if (($this->options['input']['__ajax_form_id'] ?? '') == "form_{$this->form_link}_form") {
+			// if we have a sub form
+			if (!empty($this->options['input']['__subform_link']) && !empty($this->form_parent->subforms[$this->options['input']['__subform_link']])) {
+				\Helper\Ob::cleanAll();
+				$input = \Request::input();
+				unset($input['__ajax'], $input['__ajax_form_id']);
+				$form_class = $this->form_parent->subforms[$this->options['input']['__subform_link']]['form'];
+				$form_model = new $form_class([
+					'input' => $input,
+					'parent_form_link' => $this->form_link,
+					'collection_link' => $input['__collection_link'] ?? '',
+					'collection_screen_link' => $input['__collection_screen_link'] ?? '',
+					'model_table' => $this->options['model_table'] ?? null,
+					'bypass_hidden_from_input' => $this->options['bypass_hidden_from_input'] ?? [],
+				]);
+				if (!empty($this->options['input']['__subform_load_window'])) {
+					$modal = \HTML::modal([
+						'id' => 'form_subform_' . $input['__subform_link'] . '_form',
+						'class' => 'numbers_frontend_modal_full_width',
+						'title' => i18n(null, $this->form_parent->subforms[$this->options['input']['__subform_link']]['label_name']),
+						'body' => $form_model->render(),
+					]);
+				} else {
+					$modal = $form_model->render();
+				}
+				$result = [
+					'success' => true,
+					'error' => [],
+					'html' => $modal,
+					'js' => \Layout::$onload,
+					'media_js' => \Layout::renderJs(['return_list' => true]),
+					'media_css' => \Layout::renderCss(['return_list' => true]),
+				];
+				\Layout::renderAs($result, 'application/json');
+			} else if (($this->options['input']['__ajax_form_id'] ?? '') == "form_{$this->form_link}_form") { // if its ajax call to this form
 				// if its a call to auto complete
 				/* todo
 				if ($this->attributes && !empty($this->options['input']['__ajax_autocomplete']['rn_attrattr_id'])) {
@@ -1477,7 +1509,7 @@ processAllValues:
 			}
 		}
 		// call from another form
-		if (!empty($this->options['input']['__form_link']) && $this->options['input']['__form_link'] != $this->form_link) {
+		if (!empty($this->options['input']['__form_link']) && !($this->options['input']['__form_link'] == $this->form_link || $this->options['input']['__subform_link'] == $this->form_link)) {
 			$this->refresh = true;
 			$this->submitted = false;
 			$this->options['skip_optimistic_lock'] = true;
@@ -2502,10 +2534,17 @@ convertMultipleColumns:
 				}
 			}
 		} else {
+			// subforms need to display messages on parent form
+			if (!empty($this->options['on_success_refresh_parent']) && !empty($this->options['parent_form_link']) && $type != 'danger') {
+				$_SESSION['numbers']['forms'][$this->options['parent_form_link']]['messages'][$type][$hash] = $message;
+				$this->misc_settings['form_postponed_messages'] = true;
+			}
+			// regular postponed messages
 			if (!empty($options['postponed'])) {
 				$_SESSION['numbers']['forms'][$this->form_link]['messages'][$type][$hash] = $message;
 				$this->misc_settings['form_postponed_messages'] = true;
 			}
+			// regular messages
 			$this->errors['general'][$type][$hash] = $message;
 			if ($type == 'danger') {
 				$this->errors['flag_num_errors']++;

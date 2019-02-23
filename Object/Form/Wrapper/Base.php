@@ -61,6 +61,13 @@ class Base extends \Object\Form\Parent2 {
 	public $elements = [];
 
 	/**
+	 * Sub forms
+	 *
+	 * @var array
+	 */
+	public $subforms = [];
+
+	/**
 	 * Collection
 	 *
 	 * @var mixed
@@ -240,6 +247,51 @@ class Base extends \Object\Form\Parent2 {
 						}
 					}
 					$this->form_object->element($k, $k2, $k3, $v3);
+				}
+			}
+		}
+		// subforms
+		if (!empty($this->subforms)) {
+			foreach ($this->subforms as $k => $v) {
+				// if we can create a record
+				if (!empty($v['actions']['new'])) {
+					if ((!empty($this->form_object->options['acl_subresource_edit']) && \Application::$controller->canSubresourceMultiple($this->form_object->options['acl_subresource_edit'], 'Record_New')) || empty($this->form_object->options['acl_subresource_edit'])) {
+						$temp_collection_link = $this->form_object->options['collection_link'] ?? '';
+						$temp_collection_screen_link = $this->form_object->options['collection_screen_link'] ?? '';
+						// bypass variables
+						$temp_bypass_hidden_input = [];
+						if (!empty($this->form_object->options['bypass_hidden_from_input'])) {
+							foreach ($this->form_object->options['bypass_hidden_from_input'] as $v2) {
+								$temp_bypass_hidden_input[$v2] = $this->form_object->options['input'][$v2] ?? '';
+							}
+						}
+						$temp_bypass_hidden_input = json_encode($temp_bypass_hidden_input);
+						$this->form_object->options['actions']['new'] = [
+							'href' => 'javascript:void(0);',
+							'onclick' => "Numbers.Form.openSubformWindow('{$temp_collection_link}', '{$temp_collection_screen_link}', '{$this->form_link}', '{$k}', {$temp_bypass_hidden_input}, {__submit_blank: true});",
+							'value' => $v['actions']['new']['name'],
+						];
+					}
+				}
+				// edit
+				if (!empty($v['actions']['edit']['url_edit'])) {
+					if ((!empty($this->form_object->options['acl_subresource_edit']) && \Application::$controller->canSubresourceMultiple($this->form_object->options['acl_subresource_edit'], 'Record_Edit')) || empty($this->form_object->options['acl_subresource_edit'])) {
+						$this->form_object->misc_settings['subforms']['url_edit'] = [
+							'subform_link' => $k
+						];
+					} else {
+						$this->form_object->misc_settings['subforms']['url_edit'] = false;
+					}
+				}
+				// delete
+				if (!empty($v['actions']['delete']['url_delete'])) {
+					if ((!empty($this->form_object->options['acl_subresource_edit']) && \Application::$controller->canSubresourceMultiple($this->form_object->options['acl_subresource_edit'], 'Record_Delete')) || empty($this->form_object->options['acl_subresource_edit'])) {
+						$this->form_object->misc_settings['subforms']['url_delete'] = [
+							'subform_link' => $k
+						];
+					} else {
+						$this->form_object->misc_settings['subforms']['url_delete'] = false;
+					}
 				}
 			}
 		}

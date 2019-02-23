@@ -70,17 +70,25 @@ class Layout extends View {
 	/**
 	 * Render css files
 	 *
-	 *  @return string
+	 * @param array $options
+	 *	boolean return_list
+	 * @return string
 	 */
-	public static function renderCss() {
+	public static function renderCss($options = []) {
 		$result = '';
+		$list = [];
 		$css = Application::get(array('layout', 'css'));
 		if (!empty($css)) {
 			asort($css);
 			foreach ($css as $k=>$v) {
 				$script = $k . (strpos($k, '?') !== false ? '&' : '?') . self::getVersion();
+				$list[] = $script;
 				$result.= '<link href="' . $script . '" rel="stylesheet" type="text/css" />';
 			}
+		}
+		// list is needed for ajax form reloads
+		if (!empty($options['return_list'])) {
+			return $list;
 		}
 		return $result;
 	}
@@ -101,24 +109,32 @@ class Layout extends View {
 
 	/**
 	 * Render javascript files 
-	 * 
+	 *
+	 * @param array $options
+	 *	boolean return_list
 	 * @return string
 	 */
-	public static function renderJs() {
+	public static function renderJs($options = []) {
 		$result = '';
+		$list = [];
 		$js = Application::get(['layout', 'js']);
 		if (!empty($js)) {
 			asort($js);
 			foreach ($js as $k => $v) {
 				$script = $k . (strpos($k, '?') !== false ? '&' : '?') . self::getVersion();
-				$options = Application::get(['layout', 'js_options', $k]) ?? [];
-				if (empty($options)) {
-					$options['crossorigin'] = 'anonymous';
+				$list[] = $script;
+				$js_options = Application::get(['layout', 'js_options', $k]) ?? [];
+				if (empty($js_options)) {
+					$js_options['crossorigin'] = 'anonymous';
 				}
-				$options['type'] = 'text/javascript';
-				$options['src'] = $script;
-				$result.= \HTML::script($options);
+				$js_options['type'] = 'text/javascript';
+				$js_options['src'] = $script;
+				$result.= \HTML::script($js_options);
 			}
+		}
+		// list is needed for ajax form reloads
+		if (!empty($options['return_list'])) {
+			return $list;
 		}
 		return $result;
 	}
