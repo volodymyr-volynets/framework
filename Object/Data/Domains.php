@@ -193,6 +193,8 @@ class Domains extends \Object\Data {
 		'order_id_sequence' => ['name' => 'Order #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'job_id' => ['name' => 'Job #', 'type' => 'bigint', 'default' => null, 'placeholder' => 'Job', 'format' => 'id'],
 		'job_id_sequence' => ['name' => 'Job #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id'],
+		'asset_id' => ['name' => 'Asset #', 'type' => 'bigint', 'default' => null, 'placeholder' => 'Asset', 'format' => 'id'],
+		'asset_id_sequence' => ['name' => 'Asset #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		// Document Management
 		'file_id' => ['name' => 'File #', 'type' => 'bigint', 'default' => null, 'format' => 'id'],
 		'file_id_sequence' => ['name' => 'File #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id'],
