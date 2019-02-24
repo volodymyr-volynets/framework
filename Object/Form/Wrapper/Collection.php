@@ -151,6 +151,7 @@ abstract class Collection {
 				$model_options['collection_screen_link'] = $this->collection_screen_link;
 				$model_options['form_link'] = $form_link;
 				$model_options['__parent_options'] = $this->options['forms'][$this->collection_screen_link][$form_link] ?? [];
+				$model_options['__main_form_in_collection'] = !empty($this->options['forms'][$this->collection_screen_link][$form_link]['flag_main_form']);
 				// input
 				$model_options['input'] = array_merge($this->values, $model_options['input'] ?? []);
 				$model = \Factory::model($this->options['forms'][$this->collection_screen_link][$form_link]['model'], false, [$model_options]);
@@ -251,6 +252,7 @@ abstract class Collection {
 							$model_options['collection_screen_link'] = $this->collection_screen_link;
 							$model_options['form_link'] = $form_k;
 							$model_options['__parent_options'] = $form_v ?? [];
+							$model_options['__main_form_in_collection'] = !empty($form_v['flag_main_form']);
 							// input
 							$model_options['input'] = array_merge($submitted_bypass_values, $model_options['input'] ?? []);
 							$model = \Factory::model($form_v['model'], false, [$model_options]);
