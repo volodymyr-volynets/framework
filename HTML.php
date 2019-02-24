@@ -423,6 +423,16 @@ class HTML {
 	}
 
 	/**
+	 * Map
+	 *
+	 * @param array $options
+	 * @return string
+	 */
+	public static function map(array $options = []) : string {
+		return Factory::delegate('flag.numbers.framework.html', 'map', [$options]);
+	}
+
+	/**
 	 * Autocomplete
 	 *
 	 * @param array $options

@@ -306,6 +306,7 @@ class Format {
 	 * @return string
 	 */
 	public static function niceDatetime($value, array $options = []) {
+		if (!isset($value)) return '';
 		try {
 			$server_timezone = self::$options['server_timezone_code'] ?? Application::get('php.date.timezone');
 			$object = new DateTime($value, new DateTimeZone($server_timezone));
@@ -348,6 +349,7 @@ class Format {
 	 * @return string
 	 */
 	public static function niceTimestamp($value, array $options = []) {
+		if (!isset($value)) return '';
 		try {
 			$server_timezone = self::$options['server_timezone_code'] ?? Application::get('php.date.timezone');
 			$object = new DateTime($value, new DateTimeZone($server_timezone));
@@ -935,6 +937,24 @@ class Format {
 			return round($distance_in_m / 1000, 2) . i18n(null, 'km');
 		} else {
 			return round($distance_in_m / 1.60934 / 1000, 2) . i18n(null, 'mi');
+		}
+	}
+
+	/**
+	 * Nice duration
+	 *
+	 * @param int $value
+	 * @param array $options
+	 * @return string
+	 */
+	public static function niceDuration($value, array $options = []) : string {
+		if (empty($value)) return '';
+		if ($value < 60) {
+			return self::id($value) . ' ' . i18n(null, 'seconds');
+		} else if ($value < 360) {
+			return self::id(round($value / 60, 2)) . ' ' . i18n(null, 'minutes');
+		} else {
+			return self::id(round($value / 360, 2)) . ' ' . i18n(null, 'hours');
 		}
 	}
 }

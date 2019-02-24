@@ -27,6 +27,10 @@ class Date {
 	 * @param string $date1
 	 * @param string $date2
 	 * @param string $type
+	 *	days
+	 *	abs days
+	 *	seconds
+	 *	abs seconds
 	 * @param boolean $round
 	 * @return mixed
 	 */
@@ -38,6 +42,12 @@ class Date {
 				break;
 			case 'abs days':
 				$result = abs($result / 86400);
+				break;
+			case 'seconds':
+				return $result;
+				break;
+			case 'abs seconds':
+				return abs($result);
 				break;
 		}
 		// rounding

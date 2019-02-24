@@ -29,6 +29,7 @@ class Layout extends View {
 	 * @var string
 	 */
 	public static $onload = '';
+	public static $onload_first = '';
 
 	/**
 	 * JavaScript data would be here
@@ -143,9 +144,14 @@ class Layout extends View {
 	 * Onload js
 	 * 
 	 * @param string $js
+	 * @param boolean $first
 	 */
-	public static function onLoad(string $js) {
-		self::$onload.= $js;
+	public static function onLoad(string $js, bool $first = false) {
+		if (!$first) {
+			self::$onload.= $js;
+		} else {
+			self::$onload_first.= $js;
+		}
 	}
 
 	/**
@@ -160,11 +166,12 @@ class Layout extends View {
 	/**
 	 * Render onload js
 	 * 
+	 * @param boolean $first
 	 * @return string
 	 */
 	public static function renderOnLoad() {
-		if (!empty(self::$onload)) {
-			return \HTML::script(['value'=>'$(document).ready(function(){ ' . self::$onload . ' });']);
+		if (!empty(self::$onload) || !empty(self::$onload_first)) {
+			return \HTML::script(['value'=>'$(document).ready(function(){ ' . self::$onload_first . self::$onload . ' });']);
 		}
 	}
 

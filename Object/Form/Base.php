@@ -1475,6 +1475,7 @@ processAllValues:
 					'error' => [],
 					'html' => $modal,
 					'js' => \Layout::$onload,
+					'js_first' => \Layout::$onload_first,
 					'media_js' => \Layout::renderJs(['return_list' => true]),
 					'media_css' => \Layout::renderCss(['return_list' => true]),
 				];
