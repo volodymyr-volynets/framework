@@ -527,7 +527,8 @@ class Collection extends \Object\Override\Data {
 				// add form class
 				$temp['data']['audit']['form_class'] = $options['form_class'] ?? null;
 				// merge
-				$temp2 = \Factory::model($this->primary_model->audit_model)->merge($temp['data']['audit'], ['changes' => $temp['data']['total']]);
+				$primary_model = \Factory::model($temp['data']['audit']['class']);
+				$temp2 = \Factory::model($primary_model->audit_model)->merge($temp['data']['audit'], ['changes' => $temp['data']['total']]);
 				if (!$temp2['success']) {
 					$result['error'] = array_merge($result['error'], $temp2['error']);
 					break;
@@ -860,12 +861,15 @@ error:
 			$model->processWhoColumns(['updated'], $temp, $this->timestamp);
 			$result['data']['history'][$model->history_name][] = $temp;
 		}
-		// step 7 audit
+		// step 7 audit - primary model
 		if ($this->primary_model->audit && !empty($audit)) {
 			$result['data']['audit'] = [
 				'action' => $action,
+				'description' => 'Main model ' . $this->data['name'] . ' data changed.',
 				'pk' => $pk,
-				'columns' => []
+				'columns' => [],
+				'class' => $this->data['model'],
+				'main' => true,
 			];
 			foreach ($audit as $k => $v) {
 				$old = $original_row[$k] ?? null;
@@ -877,6 +881,38 @@ error:
 			// details
 			if (!empty($audit_details)) {
 				$result['data']['audit']['details'] = $audit_details;
+			}
+		}
+		// step 8 audit - widgets
+		if (strpos($this->data['model'], '\0Virtual0\\') !== false && !empty($audit)) {
+			$widget_name = explode('\0Virtual0\Widgets\\', $this->data['model'])[1];
+			$widget_name_lower = strtolower($widget_name);
+			$primary_model_class = explode('\0Virtual0\\', $this->data['model'])[0];
+			$primary_model_object = \Factory::model($primary_model_class);
+			$pk55 = $pk;
+			foreach ($primary_model_object->{$widget_name_lower}['map'] as $k55 => $v55) {
+				$pk55[$k55] = $audit[$v55];
+			}
+			if (!empty($primary_model_object->audit)) {
+				$result['data']['audit'] = [
+					'action' => $action,
+					'description' => 'Widget ' . $widget_name . ' data changed.',
+					'pk' => $pk55,
+					'columns' => [],
+					'class' => $primary_model_class,
+					'main' => false,
+				];
+				foreach ($audit as $k => $v) {
+					$old = $original_row[$k] ?? null;
+					if ($v !== $old) {
+						if (($model->columns[$k]['domain'] ?? '') == 'password') $v = '*** *** ***';
+						$result['data']['audit']['columns'][$k] = [$v, $old];
+					}
+				}
+				// details
+				if (!empty($audit_details)) {
+					$result['data']['audit']['details'] = $audit_details;
+				}
 			}
 		}
 		// success
