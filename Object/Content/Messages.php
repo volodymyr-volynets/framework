@@ -43,6 +43,7 @@ class Messages {
 	const CONFIRM_DELETE = 'Are you sure you want to delete this record?';
 	const CONFIRM_RESET = 'Are you sure you want to reset?';
 	const CONFIRM_BLANK = 'The changes you made would be lost, proceed?';
+	const CONFIRM_CUSTOM = 'Are you sure you want to [action]?';
 	// information
 	const INFO_CLOSED = '[Closed]';
 	const INFO_INACTIVE = '[Inactive]';

@@ -863,9 +863,14 @@ error:
 		}
 		// step 7 audit - primary model
 		if ($this->primary_model->audit && !empty($audit)) {
+			if (!isset($this->data['name'])) {
+				$primary_model_name = $this->primary_model->title;
+			} else {
+				$primary_model_name = $this->data['name'];
+			}
 			$result['data']['audit'] = [
 				'action' => $action,
-				'description' => 'Main model ' . $this->data['name'] . ' data changed.',
+				'description' => 'Main model ' . $primary_model_name . ' data changed.',
 				'pk' => $pk,
 				'columns' => [],
 				'class' => $this->data['model'],
