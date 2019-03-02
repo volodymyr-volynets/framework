@@ -2535,15 +2535,22 @@ convertMultipleColumns:
 				}
 			}
 		} else {
+			if ($type == 'reset') {
+				$this->errors['general'] = [];
+				$_SESSION['numbers']['forms'][$this->options['parent_form_link'] ?? $this->form_link]['messages'] = [];
+				return;
+			}
 			// subforms need to display messages on parent form
 			if (!empty($this->options['on_success_refresh_parent']) && !empty($this->options['parent_form_link']) && $type != 'danger') {
 				$_SESSION['numbers']['forms'][$this->options['parent_form_link']]['messages'][$type][$hash] = $message;
 				$this->misc_settings['form_postponed_messages'] = true;
+				return;
 			}
 			// regular postponed messages
 			if (!empty($options['postponed'])) {
-				$_SESSION['numbers']['forms'][$this->form_link]['messages'][$type][$hash] = $message;
+				$_SESSION['numbers']['forms'][$this->options['parent_form_link'] ?? $this->form_link]['messages'][$type][$hash] = $message;
 				$this->misc_settings['form_postponed_messages'] = true;
+				return;
 			}
 			// regular messages
 			$this->errors['general'][$type][$hash] = $message;

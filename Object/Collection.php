@@ -896,7 +896,7 @@ error:
 			$primary_model_object = \Factory::model($primary_model_class);
 			$pk55 = $pk;
 			foreach ($primary_model_object->{$widget_name_lower}['map'] as $k55 => $v55) {
-				$pk55[$k55] = $audit[$v55];
+				$pk55[$k55] = $audit[$v55] ?? $original_row[$v55];
 			}
 			if (!empty($primary_model_object->audit)) {
 				$result['data']['audit'] = [

@@ -21,7 +21,11 @@ class Media {
 		} else if (strpos($filename, '/numbers/media_submodules/') === 0) {
 			$temp = str_replace('/numbers/media_submodules/', '', $filename);
 			$temp = str_replace('_', '/', $temp);
-			$filename = './../libraries/vendor/' . $temp;
+			if (strpos($temp, 'Numbers') === 0) {
+				$filename = './../libraries/vendor/' . $temp;
+			} else {
+				$filename = './../libraries/private/' . $temp;
+			}
 		} else {
 			// we must return, do not exit !!!
 			return;
