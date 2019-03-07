@@ -106,7 +106,14 @@ class Controller {
 	 *
 	 * @var array
 	 */
-	private static $cached_actions;
+	public static $cached_actions;
+
+	/**
+	 * Cached flags
+	 *
+	 * @var array
+	 */
+	public static $cached_flags;
 
 	/**
 	 * Cached roles
@@ -265,7 +272,24 @@ class Controller {
 			// permissions
 			if (!empty($this->acl['permission'])) {
 				// determine action
-				$action = $this->method_code == 'Edit' ? 'Record_View' : 'List_View';
+				switch ($this->method_code) {
+					case 'Edit': $action = 'Record_View'; break;
+					case 'Index': $action = 'List_View'; break;
+					case 'Activate': $action = 'Activate_Data'; break;
+					// if we need to alter menu name
+					case 'JsonMenuName':
+					case 'JsonMenuName2':
+					case 'JsonMenuName3':
+					case 'JsonMenuName4':
+					case 'JsonMenuName5':
+						foreach (['Edit' => 'Record_View', 'Index' => 'List_View', 'Activate' => 'Activate_Data'] as $k => $v) {
+							if ($this->can($v, $k)) {
+								return true;
+							}
+						}
+						return false;
+						break;
+				}
 				return $this->can($action);
 			}
 		} else {

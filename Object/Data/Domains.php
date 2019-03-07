@@ -240,8 +240,8 @@ class Domains extends \Object\Data {
 		'percent_float' => ['name' => 'Percent (Float)', 'type' => 'bcnumeric', 'precision' => 24, 'scale' => 2, 'default' => 0, 'format' => 'id', 'placeholder' => 'Percent (%)', 'default' => '0.00', 'format' => 'number', 'align' => 'right'],
 		'unit_price' => ['name' => 'Unit Price', 'type' => 'bcnumeric', 'precision' => 24, 'scale' => 4, 'default' => '0.0000', 'format' => 'unitPrice', 'align' => 'right'],
 		// Accounting
-		'customer_id' => ['name' => 'Customer #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Customer', 'format' => 'id'],
-		'customer_id_sequence' => ['name' => 'Customer #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
+		'customer_id' => ['name' => 'Customer #', 'type' => 'bigint', 'default' => null, 'placeholder' => 'Customer', 'format' => 'id'],
+		'customer_id_sequence' => ['name' => 'Customer #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'vendor_id' => ['name' => 'Vendor #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Vendor', 'format' => 'id'],
 		'vendor_id_sequence' => ['name' => 'Vendor #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'year' => ['name' => 'Year', 'type' => 'smallint', 'validator_method' => '\Object\Validator\Year::validate', 'format' => 'id', 'searchable' => true],

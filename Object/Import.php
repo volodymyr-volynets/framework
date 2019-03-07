@@ -123,12 +123,23 @@ class Import {
 					if (is_array($v3)) {
 						foreach ($v3 as $k4 => $v4) {
 							foreach ($v4 as $k5 => $v5) {
-								if (!is_string($v5)) continue;
-								if (is_numeric($k5)) continue;
-								// if we need id
-								if (strpos($v5, '::id::') === 0) {
-									$temp = $this->findAliasedValue($k5, $v5);
-									if ($temp !== false) $v2[$k3][$k4][$k5] = $temp;
+								if (is_array($v5)) {
+									foreach ($v5 as $k6 => $v6) {
+										foreach ($v6 as $k7 => $v7) {
+											if (strpos($v7, '::id::') === 0) {
+												$temp = $this->findAliasedValue($k7, $v7);
+												if ($temp !== false) $v2[$k3][$k4][$k5][$k6][$k7] = $temp;
+											}
+										}
+									}
+								} else {
+									if (!is_string($v5)) continue;
+									if (is_numeric($k5)) continue;
+									// if we need id
+									if (strpos($v5, '::id::') === 0) {
+										$temp = $this->findAliasedValue($k5, $v5);
+										if ($temp !== false) $v2[$k3][$k4][$k5] = $temp;
+									}
 								}
 							}
 						}

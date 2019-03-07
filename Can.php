@@ -101,7 +101,7 @@ class Can {
 			\Object\Controller::$cached_teams = \Object\ACL\Resources::getStatic('roles', 'teams');
 		}
 		foreach (\User::teams() as $v) {
-			$features = \Object\Controller::$cached_teams[$v] ?? null;
+			$features = \Object\Controller::$cached_teams[$v]['features'] ?? null;
 			if (!empty($features)) {
 				$result = self::userFeatureExistsOne($features, $feature_code, $module_id);
 				if ($result == 1) {
@@ -156,7 +156,7 @@ class Can {
 		// go though parents
 		foreach (\Object\Controller::$cached_roles[$role]['parents'] as $k => $v) {
 			if (!empty($v)) continue;
-			$result = $this->userFeatureExistsRole($k, $feature_code, $module_id);
+			$result = self::userFeatureExistsRole($k, $feature_code, $module_id);
 			if ($result === 1) {
 				return 1;
 			} else if ($result === 2) {
@@ -180,5 +180,123 @@ class Can {
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * User feature exists
+	 *
+	 * @param string|int $flag
+	 * @param string|int $action
+	 * @param int|null $module_id
+	 * @return bool
+	 */
+	public static function userFlagExists($flag, $action, $module_id = null) : bool {
+		if (\Helper\Cmd::isCli()) return false;
+		if (!isset($module_id)) {
+			$module_id = \Application::$controller->module_id;
+		}
+		// load all actions from datasource
+		if (is_null(\Object\Controller::$cached_actions) && !\Object\Error\Base::$flag_database_tenant_not_found) {
+			\Object\Controller::$cached_actions = \Object\ACL\Resources::getStatic('actions', 'primary');
+		}
+		// load all flags
+		if (is_null(\Object\Controller::$cached_flags) && !\Object\Error\Base::$flag_database_tenant_not_found) {
+			\Object\Controller::$cached_flags = \Object\ACL\Resources::getStatic('flags', 'primary');
+		}
+		if (is_string($flag)) {
+			$flag = \Object\Controller::$cached_flags[$flag]['id'];
+		}
+		if (is_string($action)) {
+			$action = \Object\Controller::$cached_actions[$action]['id'];
+		}
+		// user first
+		$flags = \User::get('flags');
+		if (!empty($flags)) {
+			$result = self::userFlagExistsOne($flags, $flag, $action, $module_id);
+			if ($result == 1) {
+				return true;
+			} else if ($result == 2) { // disabled feature
+				return false;
+			}
+		}
+		// roles second
+		if (is_null(\Object\Controller::$cached_roles) && !\Object\Error\Base::$flag_database_tenant_not_found) {
+			\Object\Controller::$cached_roles = \Object\ACL\Resources::getStatic('roles', 'primary');
+		}
+		foreach (\User::roles() as $v) {
+			$result = self::userFlagExistsRole($v, $flag, $action, $module_id);
+			if ($result == 1) {
+				return true;
+			} else if ($result == 2) { // disabled feature
+				return false;
+			}
+		}
+		// teams last
+		if (is_null(\Object\Controller::$cached_teams) && !\Object\Error\Base::$flag_database_tenant_not_found) {
+			\Object\Controller::$cached_teams = \Object\ACL\Resources::getStatic('roles', 'teams');
+		}
+		foreach (\User::teams() as $v) {
+			$flags = \Object\Controller::$cached_teams[$v]['flags'] ?? null;
+			if (!empty($features)) {
+				$result = self::userFeatureExistsOne($flags, $flag, $action, $module_id);
+				if ($result == 1) {
+					return true;
+				} else if ($result == 2) { // disabled feature
+					return false;
+				}
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * User flag exists one
+	 *
+	 * @param array $flags
+	 * @param int $flag_id
+	 * @param int $action_id
+	 * @param int $module_id
+	 * @return int
+	 */
+	private static function userFlagExistsOne(array $flags, int $flag_id, int $action_id, $module_id = null) : int {
+		$result = $flags[$flag_id][$action_id][$module_id] ?? null;
+		if ($result === 0) {
+			return 1;
+		} else if ($result === 1) {
+			return 2;
+		}
+		return 0;
+	}
+
+	/**
+	 * User flag exists one role
+	 *
+	 * @param string $role
+	 * @param string $feature_code
+	 * @param int $module_id
+	 * @return int
+	 */
+	private static function userFlagExistsRole(string $role, int $flag_id, int $action_id, $module_id = null) : int {
+		if (!empty(\Object\Controller::$cached_roles[$role]['flags'])) {
+			$result = self::userFlagExistsOne(\Object\Controller::$cached_roles[$role]['flags'], $flag_id, $action_id, $module_id);
+			if ($result == 1) {
+				return true;
+			} else if ($result == 2) { // disabled feature
+				return false;
+			}
+		}
+		// if permission is not found we need to check parents
+		if (empty(\Object\Controller::$cached_roles[$role]['parents'])) return 0;
+		// go though parents
+		foreach (\Object\Controller::$cached_roles[$role]['parents'] as $k => $v) {
+			if (!empty($v)) continue;
+			$result = self::userFlagExistsRole($k, $flag_id, $action_id, $module_id);
+			if ($result === 1) {
+				return 1;
+			} else if ($result === 2) {
+				return 2;
+			}
+		}
+		return 0;
 	}
 }

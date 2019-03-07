@@ -246,7 +246,19 @@ class Base extends \Object\Form\Parent2 {
 							}
 						}
 					}
-					$this->form_object->element($k, $k2, $k3, $v3);
+					// flags
+					$k2_copy = $k2;
+					if (!empty($v3['sysflag'])) {
+						// set itself
+						if (\Can::userFlagExists($v3['sysflag'], 'Filter_Self')) {
+							$this->form_object->options['__input_override_blanks'][$k3] = $this->form_object->options['input'][$k3] = \User::id();
+							$v3['readonly'] = true;
+							$v3['method'] = 'select';
+						} else if (\Can::userFlagExists($v3['sysflag'], 'Filter_Hide')) { // hide
+							$k2_copy = self::HIDDEN;
+						}
+					}
+					$this->form_object->element($k, $k2_copy, $k3, $v3);
 				}
 			}
 		}

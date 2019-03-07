@@ -1409,6 +1409,10 @@ processAllValues:
 				];
 			}
 		}
+		// if we have blank overrides
+		if (!empty($this->options['__input_override_blanks'])) {
+			$blank_reset_var = array_merge($blank_reset_var, $this->options['__input_override_blanks']);
+		}
 		// hidden buttons to handle form though javascript
 		$this->element($this::HIDDEN, $this::HIDDEN, $this::BUTTON_SUBMIT_REFRESH, $this::BUTTON_SUBMIT_REFRESH_DATA);
 		if (!isset($this->process_submit_all[$this::BUTTON_SUBMIT_BLANK])) {
@@ -3362,14 +3366,12 @@ convertMultipleColumns:
 		if ($this->initiator_class == 'form') {
 			$result = 10;
 		} else if ($this->initiator_class == 'list') { // list
-			if ($field_options['options']['container_link'] == 'filter' || $field_options['options']['container_link'] == '__list_buttons') {
-				$result = 20;
-			} else if ($field_options['options']['container_link'] == self::LIST_CONTAINER) {
+			if ($field_options['options']['container_link'] == self::LIST_CONTAINER) {
 				$result = 30;
 			} else if ($field_options['options']['container_link'] == 'sort') {
 				$result = 40;
 			} else {
-				Throw new \Exception('List field type?');
+				$result = 20;
 			}
 		} else if ($this->initiator_class == 'report') { // report
 			if ($field_options['options']['container_link'] == 'filter' || $field_options['options']['container_link'] == '__report_buttons') {

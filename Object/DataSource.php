@@ -168,6 +168,7 @@ class DataSource extends \Object\Table\Options {
 		if (!empty($options['existing_values']) && !empty($this->parameters['existing_values'])) {
 			$parameters['existing_values'] = $options['existing_values'];
 		}
+		$where = $options['where'] ?? [];
 		unset($options['where']);
 		// process primary model
 		if (!empty($this->primary_model)) {
@@ -177,6 +178,13 @@ class DataSource extends \Object\Table\Options {
 			$this->cache_tags = array_merge($this->cache_tag ?? [], $model->cache_tags);
 			if (!empty($this->primary_params)) {
 				$options = array_merge_hard($options, $this->primary_params);
+			}
+			$options['where'] = $where[$this->primary_model] ?? [];
+			unset($where[$this->primary_model]);
+			foreach ($where as $k => $v) {
+				if (strpos($k, '\\') === 0) {
+					$options['where'][$k] = $v;
+				}
 			}
 			// query
 			$this->query = call_user_func_array([$this->primary_model, 'queryBuilderStatic'], [$options])->select();
