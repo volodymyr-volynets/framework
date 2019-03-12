@@ -10,6 +10,7 @@ trait Trait2 {
 	 *		string alias, default a
 	 *		boolean skip_tenant
 	 *		boolean skip_acl
+	 *		mixed existing_values
 	 * @return \Object\Query\Builder
 	 */
 	public function queryBuilder(array $options = []) : \Object\Query\Builder {

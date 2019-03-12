@@ -191,6 +191,13 @@ class File {
 			closedir($dir);
 			return true;
 		} else {
+			// we might need to create a directory
+			$dir = dirname($destination);
+			if (!file_exists($dir)) {
+				if (!self::mkdir($dir)) {
+					return false;
+				}
+			}
 			return copy($source, $destination);
 		}
 	}

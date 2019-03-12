@@ -79,4 +79,15 @@ class Date {
 		$date = strtotime($date);
 		return ($date >= strtotime($date1) && $date <= strtotime($date2));
 	}
+
+	/**
+	 * Add interval
+	 *
+	 * @param string $date
+	 * @param string $addition
+	 * @return string
+	 */
+	public static function addInterval($date, $addition) {
+		return date('Y-m-d H:i:s', strtotime($date . ' ' . $addition));
+	}
 }

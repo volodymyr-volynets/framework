@@ -1563,7 +1563,7 @@ processAllValues:
 			}
 		}
 		// find child submits
-		foreach (new \RecursiveIteratorIterator(new \RecursiveArrayIterator($this->options['input']), \RecursiveIteratorIterator::LEAVES_ONLY) as $k0 => $v0) {
+		foreach (new \RecursiveIteratorIterator(new \RecursiveArrayIterator($this->options['input'] ?? []), \RecursiveIteratorIterator::LEAVES_ONLY) as $k0 => $v0) {
 			if ($k0 != $this::BUTTON_SUBMIT_REFRESH && isset($this->process_submit_all[$k0]) && !empty($v0)) {
 				$this->submitted = true;
 				$this->process_submit[$k0] = true;
@@ -2192,6 +2192,10 @@ convertMultipleColumns:
 				$not_allowed[] = self::BUTTON_SUBMIT_SAVE;
 				$not_allowed[] = self::BUTTON_SUBMIT_SAVE_AND_NEW;
 				$not_allowed[] = self::BUTTON_SUBMIT_SAVE_AND_CLOSE;
+				// if we need to make form readonly
+				if (!empty($this->options['readonly_if_cannot_edit'])) {
+					$this->readonly();
+				}
 			}
 			// these buttons are considered save
 			$also_set_save = [
@@ -3514,7 +3518,7 @@ convertMultipleColumns:
 		$hash = sha1($options['options_model'] . serialize($params));
 		if (!isset($this->cached_options[$hash])) {
 			$method = \Factory::method($options['options_model'], null, true);
-			$this->cached_options[$hash] = call_user_func_array($method, [['where' => $params, 'i18n' => true]]);
+			$this->cached_options[$hash] = call_user_func_array($method, [['where' => $params, 'i18n' => true, 'skip_acl' => true]]); // skip acl is a must
 		}
 		if (is_array($value)) {
 			$temp = [];

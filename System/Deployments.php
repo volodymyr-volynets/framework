@@ -37,10 +37,11 @@ class Deployments {
 						foreach (['application', 'public_html'] as $v2) {
 							$files = \Helper\File::iterate($v . $v2, ['recursive' => true]);
 							foreach ($files as $v3) {
+								$temp1 = explode('/' . $v2 . '/', $v3);
 								if ($v2 == 'application') {
-									symlink($code_dir . '/' . $v2 . '/' . $v3, $code_dir . '/application/Components/' . $k . '/' . basename($v3));
+									\Helper\File::copy($code_dir . '/' . $v2 . '/' . $v3, $code_dir . '/application/Components/' . $k . '/' . $temp1[1]);
 								} else {
-									symlink($code_dir . '/' . $v2 . '/' . $v3, $code_dir . '/application/../public_html/components/' . $k . '/' . basename($v3));
+									\Helper\File::copy($code_dir . '/' . $v2 . '/' . $v3, $code_dir . '/application/../public_html/components/' . $k . '/' . $temp1[1]);
 								}
 							}
 						}
@@ -73,10 +74,11 @@ class Deployments {
 				foreach (['application', 'public_html'] as $v2) {
 					$files = \Helper\File::iterate($v . $v2, ['recursive' => true]);
 					foreach ($files as $v3) {
+						$temp1 = explode('/' . $v2 . '/', $v3);
 						if ($v2 == 'application') {
-							\Helper\File::copy($code_dir . '/' . $v2 . '/' . $v3, $dep_dir . '/application/Components/' . $k . '/' . basename($v3));
+							\Helper\File::copy($code_dir . '/' . $v2 . '/' . $v3, $dep_dir . '/application/Components/' . $k . '/' . $temp1[1]);
 						} else {
-							\Helper\File::copy($code_dir . '/' . $v2 . '/' . $v3, $dep_dir . '/application/../public_html/components/' . $k . '/' . basename($v3));
+							\Helper\File::copy($code_dir . '/' . $v2 . '/' . $v3, $dep_dir . '/application/../public_html/components/' . $k . '/' . $temp1[1]);
 						}
 					}
 				}
