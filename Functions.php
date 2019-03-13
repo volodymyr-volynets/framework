@@ -889,12 +889,18 @@ function array_compare_inteligent($arr1, $arr2, $arr1a, $arr2a) {
  * @param array $arr
  * @param string $key_prefix
  * @param boolean $unset
+ * @param boolean $not_empty
  * @return array
  */
-function array_key_extract_by_prefix(& $arr, $key_prefix, $unset = true) {
+function array_key_extract_by_prefix(& $arr, $key_prefix, $unset = true, $not_empty = false) {
 	$result = [];
 	foreach ($arr as $k => $v) {
 		if (strpos($k, $key_prefix) === 0) {
+			if ($not_empty) {
+				if (empty($v)) {
+					continue;
+				}
+			}
 			$result[str_replace($key_prefix, '', $k)] = $v;
 			if ($unset) {
 				unset($arr[$k]);
