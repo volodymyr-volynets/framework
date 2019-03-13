@@ -52,15 +52,12 @@ class Dependencies {
 			if (file_exists('../libraries/composer.json')) {
 				$composer_data = json_decode(file_get_contents('../libraries/composer.json'), true);
 			}
+
 			// if we have composer or submodules from main dep file
-			if (!empty($data['composer']) || !empty($data['submodules'])) {
+			if (!empty($data['composer'])) {
 				$composer_data['require'] = [];
 				if (!empty($data['composer'])) {
 					self::processDepsArray($data['composer'], $composer_data['require'], $composer_dirs, 'dummy', $dummy);
-				}
-				if (!empty($data['submodule'])) {
-					self::processDepsArray($data['submodule'], $composer_data['require'], $composer_dirs, 'dummy', $dummy, 'vendor');
-					self::processDepsArray($data['submodule'], $composer_data['require'], $composer_dirs, 'dummy', $dummy, 'private');
 				}
 			}
 
