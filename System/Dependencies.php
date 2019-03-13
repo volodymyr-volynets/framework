@@ -44,7 +44,7 @@ class Dependencies {
 			$data['__submodule_dependencies'] = [];
 			$data['components'] = [];
 			$data['extra_configs'] = [];
-			$dummy = [];
+			$dummy = $dummy2 = [];
 			// we have small chicken and egg problem with composer
 			$composer_data = [];
 			$composer_dirs = [];
@@ -54,10 +54,14 @@ class Dependencies {
 			}
 
 			// if we have composer or submodules from main dep file
-			if (!empty($data['composer'])) {
+			if (!empty($data['composer']) || !empty($data['submodules'])) {
 				$composer_data['require'] = [];
 				if (!empty($data['composer'])) {
 					self::processDepsArray($data['composer'], $composer_data['require'], $composer_dirs, 'dummy', $dummy);
+				}
+				if (!empty($data['submodule'])) {
+					self::processDepsArray($data['submodule'], $dummy2, $composer_dirs, 'dummy', $dummy, 'vendor');
+					self::processDepsArray($data['submodule'], $dummy2, $composer_dirs, 'dummy', $dummy, 'private');
 				}
 			}
 
