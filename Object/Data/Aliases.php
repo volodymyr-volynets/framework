@@ -48,7 +48,7 @@ class Aliases extends \Object\Data {
 		if (!$id_only) {
 			return $data;
 		} else {
-			return $data[$model->column_prefix . 'id'];
+			return $data[$model->column_prefix . 'id'] ?? null;
 		}
 	}
 }
