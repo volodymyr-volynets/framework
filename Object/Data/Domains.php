@@ -271,6 +271,8 @@ class Domains extends \Object\Data {
 		'interest_profile_id_sequence' => ['name' => 'Interest Profile #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'distribution_code_id' => ['name' => 'Distribution Code #', 'type' => 'integer', 'default' => null, 'format' => 'id', 'placeholder' => 'Distribution Code'],
 		'distribution_code_id_sequence' => ['name' => 'Distribution Code #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
+		'ap_item_id' => ['name' => 'A/P Item #', 'type' => 'integer', 'default' => null, 'format' => 'id', 'placeholder' => 'Item'],
+		'ap_item_id_sequence' => ['name' => 'A/P Item #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'ar_item_id' => ['name' => 'A/R Item #', 'type' => 'integer', 'default' => null, 'format' => 'id', 'placeholder' => 'Item'],
 		'ar_item_id_sequence' => ['name' => 'A/R Item #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'payment_code_id' => ['name' => 'Payment Code #', 'type' => 'integer', 'default' => null, 'format' => 'id', 'placeholder' => 'Payment Code'],
