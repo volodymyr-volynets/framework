@@ -85,9 +85,10 @@ class Date {
 	 *
 	 * @param string $date
 	 * @param string $addition
+	 * @param string $format
 	 * @return string
 	 */
-	public static function addInterval($date, $addition) {
-		return date('Y-m-d H:i:s', strtotime($date . ' ' . $addition));
+	public static function addInterval($date, $addition, $format = 'Y-m-d H:i:s') {
+		return date($format, strtotime($date . ' ' . $addition));
 	}
 }

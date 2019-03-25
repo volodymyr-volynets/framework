@@ -202,6 +202,7 @@ abstract class Collection {
 		$segment = null;
 		$result = [];
 		$index = 0;
+		$skeletons = [];
 		// sort rows in a screen
 		$rows = $this->data[$this->collection_screen_link][self::ROWS] ?? [];
 		array_key_sort($rows, ['order' => SORT_ASC]);
@@ -230,6 +231,7 @@ abstract class Collection {
 			// render forms
 			if (($row_v['options']['type'] ?? 'forms') == 'forms') {
 				foreach ($forms as $form_k => $form_v) {
+					$skeletons[$form_k] = true;
 					if (isset($submitted_form_cached[$form_k])) {
 						// render to grid
 						$result[$index]['grid']['options'][$row_k][$form_k][$form_k] = [
@@ -285,12 +287,13 @@ abstract class Collection {
 					}
 				}
 			} else if ($row_v['options']['type'] == 'tabs') { // tabs
-				$tab_id = "form_collection_tabs_{$this->collection_link}_{$row_k}";
+				$tab_id = "form_collection_tabs_{$this->collection_link}"; // _{$row_k}
 				$tab_header = [];
 				$tab_values = [];
 				$tab_options = [];
 				$have_tabs = false;
 				foreach ($forms as $form_k => $form_v) {
+					$skeletons[$form_k] = true;
 					// check if submodule exists
 					if ((!empty($form_v['submodule']) && !\Can::submoduleExists($form_v['submodule'])) || empty($form_v['model'])) continue;
 					// check if user can perform action
@@ -380,6 +383,7 @@ abstract class Collection {
 			}
 			$html.= $temp;
 		}
+		\Layout::onLoad("Numbers.Form.misc_settings['{$this->collection_link}'] = " . json_encode($skeletons) . ";");
 		return $html;
 	}
 }

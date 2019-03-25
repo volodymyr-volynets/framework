@@ -1463,6 +1463,8 @@ processAllValues:
 					'collection_screen_link' => $input['__collection_screen_link'] ?? '',
 					'model_table' => $this->options['model_table'] ?? null,
 					'bypass_hidden_from_input' => $this->options['bypass_hidden_from_input'] ?? [],
+					'acl_subresource_edit' => $this->options['acl_subresource_edit'] ?? null,
+					'flag_subform' => true
 				]);
 				if (!empty($this->options['input']['__subform_load_window'])) {
 					$modal = \HTML::modal([
@@ -1767,7 +1769,7 @@ convertMultipleColumns:
 		$this->convertMultipleColumns($this->values);
 		// assuming save has been executed without errors we need to process on_success_js
 		if (!$this->hasErrors() && !empty($this->options['on_success_js'])) {
-			Layout::onload($this->options['on_success_js']);
+			\Layout::onload($this->options['on_success_js']);
 		}
 		// add success messages
 		if (!$this->hasErrors()) {
@@ -2176,17 +2178,31 @@ convertMultipleColumns:
 			];
 			// process
 			$not_allowed = [];
-			// remove delete buttons if we do not have loaded values or do not have permission
-			if (!$this->values_loaded || (empty($this->options['skip_acl']) && !\Application::$controller->can('Record_Delete', 'Edit'))) {
-				$not_allowed[] = self::BUTTON_SUBMIT_DELETE;
-			}
-			// we need to check permissions
 			$show_save_buttons = false;
-			if (!$this->values_loaded && (empty($this->options['skip_acl']) && \Application::$controller->can('Record_New', 'Edit'))) {
-				$show_save_buttons = true;
-			}
-			if ($this->values_loaded && (empty($this->options['skip_acl']) && \Application::$controller->can('Record_Edit', 'Edit'))) {
-				$show_save_buttons = true;
+			if (!empty($this->options['acl_subresource_edit'])) {
+				// remove delete buttons if we do not have loaded values or do not have permission
+				if (!$this->values_loaded || (empty($this->options['skip_acl']) && !$this->tempProcessACLSubresources($this->options['acl_subresource_edit'], 'Record_Delete'))) {
+					$not_allowed[] = self::BUTTON_SUBMIT_DELETE;
+				}
+				// we need to check permissions
+				if (!$this->values_loaded && (empty($this->options['skip_acl']) && $this->tempProcessACLSubresources($this->options['acl_subresource_edit'], 'Record_New'))) {
+					$show_save_buttons = true;
+				}
+				if ($this->values_loaded && (empty($this->options['skip_acl']) && $this->tempProcessACLSubresources($this->options['acl_subresource_edit'], 'Record_Edit'))) {
+					$show_save_buttons = true;
+				}
+			} else {
+				// remove delete buttons if we do not have loaded values or do not have permission
+				if (!$this->values_loaded || (empty($this->options['skip_acl']) && !\Application::$controller->can('Record_Delete', 'Edit'))) {
+					$not_allowed[] = self::BUTTON_SUBMIT_DELETE;
+				}
+				// we need to check permissions
+				if (!$this->values_loaded && (empty($this->options['skip_acl']) && \Application::$controller->can('Record_New', 'Edit'))) {
+					$show_save_buttons = true;
+				}
+				if ($this->values_loaded && (empty($this->options['skip_acl']) && \Application::$controller->can('Record_Edit', 'Edit'))) {
+					$show_save_buttons = true;
+				}
 			}
 			if (!$show_save_buttons && empty($this->options['skip_acl'])) {
 				$not_allowed[] = self::BUTTON_SUBMIT_SAVE;
@@ -2236,6 +2252,9 @@ convertMultipleColumns:
 					}
 				}
 			}
+		}
+		if ($this->submitted) {
+			$this->misc_settings['__original_submitted'] = true;
 		}
 		$this->submitted = !empty($this->process_submit);
 		// fix for save
@@ -3044,7 +3063,8 @@ convertMultipleColumns:
 			'error' => [],
 			'pk' => $this->pk,
 			'values' => $this->values,
-			'values_loaded' => $this->values_loaded
+			'values_loaded' => $this->values_loaded,
+			'new_serials' => $this->new_serials
 		];
 		if ($this->hasErrors()) {
 			$message = [];

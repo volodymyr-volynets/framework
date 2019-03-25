@@ -285,7 +285,7 @@ class Common {
 			// options active
 			if (!empty($options_active)) {
 				foreach ($options_active as $k2 => $v2) {
-					if ($v[$k2] !== $v2) {
+					if (($v[$k2] ?? '') !== $v2) {
 						unset($data[$k]);
 						break;
 					}

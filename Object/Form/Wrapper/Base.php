@@ -278,10 +278,12 @@ class Base extends \Object\Form\Parent2 {
 							}
 						}
 						$temp_bypass_hidden_input = json_encode($temp_bypass_hidden_input);
-						$this->form_object->options['actions']['new'] = [
+						$this->form_object->actions['form_new'] = [
 							'href' => 'javascript:void(0);',
 							'onclick' => "Numbers.Form.openSubformWindow('{$temp_collection_link}', '{$temp_collection_screen_link}', '{$this->form_link}', '{$k}', {$temp_bypass_hidden_input}, {__submit_blank: true});",
 							'value' => $v['actions']['new']['name'],
+							'sort' => -31000,
+							'icon' => 'far fa-file'
 						];
 					}
 				}

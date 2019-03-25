@@ -549,17 +549,29 @@ class Table extends \Object\Table\Options {
 	 */
 	public function processColumns(& $data, $options = []) {
 		$save = [];
+		// we need to determine columns that have overrides like ;;bytea
+		$data_columns = [];
+		foreach ($data as $k => $v) {
+			if (strpos($k, ';') !== false) {
+				$k2 = explode(';', $k)[0];
+				if (!empty($this->columns[$k2])) {
+					$data_columns[$k2] = $k;
+				}
+			}
+		}
+		// go through all columns
 		foreach ($this->columns as $k => $v) {
-			if (!empty($options['ignore_not_set_fields']) && !array_key_exists($k, $data)) {
+			$original_key = $data_columns[$k] ?? $k;
+			if (!empty($options['ignore_not_set_fields']) && !array_key_exists($original_key, $data)) {
 				continue;
 			}
 			if (empty($options['skip_type_validation'])) {
-				$temp = \Object\Table\Columns::processSingleColumnType($k, $v, $data[$k] ?? null);
+				$temp = \Object\Table\Columns::processSingleColumnType($k, $v, $data[$original_key] ?? null);
 				if (array_key_exists($k, $temp)) {
-					$save[$k] = $temp[$k];
+					$save[$original_key] = $temp[$k];
 				}
 			} else {
-				$save[$k] = $data[$k];
+				$save[$original_key] = $data[$original_key];
 			}
 		}
 		$data = $save;

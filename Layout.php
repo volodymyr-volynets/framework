@@ -339,7 +339,7 @@ class Layout extends View {
 		if (!empty($options['output_file_name'])) {
 			header('Content-Disposition: attachment; filename=' . $options['output_file_name']);
 		}
-		switch ($content_type) {
+		switch ($content_type . ($options['extension'] ?? '')) {
 			case 'application/json':
 				echo json_encode($data);
 				break;
@@ -361,6 +361,7 @@ class Layout extends View {
 					$data
 				], \Helper\Ob::clean());
 				break;
+			case 'text/htmlplain':
 			default:
 				echo $data;
 		}

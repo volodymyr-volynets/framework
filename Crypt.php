@@ -135,4 +135,24 @@ class Crypt {
 	public function passwordVerify($password, $hash) {
 		return $this->object->passwordVerify($password, $hash);
 	}
+
+	/**
+	 * Compress data
+	 *
+	 * @param string $data
+	 * @return string or false on error
+	 */
+	public function compress($data) {
+		return $this->object->compress($data);
+	}
+
+	/**
+	 * Uncompress data
+	 *
+	 * @param string $data
+	 * @return string or false on error
+	 */
+	public function uncompress($data) {
+		return $this->object->uncompress($data);
+	}
 }

@@ -63,7 +63,6 @@ class Options extends \Object\Override\Data {
 		if (!empty($this->options_skip_i18n)) {
 			$options['i18n'] = false;
 		}
-		$data = $this->optionsQueryData($options);
 		// process options_map
 		if (isset($options['options_map'])) {
 			$options_map = $options['options_map'];
@@ -75,6 +74,8 @@ class Options extends \Object\Override\Data {
 		if (isset($options['options_map_addition'])) {
 			$options_map = array_merge_hard($options_map, $options['options_map_addition']);
 		}
+		$options['options_map'] = $options_map;
+		$data = $this->optionsQueryData($options);
 		// if we need to filter options_active
 		if (!empty($options['__options_active'])) {
 			$options_active = $this->options_active ? $this->options_active : [$this->column_prefix . 'inactive' => 0];

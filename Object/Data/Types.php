@@ -44,6 +44,7 @@ class Types extends \Object\Data {
 		'char' => ['name' => 'Character', 'php_type' => 'string'],
 		'varchar' => ['name' => 'Character Varying', 'php_type' => 'string'],
 		'text' => ['name' => 'Text', 'php_type' => 'string'],
+		'bytea' => ['name' => 'Byte Array', 'php_type' => 'string'],
 		// json types
 		'json' => ['name' => 'JSON', 'php_type' => 'mixed'],
 		// geometry

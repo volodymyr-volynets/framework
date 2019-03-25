@@ -107,6 +107,11 @@ trait Trait2 {
 			'initiator' => 'table',
 			'existing_values' => $options['existing_values'] ?? null
 		])->select();
+		// if we came from options
+		if (!empty($options['__options'])) {
+			$columns = array_merge($options['pk'], array_keys($options['options_map']));
+			$query->columns($columns);
+		}
 		// skip filtering by tenant twice
 		if (!empty($query->options['tenant']) && $this->tenant) {
 			unset($options['where'][$this->tenant_column]);

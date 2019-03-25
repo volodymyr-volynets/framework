@@ -74,6 +74,16 @@ class Can {
 		if (!isset($module_id)) {
 			$module_id = \Application::$controller->module_id;
 		}
+		// fetures third
+		if (is_null(\Object\Controller::$cached_features) && !\Object\Error\Base::$flag_database_tenant_not_found) {
+			\Object\Controller::$cached_features = \Object\ACL\Resources::getStatic('features', 'primary');
+		}
+		// super admin
+		if (\User::get('super_admin')) {
+			if (empty(\Object\Controller::$cached_features[$feature_code]['prohibitive'])) {
+				return true;
+			}
+		}
 		// user first
 		$features = \User::get('features');
 		if (!empty($features)) {
@@ -150,7 +160,11 @@ class Can {
 			}
 		}
 		// super admin
-		if (!empty(\Object\Controller::$cached_roles[$role]['super_admin'])) return 1;
+		if (!empty(\Object\Controller::$cached_roles[$role]['super_admin'])) {
+			if (empty(\Object\Controller::$cached_features[$feature_code]['prohibitive'])) {
+				return 1;
+			}
+		}
 		// if permission is not found we need to check parents
 		if (empty(\Object\Controller::$cached_roles[$role]['parents'])) return 0;
 		// go though parents

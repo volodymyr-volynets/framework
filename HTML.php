@@ -792,4 +792,14 @@ class HTML {
 	public static function number($number) : string {
 		return str_replace(',', '.', $number . '');
 	}
+
+	/**
+	 * Iframe
+	 *
+	 * @param array $options
+	 * @return string
+	 */
+	public static function iframe(array $options = []) : string {
+		return Factory::delegate('flag.numbers.framework.html', 'iframe', [$options]);
+	}
 }

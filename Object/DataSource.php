@@ -302,7 +302,7 @@ class DataSource extends \Object\Table\Options {
 					'error' => [],
 					'errno' => 0,
 					'rows' => $data,
-					'num_rows' => count($data),
+					'num_rows' => is_bool($data) ? 0 : count($data),
 					'affected_rows' => 0,
 					'structure' => [],
 					// debug attributes

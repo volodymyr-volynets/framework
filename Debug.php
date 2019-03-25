@@ -302,7 +302,7 @@ class Debug {
 								$result.= '<tr>';
 									$result.= '<td valign="top">' . $temp . '</td>';
 									$result.= '<td valign="top">' . \HTML::table(['options' => $v['structure']]) . '</td>';
-									$result.= '<td valign="top">' . (!empty($v['cache']) ? 'Yes' : 'No') . '</td>';
+									$result.= '<td valign="top">' . (!empty($v['cache']) ? 'Yes' : 'No Cache') . '</td>';
 									$result.= '<td valign="top">' . $v['time'] . '</td>';
 								$result.= '</tr>';
 								// cache tags

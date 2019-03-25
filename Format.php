@@ -932,6 +932,12 @@ class Format {
 		}
 	}
 
+	/**
+	 * Distance
+	 *
+	 * @param int|float $distance_in_m
+	 * @return string
+	 */
 	public static function distance($distance_in_m) : string {
 		if (self::$options['format_uom'] == 'METRIC') {
 			return round($distance_in_m / 1000, 2) . i18n(null, 'km');
@@ -956,5 +962,15 @@ class Format {
 		} else {
 			return self::id(round($value / 360, 2)) . ' ' . i18n(null, 'hours');
 		}
+	}
+
+	/**
+	 * Encode (HTML)
+	 *
+	 * @param string $value
+	 * @return string
+	 */
+	public static function encode($value) : string {
+		return htmlentities($value);
 	}
 }

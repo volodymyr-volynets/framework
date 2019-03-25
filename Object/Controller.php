@@ -134,7 +134,14 @@ class Controller {
 	 *
 	 * @var array
 	 */
-	private static $cached_modules;
+	public static $cached_modules;
+
+	/**
+	 * Cached features
+	 *
+	 * @var array
+	 */
+	public static $cached_features;
 
 	/**
 	 * Usage actions
@@ -422,11 +429,16 @@ class Controller {
 		if (empty(self::$cached_controllers_by_ids[$resource_id])) return false;
 		// missing features
 		if (!empty(self::$cached_controllers[self::$cached_controllers_by_ids[$resource_id]]['missing_features'])) return false;
-		// super admin
-		if (\User::get('super_admin')) return true;
 		// load all actions from datasource
 		if (is_null(self::$cached_actions) && !\Object\Error\Base::$flag_database_tenant_not_found) {
 			self::$cached_actions = \Object\ACL\Resources::getStatic('actions', 'primary');
+		}
+		// super admin
+		if (\User::get('super_admin')) {
+			// prohibitive actions
+			if (empty(self::$cached_actions[$action]['prohibitive'])) {
+				return true;
+			}
 		}
 		if (is_string($action)) $action = self::$cached_actions[$action]['id'];
 		// load all sub-resources from datasource
@@ -457,14 +469,9 @@ class Controller {
 			}
 			if ($temp === 0) {
 				return true;
-			} else if ($temp === 1) {
+			} else if (!empty($temp)) {
 				return false;
 			}
-		}
-		// authorized controllers have full access
-		if (empty(self::$cached_controllers[self::$cached_controllers_by_ids[$resource_id]]['acl_permission']) && !empty(self::$cached_controllers[self::$cached_controllers_by_ids[$resource_id]]['acl_authorized'])) {
-			// if user is logged in
-			if (\User::authorized()) return true;
 		}
 		// go through roles
 		foreach (\User::roles() as $v) {
@@ -664,20 +671,18 @@ class Controller {
 					}
 				}
 			}
+			if ($temp === 0) {
+				return 1;
+			} else if (!empty($temp)) {
+				return 2;
+			}
 		}
-		if ($temp === 0) {
-			return 1;
-		} else if ($temp === 1) {
-			return 2;
-		}
-		// super admin
-		if (!empty(self::$cached_roles[$role]['super_admin'])) return 1;
 		// if permission is not found we need to check parents
 		if (empty(self::$cached_roles[$role]['parents'])) return 0;
 		// go though parents
 		foreach (self::$cached_roles[$role]['parents'] as $k => $v) {
 			if (!empty($v)) continue;
-			$temp = $this->processSubresourceRole($k, $resource_id, $subresource, $action_id);
+			$temp = $this->processSubresourceRole($k, $resource_id, $subresource, $action_id, $module_id);
 			if ($temp === 1) {
 				return 1;
 			} else if ($temp === 2) {
