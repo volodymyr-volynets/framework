@@ -339,7 +339,8 @@ class Layout extends View {
 		if (!empty($options['output_file_name'])) {
 			header('Content-Disposition: attachment; filename=' . $options['output_file_name']);
 		}
-		switch ($content_type . ($options['extension'] ?? '')) {
+		$options['extension'] = ($options['extension'] ?? '');
+		switch ($content_type . $options['extension']) {
 			case 'application/json':
 				echo json_encode($data);
 				break;
@@ -357,7 +358,18 @@ class Layout extends View {
 					'<!-- [numbers: document title] -->',
 					'<!-- [numbers: document body] -->'
 				], [
-					Layout::renderDocumentTitle(),
+					\Layout::renderDocumentTitle(),
+					$data
+				], \Helper\Ob::clean());
+				break;
+			case 'text/htmlemail':
+				\Helper\Ob::start();
+				require(Application::get(['application', 'path_full']) . 'Layout/' . \Application::get('application.layout.email') . '.html');
+				echo str_replace([
+					'<!-- [numbers: document title] -->',
+					'<!-- [numbers: document body] -->'
+				], [
+					'<title>' . ($options['title'] ?? '') . '</title>',
 					$data
 				], \Helper\Ob::clean());
 				break;

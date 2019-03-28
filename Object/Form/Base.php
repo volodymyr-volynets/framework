@@ -3049,7 +3049,15 @@ convertMultipleColumns:
 		$content_types = $content_types_model->get();
 		if (empty($content_types[$format])) $format = 'text/html';
 		$model =  new $content_types[$format]['no_form_content_type_model']();
-		return $model->render($this);
+		// special mode for emails
+		if ($this->initiator_class == 'email') {
+			\HTML::setMode(true);
+			$result = $model->render($this);
+			\HTML::setMode(false);
+			return $result;
+		} else {
+			return $model->render($this);
+		}
 	}
 
 	/**

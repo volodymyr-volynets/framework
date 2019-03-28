@@ -802,4 +802,13 @@ class HTML {
 	public static function iframe(array $options = []) : string {
 		return Factory::delegate('flag.numbers.framework.html', 'iframe', [$options]);
 	}
+
+	/**
+	 * Set mode
+	 *
+	 * @param bool $email
+	 */
+	public static function setMode(bool $email) {
+		return Factory::delegate('flag.numbers.framework.html', 'setMode', [$email]);
+	}
 }
