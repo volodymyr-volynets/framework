@@ -8,7 +8,7 @@ class Media {
 	 *
 	 * @param string $filename
 	 */
-	public static function serveMediaIfExists($filename, $application_path) {
+	public static function serveMediaIfExists($filename, $application_path, $as_string = false) {
 		// we need to remove question mark and all after it
 		if (strpos($filename, '?') !== false) {
 			$temp = explode('?' , $filename);
@@ -33,6 +33,10 @@ class Media {
 		// check if file exists on file system
 		if (!file_exists($filename)) {
 			return;
+		}
+		// as string
+		if ($as_string) {
+			return file_get_contents($filename);
 		}
 		// we need to know extension of a file
 		$ext = pathinfo($filename, PATHINFO_EXTENSION);
