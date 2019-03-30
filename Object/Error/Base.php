@@ -175,7 +175,7 @@ class Base {
 	 */
 	public static function debugBacktraceString($trace = null) {
 		$result = [];
-		if (!\Application::get('debug.debug')) return $result;
+		if (!\Debug::$debug) return $result;
 		$i = 1;
 		// if trace is not provided
 		if (empty($trace)) {
