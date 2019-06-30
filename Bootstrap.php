@@ -187,6 +187,12 @@ class Bootstrap {
 		}
 		// flush data to client
 		flush();
+		// postponed execution
+		if (!empty(\Factory::$postponed_execution)) {
+			foreach (\Factory::$postponed_execution as $v) {
+				call_user_func_array($v[0], $v[1]);
+			}
+		}
 		// closing caches before db
 		$cache = \Factory::get(['cache']);
 		if (!empty($cache)) {

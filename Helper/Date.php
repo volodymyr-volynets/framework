@@ -22,6 +22,17 @@ class Date {
 	}
 
 	/**
+	 * Is
+	 *
+	 * @param string $date1
+	 * @param string $date2
+	 * @return int
+	 */
+	public static function is($date1, $date2) : int {
+		return strtotime($date1) <=> strtotime($date2);
+	}
+
+	/**
 	 * Compute difference between two dates
 	 *
 	 * @param string $date1

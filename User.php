@@ -3,6 +3,36 @@
 class User {
 
 	/**
+	 * Cached users
+	 *
+	 * @var array
+	 */
+	public static $cached_users = [];
+
+	/**
+	 * Cached owners
+	 *
+	 * @var array
+	 */
+	public static $cached_owners;
+
+	/**
+	 * Override user id
+	 *
+	 * @var int
+	 */
+	public static $override_user_id;
+
+	/**
+	 * Set user
+	 *
+	 * @param int|null $user_id
+	 */
+	public static function setUser($user_id) {
+		self::$override_user_id = $user_id;
+	}
+
+	/**
 	 * User #
 	 *
 	 * @return int
@@ -27,7 +57,9 @@ class User {
 	 * @return mixed
 	 */
 	public static function get($key) {
-		if (isset($_SESSION['numbers']['user'])) {
+		if (!empty(self::$override_user_id)) {
+			return array_key_get(self::$cached_users[self::$override_user_id], $key);
+		} else if (isset($_SESSION['numbers']['user'])) {
 			return array_key_get($_SESSION['numbers']['user'], $key);
 		}
 	}
@@ -62,7 +94,11 @@ class User {
 	 * @return array
 	 */
 	public static function roles() : array {
-		return $_SESSION['numbers']['user']['roles'] ?? [];
+		if (!empty(self::$override_user_id)) {
+			return self::$cached_users[self::$override_user_id]['roles'];
+		} else {
+			return $_SESSION['numbers']['user']['roles'] ?? [];
+		}
 	}
 
 	/**
@@ -71,7 +107,11 @@ class User {
 	 * @return array
 	 */
 	public static function teams() : array {
-		return $_SESSION['numbers']['user']['teams'] ?? [];
+		if (!empty(self::$override_user_id)) {
+			return self::$cached_users[self::$override_user_id]['teams'];
+		} else {
+			return $_SESSION['numbers']['user']['teams'] ?? [];
+		}
 	}
 
 	/**

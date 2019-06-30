@@ -147,7 +147,11 @@ class Deployments {
 							continue;
 						}
 						// js and css we just copy
-						$copy_from = $dep_dir . '/libraries/vendor' . $v2['origin'];
+						if (file_exists($dep_dir . '/libraries/private' . $v2['origin'])) {
+							$copy_from = $dep_dir . '/libraries/private' . $v2['origin'];
+						} else {
+							$copy_from = $dep_dir . '/libraries/vendor' . $v2['origin'];
+						}
 						$copy_to = $media_dir_submodule . $v2['destination'];
 						if ($k == 'js' || $k == 'css' || $k == 'other') {
 							\Helper\File::copy($copy_from, $copy_to);

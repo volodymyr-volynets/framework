@@ -281,6 +281,9 @@ class Domains extends \Object\Data {
 		'discount_id_sequence' => ['name' => 'Discount #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'account_set_id' => ['name' => 'Account Set #', 'type' => 'integer', 'default' => null, 'format' => 'id', 'placeholder' => 'Account Set'],
 		'account_set_id_sequence' => ['name' => 'Account Set #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
+		'invoice_id' => ['name' => 'Invoice #', 'type' => 'integer', 'format' => 'id', 'placeholder' => 'Invoice #'],
+		'invoice_id_sequence' => ['name' => 'Invoice #', 'type' => 'serial', 'format' => 'id', 'placeholder' => 'Sequence'],
+		'tax_amount' => ['name' => 'Tax Amount', 'type' => 'bcnumeric', 'precision' => 24, 'scale' => 2, 'default' => '0.00', 'format' => 'amount', 'align' => 'right'],
 		// HTML
 		'html_color_code' => ['name' => 'HTML Color Code', 'type' => 'char', 'length' => 6, 'null' => true],
 		'html_color_group' => ['name' => 'HTML Color Group', 'type' => 'varchar', 'length' => 30, 'null' => true]

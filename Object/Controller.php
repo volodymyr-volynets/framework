@@ -59,6 +59,13 @@ class Controller {
 	public $controller_id;
 
 	/**
+	 * Controller Override
+	 *
+	 * @var int
+	 */
+	public $override_controller_id;
+
+	/**
 	 * Module #
 	 *
 	 * @var int
@@ -98,8 +105,8 @@ class Controller {
 	 *
 	 * @var array
 	 */
-	private static $cached_controllers;
-	private static $cached_controllers_by_ids;
+	public static $cached_controllers;
+	public static $cached_controllers_by_ids;
 
 	/**
 	 * Cached actions
@@ -367,7 +374,8 @@ class Controller {
 			}
 		}
 		// run permission
-		return $this->canSubresourceExtended($this->controller_id, $subresource, $action, $module_id);
+		$controller_id = \Application::$controller->override_controller_id ?? $this->controller_id;
+		return $this->canSubresourceExtended($controller_id, $subresource, $action, $module_id);
 	}
 
 	/**
@@ -378,10 +386,11 @@ class Controller {
 	 * @return boolean
 	 */
 	public function canSubresourceCached($subresource, $action) : bool {
-		if (!isset($this->cached_can_subresource_requests[$subresource][$action])) {
-			$this->cached_can_subresource_requests[$subresource][$action] = $this->canSubresource($subresource, $action);
+		$user_id = \User::$override_user_id ?? 0;
+		if (!isset($this->cached_can_subresource_requests[$user_id][$subresource][$action])) {
+			$this->cached_can_subresource_requests[$user_id][$subresource][$action] = $this->canSubresource($subresource, $action);
 		}
-		return $this->cached_can_subresource_requests[$subresource][$action];
+		return $this->cached_can_subresource_requests[$user_id][$subresource][$action];
 	}
 
 	/**

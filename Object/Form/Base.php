@@ -1462,8 +1462,9 @@ processAllValues:
 					'collection_link' => $input['__collection_link'] ?? '',
 					'collection_screen_link' => $input['__collection_screen_link'] ?? '',
 					'model_table' => $this->options['model_table'] ?? null,
+					'notification' => $this->options['notification'] ?? null,
 					'bypass_hidden_from_input' => $this->options['bypass_hidden_from_input'] ?? [],
-					'acl_subresource_edit' => $this->options['acl_subresource_edit'] ?? null,
+					'acl_subresource_edit' => $this->options['acl_subresource_edit'] ?? $this->options['__parent_options']['options']['acl_subresource_edit'] ?? null,
 					'flag_subform' => true
 				]);
 				if (!empty($this->options['input']['__subform_load_window'])) {
@@ -2191,6 +2192,19 @@ convertMultipleColumns:
 				if ($this->values_loaded && (empty($this->options['skip_acl']) && $this->tempProcessACLSubresources($this->options['acl_subresource_edit'], 'Record_Edit'))) {
 					$show_save_buttons = true;
 				}
+			} else if (!empty($this->options['flag_subform'])) {
+				// remove delete buttons if we do not have loaded values or do not have permission
+				if (!$this->values_loaded || (empty($this->options['skip_acl']) && !\Application::$controller->can('Record_Delete', 'Edit'))) {
+					$not_allowed[] = self::BUTTON_SUBMIT_DELETE;
+				}
+				// we need to check permissions
+//				if ((empty($this->options['skip_acl']) && \Application::$controller->can('Record_New', 'Edit'))) {
+//					$show_save_buttons = true;
+//				}
+//				if ((empty($this->options['skip_acl']) && \Application::$controller->can('Record_Edit', 'Edit'))) {
+//					$show_save_buttons = true;
+//				}
+				$show_save_buttons = true;
 			} else {
 				// remove delete buttons if we do not have loaded values or do not have permission
 				if (!$this->values_loaded || (empty($this->options['skip_acl']) && !\Application::$controller->can('Record_Delete', 'Edit'))) {
@@ -3029,7 +3043,7 @@ convertMultipleColumns:
 				];
 			}
 		} else {
-			$this->data[$container_link]['rows'][$row_link]['elements'][$element_link]['options'] = array_merge_hard($this->data[$container_link]['rows'][$row_link]['elements'][$element_link], $options);
+			$this->data[$container_link]['rows'][$row_link]['elements'][$element_link]['options'] = array_merge_hard($this->data[$container_link]['rows'][$row_link]['elements'][$element_link]['options'], $options);
 		}
 	}
 

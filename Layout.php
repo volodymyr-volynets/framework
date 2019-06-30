@@ -342,6 +342,7 @@ class Layout extends View {
 		$options['extension'] = ($options['extension'] ?? '');
 		switch ($content_type . $options['extension']) {
 			case 'application/json':
+				header('Connection: close');
 				echo json_encode($data);
 				break;
 			case 'application/xml':

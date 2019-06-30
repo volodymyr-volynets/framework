@@ -41,7 +41,8 @@ trait Trait2 {
 				$abac_model->process(get_called_class(), $object, $alias, [
 					'initiator' => $options['initiator'] ?? null,
 					'existing_values' => $options['existing_values'] ?? null,
-					'pk' => $model->pk,
+					'where' => $options['where'] ?? null,
+					'pk' => $options['pk'] ?? $model->pk,
 				]);
 			}
 		}
@@ -101,11 +102,15 @@ trait Trait2 {
 		// pk
 		$pk = array_key_exists('pk', $options) ? $options['pk'] : $this->pk;
 		// query
+		$where_acl = $options['where'] ?? [];
+		unset($where_acl[$this->tenant_column]);
 		$query = $this->queryBuilder([
 			'skip_tenant' => $options['skip_tenant'] ?? false,
 			'skip_acl' => $options['skip_acl'] ?? false,
 			'initiator' => 'table',
-			'existing_values' => $options['existing_values'] ?? null
+			'existing_values' => $options['existing_values'] ?? null,
+			'where' => $where_acl ?? [],
+			'pk' => $pk
 		])->select();
 		// if we came from options
 		if (!empty($options['__options'])) {

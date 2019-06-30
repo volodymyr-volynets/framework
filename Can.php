@@ -313,4 +313,132 @@ class Can {
 		}
 		return 0;
 	}
+
+	/**
+	 * User notification exists
+	 *
+	 * @param string $notification_code
+	 * @param int|null $module_id
+	 * @return bool
+	 */
+	public static function userNotificationExists(string $notification_code, $module_id = null) : bool {
+		if (!isset($module_id)) {
+			$module_id = \Application::$controller->module_id;
+		}
+		// fetures third
+		if (is_null(\Object\Controller::$cached_features) && !\Object\Error\Base::$flag_database_tenant_not_found) {
+			\Object\Controller::$cached_features = \Object\ACL\Resources::getStatic('features', 'primary');
+		}
+		// user first
+		$features = \User::get('notifications');
+		if (!empty($features)) {
+			$result = self::userNotificationExistsOne($features, $notification_code, $module_id);
+			if ($result == 1) {
+				return true;
+			} else if ($result == 2) { // disabled feature
+				return false;
+			}
+		}
+		// roles second
+		if (is_null(\Object\Controller::$cached_roles) && !\Object\Error\Base::$flag_database_tenant_not_found) {
+			\Object\Controller::$cached_roles = \Object\ACL\Resources::getStatic('roles', 'primary');
+		}
+		foreach (\User::roles() as $v) {
+			$result = self::userNotificationExistsRole($v, $notification_code, $module_id);
+			if ($result == 1) {
+				return true;
+			} else if ($result == 2) { // disabled feature
+				return false;
+			}
+		}
+		// teams last
+		if (is_null(\Object\Controller::$cached_teams) && !\Object\Error\Base::$flag_database_tenant_not_found) {
+			\Object\Controller::$cached_teams = \Object\ACL\Resources::getStatic('roles', 'teams');
+		}
+		foreach (\User::teams() as $v) {
+			$features = \Object\Controller::$cached_teams[$v]['notifications'] ?? null;
+			if (!empty($features)) {
+				$result = self::userNotificationExistsOne($features, $notification_code, $module_id);
+				if ($result == 1) {
+					return true;
+				} else if ($result == 2) { // disabled feature
+					return false;
+				}
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * User notification exists one
+	 *
+	 * @param array $features
+	 * @param string $feature_code
+	 * @param int $module_id
+	 * @return int
+	 */
+	private static function userNotificationExistsOne(array $features, string $feature_code, $module_id = null) : int {
+		$result = $features[$feature_code][$module_id] ?? null;
+		if ($result === 0) {
+			return 1;
+		} else if ($result === 1) {
+			return 2;
+		}
+		return 0;
+	}
+
+	/**
+	 * User feature exists one role
+	 *
+	 * @param string $role
+	 * @param string $feature_code
+	 * @param int $module_id
+	 * @return int
+	 */
+	private static function userNotificationExistsRole(string $role, string $feature_code, $module_id = null) : int {
+		if (!empty(\Object\Controller::$cached_roles[$role]['notifications'])) {
+			$result = self::userFeatureExistsOne(\Object\Controller::$cached_roles[$role]['notifications'], $feature_code, $module_id);
+			if ($result == 1) {
+				return true;
+			} else if ($result == 2) { // disabled feature
+				return false;
+			}
+		}
+		// if permission is not found we need to check parents
+		if (empty(\Object\Controller::$cached_roles[$role]['parents'])) return 0;
+		// go though parents
+		foreach (\Object\Controller::$cached_roles[$role]['parents'] as $k => $v) {
+			if (!empty($v)) continue;
+			$result = self::userNotificationExistsRole($k, $feature_code, $module_id);
+			if ($result === 1) {
+				return 1;
+			} else if ($result === 2) {
+				return 2;
+			}
+		}
+		return 0;
+	}
+
+	/**
+	 * User is owner
+	 *
+	 * @param string $owner_code
+	 * @return bool
+	 */
+	public static function userIsOwner(string $owner_code) : bool {
+		if (is_null(\User::$cached_owners) && !\Object\Error\Base::$flag_database_tenant_not_found) {
+			\User::$cached_owners = \Object\ACL\Resources::getStatic('owners', 'primary');
+		}
+		if (empty(\User::$cached_owners[$owner_code])) return false;
+		$organizations = \User::get('organizations');
+		$roles = \User::get('role_ids');
+		foreach (\User::$cached_owners[$owner_code] as $k => $v) {
+			foreach ($v as $k2 => $v2) {
+				if (in_array($v2['role_id'], $roles) && in_array($v2['organization_id'], $organizations)) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
 }

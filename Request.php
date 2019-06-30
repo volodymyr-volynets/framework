@@ -107,6 +107,9 @@ class Request {
 		} else {
 			$host = !empty($params['ip']) ? (getenv('SERVER_ADDR') . ':' . getenv('SERVER_PORT')) : getenv('HTTP_HOST');
 		}
+		if (!empty($params['name_only'])) {
+			return $host;
+		}
 		if (!empty($params['level3'])) {
 			$host = str_replace('www.', '', $host);
 			$host = @$params['level3'] . '.' . $host;

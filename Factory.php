@@ -10,6 +10,13 @@ class Factory {
 	public static $class_objects = [];
 
 	/**
+	 * Postponed execution
+	 *
+	 * @var array
+	 */
+	public static $postponed_execution = [];
+
+	/**
 	 * Add class to factory
 	 *
 	 * @param mixed $key
@@ -136,5 +143,15 @@ no_cache:
 			$temp_model = \Factory::model($temp_model, false, $constructor_parameters);
 		}
 		return [& $temp_model, $temp_method];
+	}
+
+	/**
+	 * Postponed execution
+	 *
+	 * @param array|string $method
+	 * @param array $params
+	 */
+	public static function postponedExecution($method, $params) {
+		self::$postponed_execution[] = [$method, $params];
 	}
 }

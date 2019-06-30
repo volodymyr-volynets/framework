@@ -599,14 +599,19 @@ class Table extends \Object\Table\Options {
 	 * Synchronize sequence
 	 *
 	 * @param string $column
-	 * @param int $tenant
-	 * @param int $module
+	 * @param int|null $tenant
+	 * @param int|null $module
+	 * @param int|null $value
 	 */
-	public function synchronizeSequence(string $column, $tenant = null, $module = null) {
-		$result = $this->db_object->query("SELECT max({$column}) max_sequence FROM {$this->full_table_name}");
-		if (empty($result['num_rows']) || empty($result['rows'][0]['max_sequence'])) return;
+	public function synchronizeSequence(string $column, $tenant = null, $module = null, $value = null) {
 		$sequence = $this->full_table_name . '_' . $column . '_seq';
-		$this->db_object->setval($sequence, $result['rows'][0]['max_sequence'], $tenant, $module);
+		if (!empty($value)) {
+			$this->db_object->setval($sequence, $value, $tenant, $module);
+		} else {
+			$result = $this->db_object->query("SELECT max({$column}) max_sequence FROM {$this->full_table_name}");
+			if (empty($result['num_rows']) || empty($result['rows'][0]['max_sequence'])) return;
+			$this->db_object->setval($sequence, $result['rows'][0]['max_sequence'], $tenant, $module);
+		}
 	}
 
 	/**
