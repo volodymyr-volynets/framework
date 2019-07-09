@@ -21,7 +21,7 @@ class User {
 	 *
 	 * @var int
 	 */
-	public static $override_user_id;
+	protected static $override_user_id;
 
 	/**
 	 * Set user
@@ -30,6 +30,15 @@ class User {
 	 */
 	public static function setUser($user_id) {
 		self::$override_user_id = $user_id;
+	}
+
+	/**
+	 * Get user
+	 *
+	 * @return int|null
+	 */
+	public static function getUser() {
+		return self::$override_user_id;
 	}
 
 	/**

@@ -386,7 +386,7 @@ class Controller {
 	 * @return boolean
 	 */
 	public function canSubresourceCached($subresource, $action) : bool {
-		$user_id = \User::$override_user_id ?? 0;
+		$user_id = \User::$override_user_id ?? \User::id() ?? null;
 		if (!isset($this->cached_can_subresource_requests[$user_id][$subresource][$action])) {
 			$this->cached_can_subresource_requests[$user_id][$subresource][$action] = $this->canSubresource($subresource, $action);
 		}

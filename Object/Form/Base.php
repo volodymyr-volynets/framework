@@ -1840,9 +1840,9 @@ convertMultipleColumns:
 					}
 				}
 			}
-			$this->misc_settings['list']['limit'] = $this->values['__limit'];
-			$this->misc_settings['list']['offset'] = $this->values['__offset'];
-			$this->misc_settings['list']['preview'] = $this->values['__preview'];
+			$this->misc_settings['list']['limit'] = $this->values['__limit'] ?? 0;
+			$this->misc_settings['list']['offset'] = $this->values['__offset'] ?? 0;
+			$this->misc_settings['list']['preview'] = $this->values['__preview'] ?? 0;
 			$this->misc_settings['list']['columns'] = $this->data[$this::LIST_CONTAINER]['rows'] ?? [];
 			$this->misc_settings['list']['full_text_search'] = $this->values['full_text_search'] ?? null;
 		}
