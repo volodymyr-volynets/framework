@@ -317,7 +317,9 @@ class DataSource extends \Object\Table\Options {
 					$cache_data['backtrace']  = implode("\n", \Object\Error\Base::debugBacktraceString());
 					$cache_data['cache_tags'] = $this->cache_tags;
 				}
-				$cache_object->set($cache_id, $cache_data, null, $this->cache_tags);
+				//$cache_object->set($cache_id, $cache_data, null, $this->cache_tags);
+				// postponed cache
+				\Factory::postponedExecution([& $cache_object, 'set'], [$cache_id, $cache_data, null, $this->cache_tags]);
 			}
 		} else {
 			$data = $result['rows'];

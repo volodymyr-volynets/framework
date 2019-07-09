@@ -13,7 +13,7 @@ class Base {
 	public function settings() {
 		$structure = \Application::get('application.structure') ?? [];
 		$result = [];
-		$host_parts = \Request::hostParts();
+		$host_parts = \Request::hostParts(\Application::get('phpunit.tenant_default_url'));
 		$validator = new \Object\Validator\Domain\Part();
 		// see if we are in multi db environment
 		if (!empty($structure['db_multiple'])) {

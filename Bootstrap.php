@@ -61,7 +61,7 @@ class Bootstrap {
 		}
 		$application_structure = \Application::get('application.structure');
 		// create database connections
-		$db = Application::get('db');
+		$db = \Application::get('db');
 		if (!empty($db) && $backend) {
 			foreach ($db as $db_link => $db_settings) {
 				if (empty($db_settings['autoconnect']) || empty($db_settings['servers']) || empty($db_settings['submodule'])) continue;
@@ -79,7 +79,7 @@ class Bootstrap {
 			}
 		}
 		// initialize caches
-		$cache = Application::get('cache');
+		$cache = \Application::get('cache');
 		if (!empty($cache) && $backend) {
 			foreach ($cache as $cache_link => $cache_settings) {
 				if (empty($cache_settings['submodule']) || empty($cache_settings['autoconnect'])) continue;
@@ -197,7 +197,7 @@ class Bootstrap {
 		$cache = \Factory::get(['cache']);
 		if (!empty($cache)) {
 			foreach ($cache as $k => $v) {
-				if (!empty(cache::$reset_caches[$k])) {
+				if (!empty(\Cache::$reset_caches[$k])) {
 					$v['object']->gc(3, cache::$reset_caches[$k]);
 				}
 				$v['object']->close();

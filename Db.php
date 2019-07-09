@@ -56,7 +56,7 @@ class Db {
 		}
 		$this->db_link = $db_link;
 		// get object from factory
-		$temp = Factory::get(['db', $db_link]);
+		$temp = \Factory::get(['db', $db_link]);
 		// if we have class
 		if (!empty($class) && !empty($db_link)) {
 			// check if backend has been enabled

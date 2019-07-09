@@ -32,14 +32,9 @@ class Application {
 			$composer = self::get("dep.composer.{$key}");
 			if (empty($composer)) return false;
 			$key = str_replace('.', '/', $key);
-			$existing = array_key_get(self::$settings, ['backend_exists', $key]);
-			if (isset($existing)) {
-				return $existing;
-			} else {
-				$flag = file_exists('./../libraries/vendor/' . $key);
-				array_key_set(self::$settings, ['backend_exists', $key], $flag);
-				return $flag;
-			}
+			// we must set current working directory
+			chdir(\Application::get('application.path_full'));
+			return file_exists('./../libraries/vendor/' . $key);
 		}
 		// get data from settings
 		$result = array_key_get(self::$settings, $key);
