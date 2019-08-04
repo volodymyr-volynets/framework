@@ -255,4 +255,35 @@ class File {
 		finfo_close($finfo);
 		return $mime;
 	}
+
+	/**
+	 * Temporary directory
+	 *
+	 * @param string $filename
+	 * @return string
+	 */
+	public static function tempDirectory(string $filename = '') : string {
+		$path = \Application::get('documents.default.temp_dir');
+		$host_parts = \Request::hostParts(\Application::get('phpunit.tenant_default_url'));
+		$dir = $path . implode('.', $host_parts);
+		if (!file_exists($dir)) {
+			self::mkdir($dir, 0777);
+			self::chmod($dir, 0777);
+		}
+		return $dir . DIRECTORY_SEPARATOR . $filename;
+	}
+
+	/**
+	 * Generate temporary file name
+	 *
+	 * @param string $extension
+	 * @return string
+	 */
+	public static function generateTempFileName(string $extension = '') : string {
+		$result = uniqid('Numbers_Temp_') . '_' . \Format::now('unix');
+		if (!empty($extension)) {
+			$result.= '.' . $extension;
+		}
+		return $result;
+	}
 }

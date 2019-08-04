@@ -47,7 +47,8 @@ class Report {
 			'header' => [],
 			'header_options' => [],
 			'filter' => [],
-			'data' => []
+			'data' => [],
+			'form_name' => '',
 		];
 		// extrace filter out of form
 		if (isset($form)) {
@@ -55,6 +56,10 @@ class Report {
 				$this->data[$report_name]['filter'] = $form->generateFilter();
 			}
 			$this->form = & $form;
+			$this->data[$report_name]['form_name'] = str_replace(['*', ':', '/', '\\', '?', '[', ']'], '', $form->title);
+			if (strlen($this->data[$report_name]['form_name']) > 31) {
+				$this->data[$report_name]['form_name'] = substr($this->data[$report_name]['form_name'], 0, 28) . '...';
+			}
 		}
 	}
 
