@@ -242,4 +242,17 @@ class File {
 		}
 		return self::write($filename, implode("\n", $lines));
 	}
+
+	/**
+	 * Mime of a file
+	 *
+	 * @param string $filename
+	 * @return string
+	 */
+	public static function mime(string $filename) : string {
+		$finfo = finfo_open(FILEINFO_MIME); // return mime type ala mimetype extension
+		$mime = finfo_file($finfo, $filename);
+		finfo_close($finfo);
+		return $mime;
+	}
 }

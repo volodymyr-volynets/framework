@@ -328,7 +328,7 @@ class Controller {
 	 * @return boolean
 	 */
 	public function can($action, $method_code = null, $module_id = null) : bool {
-		if (empty($this->controller_id)) return false;
+		if (empty($this->controller_id) && empty(\Application::$controller->override_controller_id)) return false;
 		// module id
 		if (empty($module_id)) {
 			$module_id = $this->module_id;
@@ -337,7 +337,7 @@ class Controller {
 			}
 		}
 		// run permission
-		return $this->canExtended($this->controller_id, $method_code ?? $this->method_code, $action, $module_id);
+		return $this->canExtended(\Application::$controller->override_controller_id ?? $this->controller_id, $method_code ?? $this->method_code, $action, $module_id);
 	}
 
 	/**
@@ -365,7 +365,7 @@ class Controller {
 	 * @throws \Exception
 	 */
 	public function canSubresource($subresource, $action, $module_id = null) : bool {
-		if (empty($this->controller_id)) return false;
+		if (empty($this->controller_id) && empty(\Application::$controller->override_controller_id)) return false;
 		// module id
 		if (empty($module_id)) {
 			$module_id = $this->module_id;
@@ -386,7 +386,7 @@ class Controller {
 	 * @return boolean
 	 */
 	public function canSubresourceCached($subresource, $action) : bool {
-		$user_id = \User::$override_user_id ?? \User::id() ?? null;
+		$user_id = \User::getUser() ?? \User::id() ?? null;
 		if (!isset($this->cached_can_subresource_requests[$user_id][$subresource][$action])) {
 			$this->cached_can_subresource_requests[$user_id][$subresource][$action] = $this->canSubresource($subresource, $action);
 		}

@@ -250,10 +250,13 @@ class Base extends \Object\Form\Parent2 {
 					$k2_copy = $k2;
 					if (!empty($v3['sysflag'])) {
 						// set itself
+						$values = array_merge($this->form_object->options['__input_override_blanks'][$k3] ?? [], $this->form_object->options['input'][$k3] ?? []);
 						if (\Can::userFlagExists($v3['sysflag'], 'Filter_Self')) {
-							$this->form_object->options['__input_override_blanks'][$k3] = $this->form_object->options['input'][$k3] = \User::id();
+							$this->form_object->options['__input_override_blanks'][$k3] = $this->form_object->options['input'][$k3] = \User::getUser() ?? \User::id();
 							$v3['readonly'] = true;
 							$v3['method'] = 'select';
+						} else if (\Can::userFlagExists($v3['sysflag'], 'Filter_PresetSelf') && empty($values)) {
+							$this->form_object->options['__input_override_blanks'][$k3] = $this->form_object->options['input'][$k3] = \User::getUser() ?? \User::id();
 						} else if (\Can::userFlagExists($v3['sysflag'], 'Filter_Hide')) { // hide
 							$k2_copy = self::HIDDEN;
 						}

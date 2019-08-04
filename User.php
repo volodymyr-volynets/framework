@@ -47,7 +47,7 @@ class User {
 	 * @return int
 	 */
 	public static function id() {
-		return ($_SESSION['numbers']['user']['id'] ?? null);
+		return $_SESSION['numbers']['user']['id'] ?? null;
 	}
 
 	/**

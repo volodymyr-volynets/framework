@@ -109,10 +109,12 @@ class Crypt {
 	 *
 	 * @param string $token - urldecoded
 	 * @param array $tokens
+	 * @param array $options
+	 *	boolean skip_time_validation
 	 * @return array
 	 */
-	public function tokenVerify($token, $tokens) {
-		return $this->object->tokenVerify($token, $tokens);
+	public function tokenVerify($token, $tokens, $options = []) {
+		return $this->object->tokenVerify($token, $tokens, $options);
 	}
 
 	/**

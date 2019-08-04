@@ -3056,7 +3056,7 @@ convertMultipleColumns:
 	public function render($format = null) {
 		// list has its own format
 		if ($this->initiator_class == 'list') {
-			$format = $this->values['__format'] ?? 'text/html';
+			$format = $this->options['input']['__format'] ?? $this->values['__format'] ?? 'text/html';
 		}
 		if (!isset($format)) $format = $this->options['input']['__content_type'] ?? 'text/html';
 		$content_types_model = new \Object\Form\Model\Content\Types();

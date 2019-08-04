@@ -487,7 +487,7 @@ class Table extends \Object\Table\Options {
 				// timestamp
 				$row[$this->column_prefix . $type . '_timestamp'] = $timestamp;
 				// user #
-				$row[$this->column_prefix . $type . '_user_id'] = \User::id();
+				$row[$this->column_prefix . $type . '_user_id'] = \User::getUser() ?? \User::id();
 			} else if ($type == 'optimistic_lock') {
 				if ($this->optimistic_lock) {
 					$row[$this->optimistic_lock_column] = $timestamp;
