@@ -94,7 +94,7 @@ class Options extends \Object\Override\Data {
 		}
 		// build options
 		$options['column_prefix'] = $this->column_prefix;
-		return \Object\Data\Common::buildOptions($data, $options_map, $this->orderby, $options);
+		return \Object\Data\Common::buildOptions($data, $options_map, $options['orderby'] ?? $this->orderby, $options);
 	}
 
 	/**

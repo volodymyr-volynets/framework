@@ -247,7 +247,7 @@ class Controller {
 		}
 		// add usages
 		if (!empty(self::$cached_modules) && !empty(self::$cached_modules[$this->controller_data['module_code']])) {
-			$this->controller_data['module_name'] = $module_name = self::$cached_modules[$this->controller_data['module_code']]['module_ids'][$this->module_id]['name'];
+			$this->controller_data['module_name'] = $module_name = self::$cached_modules[$this->controller_data['module_code']]['module_ids'][$this->module_id]['name'] ?? 'Unknown';
 			$__menu_id = \Application::get('flag.global.__menu_id');
 			if (!empty($__menu_id)) {
 				$__menu_id = (int) $__menu_id;
@@ -353,6 +353,25 @@ class Controller {
 			$this->cached_can_requests[$method_code][$action] = $this->can($action, $method_code);
 		}
 		return $this->cached_can_requests[$method_code][$action];
+	}
+
+	/**
+	 * Can (Multiple)
+	 *
+	 * @param array|string $subresources
+	 * @param string|int $action
+	 * @return bool
+	 */
+	public function canMultiple($actions) : bool {
+		if (!is_array($actions)) {
+			$actions = [$actions];
+		}
+		foreach ($actions as $v) {
+			if (!$this->canCached($v[0], $v[1])) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	/**

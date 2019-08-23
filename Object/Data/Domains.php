@@ -45,6 +45,7 @@ class Domains extends \Object\Data {
 		'status_two' => ['name' => 'Status (2)', 'type' => 'char', 'length' => 2],
 		'promocode' => ['name' => 'Promocode', 'type' => 'varchar', 'length' => 255],
 		'barcode' => ['name' => 'Barcode', 'type' => 'varchar', 'length' => 255],
+		'title_number' => ['name' => 'Title Number', 'type' => 'varchar', 'length' => 225, 'placeholder' => 'xxx.xxx.xxx'],
 		// types & groups
 		'type_id' => ['name' => 'Type #', 'type' => 'smallint', 'default' => null, 'format' => 'id', 'placeholder' => 'Type'],
 		'type_id_sequence' => ['name' => 'Type #', 'type' => 'smallserial', 'placeholder' => 'Sequence', 'format' => 'id'],
@@ -56,6 +57,7 @@ class Domains extends \Object\Data {
 		'big_id' => ['name' => 'Big #', 'type' => 'bigint', 'default' => null, 'format' => 'id', 'placeholder' => 'Big #'],
 		'big_id_sequence' => ['name' => 'Big #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'order' => ['name' => 'Order', 'type' => 'integer', 'default' => 0, 'format' => 'id', 'placeholder' => 'Order'],
+		'big_order' => ['name' => 'Order (Big)', 'type' => 'bigint', 'default' => 0, 'format' => 'id', 'placeholder' => 'Order'],
 		'counter' => ['name' => 'Counter', 'type' => 'integer', 'default' => 0, 'format' => 'id'],
 		'bigcounter' => ['name' => 'Counter (Big)', 'type' => 'bigint', 'default' => 0, 'format' => 'id'],
 		// date & time
@@ -105,6 +107,8 @@ class Domains extends \Object\Data {
 		'version_id_sequence' => ['name' => 'Version #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'page_id' => ['name' => 'Page #', 'type' => 'bigint', 'default' => null, 'format' => 'id', 'placeholder' => 'Page'],
 		'page_id_sequence' => ['name' => 'Page #', 'type' => 'bigserial', 'placeholder' => 'Sequence'],
+		'fragment_id' => ['name' => 'Fragment #', 'type' => 'bigint', 'default' => null, 'format' => 'id', 'placeholder' => 'Fragment'],
+		'fragment_id_sequence' => ['name' => 'Fragment #', 'type' => 'bigserial', 'placeholder' => 'Sequence'],
 		// Country Management
 		'country_code' => ['name' => 'Country Code', 'type' => 'char', 'length' => 2, 'validator_method' => '\Object\Validator\UpperCase::validate', 'placeholder' => 'Country', 'searchable' => true],
 		'country_code3' => ['name' => 'Country Code (3)', 'type' => 'char', 'length' => 3, 'validator_method' => '\Object\Validator\UpperCase::validate'],

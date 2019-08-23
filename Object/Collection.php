@@ -118,6 +118,11 @@ class Collection extends \Object\Override\Data {
 			$query->columnOverrides($this->primary_model->columns);
 			// where
 			if (!empty($options['where'])) {
+				foreach ($options['where'] as $k99 => $v99) {
+					if (is_string($v99) && strpos($v99, 'parent::') !== false) {
+						$options['where'][$k99] = $options['all_values'][str_replace('parent::', '', $v99)] ?? null;
+					}
+				}
 				$query->whereMultiple('AND', $options['where']);
 			}
 			// for update
@@ -295,6 +300,11 @@ class Collection extends \Object\Override\Data {
 			// where
 			$query->where('AND', [$column, 'IN', $keys]);
 			if (!empty($v['where'])) {
+				foreach ($v['where'] as $k99 => $v99) {
+					if (is_string($v99) && strpos($v99, 'parent::') !== false) {
+						$v['where'][$k99] = $options['all_values'][str_replace('parent::', '', $v99)] ?? null;
+					}
+				}
 				$query->whereMultiple('AND', $v['where']);
 			}
 			// sql extensions

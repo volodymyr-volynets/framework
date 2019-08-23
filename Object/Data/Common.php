@@ -247,6 +247,9 @@ class Common {
 	 * @return array
 	 */
 	public static function buildOptions($data, $options_map, $orderby, $options) {
+		if (!empty($orderby)) {
+			array_key_sort($data, $orderby);
+		}
 		$data = \Object\Data\Common::options($data, $options_map, $options);
 		// sorting
 		if (!empty($options['i18n'])) {

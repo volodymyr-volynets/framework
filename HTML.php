@@ -456,10 +456,22 @@ class HTML {
 	 * Menu
 	 *
 	 * @param type $options
-	 *		options - array of menu items
+	 *	array options - array of menu items
 	 */
 	public static function menu(array $options = []) : string {
 		return Factory::delegate('flag.numbers.framework.html', 'menu', [$options]);
+	}
+
+	/**
+	 * Menu (mini)
+	 *
+	 * @param type $options
+	 *	array options - array of menu items
+	 *	string id
+	 *	string align - right | left
+	 */
+	public static function menuMini(array $options = []) : string {
+		return Factory::delegate('flag.numbers.framework.html', 'menuMini', [$options]);
 	}
 
 	/**
@@ -572,6 +584,16 @@ class HTML {
 	}
 
 	/**
+	 * Highlight
+	 *
+	 * @param array $options
+	 * @return string
+	 */
+	public static function highlight(array $options = []) : string {
+		return Factory::delegate('flag.numbers.framework.html', 'highlight', [$options]);
+	}
+
+	/**
 	 * Wizard
 	 *
 	 * @param array $options
@@ -618,6 +640,18 @@ class HTML {
 	 */
 	public static function b(array $options = []) : string {
 		return Factory::delegate('flag.numbers.framework.html', 'b', [$options]);
+	}
+
+	/**
+	 * Callout
+	 *
+	 * @param array $options
+	 *	string value
+	 *	string type
+	 * @return string
+	 */
+	public static function callout(array $options = []) : string {
+		return Factory::delegate('flag.numbers.framework.html', 'callout', [$options]);
 	}
 
 	/**

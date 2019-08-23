@@ -151,6 +151,7 @@ class Base extends \Object\Form\Parent2 {
 	public $process_submit = [];
 	public $process_submit_all = [];
 	public $process_submit_other = [];
+	public $process_submit_refresh = false;
 
 	/**
 	 * Submitted
@@ -340,6 +341,13 @@ class Base extends \Object\Form\Parent2 {
 	public $is_ajax_reload = false;
 
 	/**
+	 * Preserved values
+	 *
+	 * @var array
+	 */
+	public $preserved_values = [];
+
+	/**
 	 * Constructor
 	 *
 	 * @param string $form_link
@@ -387,6 +395,9 @@ class Base extends \Object\Form\Parent2 {
 			$temp = $this->loadValues($for_update);
 			if ($temp !== false) {
 				$this->original_values = $temp;
+				if (!empty($this->preserved_values)) {
+					$this->original_values = array_merge_hard($this->original_values, $this->preserved_values);
+				}
 				$this->values_loaded = true;
 			}
 		}
@@ -403,7 +414,7 @@ class Base extends \Object\Form\Parent2 {
 			$collection = array_key_get($this->collection_object->data, $options['details_collection_key'] ?? null);
 			foreach ($fields as $k => $v) {
 				// skip certain values
-				if ($k == $this::SEPARATOR_HORIZONTAL || $k == $this::SEPARATOR_VERTICAL || !empty($v['options']['process_submit']) || !empty($v['options']['custom_renderer'])) {
+				if ($k == $this::SEPARATOR_HORIZONTAL || $k == '__separator__module_id' || $k == $this::SEPARATOR_VERTICAL || !empty($v['options']['process_submit']) || !empty($v['options']['custom_renderer'])) {
 					unset($fields[$k]);
 					continue;
 				}
@@ -1348,8 +1359,9 @@ processAllValues:
 				'default_row_type' => 'grid',
 				'order' => -35000
 			]);
+			$temp_row_class = "form_{$this->form_link}_form__module_container_row__module_id";
 			$this->element('__module_container', 'row', '__module_id', [
-				'label_name' => 'Ledger',
+				'label_name' => 'Module / Ledger',
 				'domain' => 'module_id',
 				'null' => true,
 				//'required' => true,
@@ -1359,10 +1371,11 @@ processAllValues:
 				'options' => $available_modules,
 				'onchange' => 'this.form.submit();',
 				'skip_during_export' => true,
-				'order' => 0
+				'order' => 0,
+				'row_class' => $temp_row_class,
 			]);
 			$this->element('__module_container', $this::HIDDEN, $this->collection_object->primary_model->module_column, [
-				'label_name' => 'Ledger',
+				'label_name' => 'Module / Ledger',
 				'domain' => 'module_id',
 				'required' => true,
 				//'default' => $module_id,
@@ -1370,9 +1383,9 @@ processAllValues:
 				'method' => 'hidden',
 				'query_builder' => 'a.' . $this->collection_object->primary_model->module_column . ';=',
 				'skip_during_export' => true,
-				'order' => 0
+				'order' => 0,
 			]);
-			$this->element('__module_container', 'separator_1', '__separator__module_id', ['row_order' => 400, 'method' => 'separator', 'label_name' => '', 'percent' => 100]);
+			$this->element('__module_container', 'separator_1', '__separator__module_id', ['row_order' => 400, 'method' => 'separator', 'label_name' => '', 'percent' => 100, 'row_class' => $temp_row_class]);
 			// master object
 			if (!empty($this->form_parent->master_options['model'])) {
 				$this->master_options = $this->form_parent->master_options;
@@ -1407,6 +1420,12 @@ processAllValues:
 					'module_id' => $this->options['input'][$this->collection_object->primary_model->module_column] ?? null,
 					'value' => $this->options['input'][$k] ?? null,
 				];
+			}
+			if (!empty($v['options']['preserved'])) {
+				$this->preserved_values[$k] = $this->options['input'][$k] ?? null;
+				if ($v['options']['php_type'] == 'integer' && isset($this->preserved_values[$k])) {
+					$this->preserved_values[$k] = (int) $this->preserved_values[$k];
+				}
 			}
 		}
 		// if we have blank overrides
@@ -1614,6 +1633,10 @@ otherFormSubmitted:
 		}
 		// handling form refresh
 		$this->triggerMethod('refresh');
+		// if we are refresing
+		if ($this->process_submit_refresh) {
+			goto convertMultipleColumns;
+		}
 		// validate required fields after refresh
 		if ($this->submitted && !$this->delete) {
 			$this->validateRequiredFields();
@@ -1745,6 +1768,7 @@ loadValues2:
 				}
 				// trigger refresh
 				$this->getAllValues($this->values);
+				$this->values = array_merge_hard($this->values, $this->original_values);
 				$this->triggerMethod('refresh');
 			}
 		}
@@ -2493,8 +2517,15 @@ convertMultipleColumns:
 			// temporary disable for update flag
 			// todo check if we have acl
 			$for_update = false;
+			// get all values
+			$this->getAllValues($this->options['input'] ?? []);
 			// load using collection
-			$result = $this->collection_object->get(['where' => $this->pk, 'single_row' => true, 'for_update' => $for_update]);
+			$result = $this->collection_object->get([
+				'where' => $this->pk,
+				'single_row' => true,
+				'for_update' => $for_update,
+				'all_values' => $this->values,
+			]);
 			if ($result['success']) {
 				$this->misc_settings['max_records'] = $result['max_records'];
 				return $result['data'];
@@ -2811,7 +2842,7 @@ convertMultipleColumns:
 		if (!empty($options['acl_subresource_hide']) && !$this->tempProcessACLSubresources($options['acl_subresource_hide'], 'Record_View')) {
 			$options['hidden'] = true;
 		}
-		$this->container($container_link, array_key_extract_by_prefix($options, 'container_'));
+		$this->container($container_link, array_key_extract_by_prefix($options, 'container_', false));
 		if (!isset($this->data[$container_link]['rows'][$row_link])) {
 			// hidden rows
 			if ($row_link == $this::HIDDEN) {
@@ -2842,7 +2873,7 @@ convertMultipleColumns:
 				}
 			}
 		} else {
-			$this->data[$container_link]['rows'][$row_link]['options'] = array_merge_hard($this->data[$container_link]['rows'][$row_link]['options'], $options);
+			$this->data[$container_link]['rows'][$row_link]['options'] = array_merge($this->data[$container_link]['rows'][$row_link]['options'], $options);
 			if (isset($options['order'])) {
 				$this->data[$container_link]['rows'][$row_link]['order'] = $options['order'];
 			}
@@ -2877,8 +2908,8 @@ convertMultipleColumns:
 			$options['row_order'] = -32000;
 		}
 		// processing row and container
-		$this->container($container_link, array_key_extract_by_prefix($options, 'container_'));
-		$this->row($container_link, $row_link, array_key_extract_by_prefix($options, 'row_'));
+		$this->container($container_link, array_key_extract_by_prefix($options, 'container_', false));
+		$this->row($container_link, $row_link, array_key_extract_by_prefix($options, 'row_', false));
 		// setting value
 		if (!isset($this->data[$container_link]['rows'][$row_link]['elements'][$element_link])) {
 			if (!empty($options['container'])) {
@@ -3019,6 +3050,11 @@ convertMultipleColumns:
 					if ($options['process_submit'] === 'other') {
 						$this->process_submit_other[$element_link] = true;
 					}
+				}
+				// process refresh
+				if (!empty($options['process_refresh']) && !empty($this->options['input'][$element_link])) {
+					$this->process_submit_refresh = true;
+					$this->values[$element_link] = true;
 				}
 			}
 			// setting data
@@ -3725,6 +3761,54 @@ convertMultipleColumns:
 			$options = $this->fields[$v];
 			$options['options']['required'] = true;
 			$this->validateRequiredOneField($this->values[$v], $v, $options);
+		}
+	}
+
+	/**
+	 * Generate subform link
+	 *
+	 * @param string $subform_link
+	 * @param array $subform_options
+	 * @param array $params
+	 * @param array $options
+	 *	boolean for_menu
+	 * @return string|boolean
+	 */
+	public function generateSubformLink($subform_link, $subform_options, $params, $options = []) {
+		// acl
+		if (!empty($subform_options['actions']['button']['acl_controller_actions'])) {
+			if (!\Application::$controller->canMultiple($subform_options['actions']['button']['acl_controller_actions'])) {
+				return false;
+			}
+		}
+		$temp_collection_link = $this->options['collection_link'] ?? '';
+		$temp_collection_screen_link = $this->options['collection_screen_link'] ?? '';
+		$params_json = json_encode($params);
+		$options_json = json_encode($subform_options['actions']['button']['options'] ?? []);
+		if (!empty($subform_options['actions']['button']['confirm'])) {
+			$onclick = "if (confirm('" . strip_tags(i18n(null, \Object\Content\Messages::CONFIRM_CUSTOM, ['replace' => ['[action]' => $subform_options['actions']['button']['label_name']]])) . "')) { Numbers.Form.openSubformWindow('{$temp_collection_link}', '{$temp_collection_screen_link}', '{$this->form_link}', '{$subform_link}', {$params_json}, {$options_json}); }";
+		} else {
+			$onclick = "Numbers.Form.openSubformWindow('{$temp_collection_link}', '{$temp_collection_screen_link}', '{$this->form_link}', '{$subform_link}', {$params_json}, {$options_json});";
+		}
+		// name
+		$name = '';
+		if (!empty($subform_options['actions']['button']['icon'])) {
+			$name.= \HTML::icon(['type' => $subform_options['actions']['button']['icon']]);
+		}
+		if (!empty($subform_options['actions']['button']['label_name'])) {
+			$name.= ' ';
+			$name.= i18n(null, $subform_options['actions']['button']['label_name']);
+		}
+		// title
+		$title = '';
+		if (!empty($subform_options['actions']['button']['title'])) {
+			$title.= i18n(null, $subform_options['actions']['button']['title']);
+		}
+		// for menu
+		if (!empty($options['for_menu'])) {
+			return ['id' => $subform_link, 'href' => 'javascript:void(0);', 'onclick' => $onclick, 'value' => $name, 'title' => $title];
+		} else {
+			return \HTML::a(['id' => $subform_link, 'href' => 'javascript:void(0);', 'onclick' => $onclick . 'return false;', 'value' => $name, 'title' => $title]);
 		}
 	}
 }
