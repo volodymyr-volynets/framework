@@ -198,12 +198,12 @@ class Request {
 	 * @param string $host
 	 * @return string
 	 */
-	public static function buildURL($controller, array $params = [], string $host = '') : string {
+	public static function buildURL($controller, array $params = [], string $host = '', string $anchor = '') : string {
 		if (empty($host)) {
 			$host = \Request::host();
 		}
 		$controller = ltrim($controller, '/');
-		return $host . $controller . '?' . http_build_query2($params);
+		return $host . $controller . '?' . http_build_query2($params) . ($anchor ? ('#' . $anchor) : '');
 	}
 
 	/**
@@ -215,5 +215,15 @@ class Request {
 	 */
 	public static function method() : string {
 		return $_SERVER['REQUEST_METHOD'] ?? 'CONSOLE';
+	}
+
+	/**
+	 * Hash
+	 *
+	 * @param array $options
+	 * @return string
+	 */
+	public static function hash(array $options) : string {
+		return 'hash::' . implode('::', $options);
 	}
 }

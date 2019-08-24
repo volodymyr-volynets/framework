@@ -16,6 +16,9 @@ class Front {
 			'action' => '',
 			'post_action' => [],
 			'id' => 0,
+			'hash_full' => null,
+			'hash_parts' => [],
+			'filename' => '',
 			'controllers' => [],
 		);
 		// remove an extra backslashes from left side
@@ -43,6 +46,14 @@ class Front {
 				continue;
 			}
 			if ($flag_action_found) {
+				if (is_numeric($v)) {
+					$result['id'] = $v;
+				} else if (strpos($v, 'hash::') === 0) {
+					$result['hash_full'] = $v;
+					$result['hash_parts'] = explode('::', $v);
+				} else if (strpos($v, '.html') !== false) {
+					$result['filename'] = urldecode($v);
+				}
 				$result['post_action'][] = $v;
 				continue;
 			}
@@ -53,14 +64,6 @@ class Front {
 			}
 			if (!$flag_action_found) {
 				$result['controllers'][] = $v;
-			} else {
-				$result['post_action'][] = $v;
-			}
-			if ($flag_action_found) {
-				if (is_numeric($v)) {
-					$result['id'] = $v;
-				}
-				$result['post_action'][] = $v;
 			}
 		}
 		// set default values for action and controller
