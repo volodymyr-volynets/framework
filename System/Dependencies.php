@@ -231,7 +231,7 @@ class Dependencies {
 				}
 			}
 			// extra configs
-			if (!empty($data['extra_configs']['warnings'])) {
+			if (!empty($data['extra_configs']['warnings']) && !empty($options['show_warnings'])) {
 				echo "\n";
 				echo \Helper\Cmd::colorString('Additional configuration settings:', 'red') . "\n";
 				foreach ($data['extra_configs']['warnings'] as $k => $v) {

@@ -2,6 +2,8 @@
 
 namespace Object\Data;
 class Types extends \Object\Data {
+	public $module_code = 'NO';
+	public $title = 'N/O Data Types';
 	public $column_key = 'code';
 	public $column_prefix = null; // you must not change it !!!
 	public $columns = [
@@ -14,7 +16,7 @@ class Types extends \Object\Data {
 		'precision' => ['name' => 'Precision', 'type' => 'smallint'],
 		'scale' => ['name' => 'Scale', 'type' => 'smallint'],
 		'sequence' => ['name' => 'Sequence', 'type' => 'boolean', 'default' => 0],
-		'php_type' => ['name' => 'PHP Type', 'type' => 'text', 'default' => 'string', 'options_model' => '\Object\Data_php_types'],
+		'php_type' => ['name' => 'PHP Type', 'type' => 'text', 'default' => 'string', 'options_model' => '\Object\Data\PHP\Types'],
 		// misc settings
 		'format' => ['name' => 'Format', 'type' => 'text'],
 		'format_options' => ['name' => 'Format Params', 'type' => 'mixed'],

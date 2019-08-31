@@ -2,6 +2,8 @@
 
 namespace Object\Table;
 class Indexes extends \Object\Data {
+	public $module_code = 'NO';
+	public $title = 'N/O Object Table Indexes';
 	public $column_key = 'no_table_index_code';
 	public $column_prefix = 'no_table_index_';
 	public $orderby = [];

@@ -2,6 +2,8 @@
 
 namespace Numbers\Framework\Helper\Model\Date;
 class Months extends \Object\Data {
+	public $module_code = 'NO';
+	public $title = 'N/O Date Months';
 	public $column_key = 'id';
 	public $column_prefix = ''; // do not change this
 	public $orderby = [

@@ -2,6 +2,8 @@
 
 namespace Object\Data\Model;
 class Boolean extends \Object\Data {
+	public $module_code = 'NO';
+	public $title = 'N/O Data Boolean';
 	public $column_key = 'no_data_model_boolean_id';
 	public $column_prefix = 'no_data_model_boolean_';
 	public $columns = [

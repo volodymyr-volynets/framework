@@ -2,6 +2,8 @@
 
 namespace Object\Content;
 class Types extends \Object\Data {
+	public $module_code = 'NO';
+	public $title = 'N/O Content Types';
 	public $column_key = 'no_content_type_code';
 	public $column_prefix = 'no_content_type_';
 	public $columns = [

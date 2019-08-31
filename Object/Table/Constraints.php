@@ -2,6 +2,8 @@
 
 namespace Object\Table;
 class Constraints extends \Object\Data {
+	public $module_code = 'NO';
+	public $title = 'N/O Object Table Constraints';
 	public $column_key = 'no_table_constraint_type';
 	public $column_prefix = 'no_table_constraint_';
 	public $orderby = [];

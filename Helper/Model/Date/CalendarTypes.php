@@ -2,6 +2,8 @@
 
 namespace Numbers\Framework\Helper\Model\Date;
 class CalendarTypes extends \Object\Data {
+	public $module_code = 'NO';
+	public $title = 'N/O Date Calendar Types';
 	public $column_key = 'id';
 	public $column_prefix = '';
 	public $orderby = [

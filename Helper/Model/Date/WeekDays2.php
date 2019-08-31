@@ -2,6 +2,8 @@
 
 namespace Numbers\Framework\Helper\Model\Date;
 class WeekDays2 extends \Object\Data {
+	public $module_code = 'NO';
+	public $title = 'N/O Date Week Days (2)';
 	public $column_key = 'id';
 	public $column_prefix = ''; // do not change this
 	public $orderby = [

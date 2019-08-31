@@ -2,6 +2,8 @@
 
 namespace Object\Data\Model;
 class Inactive extends \Object\Data {
+	public $module_code = 'NO';
+	public $title = 'N/O Data Inactive';
 	public $column_key = 'no_data_model_inactive_id';
 	public $column_prefix = 'no_data_model_inactive_';
 	public $columns = [

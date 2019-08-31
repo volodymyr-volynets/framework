@@ -2,6 +2,8 @@
 
 namespace Object\HTML\Form\Row;
 class Types extends \Object\Data {
+	public $module_code = 'NO';
+	public $title = 'N/O Object HTML Form Row Types';
 	public $column_key = 'no_html_form_row_type_code';
 	public $column_prefix = 'no_html_form_row_type_';
 	public $columns = [

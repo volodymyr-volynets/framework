@@ -2,6 +2,8 @@
 
 namespace Object\Table;
 class Widgets extends \Object\Data {
+	public $module_code = 'NO';
+	public $title = 'N/O Object Table Widgets';
 	public $column_key = 'code';
 	public $column_prefix = '';
 	public $columns = [

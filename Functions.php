@@ -1035,30 +1035,32 @@ function chance($percent) {
 	return (mt_rand(0, 99) < $percent);
 }
 
-/**
- * Split multi-byte strings
- *
- * @param string $string
- * @param int $limit
- * @param string $pattern
- * @return array
- */
-function mb_str_split($string, $limit = -1, $pattern = null) {
-	if (isset($pattern)) {
-		return mb_split($pattern, $string, $limit);
-	} else {
-		$result = [];
-		$counter = 0;
-		$strlen = mb_strlen($string);
-		while ($strlen) {
-			$counter++;
-			if ($limit != -1 && $counter > $limit)
-				break;
-			$result[] = mb_substr($string, 0, 1, 'UTF-8');
-			$string = mb_substr($string, 1, $strlen, 'UTF-8');
+if (!function_exists('mb_str_split')) {
+	/**
+	 * Split multi-byte strings
+	 *
+	 * @param string $string
+	 * @param int $limit
+	 * @param string $pattern
+	 * @return array
+	 */
+	function mb_str_split($string, $limit = -1, $pattern = null) {
+		if (isset($pattern)) {
+			return mb_split($pattern, $string, $limit);
+		} else {
+			$result = [];
+			$counter = 0;
 			$strlen = mb_strlen($string);
+			while ($strlen) {
+				$counter++;
+				if ($limit != -1 && $counter > $limit)
+					break;
+				$result[] = mb_substr($string, 0, 1, 'UTF-8');
+				$string = mb_substr($string, 1, $strlen, 'UTF-8');
+				$strlen = mb_strlen($string);
+			}
+			return $result;
 		}
-		return $result;
 	}
 }
 

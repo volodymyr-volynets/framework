@@ -2,6 +2,8 @@
 
 namespace Object\Magic;
 class Variables extends \Object\Data {
+	public $module_code = 'NO';
+	public $title = 'N/O Object Magic Variables';
 	public $column_key = 'no_magic_variable_name';
 	public $column_prefix = 'no_magic_variable_';
 	public $columns = [

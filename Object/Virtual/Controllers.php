@@ -2,6 +2,8 @@
 
 namespace Object\Virtual;
 class Controllers extends \Object\Data {
+	public $module_code = 'NO';
+	public $title = 'N/O Object Virtual Controllers';
 	public $column_key = 'no_virtual_controller_code';
 	public $column_prefix = 'no_virtual_controller_';
 	public $columns = [

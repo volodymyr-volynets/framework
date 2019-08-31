@@ -1603,7 +1603,7 @@ processAllValues:
 		}
 otherFormSubmitted:
 		// we need to start transaction
-		if (!empty($this->collection_object) && $this->submitted && !in_array($this->initiator_class, ['import', 'list', 'report'])) {
+		if (!empty($this->collection_object) && empty($this->collection['skip_transaction']) && $this->submitted && !in_array($this->initiator_class, ['import', 'list', 'report'])) {
 			$this->collection_object->primary_model->db_object->begin();
 			$this->transaction = true;
 		}
@@ -3122,6 +3122,10 @@ convertMultipleColumns:
 			'pk' => $this->pk,
 			'values' => $this->values,
 			'values_loaded' => $this->values_loaded,
+			'values_saved' => $this->values_saved,
+			'values_inserted' => $this->values_inserted,
+			'values_updated' => $this->values_updated,
+			'values_no_changes' => $this->values_no_changes,
 			'new_serials' => $this->new_serials
 		];
 		if ($this->hasErrors()) {

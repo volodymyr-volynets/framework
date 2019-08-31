@@ -2,6 +2,8 @@
 
 namespace Object\Table;
 class Columns extends \Object\Data {
+	public $module_code = 'NO';
+	public $title = 'N/O Object Table Columns';
 	public $column_key = 'code';
 	public $column_prefix = null; // must not change it
 	public $orderby = [];

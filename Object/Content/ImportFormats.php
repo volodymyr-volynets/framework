@@ -2,6 +2,8 @@
 
 namespace Object\Content;
 class ImportFormats extends \Object\Data {
+	public $module_code = 'NO';
+	public $title = 'N/O Content Import Formats';
 	public $column_key = 'format';
 	public $column_prefix = '';
 	public $columns = [

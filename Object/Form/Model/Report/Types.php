@@ -2,6 +2,8 @@
 
 namespace Object\Form\Model\Report;
 class Types extends \Object\Data {
+	public $module_code = 'NO';
+	public $title = 'N/O Form Report Types';
 	public $column_key = 'no_report_content_type_code';
 	public $column_prefix = 'no_report_content_type_';
 	public $orderby = ['no_report_content_type_order' => SORT_ASC];

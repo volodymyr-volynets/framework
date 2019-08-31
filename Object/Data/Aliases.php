@@ -2,6 +2,8 @@
 
 namespace Object\Data;
 class Aliases extends \Object\Data {
+	public $module_code = 'NO';
+	public $title = 'N/O Data Aliases';
 	public $column_key = 'no_data_alias_code';
 	public $column_prefix = 'no_data_alias_';
 	public $orderby = ['no_data_alias_name' => SORT_ASC];

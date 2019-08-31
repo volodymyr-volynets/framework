@@ -10,7 +10,7 @@ class Bootstrap {
 		mb_internal_encoding('UTF-8');
 		mb_regex_encoding('UTF-8');
 		// if we are from command line we exit here
-		if (!empty($options['__run_only_bootstrap'])) {
+		if (!empty($options['__run_only_bootstrap']) && $options['__run_only_bootstrap'] == 1) {
 			// format
 			\Format::init();
 			return;

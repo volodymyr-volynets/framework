@@ -2,6 +2,8 @@
 
 namespace Object\HTML;
 class Button extends \Object\Data {
+	public $module_code = 'NO';
+	public $title = 'N/O Object HTML Button';
 	public $column_key = 'no_type_html_button_code';
 	public $column_prefix = 'no_type_html_button_';
 	public $columns = [

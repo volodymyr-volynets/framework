@@ -2,6 +2,8 @@
 
 namespace Object\Content;
 class ExportFormats extends \Object\Data {
+	public $module_code = 'NO';
+	public $title = 'N/O Content Export Formats';
 	public $column_key = 'format';
 	public $column_prefix = '';
 	public $columns = [

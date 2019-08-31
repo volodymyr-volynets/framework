@@ -2,6 +2,8 @@
 
 namespace Object\Controller\Model;
 class UsageCodes extends \Object\Data {
+	public $module_code = 'NO';
+	public $title = 'N/O Controller Usage Codes';
 	public $column_key = 'code';
 	public $column_prefix = '';
 	public $columns = [

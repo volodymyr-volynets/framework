@@ -2,6 +2,8 @@
 
 namespace Object\Data\PHP;
 class Types extends \Object\Data {
+	public $module_code = 'NO';
+	public $title = 'N/O Data PHP Types';
 	public $column_key = 'code';
 	public $column_prefix = null; // you must not change it !!!
 	public $columns = [

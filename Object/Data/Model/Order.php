@@ -2,6 +2,8 @@
 
 namespace Object\Data\Model;
 class Order extends \Object\Data {
+	public $module_code = 'NO';
+	public $title = 'N/O Data Order';
 	public $column_key = 'no_data_model_order_id';
 	public $column_prefix = 'no_data_model_order_';
 	public $columns = [

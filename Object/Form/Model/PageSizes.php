@@ -2,6 +2,8 @@
 
 namespace Numbers\Framework\Object\Form\Model;
 class PageSizes extends \Object\Data {
+	public $module_code = 'NO';
+	public $title = 'N/O Form Page Sizes';
 	public $column_key = 'number';
 	public $column_prefix = '';
 	public $orderby = ['number' => SORT_ASC];
