@@ -71,6 +71,11 @@ abstract class Collection {
 	const MAIN_ROW = '__collection_main_row';
 
 	/**
+	 * Search row
+	 */
+	const SEARCH_ROW = '__collection_search_row';
+
+	/**
 	 * Widgets row
 	 */
 	const WIDGETS_ROW = '__collection_widgets_row';

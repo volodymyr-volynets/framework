@@ -442,9 +442,11 @@ end_of_loop:
  *
  * @param type $str
  * @param string $type
+ * @param array $options
+ *	boolean remove_white_spaces
  * @return string
  */
-function sanitize_string_tags($str, string $type = 'all') : string {
+function sanitize_string_tags($str, string $type = 'all', array $options = []) : string {
 	switch ($type) {
 		case 'script_only':
 			return preg_replace('/<script[^>]*?.*?<\/script>/siu', ' ', $str . '');
@@ -455,7 +457,14 @@ function sanitize_string_tags($str, string $type = 'all') : string {
 			$str = str_replace('&nbsp;', ' ', $str);
 			$str = str_replace('&amp;', '&', $str);
 	}
-	return strip_tags($str);
+	if (empty($options['remove_white_spaces'])) {
+		return strip_tags($str);
+	} else {
+		$result = strip_tags($str);
+		$result = str_replace(["\n", "\t"], ' ', $result);
+		$result = preg_replace('/\s\s+/', ' ', $result);
+		return $result;
+	}
 }
 
 /**

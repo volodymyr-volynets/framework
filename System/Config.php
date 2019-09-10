@@ -11,9 +11,11 @@ class Config {
 	 *
 	 * @param string $ini_file
 	 * @param string $environment
+	 * @param array $options
+	 *	boolean simple_keys
 	 * @return array
 	 */
-	public static function ini(string $ini_file, $environment = null) : array {
+	public static function ini(string $ini_file, $environment = null, array $options = []) : array {
 		$result = [];
 		$data = parse_ini_file($ini_file, true);
 		// processing environment
@@ -30,7 +32,11 @@ class Config {
 		// processing dependencies first
 		if (!empty($data['dependencies'])) {
 			foreach ($data['dependencies'] as $k => $v) {
-				array_key_set($result, $k, $v);
+				if (empty($options['simple_keys'])) {
+					array_key_set($result, $k, $v);
+				} else {
+					$result[$k] = $v;
+				}
 			}
 		}
 		unset($data['dependencies']);
@@ -38,8 +44,12 @@ class Config {
 		foreach ($data as $section => $values) {
 			$sections = explode(',', $section);
 			if (empty($values) || (!in_array($environment, $sections) && !in_array('*', $sections))) continue;
-			foreach ($values as $k=>$v) {
-				array_key_set($result, $k, $v);
+			foreach ($values as $k => $v) {
+				if (empty($options['simple_keys'])) {
+					array_key_set($result, $k, $v);
+				} else {
+					$result[$k] = $v;
+				}
 			}
 		}
 		return $result;

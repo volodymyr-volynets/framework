@@ -14,13 +14,21 @@ class Parser {
 	 * @param string $str
 	 * @param string $start
 	 * @param string $end
+	 * @param array $options
+	 *	boolean all
 	 * @return boolean|string
 	 */
-	public static function match(string $str, string $start, string $end) {
+	public static function match(string $str, string $start, string $end, array $options = []) {
 		$start = preg_quote($start);
 		$end = preg_quote($end);
-		if (preg_match('/' . $start . '(.*)' . $end . '/', $str, $matches)) {
-			return $matches[1] . '';
+		if (empty($options['all'])) {
+			if (preg_match('/' . $start . '(.*)' . $end . '/', $str, $matches)) {
+				return $matches[1] . '';
+			}
+		} else {
+			if (preg_match_all('/' . $start . '(.*)' . $end . '/', $str, $matches)) {
+				return $matches[1];
+			}
 		}
 		return false;
 	}
