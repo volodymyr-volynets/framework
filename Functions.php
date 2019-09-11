@@ -1271,3 +1271,17 @@ function array_iterate_recursive_get_keys(array $arr, array & $result, array $pa
 function split_on_uppercase(string $str): array {
 	return preg_split('/(?=[A-Z])/', $str, -1, PREG_SPLIT_NO_EMPTY);
 }
+
+/**
+ * Opposite to nl2br
+ *
+ * @param string $str
+ * @return string
+ */
+function br2nl($str, bool $oposite = false) : string {
+	if ($oposite) {
+		return str_replace(["\n", "\r"], ['<br />', ''], $str . '');
+	} else {
+		return str_replace(['<br />', '<br/>', '<br>'], "\n", $str . '');
+	}
+}

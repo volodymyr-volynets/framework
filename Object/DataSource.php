@@ -220,7 +220,7 @@ class DataSource extends \Object\Table\Options {
 		}
 		if (isset($query_settings['columns'])) $this->query->columns($query_settings['columns']);
 		if (isset($query_settings['limit'])) $this->query->limit($query_settings['limit']);
-		if (isset($query_settings['orderby'])) $this->query->limit($query_settings['orderby']);
+		if (isset($query_settings['orderby'])) $this->query->orderby($query_settings['orderby']);
 		if (!empty($query_settings['single_row']) || !empty($query_settings['single_value'])) $this->query->limit(1);
 		// fix variables
 		$query_settings['pk'] = $query_settings['pk'] ?? null;

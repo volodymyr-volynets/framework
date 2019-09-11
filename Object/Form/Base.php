@@ -726,6 +726,16 @@ class Base extends \Object\Form\Parent2 {
 					}
 				}
 			}
+			// if we need to reset
+			if ($this->initiator_class == 'list' || $this->initiator_class == 'report') {
+				if (!empty($v['options']['options_depends'])) {
+					foreach ($v['options']['options_depends'] as $v78) {
+						if (($this->misc_settings['__form_onchange_field_values_key'][0] ?? '') == $v78) {
+							$value = null;
+						}
+					}
+				}
+			}
 			// put into values
 			array_key_set($this->values, $v['options']['values_key'], $value);
 			// options_model validation
@@ -3238,6 +3248,10 @@ convertMultipleColumns:
 					$params[$k] = array_extract_values_by_key($neighbouring_values[$v] ?? [], $this->fields[$v]['options']['multiple_column']);
 				} else {
 					$params[$k] = $neighbouring_values[$v] ?? null;
+				}
+				// we need to unset empty parameters
+				if (isset($params[$k]) && empty($params[$k])) {
+					unset($params[$k]);
 				}
 			}
 		}

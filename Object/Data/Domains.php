@@ -41,6 +41,7 @@ class Domains extends \Object\Data {
 		'type_code' => ['name' => 'Type Code', 'type' => 'varchar', 'length' => 15, 'validator_method' => '\Object\Validator\UpperCase::validate', 'placeholder' => 'Type'],
 		'group_code' => ['name' => 'Group Code', 'type' => 'varchar', 'length' => 30, 'validator_method' => '\Object\Validator\UpperCase::validate'],
 		'token' => ['name' => 'Token', 'type' => 'varchar', 'length' => 255],
+		'hash' => ['name' => 'Hash', 'type' => 'varchar', 'length' => 255],
 		'status_one' => ['name' => 'Status (1)', 'type' => 'char', 'length' => 1],
 		'status_two' => ['name' => 'Status (2)', 'type' => 'char', 'length' => 2],
 		'promocode' => ['name' => 'Promocode', 'type' => 'varchar', 'length' => 255],

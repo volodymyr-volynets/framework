@@ -82,6 +82,7 @@ class cURL {
 			curl_setopt($ch[$k], CURLOPT_URL, $v['url']);
 			curl_setopt($ch[$k], CURLOPT_HEADER, 0);
 			curl_setopt($ch[$k], CURLOPT_RETURNTRANSFER, 1);
+			curl_setopt($ch[$k], CURLOPT_SSL_VERIFYPEER, false);
 			// add handles
 			curl_multi_add_handle($mh, $ch[$k]);
 		}
@@ -89,11 +90,14 @@ class cURL {
 		// execute the handles
 		do {
 			$status = curl_multi_exec($mh, $active);
+			if ($active) {
+				curl_multi_select($mh);
+			}
 			// check for errors
 			if ($status > 0) {
 				$result['error'][] = curl_multi_strerror($status);
 			}
-		} while ($status === CURLM_CALL_MULTI_PERFORM || $active);
+		} while ($active && $status == CURLM_OK);
 		// close the handles
 		foreach ($ch as $k => $v) {
 			$result['data'][$k] = curl_multi_getcontent($v); // get the content
