@@ -290,6 +290,7 @@ class Controller {
 					case 'Edit': $action = 'Record_View'; break;
 					case 'Index': $action = 'List_View'; break;
 					case 'Activate': $action = 'Activate_Data'; break;
+					case 'Import': $action = 'Import_Records'; break;
 					// if we need to alter menu name
 					case 'JsonMenuName':
 					case 'JsonMenuName2':

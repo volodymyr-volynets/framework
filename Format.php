@@ -973,4 +973,31 @@ class Format {
 	public static function encode($value) : string {
 		return htmlentities($value);
 	}
+
+	/**
+	 * Phone
+	 *
+	 * @param string|number $value
+	 * @return string
+	 */
+	public static function phone($value) : string {
+		$value = preg_replace('/[^0-9]/', '', $value . '');
+		if (strlen($value) > 10) {
+			$country = substr($value, 0, strlen($value) - 10);
+			$area = substr($value, -10, 3);
+			$next = substr($value, -7, 3);
+			$last = substr($value, -4, 4);
+			$value = '+' . $country . ' (' . $area . ') ' . $next . '-' . $last;
+		} else if (strlen($value) == 10) {
+			$area = substr($value, 0, 3);
+			$next = substr($value, 3, 3);
+			$last = substr($value, 6, 4);
+			$value = '(' . $area . ') ' . $next . '-' . $last;
+		} else if (strlen($value) == 7) {
+			$next = substr($value, 0, 3);
+			$last = substr($value, 3, 4);
+			$value = $next . '-' . $last;
+		}
+		return $value;
+	}
 }

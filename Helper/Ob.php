@@ -36,4 +36,16 @@ class Ob {
 		}
 		return $result;
 	}
+
+	/**
+	 * Require file
+	 *
+	 * @param string $filename
+	 * @return string
+	 */
+	public static function require(string $filename) : string {
+		ob_start();
+		require($filename);
+		return ob_get_clean();
+	}
 }
