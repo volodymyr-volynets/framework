@@ -3221,7 +3221,7 @@ convertMultipleColumns:
 	 * @return mixed
 	 */
 	public function getFieldErrors($field) {
-		$existing = array_key_get($this->errors['fields'], $field['options']['name']);
+		$existing = $this->errors['fields'][$field['options']['name']] ?? null;
 		if (!empty($existing)) {
 			$result = [
 				'type' => null,

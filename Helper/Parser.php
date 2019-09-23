@@ -43,4 +43,62 @@ class Parser {
 		preg_match_all(self::REGEXP_EMAIL, $str, $matches);
 		return $matches[0] ?? false;
 	}
+
+	/**
+	 * Extract sentances
+	 *
+	 * @param string $keywords
+	 * @param string $str
+	 * @param int $number
+	 * @return array
+	 */
+	public static function extractSentances(string $keywords, string $str, int $number = 3, int $length = 120) : array {
+		$result = [];
+		if (empty($str)) {
+			return $result;
+		}
+		$i = 1;
+		do {
+			$temp = self::firstWord($keywords, $str);
+			if ($temp == null) {
+				if (empty($result)) {
+					$result[] = mb_substr($str, 0, $length) . '...';
+				}
+				return $result;
+			}
+			if ($temp < 40) {
+				$result[] = mb_substr($str, 0, $length) . '...';
+				$str = mb_substr($str, $length);
+			} else {
+				$result[] = '...' . mb_substr($str, $temp - 40, $length) . '...';
+				$str = '...' . mb_substr($str, $temp - 40 + $length);
+			}
+			$i++;
+		} while ($i <= $number);
+		return $result;
+	}
+
+	/**
+	 * First word
+	 *
+	 * @param string $keywords
+	 * @param type $str
+	 * @return int|null
+	 */
+	public static function firstWord(string $keywords, $str) {
+		$keywords = preg_replace('/\s\s+/', ' ', $keywords);
+		$keywords = explode(' ', $keywords);
+		$start = null;
+		foreach ($keywords as $v) {
+			$temp = stripos($str, $v);
+			if ($temp !== false) {
+				if ($start == null) {
+					$start = $temp;
+				} else if ($start > $temp) {
+					$start = $temp;
+				}
+			}
+		}
+		return $start;
+	}
 }
