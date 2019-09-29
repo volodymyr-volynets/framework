@@ -112,6 +112,10 @@ class Domains extends \Object\Data {
 		'page_id_sequence' => ['name' => 'Page #', 'type' => 'bigserial', 'placeholder' => 'Sequence'],
 		'fragment_id' => ['name' => 'Fragment #', 'type' => 'bigint', 'default' => null, 'format' => 'id', 'placeholder' => 'Fragment'],
 		'fragment_id_sequence' => ['name' => 'Fragment #', 'type' => 'bigserial', 'placeholder' => 'Sequence'],
+		'system_id' => ['name' => 'System #', 'type' => 'bigint', 'default' => null, 'placeholder' => 'System', 'format' => 'id', 'searchable' => true],
+		'system_id_sequence' => ['name' => 'System #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id', 'searchable' => true],
+		'server_id' => ['name' => 'Server #', 'type' => 'bigint', 'default' => null, 'placeholder' => 'Server', 'format' => 'id', 'searchable' => true],
+		'server_id_sequence' => ['name' => 'Server #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id', 'searchable' => true],
 		// Country Management
 		'country_code' => ['name' => 'Country Code', 'type' => 'char', 'length' => 2, 'validator_method' => '\Object\Validator\UpperCase::validate', 'placeholder' => 'Country', 'searchable' => true],
 		'country_code3' => ['name' => 'Country Code (3)', 'type' => 'char', 'length' => 3, 'validator_method' => '\Object\Validator\UpperCase::validate'],

@@ -45,6 +45,13 @@ class Import {
 	private $alias_data;
 
 	/**
+	 * Module #
+	 *
+	 * @var int
+	 */
+	private $module_id;
+
+	/**
 	 * Constructor
 	 *
 	 * @param array $options
@@ -53,6 +60,9 @@ class Import {
 		$this->options = $options;
 		$this->alias_object = new \Object\Data\Aliases();
 		$this->alias_data = $this->alias_object->get();
+		if (!empty($options['module_id'])) {
+			$this->module_id = $options['module_id'];
+		}
 	}
 
 	/**
@@ -154,6 +164,11 @@ class Import {
 						if (strpos($v3, '::id::') === 0) {
 							$temp = $this->findAliasedValue($k3, $v3);
 							if ($temp !== false) $v2[$k3] = $temp;
+							continue;
+						}
+						// if we need id
+						if (strpos($v3, '::module_id::') === 0) {
+							$v2[$k3] = $this->module_id;
 							continue;
 						}
 						// from columns
