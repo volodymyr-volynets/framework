@@ -73,7 +73,7 @@ class Tree {
 	 * @param array $options
 	 * @param array $result
 	 */
-	public static function convertTreeToOptionsMulti($data, $level = 0, $options = [], & $result) {
+	public static function convertTreeToOptionsMulti($data, $level = 0, $options = [], & $result, $parent_keys = []) {
 		if (empty($options['name_field'])) $options['name_field'] = 'name';
 		if (!isset($options['i18n'])) $options['i18n'] = true;
 		// skip_keys - convert to array
@@ -117,10 +117,18 @@ class Tree {
 			if (!empty($options['disabled_field'])) {
 				$value['disabled'] = !empty($v[$options['disabled_field']]);
 			}
-			$result[$k] = $value;
+			if (!empty($options['prepend_parent_keys'])) {
+				$parent_keys2 = $parent_keys;
+				$parent_keys2[] = $k;
+				$result[implode('::', $parent_keys2)] = $value;
+			} else {
+				$result[$k] = $value;
+			}
 			// if we have options
 			if (!empty($v['options'])) {
-				self::convertTreeToOptionsMulti($v['options'], $level + 1, $options, $result);
+				$parent_keys2 = $parent_keys;
+				$parent_keys2[] = $k;
+				self::convertTreeToOptionsMulti($v['options'], $level + 1, $options, $result, $parent_keys2);
 			}
 		}
 	}

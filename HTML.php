@@ -319,6 +319,9 @@ class HTML {
 		if (!empty($options['color_picker'])) {
 			$options['color_picker'] = 'color_picker';
 		}
+		if (!empty($options['search_first'])) {
+			$options['search_first'] = 'search_first';
+		}
 		return Factory::delegate('flag.numbers.framework.html', 'select', [$options]);
 	}
 

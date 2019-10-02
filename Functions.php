@@ -687,8 +687,9 @@ function array_key_get(& $arr, $keys = null, $options = []) {
 		$last = array_pop($key);
 		$pointer = & $arr;
 		foreach ($key as $k2) {
-			if (!isset($pointer[$k2]))
+			if (!isset($pointer[$k2])) {
 				return null;
+			}
 			$pointer = & $pointer[$k2];
 		}
 		if (isset($pointer[$last])) {

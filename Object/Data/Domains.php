@@ -116,6 +116,19 @@ class Domains extends \Object\Data {
 		'system_id_sequence' => ['name' => 'System #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id', 'searchable' => true],
 		'server_id' => ['name' => 'Server #', 'type' => 'bigint', 'default' => null, 'placeholder' => 'Server', 'format' => 'id', 'searchable' => true],
 		'server_id_sequence' => ['name' => 'Server #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id', 'searchable' => true],
+		'change_request_id' => ['name' => 'Change Request #', 'type' => 'bigint', 'default' => null, 'placeholder' => 'Change Request', 'format' => 'id', 'searchable' => true],
+		'change_request_id_sequence' => ['name' => 'Change Request #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id', 'searchable' => true],
+		'board_id' => ['name' => 'Board #', 'type' => 'bigint', 'default' => null, 'placeholder' => 'Board', 'format' => 'id', 'searchable' => true],
+		'board_id_sequence' => ['name' => 'Board #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id', 'searchable' => true],
+		'lane_id' => ['name' => 'Lane #', 'type' => 'bigint', 'default' => null, 'placeholder' => 'Lane', 'format' => 'id', 'searchable' => true],
+		'lane_id_sequence' => ['name' => 'Lane #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id', 'searchable' => true],
+		'position' => ['name' => 'Position', 'type' => 'integer', 'default' => 0, 'format' => 'id', 'placeholder' => 'Position'],
+		'cols' => ['name' => 'Columns', 'type' => 'integer', 'default' => 0, 'format' => 'id', 'placeholder' => 'Column'],
+		'rows' => ['name' => 'Rows', 'type' => 'integer', 'default' => 0, 'format' => 'id', 'placeholder' => 'Row'],
+		// BI
+		'datasource_id' => ['name' => 'Data Source #', 'type' => 'bigint', 'default' => null, 'placeholder' => 'Data Source', 'format' => 'id', 'searchable' => true],
+		'datasource_id_sequence' => ['name' => 'Data Source #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id', 'searchable' => true],
+		'sql_query' => ['name' => 'SQL Query', 'type' => 'varchar', 'length' => 5000, 'placeholder' => 'SQL Query'],
 		// Country Management
 		'country_code' => ['name' => 'Country Code', 'type' => 'char', 'length' => 2, 'validator_method' => '\Object\Validator\UpperCase::validate', 'placeholder' => 'Country', 'searchable' => true],
 		'country_code3' => ['name' => 'Country Code (3)', 'type' => 'char', 'length' => 3, 'validator_method' => '\Object\Validator\UpperCase::validate'],
@@ -251,6 +264,8 @@ class Domains extends \Object\Data {
 		'percent_float' => ['name' => 'Percent (Float)', 'type' => 'bcnumeric', 'precision' => 24, 'scale' => 2, 'default' => 0, 'format' => 'id', 'placeholder' => 'Percent (%)', 'default' => '0.00', 'format' => 'number', 'align' => 'right'],
 		'unit_price' => ['name' => 'Unit Price', 'type' => 'bcnumeric', 'precision' => 24, 'scale' => 4, 'default' => '0.0000', 'format' => 'unitPrice', 'align' => 'right'],
 		// Accounting
+		'classification_id' => ['name' => 'Classification #', 'type' => 'integer', 'default' => null, 'format' => 'id', 'placeholder' => 'Classification'],
+		'classification_id_sequence' => ['name' => 'Classification #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'customer_id' => ['name' => 'Customer #', 'type' => 'bigint', 'default' => null, 'placeholder' => 'Customer', 'format' => 'id'],
 		'customer_id_sequence' => ['name' => 'Customer #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'vendor_id' => ['name' => 'Vendor #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Vendor', 'format' => 'id'],
