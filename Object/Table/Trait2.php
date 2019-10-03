@@ -113,7 +113,7 @@ trait Trait2 {
 			'pk' => $pk
 		])->select();
 		// if we came from options
-		if (!empty($options['__options'])) {
+		if (!empty($options['__options']) && empty($options['__preset'])) {
 			$columns = array_merge($options['pk'], array_keys($options['options_map']));
 			$query->columns($columns);
 		}

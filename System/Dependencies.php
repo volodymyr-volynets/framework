@@ -347,7 +347,7 @@ class Dependencies {
 				$xml.= '<phpunit bootstrap="../../../libraries/vendor/Numbers/Framework/System/Managers/UnitTests.php">';
 					$xml.= '<testsuites>';
 						foreach ($data['unit_tests'] as $k => $v) {
-							$xml.= '<testsuite name="' . $k . '">';
+							$xml.= '<testsuite name="SkipMeNow\\' . $k . '">';
 								foreach (\Helper\File::iterate($v, ['recursive' => true, 'only_extensions' => ['php']]) as $v2) {
 									$xml.= '<file>../../' . $v2 . '</file>';
 								}

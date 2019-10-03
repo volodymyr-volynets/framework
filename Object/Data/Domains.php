@@ -310,6 +310,17 @@ class Domains extends \Object\Data {
 		'invoice_id' => ['name' => 'Invoice #', 'type' => 'integer', 'format' => 'id', 'placeholder' => 'Invoice #'],
 		'invoice_id_sequence' => ['name' => 'Invoice #', 'type' => 'serial', 'format' => 'id', 'placeholder' => 'Sequence'],
 		'tax_amount' => ['name' => 'Tax Amount', 'type' => 'bcnumeric', 'precision' => 24, 'scale' => 2, 'default' => '0.00', 'format' => 'amount', 'align' => 'right'],
+		'budget_id' => ['name' => 'Budget #', 'type' => 'integer', 'format' => 'id', 'placeholder' => 'Budget'],
+		'budget_id_sequence' => ['name' => 'Budget #', 'type' => 'serial', 'format' => 'id', 'placeholder' => 'Sequence'],
+		'detail_id' => ['name' => 'Detail #', 'type' => 'integer', 'format' => 'id', 'placeholder' => 'Detail'],
+		'revaluation_id' => ['name' => 'Revaluation #', 'type' => 'integer', 'format' => 'id', 'placeholder' => 'Revaluation'],
+		'revaluation_id_sequence' => ['name' => 'Revaluation #', 'type' => 'serial', 'format' => 'id', 'placeholder' => 'Sequence'],
+		'allocation_id' => ['name' => 'Allocation #', 'type' => 'integer', 'format' => 'id', 'placeholder' => 'Allocation'],
+		'allocation_id_sequence' => ['name' => 'Allocation #', 'type' => 'serial', 'format' => 'id', 'placeholder' => 'Sequence'],
+		'entry_id' => ['name' => 'Entry #', 'type' => 'bigint', 'format' => 'id', 'placeholder' => 'Entry'],
+		'entry_id_sequence' => ['name' => 'Entry #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id'],
+		'batch_id' => ['name' => 'Batch #', 'type' => 'bigint', 'format' => 'id', 'placeholder' => 'Batch'],
+		'batch_id_sequence' => ['name' => 'Batch #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		// HTML
 		'html_color_code' => ['name' => 'HTML Color Code', 'type' => 'char', 'length' => 6, 'null' => true],
 		'html_color_group' => ['name' => 'HTML Color Group', 'type' => 'varchar', 'length' => 30, 'null' => true]

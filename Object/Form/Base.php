@@ -2959,6 +2959,12 @@ convertMultipleColumns:
 				$options = $temp['options'];
 				$options['row_link'] = $row_link;
 				$options['container_link'] = $container_link;
+				// default = null for integers
+				if ($this->initiator_class == 'list' || $this->initiator_class == 'report') {
+					if ($options['php_type'] == 'integer' && ($options['default'] ?? null) == 0 && !empty($options['null'])) {
+						$options['default'] = null;
+					}
+				}
 				// fixes for list container
 				if ($this->initiator_class == 'list' && $container_link == self::LIST_CONTAINER) {
 					// add manual validation

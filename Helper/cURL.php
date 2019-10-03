@@ -4,6 +4,11 @@ namespace Helper;
 class cURL {
 
 	/**
+	 * User agent
+	 */
+	const USERAGENT = "Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.1)";
+
+	/**
 	 * Post
 	 *
 	 * @param string $url
@@ -21,6 +26,7 @@ class cURL {
 		curl_setopt($ch, CURLOPT_POST, 1);
 		curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query2($options['params']));
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+		curl_setopt($ch, CURLOPT_USERAGENT, self::USERAGENT);
 		$result['data'] = curl_exec($ch);
 		if (!empty($options['json'])) {
 			$result['data'] = json_decode($result['data'], true);
@@ -43,15 +49,18 @@ class cURL {
 			'error' => [],
 			'data' => null
 		];
-		if (strpos($url, '?') !== false) {
-			$url.= '&';
-		} else {
-			$url.= '?';
+		if (!empty($options['params'])) {
+			if (strpos($url, '?') !== false) {
+				$url.= '&';
+			} else {
+				$url.= '?';
+			}
+			$url.= http_build_query2($options['params']);
 		}
-		$url.= http_build_query2($options['params']);
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, $url);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+		curl_setopt($ch, CURLOPT_USERAGENT, self::USERAGENT);
 		$result['data'] = curl_exec($ch);
 		if (!empty($options['json'])) {
 			$result['data'] = json_decode($result['data'], true);

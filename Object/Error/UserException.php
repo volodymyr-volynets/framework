@@ -1,6 +1,7 @@
 <?php
 
 namespace Object\Error;
+
 class UserException extends \Exception {
 
 	/**
@@ -10,8 +11,8 @@ class UserException extends \Exception {
 	 * @param int $code
 	 * @param \Exception $previous
 	 */
-    public function __construct(string $message, int $code = 0, \Exception $previous = null) {
+	public function __construct(string $message, int $code = 0, \Exception $previous = null) {
 		// call parent constructor
 		parent::__construct($message, $code, $previous);
-    }
+	}
 }

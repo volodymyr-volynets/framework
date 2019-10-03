@@ -288,7 +288,8 @@ class Debug {
 									$result.= '<th>Affected Rows</th>';
 								$result.= '</tr>';
 								$result.= '<tr>';
-									$result.= '<td valign="top">' . implode('<br/>', $v['error']) . ' - ' . implode('<br/>', $v['error_original'] ?? []) . '</td>';
+									$error_label = !empty($v['error']) ? '[sql error] ' : '';
+									$result.= '<td valign="top">' . $error_label . implode('<br/>', $v['error']) . ' - ' . implode('<br/>', $v['error_original'] ?? []) . '</td>';
 									$result.= '<td valign="top">' . $v['errno'] . '</td>';
 									$result.= '<td valign="top">' . $v['num_rows'] . '</td>';
 									$result.= '<td valign="top">' . $v['affected_rows'] . '</td>';

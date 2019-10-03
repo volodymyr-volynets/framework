@@ -22,7 +22,10 @@ class Media {
 			$temp = str_replace('/numbers/media_submodules/', '', $filename);
 			$temp = str_replace('_', '/', $temp);
 			if (strpos($temp, 'Numbers') === 0) {
-				$filename = './../libraries/vendor/' . $temp;
+				$filename = './../libraries/private/' . $temp;
+				if (!file_exists($filename)) {
+					$filename = './../libraries/vendor/' . $temp;
+				}
 			} else {
 				$filename = './../libraries/private/' . $temp;
 			}
@@ -67,8 +70,9 @@ class Media {
 			}
 		} else { // other files that exist on file system
 			$mime = mime_content_type($filename);
-			header('Content-type: text/css');
+			header('Content-type: ' . $mime);
 			echo file_get_contents($filename);
+			exit;
 		}
 	}
 }

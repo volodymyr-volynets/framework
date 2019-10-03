@@ -214,7 +214,7 @@ class Application {
 	 */
 	public static function autoloader($class) {
 		$class = ltrim($class, '\\');
-		if (class_exists($class, false) || interface_exists($class, false)) {
+		if (class_exists($class, false) || interface_exists($class, false) || strpos($class, 'SkipMeNow') === 0) {
 			return;
 		}
 		$whitelisted = ['Memcached', 'PHPUnit', 'Symfony'];
