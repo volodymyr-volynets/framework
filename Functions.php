@@ -532,8 +532,9 @@ function array_to_field(array $arr): string {
  * @return array
  */
 function array_change_key_name(array $arr, $old_key, $new_key): array {
-	if (!array_key_exists($old_key, $arr))
+	if (!array_key_exists($old_key, $arr)) {
 		return $arr;
+	}
 	$keys = array_keys($arr);
 	$keys[array_search($old_key, $keys)] = $new_key;
 	return array_combine($keys, $arr);

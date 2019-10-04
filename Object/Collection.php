@@ -717,7 +717,7 @@ error:
 			'skip_type_validation' => $options['skip_type_validation'] ?? false
 		]);
 		// step 2 process row
-		$delete = $update = $audit = $audit_details = $pk = [];
+		$delete = $update = $update2 = $audit = $audit_details = $pk = [];
 		$action = null;
 		if (!empty($options['flag_delete_row']) || empty($data_row)) { // if we delete
 			// if we have data
@@ -736,11 +736,16 @@ error:
 			// process who columns
 			$model->processWhoColumns(['inserted', 'optimistic_lock'], $data_row_final, $this->timestamp);
 			// handle serial types, empty only
+			$data_row_final2 = $data_row_final;
 			foreach ($model->columns as $k => $v) {
 				if (strpos($v['type'], 'serial') !== false && empty($v['null']) && empty($data_row_final[$k])) {
 					$tenant = $model->tenant ? \Tenant::id() : null;
 					$module = $model->module ? $data_row_final[$model->module_column] : null;
-					$result['new_serials'][$k] = $data_row_final[$k] = $model->sequence($k, 'nextval', $tenant, $module);
+					$result['new_serials'][$k] = $data_row_final2[$k] = $data_row_final[$k] = $model->sequence($k, 'nextval', $tenant, $module);
+				}
+				// bytea
+				if ($v['type'] == 'bytea' && strpos($k, ';bytea') === false && !empty($data_row_final[$k])) {
+					$data_row_final = array_change_key_name($data_row_final, $k, $k . ';;bytea');
 				}
 			}
 			$temp = $this->primary_model->db_object->insert($model->full_table_name, [$data_row_final], null);
@@ -757,14 +762,17 @@ error:
 			$pk = extract_keys($collection['pk'], $data_row_final);
 			// audit
 			$action = 'insert';
-			$audit = $data_row_final;
+			$audit = $data_row_final2;
 		} else { // if we update
 			foreach ($data_row_final as $k => $v) {
 				// skip relation_id
 				if ($k == $this->primary_model->column_prefix . 'relation_id') continue;
 				// hard comparison
 				if ($v !== $original_row[$k] && !(in_array($model->columns[$k]['php_type'], ['bcnumeric', 'float']) && \Math::isEqual($v, $original_row[$k]))) {
-					$update[$k] = $v;
+					$update2[$k] = $update[$k] = $v;
+				}
+				if (isset($update[$k]) && ($model->columns[$k]['type'] ?? '') == 'bytea' && strpos($k, ';bytea') === false) {
+					$update = array_change_key_name($update, $k, $k . ';;bytea');
 				}
 				if (in_array($k, $collection['pk'])) {
 					$pk[$k] = $v;
@@ -836,6 +844,7 @@ error:
 		if (!empty($update) || ($action == 'update' && $result['data']['total'] > 0)) {
 			// process who columns
 			$model->processWhoColumns(['updated', 'optimistic_lock'], $update, $this->timestamp);
+			$model->processWhoColumns(['updated', 'optimistic_lock'], $update2, $this->timestamp);
 			if (!empty($update)) {
 				// update record
 				$temp = $this->primary_model->db_object->update($model->full_table_name, $update, [], ['where' => $pk, 'primary_key' => $model->pk]);
@@ -850,7 +859,7 @@ error:
 				$result['data']['updated'] = true;
 			}
 			// audit
-			$audit = $update;
+			$audit = $update2;
 		}
 		// step 5 delete record after we deleted all childrens
 		if (!empty($delete)) {
@@ -890,6 +899,7 @@ error:
 				$old = $original_row[$k] ?? null;
 				if ($v !== $old) {
 					if (($model->columns[$k]['domain'] ?? '') == 'password') $v = '*** *** ***';
+					if (($model->columns[$k]['type'] ?? '') == 'bytea') $v = '*** bytea ***';
 					$result['data']['audit']['columns'][$k] = [$v, $old];
 				}
 			}
@@ -921,6 +931,7 @@ error:
 					$old = $original_row[$k] ?? null;
 					if ($v !== $old) {
 						if (($model->columns[$k]['domain'] ?? '') == 'password') $v = '*** *** ***';
+						if (($model->columns[$k]['type'] ?? '') == 'bytea') $v = '*** bytea ***';
 						$result['data']['audit']['columns'][$k] = [$v, $old];
 					}
 				}

@@ -399,6 +399,8 @@ class Base extends \Object\Form\Parent2 {
 					$this->original_values = array_merge_hard($this->original_values, $this->preserved_values);
 				}
 				$this->values_loaded = true;
+				// original values override
+				$this->triggerMethod('loadOriginalValues');
 			}
 		}
 	}
@@ -1760,6 +1762,9 @@ loadValues2:
 				// skip readonly
 				if (empty($this->collection_object->data['readonly'])) {
 					$this->original_values = $this->values = $this->loadValues();
+					// values override
+					$this->triggerMethod('loadOriginalValues');
+					$this->triggerMethod('loadValues');
 				}
 				// we need to preserver module #
 				if (isset($this->options['input']['__module_id'])) {

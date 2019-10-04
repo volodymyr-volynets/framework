@@ -78,6 +78,7 @@ class Domains extends \Object\Data {
 		// login
 		'login' => ['name' => 'Login', 'type' => 'varchar', 'length' => 30, 'validator_method' => '\Object\Validator\LowerCase::validate'],
 		'password' => ['name' => 'Password', 'type' => 'text', 'validator_method' => '\Object\Validator\Password::validate'],
+		'encrypted_password' => ['name' => 'Password (Encrypted)', 'type' => 'bytea'],
 		'ip' => ['name' => 'IP', 'type' => 'varchar', 'length' => 46, 'placeholder' => 'IP'],
 		'domain_part' => ['name' => 'Domain Part', 'type' => 'varchar', 'length' => 30, 'validator_method' => 'object_validator_domain_part::validate'],
 		// system
@@ -129,7 +130,7 @@ class Domains extends \Object\Data {
 		'datasource_id' => ['name' => 'Data Source #', 'type' => 'bigint', 'default' => null, 'placeholder' => 'Data Source', 'format' => 'id', 'searchable' => true],
 		'datasource_id_sequence' => ['name' => 'Data Source #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id', 'searchable' => true],
 		'sql_query' => ['name' => 'SQL Query', 'type' => 'varchar', 'length' => 5000, 'placeholder' => 'SQL Query'],
-		// Country Management
+		// country management
 		'country_code' => ['name' => 'Country Code', 'type' => 'char', 'length' => 2, 'validator_method' => '\Object\Validator\UpperCase::validate', 'placeholder' => 'Country', 'searchable' => true],
 		'country_code3' => ['name' => 'Country Code (3)', 'type' => 'char', 'length' => 3, 'validator_method' => '\Object\Validator\UpperCase::validate'],
 		'country_number' => ['name' => 'Country Numeric Code', 'type' => 'smallint', 'default' => null],
@@ -137,7 +138,7 @@ class Domains extends \Object\Data {
 		'postal_code' => ['name' => 'Postal Code', 'type' => 'varchar', 'length' => 15, 'validator_method' => '\Object\Validator\PostalCode::validate'],
 		'postal_codes' => ['name' => 'Postal Codes', 'type' => 'varchar', 'length' => 2000, 'placeholder' => 'Postal Code(s)'],
 		'geo_coordinate' => ['name' => 'Geo Coordinate', 'type' => 'numeric', 'precision' => 14, 'scale' => 10, 'placeholder' => 'Coordinate', 'null' => true, 'default' => null],
-		// Currency Management
+		// currency management
 		'currency_type' => ['name' => 'Currency Type', 'type' => 'varchar', 'length' => 12, 'validator_method' => '\Object\Validator\UpperCase::validate', 'placeholder' => 'Currency Type', 'searchable' => true],
 		'currency_code' => ['name' => 'Currency Code', 'type' => 'char', 'length' => 3, 'validator_method' => '\Object\Validator\UpperCase::validate', 'placeholder' => 'Currency', 'searchable' => true],
 		'currency_rate_id' => ['name' => 'Currency Rate #', 'type' => 'bigint', 'default' => null, 'format' => 'id'],
@@ -151,7 +152,7 @@ class Domains extends \Object\Data {
 		'folder_id_sequence' => ['name' => 'Folder #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'policy_id' => ['name' => 'Policy #', 'type' => 'integer', 'default' => null, 'format' => 'id', 'placeholder' => 'Policy'],
 		'policy_id_sequence' => ['name' => 'Policy #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
-		// User Management
+		// user management
 		'user_id' => ['name' => 'User #', 'type' => 'bigint', 'default' => null, 'placeholder' => 'User', 'format' => 'id', 'searchable' => true],
 		'user_id_sequence' => ['name' => 'User #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id', 'searchable' => true],
 		'role_id' => ['name' => 'Role #', 'type' => 'integer', 'default' => null, 'format' => 'id', 'placeholder' => 'Role'],
@@ -167,7 +168,7 @@ class Domains extends \Object\Data {
 		'holiday_id_sequence' => ['name' => 'Holiday #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'interval_id' => ['name' => 'Interval #', 'type' => 'bigint', 'default' => null, 'placeholder' => 'Interval', 'format' => 'id'],
 		'interval_id_sequence' => ['name' => 'Interval #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id'],
-		// Organization Management
+		// organization management
 		'organization_id' => ['name' => 'Organization #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Organization', 'format' => 'id'],
 		'organization_id_sequence' => ['name' => 'Organization #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'location_id' => ['name' => 'Location #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Location', 'format' => 'id'],
@@ -210,7 +211,7 @@ class Domains extends \Object\Data {
 		'dashboard_id' => ['name' => 'Dashboard #', 'type' => 'integer', 'default' => null, 'format' => 'id', 'placeholder' => 'Dashboard', 'searchable' => true],
 		'dashboard_id_sequence' => ['name' => 'Dashboard #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'day_id' => ['name' => 'Day #', 'type' => 'smallint', 'placeholder' => 'Day', 'format' => 'id'],
-		// Order Management
+		// order management
 		'lead_id' => ['name' => 'Lead #', 'type' => 'bigint', 'default' => null, 'placeholder' => 'Lead', 'format' => 'id'],
 		'lead_id_sequence' => ['name' => 'Lead #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'order_id' => ['name' => 'Order #', 'type' => 'bigint', 'default' => null, 'placeholder' => 'Order', 'format' => 'id'],
@@ -219,26 +220,26 @@ class Domains extends \Object\Data {
 		'job_id_sequence' => ['name' => 'Job #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'asset_id' => ['name' => 'Asset #', 'type' => 'bigint', 'default' => null, 'placeholder' => 'Asset', 'format' => 'id'],
 		'asset_id_sequence' => ['name' => 'Asset #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id'],
-		// Document Management
+		// document management
 		'file_id' => ['name' => 'File #', 'type' => 'bigint', 'default' => null, 'format' => 'id'],
 		'file_id_sequence' => ['name' => 'File #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'file_name' => ['name' => 'File Name', 'type' => 'varchar', 'length' => 255],
 		'file_extension' => ['name' => 'File Extension', 'type' => 'varchar', 'length' => 30],
 		'file_size' => ['name' => 'File Size', 'type' => 'integer', 'default' => null, 'format' => 'id'],
 		'file_path' => ['name' => 'File Path', 'type' => 'varchar', 'length' => 500],
-		// Advertizing Management
+		// advertizing management
 		'adcode_id' => ['name' => 'Adcode #', 'type' => 'integer', 'default' => null, 'format' => 'id'],
 		'adcode_id_sequence' => ['name' => 'Adcode #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'promocode_id' => ['name' => 'Promocode #', 'type' => 'integer', 'default' => null, 'format' => 'id'],
 		'promocode_id_sequence' => ['name' => 'Promocode #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
-		// Project Management
+		// project management
 		'product_id' => ['name' => 'Product #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Product', 'format' => 'id'],
 		'product_id_sequence' => ['name' => 'Product #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'project_id' => ['name' => 'Project #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Project', 'format' => 'id'],
 		'project_id_sequence' => ['name' => 'Project #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'repository_id' => ['name' => 'Repository #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Repository', 'format' => 'id'],
 		'repository_id_sequence' => ['name' => 'Repository #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
-		// Workflow
+		// workflow
 		'workflow_id' => ['name' => 'Workflow #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Workflow', 'format' => 'id', 'searchable' => true],
 		'workflow_id_sequence' => ['name' => 'Workflow #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'executed_workflow_id' => ['name' => 'Executed Workflow #', 'type' => 'bigint', 'default' => null, 'placeholder' => 'Executed Workflow', 'format' => 'id'],
@@ -263,7 +264,7 @@ class Domains extends \Object\Data {
 		'percent' => ['name' => 'Percent', 'type' => 'integer', 'default' => 0, 'format' => 'id', 'placeholder' => 'Percent (%)'],
 		'percent_float' => ['name' => 'Percent (Float)', 'type' => 'bcnumeric', 'precision' => 24, 'scale' => 2, 'default' => 0, 'format' => 'id', 'placeholder' => 'Percent (%)', 'default' => '0.00', 'format' => 'number', 'align' => 'right'],
 		'unit_price' => ['name' => 'Unit Price', 'type' => 'bcnumeric', 'precision' => 24, 'scale' => 4, 'default' => '0.0000', 'format' => 'unitPrice', 'align' => 'right'],
-		// Accounting
+		// accounting
 		'classification_id' => ['name' => 'Classification #', 'type' => 'integer', 'default' => null, 'format' => 'id', 'placeholder' => 'Classification'],
 		'classification_id_sequence' => ['name' => 'Classification #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'customer_id' => ['name' => 'Customer #', 'type' => 'bigint', 'default' => null, 'placeholder' => 'Customer', 'format' => 'id'],
