@@ -16,18 +16,27 @@ class Parser {
 	 * @param string $end
 	 * @param array $options
 	 *	boolean all
+	 *	boolean raw
 	 * @return boolean|string
 	 */
 	public static function match(string $str, string $start, string $end, array $options = []) {
 		$start = preg_quote($start);
 		$end = preg_quote($end);
 		if (empty($options['all'])) {
-			if (preg_match('/' . $start . '(.*)' . $end . '/', $str, $matches)) {
-				return $matches[1] . '';
+			if (preg_match('/' . $start . '(.*)' . $end . '/U', $str, $matches)) {
+				if (empty($options['raw'])) {
+					return $matches[1] . '';
+				} else {
+					return $matches[0] . '';
+				}
 			}
 		} else {
-			if (preg_match_all('/' . $start . '(.*)' . $end . '/', $str, $matches)) {
-				return $matches[1];
+			if (preg_match_all('/' . $start . '(.*)' . $end . '/U', $str, $matches)) {
+				if (empty($options['raw'])) {
+					return $matches[1];
+				} else {
+					return $matches[0];
+				}
 			}
 		}
 		return false;
