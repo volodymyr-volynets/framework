@@ -24,5 +24,6 @@ class Widgets extends \Object\Data {
 		'checkins' => ['name' => 'Check In / Out'],
 		'ingestions' => ['name' => 'Ingestions'],
 		'surveys' => ['name' => 'Surveys'],
+		'voters' => ['name' => 'Voters'],
 	];
 }
