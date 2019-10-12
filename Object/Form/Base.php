@@ -1343,6 +1343,11 @@ processAllValues:
 				$this->element($this::HIDDEN, $this::HIDDEN, $this->collection_object->primary_model->optimistic_lock_column, ['label_name' => 'Optimistic Lock', 'type' => 'text', 'null' => true, 'default' => null, 'method'=> 'hidden', 'skip_during_export' => true]);
 			}
 		}
+		// special field for
+		if (in_array($this->initiator_class, ['report', 'list'])) {
+			$this->element($this::HIDDEN, $this::HIDDEN, '__list_report_filter_loaded', ['label_name' => 'Filter Loader', 'type' => 'boolean', 'method'=> 'hidden', 'preserved' => true]);
+			$this->options['input']['__list_report_filter_loaded'] = 1;
+		}
 		// module #
 		$blank_reset_var = [];
 		if ($this->collection_object->primary_model->module ?? false) {
@@ -3006,6 +3011,15 @@ convertMultipleColumns:
 				if (in_array(($options['method'] ?? ''), ['button', 'button2', 'submit']) && empty($options['type'])) {
 					$options['type'] = $this->options['segment']['type'] ?? 'primary';
 				}
+				// format in report
+				if ($this->initiator_class == 'report' && $options['name'] == '__format') {
+					if (isset($this->form_parent->_format_add_options)) {
+						$__format_options = \Object\Form\Model\Report\Types::optionsStatic(['i18n' => 'skip_sorting']);
+						$__format_options = array_merge_hard($__format_options, $this->form_parent->_format_add_options);
+						unset($options['options_model']);
+						$options['options'] = $__format_options;
+					}
+				}
 				// put data into fields array
 				$field = [
 					'id' => $options['id'],
@@ -3644,6 +3658,8 @@ convertMultipleColumns:
 			$value = $this->values[$k] ?? null;
 			if (!empty($v['options']['options_model'])) {
 				$value = $this->renderListContainerDefaultOptions($v['options'], $value, $this->values);
+			} else if (!empty($v['options']['options'])) {
+				$value = $v['options']['options'][$value]['name'];
 			}
 			if (is_array($value)) {
 				$value = implode(', ', $value);

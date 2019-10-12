@@ -207,7 +207,7 @@ class Request {
 			$host = \Request::host();
 		}
 		$controller = ltrim($controller, '/');
-		return $host . $controller . '?' . http_build_query2($params) . ($anchor ? ('#' . $anchor) : '');
+		return $host . $controller . '?' . http_build_query($params) . ($anchor ? ('#' . $anchor) : '');
 	}
 
 	/**
