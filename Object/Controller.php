@@ -286,9 +286,10 @@ class Controller {
 			// permissions
 			if (!empty($this->acl['permission'])) {
 				// determine action
+				$action2 = '';
 				switch ($this->method_code) {
 					case 'Edit': $action = 'Record_View'; break;
-					case 'Index': $action = 'List_View'; break;
+					case 'Index': $action = 'List_View'; $action2 = 'Report_View'; break;
 					case 'Activate': $action = 'Activate_Data'; break;
 					case 'Import': $action = 'Import_Records'; break;
 					// if we need to alter menu name
@@ -305,7 +306,16 @@ class Controller {
 						return false;
 						break;
 				}
-				return $this->can($action);
+				if (!empty($action)) {
+					$result = $this->can($action);
+					if ($result) {
+						return $result;
+					} else if (!empty($action2)) {
+						return $this->can($action2);
+					}
+				} else {
+					return false;
+				}
 			}
 		} else {
 			// we need to redirect to login controller if not authorized
