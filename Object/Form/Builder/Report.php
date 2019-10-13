@@ -50,6 +50,8 @@ class Report {
 			'data' => [],
 			'form_name' => '',
 		];
+		// type
+		$this->data[$report_name]['options']['type'] = $this->data[$report_name]['options']['type'] ?? 'list';
 		// extrace filter out of form
 		if (isset($form)) {
 			if (empty($options['skip_filter'])) {
