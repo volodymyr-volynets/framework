@@ -195,7 +195,7 @@ class Parent2 extends \Object\Override\Data {
 	 * Print button
 	 */
 	const BUTTON_PRINT = '__print_button';
-	const BUTTON_PRINT_DATA = ['order' => -100, 'button_group' => 'left', 'value' => 'Print', 'type' => 'default', 'icon' => 'fas fa-print', 'method' => 'button2', 'accesskey' => 'p'];
+	const BUTTON_PRINT_DATA = ['order' => -100, 'button_group' => 'left', 'value' => 'Print', 'type' => 'default', 'icon' => 'fas fa-print', 'method' => 'button2', 'accesskey' => 'p', 'process_submit' => true];
 
 	/**
 	 * Standard buttons

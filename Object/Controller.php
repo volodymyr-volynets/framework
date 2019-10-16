@@ -289,6 +289,7 @@ class Controller {
 				$action2 = '';
 				switch ($this->method_code) {
 					case 'Edit': $action = 'Record_View'; break;
+					case 'PDF': $action = 'Record_View'; break;
 					case 'Index': $action = 'List_View'; $action2 = 'Report_View'; break;
 					case 'Activate': $action = 'Activate_Data'; break;
 					case 'Import': $action = 'Import_Records'; break;
