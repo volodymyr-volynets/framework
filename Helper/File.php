@@ -277,13 +277,18 @@ class File {
 	 * Generate temporary file name
 	 *
 	 * @param string $extension
+	 * @param boolean $in_temp_directory
 	 * @return string
 	 */
-	public static function generateTempFileName(string $extension = '') : string {
+	public static function generateTempFileName(string $extension = '', bool $in_temp_directory = false) : string {
 		$result = uniqid('Numbers_Temp_') . '_' . \Format::now('unix');
 		if (!empty($extension)) {
 			$result.= '.' . $extension;
 		}
-		return $result;
+		if ($in_temp_directory) {
+			return self::tempDirectory($result);
+		} else {
+			return $result;
+		}
 	}
 }

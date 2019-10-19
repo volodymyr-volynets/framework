@@ -27,6 +27,7 @@ class cURL {
 		curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query2($options['params']));
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 		curl_setopt($ch, CURLOPT_USERAGENT, self::USERAGENT);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 		$result['data'] = curl_exec($ch);
 		if (!empty($options['json'])) {
 			$result['data'] = json_decode($result['data'], true);
@@ -55,12 +56,13 @@ class cURL {
 			} else {
 				$url.= '?';
 			}
-			$url.= http_build_query2($options['params']);
+			$url.= http_build_query($options['params']);
 		}
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, $url);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 		curl_setopt($ch, CURLOPT_USERAGENT, self::USERAGENT);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 		$result['data'] = curl_exec($ch);
 		if (!empty($options['json'])) {
 			$result['data'] = json_decode($result['data'], true);
