@@ -470,7 +470,7 @@ class Base extends \Object\Form\Parent2 {
 			}
 		}
 		// validator
-		if (!empty($options['options']['validator_method']) && !empty($value) && empty($options['options']['multiple_column']) && (!is_array($value) || $options['options']['method'] == 'file')) {
+		if (!empty($options['options']['validator_method']) && !empty($value) && empty($options['options']['multiple_column']) && (!is_array($value) || ($options['options']['method'] ?? '') == 'file')) {
 			$neighbouring_values = [];
 			if (!empty($options['options']['values_key'])) {
 				$neighbouring_values_key = $options['options']['values_key'];
@@ -1296,7 +1296,7 @@ processAllValues:
 					if ($counter == 1) {
 						array_key_sort($v['elements'], ['row_order' => SORT_ASC, 'order' => SORT_ASC]);
 						foreach ($v['elements'] as $k8 => $v8) {
-							if (($v8['options']['required'] ?? '') . '' == '1' && !in_array($k8, $v['options']['details_pk']) && $counter == 1) {
+							if (($v8['options']['required'] ?? '') . '' == '1' && !in_array($k8, $v['options']['details_pk']) && ($v8['options']['method'] ?? '') != 'hidden' && $counter == 1) {
 								$this->error(DANGER, \Object\Content\Messages::REQUIRED_FIELD, "{$k}[1][{$k8}]");
 								$counter++;
 							}
@@ -2971,7 +2971,7 @@ convertMultipleColumns:
 				$options['container_link'] = $container_link;
 				// default = null for integers
 				if ($this->initiator_class == 'list' || $this->initiator_class == 'report') {
-					if ($options['php_type'] == 'integer' && ($options['default'] ?? null) == 0 && !empty($options['null'])) {
+					if ($options['php_type'] == 'integer' && isset($options['default']) && $options['default'] === 0 && !empty($options['null'])) {
 						$options['default'] = null;
 					}
 				}

@@ -195,6 +195,9 @@ class Format {
 	 * @return string
 	 */
 	public static function getDateFormat($type) {
+		if (!isset(self::$options['format_' . $type])) {
+			$type = 'date';
+		}
 		return self::$options['format_' . $type];
 	}
 
