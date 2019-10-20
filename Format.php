@@ -820,6 +820,10 @@ class Format {
 		// format based on settings
 		$cs_precedes = $negative ? $format['n_cs_precedes'] : $format['p_cs_precedes'];
 		$sep_by_space = $negative ? $format['n_sep_by_space'] : $format['p_sep_by_space'];
+		// financial statements override
+		if (!empty($options['fs'])) {
+			$sep_by_space = 1;
+		}
 		$sign_posn = $negative ? $format['n_sign_posn'] : $format['p_sign_posn'];
 		// if accounting formatting
 		if (!empty($options['accounting'])) {
