@@ -3295,8 +3295,11 @@ convertMultipleColumns:
 	public function processParamsAndDepends(& $params, & $neighbouring_values, $options, $flag_params = true) {
 		foreach ($params as $k => $v) {
 			if (is_array($v)) continue;
-			// if we have a parent
-			if (strpos($v, 'parent::') !== false) { // value from parent
+			// if we have master object
+			if (strpos($v, 'master_object::') !== false) {
+				$field = explode('::', str_replace(['master_object::', 'static::'], '', $v));
+				$params[$k] = $this->master_object->{$field[0]}->{$field[1]}->{$field[2]};
+			} else if (strpos($v, 'parent::') !== false) { // value from parent
 				$field = str_replace(['parent::', 'static::'], '', $v);
 				if (!empty($this->errors['fields'][$field]['danger'])) {
 					$params[$k] = null;
@@ -3701,9 +3704,11 @@ convertMultipleColumns:
 	 * @param string $primary_column
 	 * @param string $inactive_column
 	 * @param string $pk_column
+	 * @param string $key
+	 * @param array $options
 	 * @return int | null
 	 */
-	public function validateDetailsPrimaryColumn(string $detail, string $primary_column, string $inactive_column, string $pk_column, string & $key = null) {
+	public function validateDetailsPrimaryColumn(string $detail, string $primary_column, string $inactive_column, string $pk_column, string & $key = null, array $options = []) {
 		if (empty($this->values[$detail])) return null;
 		$primary_found = 0;
 		$primary_first_line = null;
@@ -3716,10 +3721,18 @@ convertMultipleColumns:
 				$primary_pk_id = $v[$pk_column] ?? null;
 				$primary_found++;
 				if (!empty($v[$inactive_column])) {
-					$this->error(DANGER, 'Primary cannot be inactive!', "{$detail}[{$k}][{$inactive_column}]");
+					$message = 'Primary cannot be inactive!';
+					if (!empty($options['replace'])) {
+						$message = str_replace($options['replace'][0], $options['replace'][1], $message);
+					}
+					$this->error(DANGER, $message, "{$detail}[{$k}][{$inactive_column}]");
 				}
 				if ($primary_found > 1) {
-					$this->error(DANGER, 'There can be only one primary!', "{$detail}[{$k}][{$primary_column}]");
+					$message = 'There can be only one primary!';
+					if (!empty($options['replace'])) {
+						$message = str_replace($options['replace'][0], $options['replace'][1], $message);
+					}
+					$this->error(DANGER, $message, "{$detail}[{$k}][{$primary_column}]");
 				}
 				// we need to pass first primary back
 				if ($primary_found == 1) {
@@ -3728,7 +3741,11 @@ convertMultipleColumns:
 			}
 		}
 		if ($primary_found == 0) {
-			$this->error(DANGER, 'You must select primary!', $primary_first_line);
+			$message = 'You must select primary!';
+			if (!empty($options['replace'])) {
+				$message = str_replace($options['replace'][0], $options['replace'][1], $message);
+			}
+			$this->error(DANGER, $message, $primary_first_line);
 		}
 		return $primary_pk_id;
 	}

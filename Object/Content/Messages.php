@@ -28,6 +28,7 @@ class Messages {
 	const NO_MODIFICATION_ALLOWED = 'Modification of existing record(s) is not allowed!';
 	const TOKEN_EXPIRED = 'Your token is not valid or expired!';
 	const DATE_IN_THE_PAST = 'Date cannot be in the past!';
+	const PERCENT_IN_RANGE = 'Value must be within 0 to 100 percent range!';
 	// warnings
 	const AMOUNT_RECALCULATED = 'The amount has been recalculated!';
 	const AMOUNT_ROUNDED = 'The amount has been rounded!';
