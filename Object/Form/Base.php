@@ -699,6 +699,10 @@ class Base extends \Object\Form\Parent2 {
 			$input = array_merge_hard($input, $this->values);
 			$value = array_key_get($input, $v['options']['values_key']);
 			$error_name = $v['options']['error_name'];
+			// null_if_changed
+			if (!empty($v['options']['null_if_changed']) && !empty($changed_field['parent']) && in_array($changed_field['parent'], $v['options']['null_if_changed'])) {
+				$value = null;
+			}
 			// multiple column
 			if (!empty($v['options']['multiple_column'])) {
 				// todo - validate
@@ -764,6 +768,10 @@ class Base extends \Object\Form\Parent2 {
 						$this->error('danger', \Object\Content\Messages::INVALID_VALUES, $error_name);
 					}
 				}
+			}
+			// id we need to refresh master object
+			if (isset($this->master_options['refresh_if_set']) && $k == $this->master_options['refresh_if_set'] && !$this->master_object->isDataFound()) {
+				$this->master_object = \Factory::model($this->master_options['model'], true, [$this->values['__module_id'], $this->master_options['ledger'], & $this]);
 			}
 		}
 		// check optimistic lock
@@ -1390,6 +1398,7 @@ processAllValues:
 				'skip_during_export' => true,
 				'order' => 0,
 				'row_class' => $temp_row_class,
+				'order_for_defaults' => PHP_INT_MIN,
 			]);
 			$this->element('__module_container', $this::HIDDEN, $this->collection_object->primary_model->module_column, [
 				'label_name' => 'Module / Ledger',
@@ -1401,6 +1410,7 @@ processAllValues:
 				'query_builder' => 'a.' . $this->collection_object->primary_model->module_column . ';=',
 				'skip_during_export' => true,
 				'order' => 0,
+				'order_for_defaults' => PHP_INT_MIN + 1,
 			]);
 			$this->element('__module_container', 'separator_1', '__separator__module_id', ['row_order' => 400, 'method' => 'separator', 'label_name' => '', 'percent' => 100, 'row_class' => $temp_row_class]);
 			// master object
@@ -3298,7 +3308,11 @@ convertMultipleColumns:
 			// if we have master object
 			if (strpos($v, 'master_object::') !== false) {
 				$field = explode('::', str_replace(['master_object::', 'static::'], '', $v));
-				$params[$k] = $this->master_object->{$field[0]}->{$field[1]}->{$field[2]};
+				if (isset($this->master_object->{$field[0]}->{$field[1]}->{$field[2]})) {
+					$params[$k] = $this->master_object->{$field[0]}->{$field[1]}->{$field[2]};
+				} else {
+					$params[$k] = null;
+				}
 			} else if (strpos($v, 'parent::') !== false) { // value from parent
 				$field = str_replace(['parent::', 'static::'], '', $v);
 				if (!empty($this->errors['fields'][$field]['danger'])) {
@@ -3341,7 +3355,11 @@ convertMultipleColumns:
 			// nothing
 		} else if (strpos($default, 'master_object::') !== false) {
 			$field = explode('::', str_replace(['master_object::', 'static::'], '', $default));
-			return $this->master_object->{$field[0]}->{$field[1]}->{$field[2]};
+			if (isset($this->master_object->{$field[0]}->{$field[1]}->{$field[2]})) {
+				return $this->master_object->{$field[0]}->{$field[1]}->{$field[2]};
+			} else {
+				return null;
+			}
 		} else if (strpos($default, 'parent::') !== false) {
 			$field = str_replace(['parent::', 'static::'], '', $default);
 			$value = $this->values[$field] ?? null;
