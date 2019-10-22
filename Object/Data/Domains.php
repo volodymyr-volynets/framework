@@ -286,7 +286,7 @@ class Domains extends \Object\Data {
 		'document_id' => ['name' => 'Document #', 'type' => 'bigint', 'default' => null, 'format' => 'id'],
 		'document_id_sequence' => ['name' => 'Document #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'document_number' => ['name' => 'Document Number', 'type' => 'varchar', 'length' => 30],
-		'bank_id' => ['name' => 'Bank #', 'type' => 'integer', 'default' => null, 'format' => 'id'],
+		'bank_id' => ['name' => 'Bank #', 'type' => 'integer', 'default' => null, 'format' => 'id', 'placeholder' => 'Bank'],
 		'bank_id_sequence' => ['name' => 'Bank #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'bank_deposit_number' => ['name' => 'Bank Deposit #', 'type' => 'bigint', 'default' => null, 'format' => 'id'],
 		'ic_item_id' => ['name' => 'I/C Item #', 'type' => 'varchar', 'length' => 30, 'placeholder' => 'Item', 'searchable' => true, 'tree' => true, 'format' => 'id', 'placeholder' => 'Item'],
