@@ -285,6 +285,8 @@ class Domains extends \Object\Data {
 		'term_id_sequence' => ['name' => 'Term #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'document_id' => ['name' => 'Document #', 'type' => 'bigint', 'default' => null, 'format' => 'id'],
 		'document_id_sequence' => ['name' => 'Document #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id'],
+		'reconciliation_id' => ['name' => 'Reconciliation #', 'type' => 'bigint', 'default' => null, 'format' => 'id', 'placeholder' => 'Reconciliation'],
+		'reconciliation_id_sequence' => ['name' => 'Reconciliation #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'document_number' => ['name' => 'Document Number', 'type' => 'varchar', 'length' => 30],
 		'bank_id' => ['name' => 'Bank #', 'type' => 'integer', 'default' => null, 'format' => 'id', 'placeholder' => 'Bank'],
 		'bank_id_sequence' => ['name' => 'Bank #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],

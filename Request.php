@@ -202,8 +202,8 @@ class Request {
 	 * @param string $host
 	 * @return string
 	 */
-	public static function buildURL($controller, array $params = [], string $host = '', string $anchor = '') : string {
-		if (empty($host)) {
+	public static function buildURL($controller, array $params = [], $host = null, string $anchor = '') : string {
+		if (!isset($host)) {
 			$host = \Request::host();
 		}
 		$controller = ltrim($controller, '/');
