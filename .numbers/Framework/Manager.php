@@ -215,7 +215,7 @@ another_fix:
 					$message[]= $k . ":\n" . implode("\n", $v);
 					$changes[$k] = '<li>' . implode('</li><li>', $v) . '</li>';
 				}
-				$message = implode(', ', $short) . "\n\n --- \n\n" . implode("\n", $message);
+				$message = implode("\n", $message);
 				$changes_formatted = '<ul>';
 				foreach ($changes as $k => $v) {
 					$changes_formatted.= '<li>';
