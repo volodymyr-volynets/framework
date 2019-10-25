@@ -61,7 +61,7 @@ class Deployments {
 				break;
 			}
 			// copying code repository
-			if (!\Helper\File::copy($code_dir, $dep_dir, ['skip_directories' => ['.numbers', '.git'], 'skip_files' => ['Makefile', 'Make.cmd', '.gitignore']])) {
+			if (!\Helper\File::copy($code_dir, $dep_dir, ['skip_directories' => ['.numbers', '.git', '.docs'], 'skip_files' => ['Makefile', 'Make.cmd', '.gitignore']])) {
 				$result['error'][] = ' - unable to copy code!';
 				break;
 			}
