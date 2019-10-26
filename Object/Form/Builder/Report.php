@@ -18,6 +18,13 @@ class Report {
 	public $data = [];
 
 	/**
+	 * Subtotals
+	 *
+	 * @var array
+	 */
+	public $subtotals = [];
+
+	/**
 	 * Construct
 	 *
 	 * @param array $options
@@ -259,5 +266,54 @@ class Report {
 				unset($this->data[$report_name]['header_summary_calculated'][$k][$k2]['max']);
 			}
 		}
+	}
+
+	/**
+	 * Add subtotal
+	 *
+	 * @param string $report_name
+	 * @param string $header_name
+	 * @param array $keys
+	 * @param array $values
+	 */
+	public function addSubtotalData(string $report_name, string $header_name, array $keys, array $values) {
+		$key_original = $keys;
+		// prepend report name and header name to keys
+		array_unshift($keys, $header_name);
+		array_unshift($keys, $report_name);
+		// add values
+		foreach ($values as $k => $v) {
+			// set key as well
+			$keys2 = $keys;
+			foreach ($key_original as $k2 => $v2) {
+				if (is_numeric($k2)) {
+					$keys2[]= 'key' . $k2;
+				} else {
+					$keys2[]= $k2;
+				}
+				array_key_set($this->subtotals, $keys2, $v2);
+			}
+			// set value
+			$keys2 = $keys;
+			$keys2[]= $k;
+			$current = array_key_get($this->subtotals, $keys2) ?? '0';
+			$current = \Math::add($current, $v);
+			array_key_set($this->subtotals, $keys2, $current);
+		}
+	}
+
+	/**
+	 * Get subtotal
+	 *
+	 * @param string $report_name
+	 * @param string $header_name
+	 * @param array $keys
+	 * @return array
+	 */
+	public function getSubtotalData(string $report_name, string $header_name, array $keys) : array {
+		// prepend report name and header name to keys
+		array_unshift($keys, $header_name);
+		array_unshift($keys, $report_name);
+		return array_key_get($this->subtotals, $keys) ?? [];
 	}
 }

@@ -3653,9 +3653,8 @@ convertMultipleColumns:
 		if (strpos($options['options_model'], '::') === false) $options['options_model'].= '::options';
 		$params = $options['options_params'] ?? [];
 		if (!empty($options['options_depends'])) {
-			foreach ($options['options_depends'] as $k9 => $v9) {
-				$params[$k9] = $neighbouring_values[$v9];
-			}
+			$this->processParamsAndDepends($options['options_depends'], $neighbouring_values, $options, true);
+			$params = array_merge($params, $options['options_depends']);
 		}
 		$hash = sha1($options['options_model'] . serialize($params));
 		if (!isset($this->cached_options[$hash])) {

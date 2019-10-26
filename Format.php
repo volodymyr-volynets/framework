@@ -591,6 +591,9 @@ class Format {
 	 * @return string
 	 */
 	public static function amount($amount, $options = []) {
+		if (!isset($amount)) {
+			return null;
+		}
 		$amount = trim($amount . '');
 		// if currency code is passed we need to load symbol
 		if (!empty($options['currency_code'])) {
