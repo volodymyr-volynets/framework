@@ -239,7 +239,11 @@ class Report {
 						$this->data[$report_name]['header_summary_calculated'][$k][$k2]['final'] = $this->data[$report_name]['header_summary_calculated'][$k][$k2]['sum'];
 						break;
 					case 'avg':
-						$this->data[$report_name]['header_summary_calculated'][$k][$k2]['final'] = $this->data[$report_name]['header_summary_calculated'][$k][$k2]['sum'] / $this->data[$report_name]['header_summary_calculated'][$k][$k2]['counter'];
+						if (!empty($this->data[$report_name]['header_summary_calculated'][$k][$k2]['counter'])) {
+							$this->data[$report_name]['header_summary_calculated'][$k][$k2]['final'] = $this->data[$report_name]['header_summary_calculated'][$k][$k2]['sum'] / $this->data[$report_name]['header_summary_calculated'][$k][$k2]['counter'];
+						} else {
+							$this->data[$report_name]['header_summary_calculated'][$k][$k2]['final'] = 0;
+						}
 						break;
 					case 'min':
 						$this->data[$report_name]['header_summary_calculated'][$k][$k2]['final'] = $this->data[$report_name]['header_summary_calculated'][$k][$k2]['min'];
