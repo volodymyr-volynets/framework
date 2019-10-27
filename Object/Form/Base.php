@@ -3890,4 +3890,23 @@ convertMultipleColumns:
 			return \HTML::a(['id' => $subform_link, 'href' => 'javascript:void(0);', 'onclick' => $onclick . 'return false;', 'value' => $name, 'title' => $title]);
 		}
 	}
+
+	/**
+	 * Get values for filter used in data sources
+	 *
+	 * @param array $values
+	 * @return array
+	 */
+	public function getValuesForDataSourceFilter($values = null) : array {
+		if (!isset($values)) {
+			$values = $this->values;
+		}
+		foreach ($values as $k => $v) {
+			if ($v === 0 || $v === '' || $v === null || (is_array($v) && empty($v))) {
+				unset($values[$k]);
+			}
+		}
+		unset($values['__format'], $values['__submit_button'], $values['__list_report_filter_loaded'], $values['\Object\Form\Model\Dummy\Sort']);
+		return $values;
+	}
 }
