@@ -1154,6 +1154,7 @@ processAllValues:
 			if (!empty($field['multiple_column'])) {
 				$existing_values = array_extract_values_by_key($value, $field['multiple_column']);
 			}
+			$field['options_options']['include_null_filter'] = $field['include_null_filter'] ?? null;
 			$field['options'] = \Object\Data\Common::processOptions($field['options_model'], $this, $field['options_params'], $existing_values, $skip_values, $field['options_options']);
 		} else {
 			$field['options'] = [];

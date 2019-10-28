@@ -135,7 +135,15 @@ class Common {
 			} else {
 				$object = \Factory::model($model, true);
 			}
-			self::$cached_options[$hash] = $object->{$method}($options);
+			$list = $object->{$method}($options);
+			// include empty values
+			if (!empty($options['include_null_filter'])) {
+				$list = array_merge_hard([
+					-1 => ['name' => i18n(null, '[Empty Values]')],
+					-2 => ['name' => i18n(null, '[Not Empty Values]')],
+				], $list);
+			}
+			self::$cached_options[$hash] = $list;
 			return self::$cached_options[$hash];
 		}
 	}
