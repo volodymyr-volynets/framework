@@ -17,6 +17,7 @@ class API {
 	 */
 	public function __construct($form) {
 		$this->form = $form;
+		$this->form->form_object->is_api = true;
 	}
 
 	/**

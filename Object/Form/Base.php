@@ -348,6 +348,13 @@ class Base extends \Object\Form\Parent2 {
 	public $preserved_values = [];
 
 	/**
+	 * Is API
+	 *
+	 * @var bool
+	 */
+	public $is_api;
+
+	/**
 	 * Constructor
 	 *
 	 * @param string $form_link
