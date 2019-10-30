@@ -288,8 +288,8 @@ class Report {
 		// add values
 		foreach ($values as $k => $v) {
 			// set key as well
-			$keys2 = $keys;
 			foreach ($key_original as $k2 => $v2) {
+				$keys2 = $keys;
 				if (is_numeric($k2)) {
 					$keys2[]= 'key' . $k2;
 				} else {
@@ -314,10 +314,73 @@ class Report {
 	 * @param array $keys
 	 * @return array
 	 */
-	public function getSubtotalData(string $report_name, string $header_name, array $keys) : array {
+	public function getSubtotalData(string $report_name, string $header_name, array $keys = []) : array {
 		// prepend report name and header name to keys
 		array_unshift($keys, $header_name);
 		array_unshift($keys, $report_name);
 		return array_key_get($this->subtotals, $keys) ?? [];
+	}
+
+	/**
+	 * Render subtotal
+	 *
+	 * @param string $report_name
+	 * @param string $header_name
+	 * @param array $keys
+	 * @param array $options
+	 *	array header - list of column styles
+	 *	int even
+	 */
+	public function renderSubtotalData(string $report_name, string $header_name, array $keys = [], array $options = []) {
+		$subtotal = $this->getSubtotalData($report_name, $header_name, $keys);
+		if (empty($subtotal)) return;
+		// render header
+		$options['even'] = $options['even'] ?? 1;
+		$subtotal_counter = 1;
+		$header = $this->getHeaderForRender($report_name, $header_name);
+		foreach ($options['header'] as $k => $v) {
+			$options['header'][$k]['value'] = $v['label_name'] ?? $header[$k]['label_name'];
+		}
+		$this->addData($report_name, $header_name, $options['even'], $options['header'], [
+			'cell_even' => $subtotal_counter % 2 ? ODD : EVEN
+		]);
+		$subtotal_counter++;
+		foreach ($subtotal as $k4 => $v4) {
+			$temp = [];
+			foreach ($header as $k5 => $v5) {
+				if (!isset($v4[$k5])) {
+					if (!empty($v5['zero_out'])) {
+						$v4[$k5] = '0';
+					} else {
+						$v4[$k5] = null;
+					}
+				}
+				if (empty($v5['format'])) {
+					$temp[$k5] = [
+						'value' => $v4[$k5],
+						'bold' => true,
+					];
+				} else {
+					$v5['format_options'] = $v5['format_options'] ?? [];
+					if (!empty($v5['format_depends'])) {
+						foreach ($v5['format_depends'] as $k6 => $v6) {
+							$v5['format_options'][$k6] = $v4[$v6] ?? null;
+						}
+					}
+					$v5['format_options']['fs'] = $v5['fs'] ?? false;
+					$method = \Factory::method($v5['format'], 'Format');
+					$temp[$k5] = [
+						'value' => call_user_func_array([$method[0], $method[1]], [$v4[$k5], $v5['format_options']]) ?? '',
+						'value_export' => $v4[$k5],
+						'alarm' => \Math::isLess($v4[$k5]),
+						'bold' => true,
+					];
+				}
+			}
+			$this->addData($report_name, $header_name, $options['even'], $temp, [
+				'cell_even' => $subtotal_counter % 2 ? ODD : EVEN
+			]);
+			$subtotal_counter++;
+		}
 	}
 }
