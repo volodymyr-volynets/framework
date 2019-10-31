@@ -145,7 +145,7 @@ class Domains extends \Object\Data {
 		'currency_rate_id_sequence' => ['name' => 'Currency Rate #', 'type' => 'bigserial', 'placeholder' => 'Sequence'],
 		'currency_rate' => ['name' => 'Currency Rate', 'type' => 'bcnumeric', 'precision' => 16, 'scale' => 8, 'default' => '1.00000000', 'format' => 'currencyRate', 'align' => 'right'],
 		'fraction_digits' => ['name' => 'Fraction Digits', 'type' => 'smallint', 'default' => 2],
-		// Tenants
+		// tenants
 		'tenant_id' => ['name' => 'Tenant #', 'type' => 'integer', 'default' => null, 'format' => 'id'],
 		'tenant_id_sequence' => ['name' => 'Tenant #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'folder_id' => ['name' => 'Folder #', 'type' => 'integer', 'default' => null, 'format' => 'id', 'placeholder' => 'Folder', 'tree' => true],
@@ -273,7 +273,7 @@ class Domains extends \Object\Data {
 		'vendor_id_sequence' => ['name' => 'Vendor #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'year' => ['name' => 'Year', 'type' => 'smallint', 'validator_method' => '\Object\Validator\Year::validate', 'format' => 'id', 'searchable' => true],
 		'period' => ['name' => 'Period', 'type' => 'smallint', 'validator_method' => '\Object\Validator\Period::validate', 'format' => 'id', 'searchable' => true],
-		'uom' => ['name' => 'UOM', 'type' => 'varchar', 'length' => 15],
+		'uom' => ['name' => 'UOM', 'type' => 'varchar', 'length' => 15, 'placeholder' => 'Unit of Measure'],
 		'uom_id' => ['name' => 'UoM #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Unit of Measure', 'format' => 'id'],
 		'uom_id_sequence' => ['name' => 'UoM #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'cs_segment_delimiter' => ['name' => 'Segment Delimiter', 'type' => 'char', 'length' => 1],
@@ -291,7 +291,7 @@ class Domains extends \Object\Data {
 		'bank_id' => ['name' => 'Bank #', 'type' => 'integer', 'default' => null, 'format' => 'id', 'placeholder' => 'Bank'],
 		'bank_id_sequence' => ['name' => 'Bank #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'bank_deposit_number' => ['name' => 'Bank Deposit #', 'type' => 'bigint', 'default' => null, 'format' => 'id'],
-		'ic_item_id' => ['name' => 'I/C Item #', 'type' => 'varchar', 'length' => 30, 'placeholder' => 'Item', 'searchable' => true, 'tree' => true, 'format' => 'id', 'placeholder' => 'Item'],
+		'ic_item_id' => ['name' => 'I/C Item #', 'type' => 'varchar', 'length' => 109, 'placeholder' => 'Item', 'searchable' => true, 'tree' => true, 'format' => 'id', 'placeholder' => 'Item'],
 		'billing_cycle_id' => ['name' => 'Billing Cycle #', 'type' => 'integer', 'default' => null, 'format' => 'id', 'placeholder' => 'Billing Cycle'],
 		'billing_cycle_id_sequence' => ['name' => 'Billing Cycle #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'commission_code_id' => ['name' => 'Commission #', 'type' => 'integer', 'default' => null, 'format' => 'id', 'placeholder' => 'Commission Code'],
@@ -324,6 +324,10 @@ class Domains extends \Object\Data {
 		'entry_id_sequence' => ['name' => 'Entry #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'batch_id' => ['name' => 'Batch #', 'type' => 'bigint', 'format' => 'id', 'placeholder' => 'Batch'],
 		'batch_id_sequence' => ['name' => 'Batch #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id'],
+		'structure_id' => ['name' => 'Structure #', 'type' => 'integer', 'format' => 'id', 'placeholder' => 'Structure'],
+		'structure_id_sequence' => ['name' => 'Structure #', 'type' => 'serial', 'format' => 'id', 'placeholder' => 'Sequence'],
+		'class_id' => ['name' => 'Class #', 'type' => 'integer', 'format' => 'id', 'placeholder' => 'Class'],
+		'class_id_sequence' => ['name' => 'Class #', 'type' => 'serial', 'format' => 'id', 'placeholder' => 'Sequence'],
 		// HTML
 		'html_color_code' => ['name' => 'HTML Color Code', 'type' => 'char', 'length' => 6, 'null' => true],
 		'html_color_group' => ['name' => 'HTML Color Group', 'type' => 'varchar', 'length' => 30, 'null' => true]

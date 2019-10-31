@@ -155,7 +155,7 @@ class Math {
 				$temp1 = call_user_func_array($function, [$temp1, $v . '', $scale]);
 			}
 		} else {
-			$temp1 = $arg1;
+			$temp1 = $arg1 . '';
 		}
 		if (is_array($arg2)) {
 			$temp2 = array_shift($arg2);
@@ -163,7 +163,7 @@ class Math {
 				$temp2 = call_user_func_array($function, [$temp2, $v . '', $scale]);
 			}
 		} else {
-			$temp2 = $arg2;
+			$temp2 = $arg2 . '';
 		}
 		return call_user_func_array($function, [$temp1, $temp2, $scale]);
 	}
