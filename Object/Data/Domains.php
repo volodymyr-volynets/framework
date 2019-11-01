@@ -173,6 +173,8 @@ class Domains extends \Object\Data {
 		'organization_id_sequence' => ['name' => 'Organization #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'location_id' => ['name' => 'Location #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Location', 'format' => 'id'],
 		'location_id_sequence' => ['name' => 'Location #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
+		'zone_id' => ['name' => 'Zone #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Zone', 'format' => 'id'],
+		'zone_id_sequence' => ['name' => 'Zone #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'location_number' => ['name' => 'Location Number', 'type' => 'integer', 'default' => null, 'placeholder' => 'Location Number', 'format' => 'id'],
 		'jurisdiction_id' => ['name' => 'Jurisdiction #', 'type' => 'integer', 'default' => null, 'format' => 'id', 'placeholder' => 'Jurisdiction'],
 		'jurisdiction_id_sequence' => ['name' => 'Jurisdiction #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
