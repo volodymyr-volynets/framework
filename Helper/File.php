@@ -198,6 +198,10 @@ class File {
 					return false;
 				}
 			}
+			// we need to remove a file if it exists
+			if (file_exists($destination) || is_link($destination)) {
+				unlink($destination);
+			}
 			return copy($source, $destination);
 		}
 	}
