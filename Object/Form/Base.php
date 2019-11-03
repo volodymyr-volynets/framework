@@ -1393,6 +1393,9 @@ processAllValues:
 				'order' => -35000
 			]);
 			$temp_row_class = "form_{$this->form_link}_form__module_container_row__module_id";
+			if (!empty($this->options['hide_module_id'])) {
+				$temp_row_class.= ' grid_row_hidden';
+			}
 			$this->element('__module_container', 'row', '__module_id', [
 				'label_name' => 'Module / Ledger',
 				'domain' => 'module_id',
@@ -2110,7 +2113,7 @@ convertMultipleColumns:
 					'type' => $navigation_type,
 					'column' => $column,
 					'pk' => $this->collection_object->data['pk'],
-					'value' => $this->values[$column],
+					'value' => $this->values[$column] ?? null,
 					'depends' => $depends,
 					'acl_datasource' => $this->collection_object->data['acl_datasource'] ?? null,
 					'acl_parameters' => $this->collection_object->data['acl_parameters'] ?? null,
