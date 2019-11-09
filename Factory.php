@@ -132,7 +132,10 @@ no_cache:
 	 */
 	public static function method($method, $base_class = null, $model = false, $constructor_parameters = null) {
 		$temp = explode('::', $method);
-		if (count($temp) > 1) {
+		if ($temp[0] === 'self') {
+			$temp_model = $base_class;
+			$temp_method = $temp[1];
+		} else if (count($temp) > 1) {
 			$temp_model = $temp[0];
 			$temp_method = $temp[1];
 		} else {
