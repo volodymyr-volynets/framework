@@ -314,6 +314,7 @@ class Controller {
 					} else if (!empty($action2)) {
 						return $this->can($action2);
 					}
+					return false;
 				} else {
 					return false;
 				}
