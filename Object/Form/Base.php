@@ -777,7 +777,7 @@ class Base extends \Object\Form\Parent2 {
 				}
 			}
 			// id we need to refresh master object
-			if (isset($this->master_options['refresh_if_set']) && $k == $this->master_options['refresh_if_set'] && !$this->master_object->isDataFound()) {
+			if (isset($this->master_options['refresh_if_set']) && $k == $this->master_options['refresh_if_set'] && (!empty($this->master_options['refresh_full_reload']) || !$this->master_object->isDataFound())) {
 				$this->master_object = \Factory::model($this->master_options['model'], true, [$this->values['__module_id'], $this->master_options['ledger'], & $this]);
 			}
 		}
