@@ -155,9 +155,19 @@ trait Trait2 {
 		// todo
 		//$sql.= !empty($options['search']) ? (' AND (' . $this->db_object->prepareCondition($options['search'], 'OR') . ')') : '';
 		// order by
-		$orderby = $options['orderby'] ?? (!empty($this->orderby) ? $this->orderby : null);
-		if (!empty($orderby)) {
-			$query->orderby($orderby);
+		if (array_key_exists('orderby', $options)) {
+			if (!empty($options['orderby'])) {
+				$query->orderby($options['orderby']);
+			}
+		} else {
+			$orderby = $options['orderby'] ?? (!empty($this->orderby) ? $this->orderby : null);
+			if (!empty($orderby)) {
+				$query->orderby($orderby);
+			}
+		}
+		// groupby
+		if (!empty($options['groupby'])) {
+			$query->groupby($options['groupby']);
 		}
 		// offset
 		if (!empty($options['offset'])) {

@@ -741,7 +741,28 @@ error:
 				if (strpos($v['type'], 'serial') !== false && empty($v['null']) && empty($data_row_final[$k])) {
 					$tenant = $model->tenant ? \Tenant::id() : null;
 					$module = $model->module ? $data_row_final[$model->module_column] : null;
-					$result['new_serials'][$k] = $data_row_final2[$k] = $data_row_final[$k] = $model->sequence($k, 'nextval', $tenant, $module);
+					// we need to syncronize the sequence
+					$nextval = $model->sequence($k, 'nextval', $tenant, $module);
+					if ($nextval == 1) {
+						$where = [];
+						if ($model->tenant) {
+							$where[$model->tenant_column] = \Tenant::id();
+						}
+						if ($model->module) {
+							$where[$model->module_column] = $data_row_final[$model->module_column];
+						}
+						$max_value_in_table = $model->get([
+							'where' => $where,
+							'columns' => ['max_value' => "MAX({$k})"],
+							'orderby' => null,
+							'pk' => null,
+						]);
+						if (!empty($max_value_in_table[0]['max_value'])) {
+							$model->db_object->setval($model->full_table_name . '_' . $k . '_seq', $max_value_in_table[0]['max_value'], $tenant, $module);
+							$nextval = $model->sequence($k, 'nextval', $tenant, $module);
+						}
+					}
+					$result['new_serials'][$k] = $data_row_final2[$k] = $data_row_final[$k] = $nextval;
 				}
 				// bytea
 				if ($v['type'] == 'bytea' && strpos($k, ';bytea') === false && !empty($data_row_final[$k])) {
