@@ -109,6 +109,13 @@ class Base extends \Object\Form\Parent2 {
 	public $escaped_values = [];
 
 	/**
+	 * API values
+	 *
+	 * @var array
+	 */
+	public $api_values = [];
+
+	/**
 	 * Collection, model or array
 	 *
 	 * @var mixed
@@ -3169,21 +3176,34 @@ convertMultipleColumns:
 	/**
 	 * API result
 	 *
+	 * @param array $options
 	 * @return array
 	 */
-	public function apiResult() : array {
-		$result = [
-			'success' => false,
-			'error' => [],
-			'pk' => $this->pk,
-			'values' => $this->values,
-			'values_loaded' => $this->values_loaded,
-			'values_saved' => $this->values_saved,
-			'values_inserted' => $this->values_inserted,
-			'values_updated' => $this->values_updated,
-			'values_no_changes' => $this->values_no_changes,
-			'new_serials' => $this->new_serials
-		];
+	public function apiResult(array $options = []) : array {
+		if (!empty($options['simple'])) {
+			$result = [
+				'success' => false,
+				'error' => [],
+			];
+		} else {
+			$result = [
+				'success' => false,
+				'error' => [],
+				'pk' => $this->pk,
+				'values' => $this->values,
+				'values_loaded' => $this->values_loaded,
+				'values_saved' => $this->values_saved,
+				'values_inserted' => $this->values_inserted,
+				'values_updated' => $this->values_updated,
+				'values_no_changes' => $this->values_no_changes,
+				'new_serials' => $this->new_serials
+			];
+		}
+		// api values
+		if (!empty($this->api_values)) {
+			$result = array_merge_hard($result, $this->api_values);
+		}
+		// process errors
 		if ($this->hasErrors()) {
 			$message = [];
 			// details

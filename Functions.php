@@ -1175,6 +1175,9 @@ function array2xml($arr, $xml = false) {
 		$xml = new SimpleXMLElement('<root/>');
 	}
 	foreach ($arr as $k => $v) {
+		if (is_numeric($k)) {
+			$k = 'index_' . $k;
+		}
 		if (is_array($v)) {
 			array2xml($v, $xml->addChild($k));
 		} else {

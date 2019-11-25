@@ -57,17 +57,19 @@ class API {
 	 * Save
 	 *
 	 * @param array $input
+	 * @param array $options
 	 * @return array
 	 */
-	public function save(array $input) : array {
+	public function save(array $input, array $options = []) : array {
 		$input[\Object\Form\Parent2::BUTTON_SUBMIT_SAVE] = true;
+		$input[\Object\Form\Parent2::BUTTON_SUBMIT] = true;
 		// we must set entry method
 		if (isset($this->form->form_object->collection_object->primary_model->column_prefix)) {
 			$input[$this->form->form_object->collection_object->primary_model->column_prefix . 'entry_method'] = 'G';
 		}
 		$this->form->form_object->addInput($input);
 		$this->form->form_object->process();
-		return $this->form->form_object->apiResult();
+		return $this->form->form_object->apiResult($options);
 	}
 
 	/**
