@@ -3184,7 +3184,12 @@ convertMultipleColumns:
 			$result = [
 				'success' => false,
 				'error' => [],
+				'pk' => $this->pk,
+				'values' => $this->values,
 			];
+			if ($options['simple'] === 2) {
+				unset($result['values'], $result['pk']);
+			}
 		} else {
 			$result = [
 				'success' => false,
@@ -3198,6 +3203,12 @@ convertMultipleColumns:
 				'values_no_changes' => $this->values_no_changes,
 				'new_serials' => $this->new_serials
 			];
+		}
+		// we need to error out if no data found
+		if (($options['method'] ?? '') == 'Get') {
+			if (!$this->values_loaded) {
+				$this->error(DANGER, \Object\Content\Messages::NO_ROWS_FOUND);
+			}
 		}
 		// api values
 		if (!empty($this->api_values)) {

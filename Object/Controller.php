@@ -285,43 +285,52 @@ class Controller {
 			if (empty($this->acl['authorized'])) return false;
 			// permissions
 			if (!empty($this->acl['permission'])) {
-				// determine action
-				$action2 = '';
-				switch ($this->method_code) {
-					case 'Edit': $action = 'Record_View'; break;
-					case 'PDF': $action = 'Record_View'; break;
-					case 'Index': $action = 'List_View'; $action2 = 'Report_View'; break;
-					case 'Activate': $action = 'Activate_Data'; break;
-					case 'Import': $action = 'Import_Records'; break;
-					// if we need to alter menu name
-					case 'JsonMenuName':
-					case 'JsonMenuName2':
-					case 'JsonMenuName3':
-					case 'JsonMenuName4':
-					case 'JsonMenuName5':
-						foreach (['Edit' => 'Record_View', 'Index' => 'List_View', 'Activate' => 'Activate_Data'] as $k => $v) {
-							if ($this->can($v, $k)) {
-								return true;
+				// API controllers
+				if (is_subclass_of($this, 'Object\Controller\API')) {
+					return $this->canAPI($this->method_code);
+				} else {
+					// determine action
+					$action2 = '';
+					switch ($this->method_code) {
+						case 'Edit': $action = 'Record_View'; break;
+						case 'PDF': $action = 'Record_View'; break;
+						case 'Index': $action = 'List_View'; $action2 = 'Report_View'; break;
+						case 'Activate': $action = 'Activate_Data'; break;
+						case 'Import': $action = 'Import_Records'; break;
+						// if we need to alter menu name
+						case 'JsonMenuName':
+						case 'JsonMenuName2':
+						case 'JsonMenuName3':
+						case 'JsonMenuName4':
+						case 'JsonMenuName5':
+							foreach (['Edit' => 'Record_View', 'Index' => 'List_View', 'Activate' => 'Activate_Data'] as $k => $v) {
+								if ($this->can($v, $k)) {
+									return true;
+								}
 							}
+							return false;
+							break;
+					}
+					if (!empty($action)) {
+						$result = $this->can($action);
+						if ($result) {
+							return $result;
+						} else if (!empty($action2)) {
+							return $this->can($action2);
 						}
 						return false;
-						break;
-				}
-				if (!empty($action)) {
-					$result = $this->can($action);
-					if ($result) {
-						return $result;
-					} else if (!empty($action2)) {
-						return $this->can($action2);
+					} else {
+						return false;
 					}
-					return false;
-				} else {
-					return false;
 				}
 			}
 		} else {
 			// we need to redirect to login controller if not authorized
 			if (($options['redirect'] ?? false) && !empty($this->acl['authorized']) && empty($this->acl['public']) && !\Application::get('flag.global.__skip_session')) {
+				// API as not authorized
+				if (is_subclass_of($this, 'Object\Controller\API')) {
+					$this->handleOutput(['success' => false, 'error' => 'Unauthorized']);
+				}
 				\Request::redirect(\Object\ACL\Resources::getStatic('authorization', 'login', 'url'));
 			}
 			// public permission
@@ -351,6 +360,27 @@ class Controller {
 		}
 		// run permission
 		return $this->canExtended(\Application::$controller->override_controller_id ?? $this->controller_id, $method_code ?? $this->method_code, $action, $module_id);
+	}
+
+	/**
+	 * Can (API)
+	 *
+	 * @param string|int $action
+	 * @param string $method_code
+	 * @param int $module_id
+	 * @return boolean
+	 */
+	public function canAPI($method_code, $module_id = null) : bool {
+		if (empty($this->controller_id) && empty(\Application::$controller->override_controller_id)) return false;
+		// module id
+		if (empty($module_id)) {
+			$module_id = $this->module_id;
+			if (empty($module_id)) {
+				Throw new \Exception('You must specify correct module #');
+			}
+		}
+		// run permission
+		return $this->canAPIExtended(\Application::$controller->override_controller_id ?? $this->controller_id, $method_code ?? $this->method_code, $module_id);
 	}
 
 	/**
@@ -624,6 +654,88 @@ class Controller {
 	}
 
 	/**
+	 * Can (extended, API)
+	 *
+	 * @param int|string $resource_id
+	 * @param string $method_code
+	 * @param int $module_id
+	 * @return bool
+	 * @throws Exception
+	 */
+	public function canAPIExtended($resource_id, $method_code, $module_id = null) : bool {
+		// rearrange controllers
+		if (!isset(self::$cached_controllers_by_ids)) {
+			self::$cached_controllers_by_ids = [];
+			foreach (self::$cached_controllers as $k => $v) {
+				self::$cached_controllers_by_ids[$v['id']] = $k;
+			}
+		}
+		// if we got a string
+		if (is_string($resource_id)) {
+			$resource_id = self::$cached_controllers[$resource_id]['id'] ?? null;
+		}
+		// if resource is not present we return false
+		if (empty(self::$cached_controllers_by_ids[$resource_id])) return false;
+		// missing features
+		if (!empty(self::$cached_controllers[self::$cached_controllers_by_ids[$resource_id]]['missing_features'])) return false;
+		// super admin
+		if (\User::get('super_admin')) return true;
+		// see if we have permission overrides
+		$apis = \User::get('apis');
+		if (!empty($apis)) {
+			// process permissions
+			$all_actions = $apis[$resource_id]['AllActions'] ?? [];
+			$actual_action = $apis[$resource_id][$method_code] ?? [];
+			$temp = array_merge_hard($all_actions, $actual_action);
+			if (!empty($temp)) {
+				if (!empty($module_id)) {
+					$temp = $temp[$module_id] ?? null;
+				} else { // find any active permision
+					$temp2 = $temp;
+					$temp = null;
+					foreach ($temp2 as $k => $v) {
+						if ($v === 0) {
+							$temp = 0;
+							break;
+						}
+					}
+				}
+			}
+			if ($temp === 0) {
+				return true;
+			} else if ($temp === 1) {
+				return false;
+			}
+		}
+		// load user roles
+		$roles = \User::roles();
+		// authorized controllers have full access
+		if (empty(self::$cached_controllers[self::$cached_controllers_by_ids[$resource_id]]['acl_permission']) && !empty(self::$cached_controllers[self::$cached_controllers_by_ids[$resource_id]]['acl_authorized'])) {
+			// if user is logged in
+			if (\User::authorized()) return true;
+		}
+		// go through roles
+		foreach ($roles as $v) {
+			$temp = $this->processAPIRole($v, $resource_id, $method_code, $module_id);
+			if ($temp === 1) {
+				return true;
+			} else if ($temp === 2) {
+				return false;
+			}
+		}
+		// go through teams
+		foreach (\User::teams() as $v) {
+			$temp = $this->processAPITeam($v, $resource_id, $method_code, $module_id);
+			if ($temp === 1) {
+				return true;
+			} else if ($temp === 2) {
+				return false;
+			}
+		}
+		return false;
+	}
+
+	/**
 	 * Process role
 	 *
 	 * @param string $role
@@ -670,6 +782,61 @@ class Controller {
 		foreach (self::$cached_roles[$role]['parents'] as $k => $v) {
 			if (!empty($v)) continue;
 			$temp = $this->processRole($k, $resource_id, $method_code, $action_id);
+			if ($temp === 1) {
+				return 1;
+			} else if ($temp === 2) {
+				return 2;
+			}
+		}
+		return 0;
+	}
+
+	/**
+	 * Process role (API)
+	 *
+	 * @param string $role
+	 * @param int $resource_id
+	 * @param string $method_code
+	 * @return int
+	 */
+	private function processAPIRole(string $role, int $resource_id, string $method_code, $module_id = null) : int {
+		// load all roles from datasource
+		if (is_null(self::$cached_roles) && !\Object\Error\Base::$flag_database_tenant_not_found) {
+			self::$cached_roles = \Object\ACL\Resources::getStatic('roles', 'primary');
+		}
+		// if role is not found
+		if (empty(self::$cached_roles[$role])) return 0;
+		// process permissions
+		$all_actions = self::$cached_roles[$role]['apis'][$resource_id]['AllActions'] ?? [];
+		$actual_action = self::$cached_roles[$role]['apis'][$resource_id][$method_code] ?? [];
+		$temp = array_merge_hard($all_actions, $actual_action);
+		if (!empty($temp)) {
+			if (!empty($module_id)) {
+				$temp = $temp[$module_id] ?? null;
+			} else { // find any active permision
+				$temp2 = $temp;
+				$temp = null;
+				foreach ($temp2 as $k => $v) {
+					if ($v === 0) {
+						$temp = 0;
+						break;
+					}
+				}
+			}
+		}
+		if ($temp === 0) {
+			return 1;
+		} else if ($temp === 1) {
+			return 2;
+		}
+		// super admin
+		if (!empty(self::$cached_roles[$role]['super_admin'])) return 1;
+		// if permission is not found we need to check parents
+		if (empty(self::$cached_roles[$role]['parents'])) return 0;
+		// go though parents
+		foreach (self::$cached_roles[$role]['parents'] as $k => $v) {
+			if (!empty($v)) continue;
+			$temp = $this->processAPIRole($k, $resource_id, $method_code);
 			if ($temp === 1) {
 				return 1;
 			} else if ($temp === 2) {
@@ -752,6 +919,47 @@ class Controller {
 		// process permissions
 		$all_actions = self::$cached_teams[$team_id]['permissions'][$resource_id]['AllActions'][-1] ?? [];
 		$actual_action = self::$cached_teams[$team_id]['permissions'][$resource_id][$method_code][$action_id] ?? [];
+		$temp = array_merge_hard($all_actions, $actual_action);
+		if (!empty($temp)) {
+			if (!empty($module_id)) {
+				$temp = $temp[$module_id] ?? null;
+			} else { // find any active permision
+				$temp2 = $temp;
+				$temp = null;
+				foreach ($temp2 as $k => $v) {
+					if ($v === 0) {
+						$temp = 0;
+						break;
+					}
+				}
+			}
+		}
+		if ($temp === 0) {
+			return 1;
+		} else if ($temp === 1) {
+			return 2;
+		}
+		return 0;
+	}
+
+	/**
+	 * Process team (API)
+	 *
+	 * @param int $team_id
+	 * @param int $resource_id
+	 * @param string $method_code
+	 * @return int
+	 */
+	private function processAPITeam(int $team_id, int $resource_id, string $method_code, $module_id = null) : int {
+		// load all roles from datasource
+		if (is_null(self::$cached_teams) && !\Object\Error\Base::$flag_database_tenant_not_found) {
+			self::$cached_teams = \Object\ACL\Resources::getStatic('roles', 'teams');
+		}
+		// if role is not found
+		if (empty(self::$cached_teams[$team_id])) return 0;
+		// process permissions
+		$all_actions = self::$cached_teams[$team_id]['apis'][$resource_id]['AllActions'] ?? [];
+		$actual_action = self::$cached_teams[$team_id]['apis'][$resource_id][$method_code] ?? [];
 		$temp = array_merge_hard($all_actions, $actual_action);
 		if (!empty($temp)) {
 			if (!empty($module_id)) {

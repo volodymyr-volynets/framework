@@ -45,12 +45,13 @@ class API {
 	 * Get
 	 *
 	 * @param array $input
+	 * @param array $options
 	 * @return array
 	 */
-	public function get(array $input) : array {
+	public function get(array $input, array $options = []) : array {
 		$this->form->form_object->addInput($input);
 		$this->form->form_object->process();
-		return $this->form->form_object->apiResult();
+		return $this->form->form_object->apiResult($options);
 	}
 
 	/**
@@ -192,14 +193,15 @@ class API {
 	 * Deleted
 	 *
 	 * @param array $input
+	 * @param array $options
 	 * @return array
 	 */
-	public function delete(array $input) : array {
+	public function delete(array $input, array $options = []) : array {
 		$input[\Object\Form\Parent2::BUTTON_SUBMIT_SAVE] = true;
 		$input[\Object\Form\Parent2::BUTTON_SUBMIT_DELETE] = true;
 		$this->form->form_object->addInput($input);
 		$this->form->form_object->process();
-		return $this->form->form_object->apiResult();
+		return $this->form->form_object->apiResult($options);
 	}
 
 	/**

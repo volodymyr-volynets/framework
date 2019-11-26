@@ -16,7 +16,18 @@ abstract class API extends \Object\Controller {
 		'permission' => true
 	];
 
+	/**
+	 * API Content Type
+	 *
+	 * @var string
+	 */
 	public $api_content_type;
+
+	/**
+	 * API Input
+	 *
+	 * @var array
+	 */
 	public $api_input;
 
 	/**
