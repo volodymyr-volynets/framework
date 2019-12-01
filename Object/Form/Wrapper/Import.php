@@ -23,7 +23,7 @@ class Import {
 			'input' => [
 				\Object\Form\Parent2::BUTTON_SUBMIT_BLANK => true
 			],
-			'skip_optimistic_lock' => true
+			'skip_optimistic_lock' => true,
 		]);
 		// if we need to export a sample
 		if (!empty($options['input']['export_file_with_format'])) {
@@ -39,6 +39,7 @@ class Import {
 			'back' => true,
 			'new' => true
 		];
+		$options['no_ajax_form_reload'] = true;
 		// step 0: create form object
 		$this->form_object = new \Object\Form\Base('simple_import_form', $options);
 		// class
@@ -151,6 +152,16 @@ class Import {
 		];
 		foreach ($result['data'] as $k => $v) {
 			$v[\Object\Form\Parent2::BUTTON_SUBMIT_SAVE] = true;
+			// process pk
+			$pk = $form->import_object->collection_object->primary_model->pk;
+			if (!empty($form->import_object->collection_object->primary_model->tenant_column)) {
+				unset($pk[array_search($form->import_object->collection_object->primary_model->tenant_column, $pk)]);
+			}
+			foreach ($pk as $v90) {
+				if (isset($v[$v90]) && stripos($v[$v90], '_NEW_') !== false) {
+					unset($v[$v90]);
+				}
+			}
 			$form->import_object->addInput($v);
 			$form->import_object->process();
 			$temp = $form->import_object->apiResult();

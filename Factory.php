@@ -135,6 +135,7 @@ no_cache:
 		if ($temp[0] === 'self') {
 			$temp_model = $base_class;
 			$temp_method = $temp[1];
+			$model = false;
 		} else if (count($temp) > 1) {
 			$temp_model = $temp[0];
 			$temp_method = $temp[1];

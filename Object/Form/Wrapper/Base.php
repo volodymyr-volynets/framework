@@ -237,7 +237,7 @@ class Base extends \Object\Form\Parent2 {
 							if ($this->form_object->initiator_class == 'form') {
 								continue;
 							} else {
-								if ($k == self::LIST_CONTAINER) {
+								if ($k == self::LIST_CONTAINER || $k == self::LIST_LINE_CONTAINER) {
 									$k3 = $k3 . '_dummy_field';
 									$v3['label_name'] = '';
 								} else {
@@ -275,6 +275,14 @@ class Base extends \Object\Form\Parent2 {
 					}
 					$this->form_object->element($k, $k2_copy, $k3, $v3);
 				}
+			}
+		}
+		// saved filters
+		if ($this->form_object->initiator_class === 'list' || $this->form_object->initiator_class === 'report') {
+			$class = \Object\ACL\Resources::getStatic('widgets', 'filters', 'form_builder');
+			if (!empty($class)) {
+				$model = new $class();
+				$model->addFilterToForm($this->form_object, $options);
 			}
 		}
 		// subforms

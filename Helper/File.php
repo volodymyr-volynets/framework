@@ -45,9 +45,17 @@ class File {
 	 *
 	 * @param string $dir
 	 * @param octal $permission
+	 * @param array $options
+	 *	boolean skip_realpath
 	 * @return boolean
 	 */
-	public static function mkdir($dir, $permission = 0777) {
+	public static function mkdir($dir, $permission = 0777, $options = []) {
+		if (empty($options['skip_realpath'])) {
+			$dir = self::realpath($dir);
+		}
+		if (is_dir($dir)) {
+			return true;
+		}
 		return mkdir($dir, $permission, true);
 	}
 
@@ -294,5 +302,29 @@ class File {
 		} else {
 			return $result;
 		}
+	}
+
+	/**
+	 * Real path
+	 *
+	 * @param string $path
+	 * @return string
+	 */
+	public static function realpath(string $path) : string {
+		$path = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $path);
+		$first = ($path[0] == DIRECTORY_SEPARATOR) ? DIRECTORY_SEPARATOR : '';
+		$parts = array_filter(explode(DIRECTORY_SEPARATOR, $path), 'strlen');
+		$result = [];
+		foreach ($parts as $v) {
+			if ($v == '.') {
+				continue;
+			}
+			if ($v == '..') {
+				array_pop($result);
+			} else {
+				$result[] = $v;
+			}
+		}
+		return $first . implode(DIRECTORY_SEPARATOR, $result);
 	}
 }

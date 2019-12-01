@@ -1366,6 +1366,10 @@ processAllValues:
 			$this->element($this::HIDDEN, $this::HIDDEN, '__list_report_filter_loaded', ['label_name' => 'Filter Loader', 'type' => 'boolean', 'method'=> 'hidden', 'preserved' => true]);
 			$this->options['input']['__list_report_filter_loaded'] = 1;
 		}
+		// back link through __form_filter_id
+		if (in_array($this->initiator_class, ['form'])) {
+			$this->element($this::HIDDEN, $this::HIDDEN, '__form_filter_id', ['label_name' => 'Filter #', 'domain' => 'big_id', 'method'=> 'hidden', 'preserved' => true]);
+		}
 		// module #
 		$blank_reset_var = [];
 		if ($this->collection_object->primary_model->module ?? false) {
@@ -1479,7 +1483,7 @@ processAllValues:
 		if ($this->initiator_class == 'list') {
 			$this->element($this::HIDDEN, $this::HIDDEN, '__limit', ['label_name' => 'Limit', 'type' => 'integer', 'default' => $this->form_parent->list_options['default_limit'] ?? 30, 'method'=> 'hidden']);
 			$this->element($this::HIDDEN, $this::HIDDEN, '__offset', ['label_name' => 'Offset', 'type' => 'integer', 'default' => 0, 'method'=> 'hidden']);
-			$this->element($this::HIDDEN, $this::HIDDEN, '__preview', ['label_name' => 'Preview', 'type' => 'integer', 'default' => 0, 'method'=> 'hidden']);
+			$this->element($this::HIDDEN, $this::HIDDEN, '__preview', ['label_name' => 'Preview', 'type' => 'integer', 'default' => $this->form_parent->list_options['default_preview'] ?? 0, 'method'=> 'hidden']);
 			// default sort
 			if (empty($this->options['input']['\Object\Form\Model\Dummy\Sort']) && !empty($this->form_parent->list_options['default_sort'])) {
 				$this->options['input']['\Object\Form\Model\Dummy\Sort'] = [];
@@ -1522,7 +1526,8 @@ processAllValues:
 					'notification' => $this->options['notification'] ?? null,
 					'bypass_hidden_from_input' => $this->options['bypass_hidden_from_input'] ?? [],
 					'acl_subresource_edit' => $this->options['acl_subresource_edit'] ?? $this->options['__parent_options']['options']['acl_subresource_edit'] ?? null,
-					'flag_subform' => true
+					'flag_subform' => true,
+					'plain_text_note' => $this->options['plain_text_note'] ?? false,
 				]);
 				if (!empty($this->options['input']['__subform_load_window'])) {
 					$modal = \HTML::modal([
@@ -1907,19 +1912,61 @@ convertMultipleColumns:
 			}
 			$this->misc_settings['list']['limit'] = $this->values['__limit'] ?? 0;
 			$this->misc_settings['list']['offset'] = $this->values['__offset'] ?? 0;
-			$this->misc_settings['list']['preview'] = $this->values['__preview'] ?? 0;
-			$this->misc_settings['list']['columns'] = $this->data[$this::LIST_CONTAINER]['rows'] ?? [];
+			$this->misc_settings['list']['preview'] = $this->values['__preview'] ?? $this->form_parent->list_options['default_preview'] ?? 0;
+			$this->misc_settings['list']['preview_as_line'] = !empty($this->data[$this::LIST_LINE_CONTAINER]['rows']);
+			// line preview has different container
+			if ($this->misc_settings['list']['preview'] == 2) {
+				$this->misc_settings['list']['columns'] = $this->data[$this::LIST_LINE_CONTAINER]['rows'] ?? [];
+			} else {
+				$this->misc_settings['list']['columns'] = $this->data[$this::LIST_CONTAINER]['rows'] ?? [];
+			}
 			$this->misc_settings['list']['full_text_search'] = $this->values['full_text_search'] ?? null;
+			// save filter id
+			$this->misc_settings['list']['__form_filter_id'] = $this->triggerMethod('filterChanged');
 		}
-		// usage
+		// usage for list
 		if ($this->initiator_class == 'list') {
-			\Application::$controller->addUsageAction('list_opened', [
-				'replace' => [
-					'[list_name]' => $this->title,
-				],
-				'affected_rows' => $this->misc_settings['list']['num_rows'] ?? 0,
-				'error_rows' => $this->errors['flag_num_errors'],
-			]);
+			if (!isset($this->options['__parent_options'])) {
+				\Application::$controller->addUsageAction('list_opened', [
+					'replace' => [
+						'[list_name]' => $this->title,
+					],
+					'affected_rows' => $this->misc_settings['list']['num_rows'] ?? 0,
+					'error_rows' => $this->errors['flag_num_errors'],
+					'url' => \Application::get('mvc.full') . '?__form_filter_id=' . ($this->misc_settings['list']['__form_filter_id'] ?? null),
+				]);
+			} else {
+				\Application::$controller->addUsageAction('list_opened', [
+					'replace' => [
+						'[list_name]' => $this->title,
+					],
+					'affected_rows' => $this->misc_settings['list']['num_rows'] ?? 0,
+					'error_rows' => $this->errors['flag_num_errors'],
+					'history' => false,
+				]);
+			}
+		}
+		// usage for report
+		if ($this->initiator_class == 'report') {
+			if (empty($this->options['parent_form_link'])) {
+				\Application::$controller->addUsageAction('report_opened', [
+					'replace' => [
+						'[report_name]' => $this->title,
+					],
+					'affected_rows' => $this->misc_settings['report']['num_rows'] ?? 0,
+					'error_rows' => $this->errors['flag_num_errors'],
+					'url' => \Application::get('mvc.full') . '?__form_filter_id=' . $this->triggerMethod('filterChanged'),
+				]);
+			} else {
+				\Application::$controller->addUsageAction('report_opened', [
+					'replace' => [
+						'[report_name]' => $this->title,
+					],
+					'affected_rows' => $this->misc_settings['report']['num_rows'] ?? 0,
+					'error_rows' => $this->errors['flag_num_errors'],
+					'history' => false,
+				]);
+			}
 		}
 		// report, filter form must be submitted
 		if ($this->initiator_class == 'report' && !$this->hasErrors() && $this->submitted) {
@@ -1941,14 +1988,26 @@ convertMultipleColumns:
 				'__html' => & $report_html
 			]);
 		}
-		// usage
-		if ($this->initiator_class == 'report') {
-			\Application::$controller->addUsageAction('report_opened', [
+		// usage for form
+		if ($this->initiator_class == 'form' && !empty($this->options['__parent_options']['flag_main_form'])) {
+			$refresh_params = [];
+			if ($this->values_loaded) {
+				$refresh_params = $this->pk;
+				// remove tenant
+				if (!empty($this->collection_object->primary_model->tenant)) {
+					unset($refresh_params[$this->collection_object->primary_model->tenant_column]);
+				}
+			}
+			if (!empty($this->values['__form_filter_id'])) {
+				$refresh_params['__form_filter_id'] = $this->values['__form_filter_id'];
+			}
+			\Application::$controller->addUsageAction('form_opened', [
 				'replace' => [
-					'[report_name]' => $this->title,
+					'[form_name]' => $this->title,
 				],
-				'affected_rows' => $this->misc_settings['report']['num_rows'] ?? 0,
-				'error_rows' => $this->errors['flag_num_errors'],
+				'affected_rows' => 1,
+				'error_rows' => 0,
+				'url' => \Application::get('mvc.full') . '?' . http_build_query($refresh_params),
 			]);
 		}
 		// process all values
@@ -2997,7 +3056,7 @@ convertMultipleColumns:
 					}
 				}
 				// fixes for list container
-				if ($this->initiator_class == 'list' && $container_link == self::LIST_CONTAINER) {
+				if ($this->initiator_class == 'list' && ($container_link == self::LIST_CONTAINER || $container_link == self::LIST_LINE_CONTAINER)) {
 					// add manual validation
 					if (!empty($options['options_model'])) {
 						$options['options_manual_validation'] = true;
@@ -3523,7 +3582,7 @@ convertMultipleColumns:
 		if ($this->initiator_class == 'form') {
 			$result = 10;
 		} else if ($this->initiator_class == 'list') { // list
-			if ($field_options['options']['container_link'] == self::LIST_CONTAINER) {
+			if ($field_options['options']['container_link'] == self::LIST_CONTAINER || $field_options['options']['container_link'] == self::LIST_LINE_CONTAINER) {
 				$result = 30;
 			} else if ($field_options['options']['container_link'] == 'sort') {
 				$result = 40;
@@ -3533,10 +3592,12 @@ convertMultipleColumns:
 		} else if ($this->initiator_class == 'report') { // report
 			if ($field_options['options']['container_link'] == 'filter' || $field_options['options']['container_link'] == '__report_buttons') {
 				$result = 50;
-			} else if ($field_options['options']['container_link'] == self::LIST_CONTAINER) {
+			} else if ($field_options['options']['container_link'] == self::LIST_CONTAINER || $field_options['options']['container_link'] == self::LIST_LINE_CONTAINER) {
 				$result = 60;
 			} else if ($field_options['options']['container_link'] == 'sort') {
 				$result = 70;
+			} else if ($field_options['options']['container_link'] == '__filter_new') {
+				$result = 10;
 			} else {
 				Throw new \Exception('Report field type?');
 			}
@@ -3813,8 +3874,11 @@ convertMultipleColumns:
 		if (!empty($this->options['collection_current_tab_id'])) {
 			$params[$this->options['collection_current_tab_id']] = $this->form_link;
 		}
+		if (!empty($this->values['__form_filter_id'])) {
+			$params['__form_filter_id'] = $this->values['__form_filter_id'];
+		}
 		$params['__refresh'] = rand(1000, 9999) . '_' . rand(1000, 9999) . '_' . rand(1000, 9999);
-		$this->misc_settings['redirect'] = \Application::get('mvc.full') . '?' . http_build_query2($params) . "#form_{$this->form_link}_form_anchor";
+		$this->misc_settings['redirect'] = \Application::get('mvc.full') . '?' . http_build_query2($params) . "#page_top_anchor";
 	}
 
 	/**
@@ -3906,9 +3970,11 @@ convertMultipleColumns:
 	 * Get values for filter used in data sources
 	 *
 	 * @param array $values
+	 * @param array $options
+	 *	boolean no_unset
 	 * @return array
 	 */
-	public function getValuesForDataSourceFilter($values = null) : array {
+	public function getValuesForDataSourceFilter($values = null, array $options = []) : array {
 		if (!isset($values)) {
 			$values = $this->values;
 		}
@@ -3917,7 +3983,11 @@ convertMultipleColumns:
 				unset($values[$k]);
 			}
 		}
-		unset($values['__format'], $values['__submit_button'], $values['__list_report_filter_loaded'], $values['\Object\Form\Model\Dummy\Sort']);
+		if (empty($options['no_unset'])) {
+			unset($values['__format'], $values['__submit_button'], $values['__list_report_filter_loaded'], $values['\Object\Form\Model\Dummy\Sort']);
+		} else {
+			unset($values['__submit_button_2'], $values['__list_report_filter_loaded'], $values['__filter_name']);
+		}
 		return $values;
 	}
 }

@@ -154,6 +154,8 @@ class Columns extends \Object\Data {
 		} else {
 			if (is_null($value)) {
 				$result[$column_name] = null;
+			} else if (($column_options['method'] ?? '') == 'file') {
+				$result[$column_name] = $value;
 			} else {
 				// we need to convert numeric strings
 				if (($column_options['format'] ?? '') == 'id') {
@@ -243,7 +245,7 @@ class Columns extends \Object\Data {
 						$result['data'][$column_name] = null;
 					}
 				}
-			} else if ($column_options['php_type'] == 'string') {
+			} else if ($column_options['php_type'] == 'string' && ($column_options['method'] ?? '') != 'file') {
 				// we need to convert empty string to null
 				if ($result['data'][$column_name] . '' === '' && !empty($column_options['null'])) {
 					$result['data'][$column_name] = null;

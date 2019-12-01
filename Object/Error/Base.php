@@ -113,7 +113,7 @@ class Base {
 		}
 		// hashing errors
 		if ($errno != 'javascript') {
-			if (!isseT(self::$error_hashes_intersepted[$file][$line])) {
+			if (!isset(self::$error_hashes_intersepted[$file][$line])) {
 				self::$error_hashes_intersepted[$file][$line] = [];
 			}
 			self::$error_hashes_intersepted[$file][$line][] = ['errno' => $errno, 'error' => $error];
@@ -175,7 +175,7 @@ class Base {
 	 */
 	public static function debugBacktraceString($trace = null) {
 		$result = [];
-		if (!\Debug::$debug) return $result;
+		//if (!\Debug::$debug) return $result;
 		$i = 1;
 		// if trace is not provided
 		if (empty($trace)) {
@@ -188,7 +188,7 @@ class Base {
 				$stack.= '(' . $v['line'] . ')';
 			}
 			// do not show error handler
-			if (!(isset($v['class']) && $v['class'] == 'error' && $v['function'] == 'error_handler')) {
+			if (!(isset($v['class']) && $v['class'] == 'Object\Error\Base' && $v['function'] == 'errorHandler')) {
 				$stack.= ': ';
 				if(isset($v['class'])) {
 					$stack.= $v['class'] . $v['type'];

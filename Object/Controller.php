@@ -287,9 +287,10 @@ class Controller {
 			if (!empty($this->acl['permission'])) {
 				// determine action
 				$action2 = '';
+				$method_code = null;
 				switch ($this->method_code) {
 					case 'Edit': $action = 'Record_View'; break;
-					case 'PDF': $action = 'Record_View'; break;
+					case 'PDF': $action = 'Record_View'; $method_code = 'Edit'; break;
 					case 'Index': $action = 'List_View'; $action2 = 'Report_View'; break;
 					case 'Activate': $action = 'Activate_Data'; break;
 					case 'Import': $action = 'Import_Records'; break;
@@ -308,12 +309,13 @@ class Controller {
 						break;
 				}
 				if (!empty($action)) {
-					$result = $this->can($action);
+					$result = $this->can($action, $method_code);
 					if ($result) {
 						return $result;
 					} else if (!empty($action2)) {
-						return $this->can($action2);
+						return $this->can($action2, $method_code);
 					}
+					return false;
 				} else {
 					return false;
 				}
@@ -530,6 +532,10 @@ class Controller {
 			} else if ($temp === 2) {
 				return false;
 			}
+		}
+		// if we have all actions enabled we need to allow through
+		if ($this->can('All_Actions', 'Edit')) {
+			return true;
 		}
 		return false;
 	}

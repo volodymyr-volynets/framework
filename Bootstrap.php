@@ -224,8 +224,8 @@ class Bootstrap {
 				$v['object']->close();
 			}
 		}
-		// emails with erros
-		if (\Debug::$debug && !empty(\Debug::$email) && \Application::get('Numbers.Backend', ['backend_exists' => true]) && \Application::get('Numbers.Frontend', ['backend_exists' => true])) {
+		// emails with errors
+		if (!empty(\Debug::$email) && \Application::get('Numbers.Backend', ['backend_exists' => true]) && \Application::get('Numbers.Frontend', ['backend_exists' => true])) {
 			\Debug::sendErrorsToAdmin();
 		}
 	}

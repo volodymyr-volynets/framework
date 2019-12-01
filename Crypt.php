@@ -88,7 +88,7 @@ class Crypt {
 	 * @param mixed $data
 	 * @return string - erlencoded
 	 */
-	public function tokenCreate($id, $token = null, $data = null){
+	public function tokenCreate($id, $token = null, $data = null) {
 		return $this->object->tokenCreate($id, $token, $data);
 	}
 

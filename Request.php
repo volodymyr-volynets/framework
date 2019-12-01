@@ -14,7 +14,7 @@ class Request {
 			return $request_ip;
 		}
 		// get users IP
-		$result = $_SERVER['REMOTE_ADDR'];
+		$result = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
 		// if request goes through the proxy
 		if (!empty($_SERVER['HTTP_X_REAL_IP'])) {
 			$result = $_SERVER['HTTP_X_REAL_IP'];

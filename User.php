@@ -104,7 +104,7 @@ class User {
 	 */
 	public static function roles() : array {
 		if (!empty(self::$override_user_id)) {
-			return self::$cached_users[self::$override_user_id]['roles'];
+			return self::$cached_users[self::$override_user_id]['roles'] ?? [];
 		} else {
 			return $_SESSION['numbers']['user']['roles'] ?? [];
 		}
@@ -117,7 +117,7 @@ class User {
 	 */
 	public static function teams() : array {
 		if (!empty(self::$override_user_id)) {
-			return self::$cached_users[self::$override_user_id]['teams'];
+			return self::$cached_users[self::$override_user_id]['teams'] ?? [];
 		} else {
 			return $_SESSION['numbers']['user']['teams'] ?? [];
 		}

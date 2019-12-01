@@ -13,6 +13,7 @@ class Parent2 extends \Object\Override\Data {
 	 * List container
 	 */
 	const LIST_CONTAINER = '__list_container';
+	const LIST_LINE_CONTAINER = '__list_line_container';
 
 	/**
 	 * List buttons
