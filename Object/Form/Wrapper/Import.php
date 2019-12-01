@@ -11,6 +11,13 @@ class Import {
 	public $form_object;
 
 	/**
+	 * Options
+	 *
+	 * @var array
+	 */
+	public $options;
+
+	/**
 	 * Constructor
 	 *
 	 * @param array $options
@@ -19,6 +26,7 @@ class Import {
 	 */
 	public function __construct($options = []) {
 		$class = $options['input']['model'] = $options['model'];
+		$this->options = $options;
 		$form = new $class([
 			'input' => [
 				\Object\Form\Parent2::BUTTON_SUBMIT_BLANK => true
@@ -39,6 +47,7 @@ class Import {
 			'back' => true,
 			'new' => true
 		];
+		$options['no_ajax_form_reload'] = true;
 		// step 0: create form object
 		$this->form_object = new \Object\Form\Base('simple_import_form', $options);
 		// class
@@ -118,6 +127,9 @@ class Import {
 			$form->error(DANGER, \Object\Content\Messages::REQUIRED_FIELD, 'import_file');
 			return;
 		}
+		// no limit when we import
+		set_time_limit(0);
+		\Debug::$debug = false;
 		// process extension
 		$extension = pathinfo($_FILES['import_file']['name'], PATHINFO_EXTENSION);
 		$format = \Object\Content\ImportFormats::getStatic([
@@ -149,6 +161,11 @@ class Import {
 			'error' => 0,
 			'errors' => []
 		];
+		// reset table
+		if (!empty($this->options['reset_table'])) {
+			$form->import_object->collection_object->primary_model->queryBuilder()->delete()->query();
+		}
+		// import data
 		foreach ($result['data'] as $k => $v) {
 			$v[\Object\Form\Parent2::BUTTON_SUBMIT_SAVE] = true;
 			$form->import_object->addInput($v);
@@ -160,6 +177,8 @@ class Import {
 			} else {
 				$messages['success']++;
 			}
+			// gc
+			unset($result['data'][$k], $v);
 		}
 		// print messages
 		if (!empty($messages['success'])) {

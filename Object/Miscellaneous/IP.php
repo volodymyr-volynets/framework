@@ -12,8 +12,8 @@ class IP {
 
 	/**
 	 * Options
-	 *		cache_link
-	 *		crypt_link
+	 *	cache_link
+	 *	crypt_link
 	 *
 	 * @var array
 	 */

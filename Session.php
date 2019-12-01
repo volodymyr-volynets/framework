@@ -42,6 +42,13 @@ class Session {
 	];
 
 	/**
+	 * Flag IP address changed
+	 *
+	 * @var boolean
+	 */
+	public static $flag_ip_changed = false;
+
+	/**
 	 * Starting session
 	 *
 	 * @param array $options
@@ -84,23 +91,41 @@ class Session {
 		$ip = \Request::ip();
 		// we need to reset ip address details if we have different ip
 		if (!empty($_SESSION['numbers']['ip']['ip']) && $_SESSION['numbers']['ip']['ip'] != $ip) {
-			$_SESSION['numbers']['ip'] = [];
+			// regenerate id on IP change
+			self::$flag_ip_changed = true;
+			session_regenerate_id(true);
+			// reset variable
+			$_SESSION['numbers']['ip'] = [
+				'pages_count' => 0,
+				'request_count' => 0,
+			];
 		}
 		// we need to try to decode ip address
 		$ip_decoder_submodule = \Application::get('flag.global.ip.submodule');
-		if (!empty($ip_decoder_submodule) && !isset($_SESSION['numbers']['ip']['ip'])) {
+		if (!empty($ip_decoder_submodule) && empty($_SESSION['numbers']['ip']['decoded'])) {
 			$ip_object = new \Object\Miscellaneous\IP();
 			$ip_data = $ip_object->get($ip);
 			if ($ip_data['success']) {
 				$_SESSION['numbers']['ip'] = array_merge2(['ip' => $ip], $ip_data['data']);
+				$_SESSION['numbers']['ip']['decoded'] = true;
+			} else {
+				$_SESSION['numbers']['ip']['decoded'] = 'Not found in database!';
 			}
 		}
 		// we only store ip address if its not set
 		if (!isset($_SESSION['numbers']['ip']['ip'])) {
 			$_SESSION['numbers']['ip'] = [
-				'ip' => $ip
+				'ip' => $ip,
+				'pages_count' => 0,
+				'request_count' => 0,
 			];
 		}
+		// increment counters
+		$__ajax = \Request::input('__ajax');
+		if (!$__ajax && \Object\Content\Types::existsStatic(['where' => ['no_virtual_controller_code' => \Application::get('flag.global.__content_type'), 'no_content_type_presentation' => 1]])) {
+			$_SESSION['numbers']['ip']['pages_count'] = ($_SESSION['numbers']['ip']['pages_count'] ?? 0) + 1;
+		}
+		$_SESSION['numbers']['ip']['request_count'] = ($_SESSION['numbers']['ip']['request_count'] ?? 0) + 1;
 		// add anonymous role
 		if (!\User::authorized()) {
 			\User::roleGrant(\Object\ACL\Resources::getStatic('user_roles', 'anonymous', 'data'));
