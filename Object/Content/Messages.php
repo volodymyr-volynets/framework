@@ -4,6 +4,7 @@ namespace Object\Content;
 class Messages {
 	// error messages
 	const NO_ROWS_FOUND = 'No rows found!';
+	const NO_WHAT_FOUND = 'No [what] found!';
 	const RECORD_NOT_FOUND = 'Record not found!';
 	const NO_PERMISSIONS_FOUND = 'You do not have permissions to view this content!';
 	const PREV_OR_NEXT_RECORD_NOT_FOUND = 'Previous/next record not found!';

@@ -110,4 +110,14 @@ class Parser {
 		}
 		return $start;
 	}
+
+	/**
+	 * Filter UTF-8
+	 *
+	 * @param string $str
+	 * @return string
+	 */
+	public static function filterUTF8(string $str): string {
+		return iconv(mb_detect_encoding($str, mb_detect_order(), true), "UTF-8", $str);
+	}
 }

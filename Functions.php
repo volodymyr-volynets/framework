@@ -1139,6 +1139,30 @@ function is_html($input) {
 }
 
 /**
+ * Check if string is base64 encoded
+ *
+ * @param string $input
+ * @return boolean
+ */
+function is_base64($input) {
+	if (base64_encode(base64_decode($input, true)) === $input) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
+/**
+ * Check if string is UTF-8
+ *
+ * @param string $input
+ * @return boolean
+ */
+function is_utf8($input) {
+        return (utf8_encode(utf8_decode($input)) === $input);
+}
+
+/**
  * Check if its a valid XML string
  *
  * @param mixed $input

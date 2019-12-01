@@ -271,7 +271,7 @@ class Application {
 		}
 		// check if action exists
 		if (!method_exists(self::$controller, self::$controller->action_method)) {
-			Throw new \Exception('Action does not exists!');
+			Throw new \Exception('Action does not exists: ' . self::$controller->action_method . ', Controller: ' . get_class(self::$controller) . '!');
 		}
 		// calling action
 		echo call_user_func(array(self::$controller, self::$controller->action_method));

@@ -51,8 +51,8 @@ class Debug {
 	 */
 	public static function init($options) {
 		self::$debug = !empty($options['debug']) ? true : false;
+		self::$email = !empty($options['email']) ? $options['email'] : null;
 		if (self::$debug) {
-			self::$email = !empty($options['email']) ? $options['email'] : null;
 			self::$toolbar = !empty($options['toolbar']) ? true : false;
 			self::benchmark('application start');
 		}
@@ -130,11 +130,16 @@ class Debug {
 			$message.= '<br/>IP: ' . \Request::ip();
 			$message.= '<br/>Host: ' . \Request::host();
 			$message.= '<br/>Script folder: ' . getcwd();
+			$message.= '<br/>MVC: ' . \Application::get('mvc.full');
+			$message.= '<br/>User #: ' . \User::id();
 			$message.= '<hr/>';
 			$message.= str_replace('display: none;', '', self::render());
+			// subject
+			$environment = \Application::get('environment');
+			$subject = '[' . $environment . '] application error';
 			return \Mail::send([
 				'to' => self::$email,
-				'subject' => 'application error',
+				'subject' => $subject,
 				'message' => $message
 			]);
 		}
@@ -392,6 +397,9 @@ class Debug {
 				$result.= '</tr>';
 
 				// input
+				if (!self::$debug) {
+					self::$data['input'][] = \Request::input();
+				}
 				$result.= '<tr id="debuging_toolbar_input" class="debuging_toolbar_class" style="display: none;">';
 					$result.= '<td>';
 						$result.= '<h3>Input (' . count(self::$data['input']) . ')' . '</h3>';
@@ -447,34 +455,38 @@ class Debug {
 				$result.= '</tr>';
 
 				// application
-				$result.= '<tr id="debuging_toolbar_application" class="debuging_toolbar_class" style="display: none;">';
-					$result.= '<td>';
-						$result.= '<h3>Application (' . count($application) . ')</h3>';
-						$result.= print_r2($application, 'Application Variables:', true);
-					$result.= '</td>';
-				$result.= '</tr>';
+				if (self::$debug) {
+					$result.= '<tr id="debuging_toolbar_application" class="debuging_toolbar_class" style="display: none;">';
+						$result.= '<td>';
+							$result.= '<h3>Application (' . count($application) . ')</h3>';
+							$result.= print_r2($application, 'Application Variables:', true);
+						$result.= '</td>';
+					$result.= '</tr>';
+				}
 
 				// phpinfo
-				$result.= '<tr id="debuging_toolbar_phpinfo" class="debuging_toolbar_class" style="display: none;">';
-					$result.= '<td>';
-						$result.= '<h3>PHPInfo</h3>';
-						\Helper\Ob::start();
-						phpinfo();
-						$str = \Helper\Ob::clean();
-						$str = preg_replace( '%^.*<body>(.*)</body>.*$%ms', '$1', $str);
-						$str.= <<<TTT
-							<style type="text/css">
-								#phpinfo table {
-									border: 1px solid #000;
-								}
-								#phpinfo table tr {
-									border-bottom: 1px solid #000;
-								}
-							</style>
+				if (self::$debug) {
+					$result.= '<tr id="debuging_toolbar_phpinfo" class="debuging_toolbar_class" style="display: none;">';
+						$result.= '<td>';
+							$result.= '<h3>PHPInfo</h3>';
+							\Helper\Ob::start();
+							phpinfo();
+							$str = \Helper\Ob::clean();
+							$str = preg_replace( '%^.*<body>(.*)</body>.*$%ms', '$1', $str);
+							$str.= <<<TTT
+								<style type="text/css">
+									#phpinfo table {
+										border: 1px solid #000;
+									}
+									#phpinfo table tr {
+										border-bottom: 1px solid #000;
+									}
+								</style>
 TTT;
-						$result.= '<div id="phpinfo">' . $str . '</div>';
-					$result.= '</td>';
-				$result.= '</tr>';
+							$result.= '<div id="phpinfo">' . $str . '</div>';
+						$result.= '</td>';
+					$result.= '</tr>';
+				}
 
 				// acls
 				$result.= '<tr id="debuging_toolbar_acls" class="debuging_toolbar_class" style="display: none;">';

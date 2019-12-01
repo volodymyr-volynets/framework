@@ -41,7 +41,7 @@ class PostalCode extends \Object\Validator\Base {
 				break;
 			case 'MX':
 				$result['placeholder'] = '#####';
-				if (!(preg_match('/^[0-9]{5}$/', $value))) {
+				if (!(preg_match('/^[0-9]{5}$/', $value) || preg_match('/^[0-9]{4}$/', $value) || preg_match('/^([0-9]{4})-([0-9]{4})$/', $value))) {
 					$result['error'][] = 'Invalid postal code!';
 				} else {
 					$result['data'] = $value;

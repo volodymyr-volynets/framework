@@ -848,4 +848,13 @@ class HTML {
 	public static function setMode(bool $email) {
 		return Factory::delegate('flag.numbers.framework.html', 'setMode', [$email]);
 	}
+
+	/**
+	 * Get mode
+	 *
+	 * @param bool $email
+	 */
+	public static function getMode() {
+		return Factory::delegate('flag.numbers.framework.html', 'getMode', []);
+	}
 }
