@@ -81,7 +81,7 @@ class Can {
 		}
 		// super admin
 		if (\User::get('super_admin')) {
-			if (empty(\Object\Controller::$cached_features[$feature_code]['prohibitive'])) {
+			if (!empty(\Object\Controller::$cached_features[$feature_code]) && empty(\Object\Controller::$cached_features[$feature_code]['prohibitive'])) {
 				return true;
 			}
 		}

@@ -60,6 +60,8 @@ class Messages {
 	// place holders
 	const PLEASE_CHOOSE = 'Please choose';
 	const CLICK_HERE = 'Click here';
+	// other
+	const NEW = 'New';
 
 	/**
 	 * Active
