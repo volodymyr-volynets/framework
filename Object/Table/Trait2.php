@@ -115,6 +115,11 @@ trait Trait2 {
 		// if we came from options
 		if (!empty($options['__options']) && empty($options['__preset'])) {
 			$columns = array_merge($options['pk'], array_keys($options['options_map']));
+			foreach ($columns as $k => $v) {
+				if (strpos($v, '*') !== false) {
+					unset($columns[$k]);
+				}
+			}
 			$query->columns($columns);
 		}
 		// skip filtering by tenant twice

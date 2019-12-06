@@ -54,7 +54,7 @@ class Math {
 	}
 
 	/**
-	 * Is less
+	 * Is less then zero
 	 *
 	 * @param mixed $arg1
 	 * @param int $scale
@@ -62,6 +62,30 @@ class Math {
 	 */
 	public static function isLess($arg1, $scale = null) {
 		return (self::compare($arg1, '0', $scale ?? 13) < 0);
+	}
+
+	/**
+	 * Is not zero
+	 *
+	 * @param mixed $arg1
+	 * @param int $scale
+	 * @return boolean
+	 */
+	public static function isNotEmpty($arg1, $scale = null) {
+		return (self::compare($arg1, '0', $scale ?? 13) != 0);
+	}
+
+	/**
+	 * Is between
+	 *
+	 * @param mixed $arg1
+	 * @param mixed $from
+	 * @param mixed $to
+	 * @param int $scale
+	 * @return boolean
+	 */
+	public static function isBetween($arg1, $from, $to, $scale = null) {
+		return ((self::compare($arg1, $from, $scale ?? 13) >= 0) && (self::compare($arg1, $to, $scale ?? 13) <= 0));
 	}
 
 	/**
@@ -300,7 +324,21 @@ class Math {
 		$scale = $scale ?? self::$scale;
 		if (($position = strpos($arg1 . '', '.')) !== false) {
 			return substr($arg1 . '', 0, $position + 1 + $scale);
+		} else {
+			return $arg1;
 		}
-		return $val;
+	}
+
+	/**
+	 * Has fraction
+	 *
+	 * @param string $arg1
+	 * @param int $scale
+	 * @return bool
+	 */
+	public static function hasFraction($arg1, $scale = null) : bool {
+		$scale = $scale ?? self::$scale;
+		$not_fraction = self::truncate($arg1, 0);
+		return !self::isEqual($not_fraction, $arg1, $scale);
 	}
 }

@@ -667,6 +667,16 @@ class Format {
 	}
 
 	/**
+	 * Percent
+	 *
+	 * @see Format::amount()
+	 */
+	public static function percent($amount, $options = []) {
+		$options['symbol'] = false;
+		return self::amount($amount, $options) . '%';
+	}
+
+	/**
 	 * Currency Rate
 	 *
 	 * @param float $amount

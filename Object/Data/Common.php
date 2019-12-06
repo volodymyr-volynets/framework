@@ -192,6 +192,11 @@ class Common {
 				// format
 				if (!empty($format)) {
 					foreach ($format as $k2 => $v2) {
+						if (!empty($v2['format_depends'])) {
+							foreach ($v2['format_depends'] as $k3 => $v3) {
+								$v2['format_options'][$k3] = $data[$k][$v3];
+							}
+						}
 						$data[$k][$k2] = call_user_func_array([$format_methods[$k2][0], $format_methods[$k2][1]], [$data[$k][$k2], $v2['format_options'] ?? []]);
 					}
 				}
