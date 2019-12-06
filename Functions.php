@@ -443,6 +443,22 @@ end_of_loop:
 }
 
 /**
+ * Check is string has tags
+ *
+ * @param string $input
+ * @param array $tags
+ * @return bool
+ */
+function has_tags(string $input, array $tags) : bool {
+	foreach ($tags as $v) {
+		if (stripos($input, $v) !== false) {
+			return true;
+		}
+	}
+	return false;
+}
+
+/**
  * Sanitize tags
  *
  * @param type $str

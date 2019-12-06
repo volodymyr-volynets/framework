@@ -3,6 +3,11 @@
 class HTML {
 
 	/**
+	 * White space tags
+	 */
+	const HTML_WHITE_SPACE_TAGS_ARRAY = ['<br>', '<br/>', '<br />', '<hr>', '<hr/>', '<hr />'];
+
+	/**
 	 * Generate name
 	 *
 	 * @param string $name
