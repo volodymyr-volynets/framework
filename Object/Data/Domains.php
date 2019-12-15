@@ -241,7 +241,7 @@ class Domains extends \Object\Data {
 		'project_id_sequence' => ['name' => 'Project #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'repository_id' => ['name' => 'Repository #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Repository', 'format' => 'id'],
 		'repository_id_sequence' => ['name' => 'Repository #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
-		// workflow
+		// services
 		'workflow_id' => ['name' => 'Workflow #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Workflow', 'format' => 'id', 'searchable' => true],
 		'workflow_id_sequence' => ['name' => 'Workflow #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'executed_workflow_id' => ['name' => 'Executed Workflow #', 'type' => 'bigint', 'default' => null, 'placeholder' => 'Executed Workflow', 'format' => 'id'],
@@ -254,6 +254,8 @@ class Domains extends \Object\Data {
 		'executed_service_script_id_sequence' => ['name' => 'Executed Service Script #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'question_id' => ['name' => 'Question #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Question', 'format' => 'id', 'searchable' => true],
 		'question_id_sequence' => ['name' => 'Question #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
+		'print_template_id' => ['name' => 'Print Template #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Print Template', 'format' => 'id', 'searchable' => true],
+		'print_template_id_sequence' => ['name' => 'Print Template #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		// relations & models
 		'relation_id' => ['name' => 'Relation #', 'type' => 'bigint', 'default' => null, 'format' => 'id'],
 		'relation_id_sequence' => ['name' => 'Relation #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id'],
