@@ -235,7 +235,9 @@ class Domains extends \Object\Data {
 		'promocode_id' => ['name' => 'Promocode #', 'type' => 'integer', 'default' => null, 'format' => 'id'],
 		'promocode_id_sequence' => ['name' => 'Promocode #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'mailbox_id' => ['name' => 'Mailbox #', 'type' => 'integer', 'default' => null, 'format' => 'id', 'placeholder' => 'Mailbox'],
-		'mailbox_id_sequence' => ['name' => 'Adcode #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
+		'mailbox_id_sequence' => ['name' => 'Mailbox #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
+		'template_id' => ['name' => 'Template #', 'type' => 'integer', 'default' => null, 'format' => 'id', 'placeholder' => 'Template'],
+		'template_id_sequence' => ['name' => 'Template #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		// project management
 		'product_id' => ['name' => 'Product #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Product', 'format' => 'id'],
 		'product_id_sequence' => ['name' => 'Product #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
