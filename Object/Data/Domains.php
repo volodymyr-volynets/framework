@@ -229,11 +229,13 @@ class Domains extends \Object\Data {
 		'file_extension' => ['name' => 'File Extension', 'type' => 'varchar', 'length' => 30],
 		'file_size' => ['name' => 'File Size', 'type' => 'integer', 'default' => null, 'format' => 'id'],
 		'file_path' => ['name' => 'File Path', 'type' => 'varchar', 'length' => 500],
-		// advertizing management
+		// communication
 		'adcode_id' => ['name' => 'Adcode #', 'type' => 'integer', 'default' => null, 'format' => 'id', 'placeholder' => 'Adcode'],
 		'adcode_id_sequence' => ['name' => 'Adcode #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'promocode_id' => ['name' => 'Promocode #', 'type' => 'integer', 'default' => null, 'format' => 'id'],
 		'promocode_id_sequence' => ['name' => 'Promocode #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
+		'mailbox_id' => ['name' => 'Mailbox #', 'type' => 'integer', 'default' => null, 'format' => 'id', 'placeholder' => 'Mailbox'],
+		'mailbox_id_sequence' => ['name' => 'Adcode #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		// project management
 		'product_id' => ['name' => 'Product #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Product', 'format' => 'id'],
 		'product_id_sequence' => ['name' => 'Product #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
