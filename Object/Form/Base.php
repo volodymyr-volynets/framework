@@ -787,6 +787,12 @@ class Base extends \Object\Form\Parent2 {
 			if (isset($this->master_options['refresh_if_set']) && $k == $this->master_options['refresh_if_set'] && (!empty($this->master_options['refresh_full_reload']) || !$this->master_object->isDataFound())) {
 				$this->master_object = \Factory::model($this->master_options['model'], true, [$this->values['__module_id'], $this->master_options['ledger'], & $this]);
 			}
+			// file upload handling
+			if (!empty($v['options']['documents_save']) && empty($options['for_load_values_only'])) {
+				if (!empty($value)) {
+					// todo: save documents
+				}
+			}
 		}
 		// check optimistic lock
 		if ($this->values_loaded && $this->collection_object->primary_model->optimistic_lock && !in_array($this->initiator_class, ['report', 'list', 'import']) && empty($this->options['skip_optimistic_lock'])) {
@@ -1872,10 +1878,18 @@ convertMultipleColumns:
 			$this->list_rendered = true;
 			// create query object
 			if (!empty($this->form_parent->query_primary_model)) {
+				$where = $this->form_parent->query_primary_parameters ?? [];
+				foreach ($where as $k0 => $v0) {
+					if ($v0 == '::current_user_id::') {
+						$where[$k0] = \User::id();
+					}
+				}
 				$this->query = call_user_func_array([$this->form_parent->query_primary_model, 'queryBuilderStatic'], [[
 					'initiator' => 'list',
-					'where' => $this->form_parent->query_primary_parameters ?? []
 				]])->select();
+				if (!empty($where)) {
+					$this->query->whereMultiple('AND', $where);
+				}
 			}
 			// add filter
 			if (!empty($this->query)) {
@@ -2625,7 +2639,7 @@ convertMultipleColumns:
 			// todo check if we have acl
 			$for_update = false;
 			// get all values
-			$this->getAllValues($this->options['input'] ?? []);
+			$this->getAllValues($this->options['input'] ?? [], ['for_load_values_only' => true]);
 			// load using collection
 			$result = $this->collection_object->get([
 				'where' => $this->pk,
@@ -3104,6 +3118,13 @@ convertMultipleColumns:
 				// validator method for captcha
 				if (($options['method'] ?? '') == 'captcha') {
 					$options['validator_method'] = \Application::get('flag.numbers.framework.html.captcha.submodule', ['class' => true]) . '::validate';
+				}
+				// render document links
+				if (!empty($options['documents_render_links']) && empty($options['custom_renderer'])) {
+					$method = \Object\ACL\Resources::getStatic('save_documents', 'generate_document_links', 'method');
+					if (!empty($method)) {
+						$options['custom_renderer'] = $method;
+					}
 				}
 				// type for buttons
 				if (in_array(($options['method'] ?? ''), ['button', 'button2', 'submit']) && empty($options['type'])) {
