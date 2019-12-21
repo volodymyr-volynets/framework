@@ -463,6 +463,8 @@ class Base extends \Object\Form\Parent2 {
 	public function validateRequiredOneField(& $value, $error_name, $options) {
 		// if we have type errors we skip required validation
 		if ($this->hasErrors($error_name)) return;
+		// check lock, no need to validate it second time
+		if (!empty($this->misc_settings['validateRequiredOneField'][$error_name])) return;
 		// check if its required field
 		if (isset($options['options']['required']) && ($options['options']['required'] === true || ($options['options']['required'] . '') === '1')) {
 			if ($options['options']['php_type'] == 'integer' || $options['options']['php_type'] == 'float') {
@@ -788,9 +790,28 @@ class Base extends \Object\Form\Parent2 {
 				$this->master_object = \Factory::model($this->master_options['model'], true, [$this->values['__module_id'], $this->master_options['ledger'], & $this]);
 			}
 			// file upload handling
-			if (!empty($v['options']['documents_save']) && empty($options['for_load_values_only'])) {
-				if (!empty($value)) {
-					// todo: save documents
+			if (!empty($v['options']['documents_save']) && empty($options['for_load_values_only']) && !$this->hasErrors($k)) {
+				// we need to validate
+				$this->validateRequiredOneField($this->values[$k], $v['options']['error_name'], $v);
+				$this->misc_settings['validateRequiredOneField'][$v['options']['error_name']] = true;
+				// if all ok we need to upload files
+				if (!empty($value) && !$this->hasErrors($k)) {
+					if (isset($value['name'])) {
+						$value = [$value];
+					}
+					$method = \Object\ACL\Resources::getStatic('save_documents', 'save_document_mass', 'method');
+					$files = \Factory::callMethod($method, false, [
+						& $this,
+						$v['options']['documents_save']['max_files'],
+						$value,
+						$v['options']['documents_save']['prefix'],
+						$v['options']['validator_params'],
+						'',
+						['return_files' => true, 'file_upload_field_name' => $k, 'skip_is_uploaded_file' => true]
+					]);
+					if ($files !== false && !$this->hasErrors($k)) {
+						$this->values = array_merge_hard($this->values, $files);
+					}
 				}
 			}
 		}

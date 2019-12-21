@@ -150,6 +150,19 @@ no_cache:
 	}
 
 	/**
+	 * Call method
+	 *
+	 * @param mixed $method
+	 * @param bool $model
+	 * @param array $constructor_parameters
+	 * @return mixed
+	 */
+	public static function callMethod($method, $model = false, $constructor_parameters = null) {
+		$method = self::method($method, null, $model, $constructor_parameters);
+		return call_user_func_array($method, $constructor_parameters);
+	}
+
+	/**
 	 * Postponed execution
 	 *
 	 * @param array|string $method
