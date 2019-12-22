@@ -862,4 +862,13 @@ class HTML {
 	public static function getMode() {
 		return Factory::delegate('flag.numbers.framework.html', 'getMode', []);
 	}
+
+	/**
+	 * Clear
+	 *
+	 * @return string
+	 */
+	public static function clear() : string {
+		return Factory::delegate('flag.numbers.framework.html', 'clear', []);
+	}
 }
