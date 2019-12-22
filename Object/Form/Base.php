@@ -714,6 +714,14 @@ class Base extends \Object\Form\Parent2 {
 			// get value
 			$input = array_merge_hard($input, $this->values);
 			$value = array_key_get($input, $v['options']['values_key']);
+			// wysiwyg
+			if (($v['options']['method'] ?? '') == 'wysiwyg' && !$this->is_api) {
+				$value = \Request::input($k, true, false, [
+					'skip_xss_on_keys' => [$k],
+					'trim_empty_html_input' => true,
+					'remove_script_tag' => true
+				]);
+			}
 			$error_name = $v['options']['error_name'];
 			// null_if_changed
 			if (!empty($v['options']['null_if_changed']) && !empty($changed_field['parent']) && in_array($changed_field['parent'], $v['options']['null_if_changed'])) {

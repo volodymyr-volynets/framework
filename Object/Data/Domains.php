@@ -240,6 +240,8 @@ class Domains extends \Object\Data {
 		'mailbox_id_sequence' => ['name' => 'Mailbox #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'template_id' => ['name' => 'Template #', 'type' => 'integer', 'default' => null, 'format' => 'id', 'placeholder' => 'Template'],
 		'template_id_sequence' => ['name' => 'Template #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
+		'signature_id' => ['name' => 'Signature #', 'type' => 'bigint', 'default' => null, 'format' => 'id', 'placeholder' => 'Signature'],
+		'signature_id_sequence' => ['name' => 'Signature #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		// project management
 		'product_id' => ['name' => 'Product #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Product', 'format' => 'id'],
 		'product_id_sequence' => ['name' => 'Product #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
@@ -274,6 +276,9 @@ class Domains extends \Object\Data {
 		'percent' => ['name' => 'Percent', 'type' => 'integer', 'default' => 0, 'format' => 'id', 'placeholder' => 'Percent (%)'],
 		'percent_float' => ['name' => 'Percent (Float)', 'type' => 'bcnumeric', 'precision' => 24, 'scale' => 2, 'default' => 0, 'format' => 'id', 'placeholder' => 'Percent (%)', 'default' => '0.00', 'format' => 'number', 'align' => 'right'],
 		'unit_price' => ['name' => 'Unit Price', 'type' => 'bcnumeric', 'precision' => 24, 'scale' => 4, 'default' => '0.0000', 'format' => 'unitPrice', 'align' => 'right'],
+		// crm
+		'contact_id' => ['name' => 'Contact #', 'type' => 'bigint', 'default' => null, 'placeholder' => 'Contact', 'format' => 'id'],
+		'contact_id_sequence' => ['name' => 'Contact #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		// accounting
 		'classification_id' => ['name' => 'Classification #', 'type' => 'integer', 'default' => null, 'format' => 'id', 'placeholder' => 'Classification'],
 		'classification_id_sequence' => ['name' => 'Classification #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
