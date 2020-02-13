@@ -1372,6 +1372,7 @@ processAllValues:
 		if (in_array($this->initiator_class, ['report', 'list'])) {
 			$this->element($this::HIDDEN, $this::HIDDEN, '__list_report_filter_loaded', ['label_name' => 'Filter Loader', 'type' => 'boolean', 'method'=> 'hidden', 'preserved' => true]);
 			$this->options['input']['__list_report_filter_loaded'] = 1;
+			$this->element($this::HIDDEN, $this::HIDDEN, '__list_report_filter_skip_one_record_redirect', ['label_name' => 'Filter Skip One Record Redirect', 'type' => 'boolean', 'method'=> 'hidden']);
 		}
 		// back link through __form_filter_id
 		if (in_array($this->initiator_class, ['form'])) {
@@ -1524,7 +1525,7 @@ processAllValues:
 				$input = \Request::input();
 				unset($input['__ajax'], $input['__ajax_form_id']);
 				$form_class = $this->form_parent->subforms[$this->options['input']['__subform_link']]['form'];
-				$form_model = new $form_class([
+				$form_model = new $form_class(array_merge([
 					'input' => $input,
 					'parent_form_link' => $this->form_link,
 					'collection_link' => $input['__collection_link'] ?? '',
@@ -1534,8 +1535,8 @@ processAllValues:
 					'bypass_hidden_from_input' => $this->options['bypass_hidden_from_input'] ?? [],
 					'acl_subresource_edit' => $this->options['acl_subresource_edit'] ?? $this->options['__parent_options']['options']['acl_subresource_edit'] ?? null,
 					'flag_subform' => true,
-					'plain_text_note' => $this->options['plain_text_note'] ?? false,
-				]);
+					//'plain_text_note' => $this->options['plain_text_note'] ?? false,
+				], $this->options['custom_tags'] ?? []));
 				if (!empty($this->options['input']['__subform_load_window'])) {
 					$modal = \HTML::modal([
 						'id' => 'form_subform_' . $input['__subform_link'] . '_form',
@@ -2150,11 +2151,16 @@ convertMultipleColumns:
 			// we need to process columns
 			$navigation_columns = [$column];
 			$navigation_depends = [];
+			$depends = [];
 			if (is_array($this->fields[$column]['options']['navigation'])) {
 				if (!empty($this->fields[$column]['options']['navigation']['depends'])) {
-					foreach ($this->fields[$column]['options']['navigation']['depends'] as $v) {
-						$navigation_columns[] = $v;
-						$navigation_depends[] = $v;
+					foreach ($this->fields[$column]['options']['navigation']['depends'] as $k => $v) {
+						if (is_numeric($k)) {
+							$navigation_columns[] = $v;
+							$navigation_depends[] = $v;
+						} else {
+							$depends[$k] = $v;
+						}
 					}
 				}
 			}
@@ -2168,7 +2174,6 @@ convertMultipleColumns:
 				$this->options['input'][$this::BUTTON_SUBMIT_REFRESH] = true;
 				break;
 			}
-			$depends = [];
 			foreach ($navigation_depends as $v) {
 				$depends[$v] = $this->values[$v];
 			}
@@ -2769,6 +2774,7 @@ convertMultipleColumns:
 			'flag_error_in_fields' => false,
 			'flag_warning_in_fields' => false,
 			'flag_num_errors' => 0,
+			'general' => $this->errors['general'] ?? []
 		];
 	}
 
@@ -3977,12 +3983,16 @@ convertMultipleColumns:
 		}
 		// name
 		$name = '';
-		if (!empty($subform_options['actions']['button']['icon'])) {
-			$name.= \HTML::icon(['type' => $subform_options['actions']['button']['icon']]);
-		}
-		if (!empty($subform_options['actions']['button']['label_name'])) {
-			$name.= ' ';
-			$name.= i18n(null, $subform_options['actions']['button']['label_name']);
+		if (isset($options['value'])) {
+			$name = $options['value'];
+		} else {
+			if (!empty($subform_options['actions']['button']['icon'])) {
+				$name.= \HTML::icon(['type' => $subform_options['actions']['button']['icon']]);
+			}
+			if (!empty($subform_options['actions']['button']['label_name'])) {
+				$name.= ' ';
+				$name.= i18n(null, $subform_options['actions']['button']['label_name']);
+			}
 		}
 		// title
 		$title = '';

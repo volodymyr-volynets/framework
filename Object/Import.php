@@ -92,6 +92,7 @@ class Import {
 			if (count($this->data[$k]['data']) == 0) continue;
 			// object
 			$model = $this->data[$k]['options']['model'];
+			$method = $this->data[$k]['options']['method'] ?? 'save';
 			// we exit if primary model does not exists
 			$object = new $model();
 			$db_object = null;
@@ -219,7 +220,8 @@ class Import {
 				if (count($buffer) > 249 || (count($buffer) > 0 && count($this->data[$k]['data']) == 0)) {
 					// merge
 					$result_insert = $collection_object->mergeMultiple($buffer, [
-						'skip_optimistic_lock' => true
+						'skip_optimistic_lock' => true,
+						'import_method' => $method,
 					]);
 					if (!$result_insert['success']) {
 						$result['error'] = $result_insert['error'];

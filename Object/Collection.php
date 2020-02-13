@@ -644,6 +644,10 @@ error:
 				$options2 = $options;
 				if (isset($data_pks[$k0]) && !empty($original_result['data'][$data_pks[$k0]])) {
 					$options2['original'] = $original_result['data'][$data_pks[$k0]];
+					// if we came from import and we are in save_insert_new mode
+					if (($options['import_method'] ?? '') == 'save_insert_new') {
+						continue;
+					}
 				} else {
 					// we must send empty array to avoid double quering
 					$options2['original'] = [];

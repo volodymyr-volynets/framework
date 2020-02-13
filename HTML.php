@@ -376,7 +376,7 @@ class HTML {
 	 *
 	 * @return string
 	 */
-	public static function icon(array $options = []) : string {
+	public static function icon(array $options = []) {
 		return Factory::delegate('flag.numbers.framework.html', 'icon', [$options]);
 	}
 

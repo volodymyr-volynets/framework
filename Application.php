@@ -120,6 +120,10 @@ class Application {
 		// magic variables processed here
 		self::$settings['flag']['global']['__content_type'] = 'text/html';
 		self::processMagicVariables();
+		// alive for HTML pages
+		if (self::$settings['flag']['global']['__content_type'] == 'text/html') {
+			\Alive::start();
+		}
 		// processing php settings
 		if (isset(self::$settings['php'])) {
 			foreach (self::$settings['php'] as $k=>$v) {

@@ -107,6 +107,10 @@ class Sequence extends \Object\Override\Data {
 				$this->schema = '';
 			}
 		}
+		// data fixes
+		if (!isset($this->length)) {
+			$this->length = 0;
+		}
 	}
 
 	/**

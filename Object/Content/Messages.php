@@ -42,6 +42,7 @@ class Messages {
 	const RECORD_MARK_DELETED = 'Record(s) has been marked as deleted!';
 	const RECORD_OPENED = 'Record(s) has been successfully opened!';
 	const OPERATION_EXECUTED = 'Operation has been successfully executed!';
+	const FILTER_DELETED = 'Filter has been deleted!';
 	// confirmation
 	const CONFIRM_DELETE = 'Are you sure you want to delete this record?';
 	const CONFIRM_RESET = 'Are you sure you want to reset?';

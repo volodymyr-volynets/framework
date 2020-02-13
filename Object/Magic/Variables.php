@@ -22,5 +22,6 @@ class Variables extends \Object\Data {
 		'__menu_id' => ['no_magic_variable_description' => 'Menu #'],
 		'__history_id' => ['no_magic_variable_description' => 'History #'],
 		'__form_filter_id' => ['no_magic_variable_description' => 'Form Filter #'],
+		'__form_filter_id_delete' => ['no_magic_variable_description' => 'Form Filter # (Delete)'],
 	];
 }

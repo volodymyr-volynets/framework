@@ -150,6 +150,9 @@ class Bootstrap {
 	 * Destroy everything
 	 */
 	public static function destroy() {
+		// we need to stop alive
+		\Alive::stop();
+		// if we are in bootsrap mode
 		$__run_only_bootstrap = \Application::get('flag.global.__run_only_bootstrap');
 		// we need to set working directory again
 		chdir(\Application::get('application.path_full'));
