@@ -308,4 +308,21 @@ trait Trait2 {
 		}
 		return $result;
 	}
+
+	/**
+	 * Counter
+	 *
+	 * @param array $where
+	 * @param array $options
+	 * @return int
+	 */
+	public function counter(array $where, array $options = []) : int {
+		$query = $this->queryBuilder()->select();
+		$query->whereMultiple('AND', $where);
+		$query->columns([
+			'counter' => 'COUNT(*)',
+		]);
+		$result = $query->query(null, $options);
+		return ($result['rows'][0]['counter'] ?? 0);
+	}
 }

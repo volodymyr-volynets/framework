@@ -16,7 +16,7 @@ class Alive {
 			self::$buffer = @ob_get_clean();
 		}
 		register_tick_function('alive_tick');
-		declare(ticks = 200000);
+		declare(ticks = 2000);
 		self::$alive = true;
 	}
 

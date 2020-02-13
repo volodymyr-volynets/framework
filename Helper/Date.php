@@ -102,4 +102,46 @@ class Date {
 	public static function addInterval($date, $addition, $format = 'Y-m-d H:i:s') {
 		return date($format, strtotime($date . ' ' . $addition));
 	}
+
+	/**
+	 * Generate intervals
+	 *
+	 * @param string $date1
+	 * @param string $date2
+	 * @param string $interval
+	 * @param string $format
+	 * @return array
+	 */
+	public static function generateIntervals($date1, $date2, $interval, $format = 'Y-m-d H:i:s') : array {
+		$result = [];
+		do {
+			$result[] = date($format, strtotime($date1));
+			$date1 = \Helper\Date::addInterval($date1, $interval);
+		} while(\Helper\Date::is($date1, $date2) <= 0);
+		return $result;
+	}
+
+	/**
+	 * Swap two dates
+	 *
+	 * @param string $date1
+	 * @param string $date2
+	 */
+	public static function swap(& $date1, & $date2) {
+		if (self::is($date1, $date2) == 1) {
+			$temp = $date2;
+			$date2 = $date1;
+			$date1 = $temp;
+		}
+	}
+
+	/**
+	 * To date
+	 *
+	 * @param string $date
+	 * @return string
+	 */
+	public static function toDate(string $date) : string {
+		return date('Y-m-d', strtotime($date));
+	}
 }

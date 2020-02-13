@@ -24,12 +24,29 @@ class cURL {
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, $url);
 		curl_setopt($ch, CURLOPT_POST, 1);
-		curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query2($options['params']));
+		if (!empty($options['params'])) {
+			curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($options['params']));
+		} else if (isset($options['raw'])) {
+			curl_setopt($ch, CURLOPT_POSTFIELDS, $options['raw']);
+		}
+		// put
+		if (!empty($options['put'])) {
+			curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "PUT");
+		}
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 		curl_setopt($ch, CURLOPT_USERAGENT, self::USERAGENT);
 		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+		// basic authentication
+		if (!empty($options['basic_auth'])) {
+			curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+			curl_setopt($ch, CURLOPT_USERPWD, $options['basic_auth']);
+		}
+		// extra headers
+		if (!empty($options['headers'])) {
+			curl_setopt($ch, CURLOPT_HTTPHEADER, $options['headers']);
+		}
 		$result['data'] = curl_exec($ch);
-		if (!empty($options['json'])) {
+		if (!empty($options['json']) && is_json($result['data'])) {
 			$result['data'] = json_decode($result['data'], true);
 		}
 		curl_close($ch);
@@ -63,8 +80,17 @@ class cURL {
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 		curl_setopt($ch, CURLOPT_USERAGENT, self::USERAGENT);
 		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+		// basic authentication
+		if (!empty($options['basic_auth'])) {
+			curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+			curl_setopt($ch, CURLOPT_USERPWD, $options['basic_auth']);
+		}
+		// extra headers
+		if (!empty($options['headers'])) {
+			curl_setopt($ch, CURLOPT_HTTPHEADER, $options['headers']);
+		}
 		$result['data'] = curl_exec($ch);
-		if (!empty($options['json'])) {
+		if (!empty($options['json']) && is_json($result['data'])) {
 			$result['data'] = json_decode($result['data'], true);
 		}
 		curl_close($ch);
