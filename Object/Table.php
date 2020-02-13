@@ -532,6 +532,7 @@ class Table extends \Object\Table\Options {
 				unset($columns[$v]['type'], $columns[$v]['sequence']);
 			}
 		}
+		$this->model_map_options = $model->{$widget_name}['options'] ?? [];
 		$this->columns = array_merge_hard($columns, $this->columns);
 		return true;
 	}
