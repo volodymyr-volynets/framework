@@ -54,15 +54,47 @@ class Request {
 		foreach (($_FILES ?? []) as $k => $v) {
 			// we need to convert
 			if (is_array($v['name'])) {
-				foreach ($v['name'] as $k2 => $v2) {
-					if (empty($v['tmp_name'][$k2])) continue;
-					$files[$k][$k2] = [
-						'name' => $v2,
-						'type' => $v['type'][$k2],
-						'tmp_name' => $v['tmp_name'][$k2],
-						'error' => $v['error'][$k2],
-						'size' => $v['size'][$k2],
-					];
+				$level = array_nested_levels_count($v['name']);
+				// details
+				if ($level == 2) {
+					foreach ($v['name'] as $k2 => $v2) {
+						foreach ($v2 as $k3 => $v3) {
+							if (empty($v['tmp_name'][$k2][$k3])) continue;
+							$files[$k][$k2][$k3] = [
+								'name' => $v3,
+								'type' => $v['type'][$k2][$k3],
+								'tmp_name' => $v['tmp_name'][$k2][$k3],
+								'error' => $v['error'][$k2][$k3],
+								'size' => $v['size'][$k2][$k3],
+							];
+						}
+					}
+				} else if ($level == 3) {
+					foreach ($v['name'] as $k2 => $v2) {
+						foreach ($v2 as $k3 => $v3) {
+							foreach ($v3 as $k4 => $v4) {
+								if (empty($v['tmp_name'][$k2][$k3][$k4])) continue;
+								$files[$k][$k2][$k3] = [
+									'name' => $v4,
+									'type' => $v['type'][$k2][$k3][$k4],
+									'tmp_name' => $v['tmp_name'][$k2][$k3][$k4],
+									'error' => $v['error'][$k2][$k3][$k4],
+									'size' => $v['size'][$k2][$k3][$k4],
+								];
+							}
+						}
+					}
+				} else {
+					foreach ($v['name'] as $k2 => $v2) {
+						if (empty($v['tmp_name'][$k2])) continue;
+						$files[$k][$k2] = [
+							'name' => $v2,
+							'type' => $v['type'][$k2],
+							'tmp_name' => $v['tmp_name'][$k2],
+							'error' => $v['error'][$k2],
+							'size' => $v['size'][$k2],
+						];
+					}
 				}
 			} else {
 				if (empty($v['tmp_name'])) continue;
@@ -70,9 +102,9 @@ class Request {
 			}
 		}
 		if ($cookie) {
-			$result = array_merge($_COOKIE, $_GET, $_POST, $files);
+			$result = array_merge_hard($_COOKIE, $_GET, $_POST, $files);
 		} else {
-			$result = array_merge($_GET, $_POST, $files);
+			$result = array_merge_hard($_GET, $_POST, $files);
 		}
 		// protection against XSS attacks is on by default
 		if ($xss) $result = strip_tags2($result, $options);

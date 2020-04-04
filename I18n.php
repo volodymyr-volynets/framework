@@ -33,6 +33,9 @@ class I18n {
 		if (!empty($user_settings)) {
 			foreach ($user_settings as $k => $v) if (empty($v)) unset($user_settings[$k]);
 		}
+		if (!empty($options['skip_user_settings'])) {
+			$user_settings = [];
+		}
 		$i18n = array_merge_hard($i18n, $user_settings, $options ?? []);
 		if (!empty($i18n['submodule'])) {
 			// check if backend has been enabled

@@ -18,6 +18,13 @@ class Report {
 	public $data = [];
 
 	/**
+	 * Other
+	 *
+	 * @var array
+	 */
+	public $other = [];
+
+	/**
 	 * Subtotals
 	 *
 	 * @var array
@@ -31,6 +38,12 @@ class Report {
 	 */
 	public function __construct(array $options = []) {
 		$this->options = $options;
+		if (!empty($options['in_group_id'])) {
+			\I18n::init([
+				'group_id' => $options['in_group_id'],
+				'skip_user_settings' => true
+			]);
+		}
 	}
 
 	/**
@@ -47,7 +60,7 @@ class Report {
 	 * @param object $form
 	 * @param array $options
 	 */
-	public function addReport(string $report_name, & $form = null, array $options = []) {
+	public function addReport(string $report_name, $form = null, array $options = []) {
 		$this->data[$report_name] = [
 			'name' => $report_name,
 			'options' => $options,
@@ -70,6 +83,11 @@ class Report {
 				$this->data[$report_name]['form_name'] = substr($this->data[$report_name]['form_name'], 0, 28) . '...';
 			}
 		}
+		// add to others
+		$this->other[] = [
+			'type' => 'list',
+			'report_name' => $report_name,
+		];
 	}
 
 	/**
@@ -382,5 +400,60 @@ class Report {
 			]);
 			$subtotal_counter++;
 		}
+	}
+
+	/**
+	 * Add image
+	 *
+	 * @param float $x
+	 * @param float $y
+	 * @param int $file_id
+	 */
+	public function addImage(float $x, float $y, float $w, float $h, int $file_id, array $options = []) {
+		$this->other[] = [
+			'type' => 'image',
+			'x' => $x,
+			'y' => $y,
+			'w' => $w,
+			'h' => $h,
+			'file_id' => $file_id,
+			'options' => $options
+		];
+	}
+
+	/**
+	 * Add text
+	 *
+	 * @param float|string $x
+	 * @param float|string $y
+	 * @param float|string $w
+	 * @param float|string $h
+	 * @param type $text
+	 * @param array $options
+	 */
+	public function addText($x, $y, $w, $h, $text, array $options = []) {
+		$this->other[] = [
+			'type' => 'text',
+			'x' => $x,
+			'y' => $y,
+			'w' => $w,
+			'h' => $h,
+			'text' => $text,
+			'options' => $options
+		];
+	}
+
+	/**
+	 * Set XY
+	 *
+	 * @param type $x
+	 * @param type $y
+	 */
+	public function setXY($x, $y) {
+		$this->other[] = [
+			'type' => 'setxy',
+			'x' => $x,
+			'y' => $y,
+		];
 	}
 }

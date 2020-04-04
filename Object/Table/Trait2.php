@@ -187,7 +187,7 @@ trait Trait2 {
 			$query->limit(1);
 		}
 		// memory caching
-		if ($this->cache_memory && empty($options['no_cache'])) {
+		if (($this->cache_memory || !empty($options['cache_memory'])) && empty($options['no_cache'])) {
 			// hash is query + primary key
 			$sql_hash = sha1($query->sql() . serialize($pk));
 			if (isset(\Cache::$memory_storage[$sql_hash])) {
@@ -207,7 +207,7 @@ trait Trait2 {
 			$data = $result['rows'];
 		}
 		// memory caching
-		if ($this->cache_memory && empty($options['no_cache'])) {
+		if (($this->cache_memory || !empty($options['cache_memory'])) && empty($options['no_cache'])) {
 			\Cache::$memory_storage[$sql_hash] = & $data;
 		}
 		return $data;

@@ -1346,3 +1346,20 @@ function br2nl($str, bool $oposite = false) : string {
 		return str_replace(['<br />', '<br/>', '<br>'], "\n", $str . '');
 	}
 }
+
+/**
+ * Count nested level of first element
+ *
+ * @param array $arr
+ * @param int $level
+ * @return int
+ */
+function array_nested_levels_count(array & $arr, int $level = 1) : int {
+	foreach ($arr as $k => $v) {
+		if (is_array($v)) {
+			$level++;
+			return array_nested_levels_count($v, $level);
+		}
+	}
+	return $level;
+}

@@ -341,4 +341,35 @@ class Math {
 		$not_fraction = self::truncate($arg1, 0);
 		return !self::isEqual($not_fraction, $arg1, $scale);
 	}
+
+	public static function formula(array $arg1, $scale = null) : string {
+		// process all ()
+		foreach ($arg1 as $k => $v) {
+			if (is_array($v)) {
+				$arg1[$k] = self::formula($v, $scale);
+			}
+		}
+		// process muls and divs
+		foreach ($arg1 as $k => $v) {
+			if ($v == '*') {
+				$arg1[$k + 1] = self::multiply($arg1[$k - 1], $arg1[$k + 1], $scale);
+				unset($arg1[$k - 1], $arg1[$k]);
+			} else if ($v == '/') {
+				$arg1[$k + 1] = self::divide($arg1[$k - 1], $arg1[$k + 1], $scale);
+				unset($arg1[$k - 1], $arg1[$k]);
+			}
+		}
+		$arg1 = array_values($arg1);
+		// process adds and subs
+		foreach ($arg1 as $k => $v) {
+			if ($v == '+') {
+				$arg1[$k + 1] = self::add($arg1[$k - 1], $arg1[$k + 1], $scale);
+				unset($arg1[$k - 1], $arg1[$k]);
+			} else if ($v == '-') {
+				$arg1[$k + 1] = self::subtract($arg1[$k - 1], $arg1[$k + 1], $scale);
+				unset($arg1[$k - 1], $arg1[$k]);
+			}
+		}
+		return array_shift($arg1);
+	}
 }

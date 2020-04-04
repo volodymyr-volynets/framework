@@ -465,6 +465,25 @@ class Base extends \Object\Form\Parent2 {
 		if ($this->hasErrors($error_name)) return;
 		// check lock, no need to validate it second time
 		if (!empty($this->misc_settings['validateRequiredOneField'][$error_name])) return;
+		// neighbouring values
+		$neighbouring_values = [];
+		if (!empty($options['options']['values_key'])) {
+			$neighbouring_values_key = $options['options']['values_key'];
+			array_pop($neighbouring_values_key);
+			$neighbouring_values = array_key_get($this->values, $neighbouring_values_key);
+		}
+		// required if set
+		if (!empty($options['options']['required_if_set'])) {
+			if (!is_array($options['options']['required_if_set'])) {
+				$options['options']['required_if_set'] = [$options['options']['required_if_set']];
+			}
+			foreach ($options['options']['required_if_set'] as $v) {
+				if (!empty($neighbouring_values[$v])) {
+					$options['options']['required'] = true;
+					break;
+				}
+			}
+		}
 		// check if its required field
 		if (isset($options['options']['required']) && ($options['options']['required'] === true || ($options['options']['required'] . '') === '1')) {
 			if ($options['options']['php_type'] == 'integer' || $options['options']['php_type'] == 'float') {
@@ -487,12 +506,6 @@ class Base extends \Object\Form\Parent2 {
 		}
 		// validator
 		if (!empty($options['options']['validator_method']) && !empty($value) && empty($options['options']['multiple_column']) && (!is_array($value) || ($options['options']['method'] ?? '') == 'file')) {
-			$neighbouring_values = [];
-			if (!empty($options['options']['values_key'])) {
-				$neighbouring_values_key = $options['options']['values_key'];
-				array_pop($neighbouring_values_key);
-				$neighbouring_values = array_key_get($this->values, $neighbouring_values_key);
-			}
 			$temp = \Object\Validator\Base::method(
 				$options['options']['validator_method'],
 				$value,
@@ -990,6 +1003,32 @@ class Base extends \Object\Form\Parent2 {
 								}
 							}
 						}
+						// file upload handling
+						if (!empty($v3['options']['documents_save']) && empty($options['for_load_values_only']) && !$this->hasErrors("{$error_name}[{$k3}]")) {
+							// we need to validate
+							$this->validateRequiredOneField($value, "{$error_name}[{$k3}]", $v3);
+							$this->misc_settings['validateRequiredOneField']["{$error_name}[{$k3}]"] = true;
+							// if all ok we need to upload files
+							if (!empty($value) && !$this->hasErrors("{$error_name}[{$k3}]")) {
+								if (isset($value['name'])) {
+									$value = [$value];
+								}
+								$method = \Object\ACL\Resources::getStatic('save_documents', 'save_document_mass', 'method');
+								$files = \Factory::callMethod($method, false, [
+									& $this,
+									$v3['options']['documents_save']['max_files'],
+									$value,
+									$v3['options']['documents_save']['prefix'],
+									$v3['options']['validator_params'],
+									'',
+									['return_files' => true, 'file_upload_field_name' => $k3, 'skip_is_uploaded_file' => true]
+								]);
+								if ($files !== false && !$this->hasErrors("{$error_name}[{$k3}]")) {
+									$detail = array_merge_hard($detail, $files);
+								}
+							}
+						}
+						// add field to details
 						$detail[$k3] = $value;
 					}
 					// process subdetails, first to detect change
@@ -2813,11 +2852,16 @@ convertMultipleColumns:
 	 * Reset all error messages
 	 */
 	public function errorResetAll() {
+		if ($this->is_api) {
+			$general = [];
+		} else {
+			$general = $this->errors['general'] ?? [];
+		}
 		$this->errors = [
 			'flag_error_in_fields' => false,
 			'flag_warning_in_fields' => false,
 			'flag_num_errors' => 0,
-			'general' => $this->errors['general'] ?? []
+			'general' => $general,
 		];
 	}
 
