@@ -9,6 +9,7 @@ class Messages {
 	const NO_PERMISSIONS_FOUND = 'You do not have permissions to view this content!';
 	const PREV_OR_NEXT_RECORD_NOT_FOUND = 'Previous/next record not found!';
 	const REQUIRED_FIELD = 'Required field!';
+	const LESS_THAN_ZERO = 'Value cannot be less than zero!';
 	const OPTIONALLY_REQUIRED_FIELD = 'Optionally required field!';
 	const MULTIPLE_VALUES_ARE_NOT_ALLOWED = 'Multiple values not allowed!';
 	const UNKNOWN_VALUE = 'Unknown value(s)!';

@@ -1240,7 +1240,7 @@ processAllValues:
 			$skip_values = [];
 			$existing_values = $value;
 			if (!empty($field['multiple_column'])) {
-				$existing_values = array_extract_values_by_key($value, $field['multiple_column']);
+				$existing_values = array_extract_values_by_key($value, $field['multiple_column'], ['type' => $field['type']]);
 			}
 			$field['options_options']['include_null_filter'] = $field['include_null_filter'] ?? null;
 			$field['options'] = \Object\Data\Common::processOptions($field['options_model'], $this, $field['options_params'], $existing_values, $skip_values, $field['options_options']);
@@ -1674,8 +1674,10 @@ processAllValues:
 		}
 		// onchange fields
 		$this->misc_settings['__form_onchange_field_values_key'] = null;
+		$this->misc_settings['__form_field_changed'] = null;
 		if (!empty($this->options['input']['__form_onchange_field_values_key'])) {
 			$this->misc_settings['__form_onchange_field_values_key'] = explode('[::]', $this->options['input']['__form_onchange_field_values_key']);
+			$this->misc_settings['__form_field_changed'] = $this->misc_settings['__form_onchange_field_values_key'][0] ?? '';
 		}
 		// track previous values
 		if (!empty($this->options['input']['__track_previous_values'])) {
@@ -2301,8 +2303,7 @@ convertMultipleColumns:
 		foreach ($this->fields as $k => $v) {
 			if (!empty($v['options']['multiple_column'])) {
 				if (!empty($values[$k])) {
-					pk($v['options']['multiple_column'], $values[$k]);
-					$values[$k] = array_keys($values[$k]);
+					$values[$k] = array_extract_values_by_key($values[$k], $v['options']['multiple_column'], ['type' => $v['options']['type']]);
 				}
 			}
 		}

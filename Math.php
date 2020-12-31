@@ -342,6 +342,13 @@ class Math {
 		return !self::isEqual($not_fraction, $arg1, $scale);
 	}
 
+	/**
+	 * Formula
+	 *
+	 * @param array $arg1
+	 * @param int $scale
+	 * @return string
+	 */
 	public static function formula(array $arg1, $scale = null) : string {
 		// process all ()
 		foreach ($arg1 as $k => $v) {

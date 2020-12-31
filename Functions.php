@@ -337,6 +337,7 @@ function extract_keys($keys, $data) {
  * @param string $key
  * @param array $options
  * 		boolean unique
+ *		type string
  * @return array
  */
 function array_extract_values_by_key(array $array, string $key, array $options = []): array {
@@ -353,7 +354,15 @@ function array_extract_values_by_key(array $array, string $key, array $options =
 			if (!$found)
 				continue;
 		}
-		$result[] = $v[$key];
+		if (isset($options['type'])) {
+			if ($options['type'] == 'varchar') {
+				$result[] = $v[$key] . '';
+			} else {
+				$result[] = $v[$key];
+			}
+		} else {
+			$result[] = $v[$key];
+		}
 	}
 	// if unique
 	if (!empty($options['unique'])) {
