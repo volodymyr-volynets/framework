@@ -7,7 +7,27 @@ class Format {
 	 * 
 	 * @var array
 	 */
-	public static $options;
+	public static $options = [
+		'language_code' => 'sm0',
+		'locale_code' => 'en_CA.UTF-8',
+		'timezone_code' => 'America/Toronto', // user timezone
+		'server_timezone_code' => 'America/Toronto',
+		'format_date' => 'Y-m-d',
+		'format_time' => 'H:i:s',
+		'format_datetime' => 'Y-m-d H:i:s',
+		'format_timestamp' => 'Y-m-d H:i:s.u',
+		'format_amount_frm' => 20, // Amounts In Forms
+		'format_amount_fs' => 40, // Amounts In Financial Statement
+		'format_uom' => 'METRIC',
+		// computed settings
+		'locale_locales' => [], // list of locale codes
+		'locale_locale_js' => null, // javascript locale name
+		'locale_set_name' => null, // set locale
+		'locale_options' => [], // localeconv() output would be stored here
+		'locale_override_class' => null, // override class
+		// symbols
+		'symbols' => []
+	];
 
 	/**
 	 * Default options
@@ -197,6 +217,9 @@ class Format {
 	public static function getDateFormat($type) {
 		if (!isset(self::$options['format_' . $type])) {
 			$type = 'date';
+		}
+		if (empty(self::$options['format_date'])) {
+			self::$options['format_date'] = 'Y-m-d';
 		}
 		return self::$options['format_' . $type];
 	}

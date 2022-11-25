@@ -598,11 +598,12 @@ function array_key_sort(& $arr, $keys, $methods = []) {
 	foreach ($arr as $k => $v) {
 		$final['_' . $k] = $v;
 	}
-	$params['data'] = & $final;
+	$params = array_values($params);
+	$params[] = & $final;
 	call_user_func_array('array_multisort', $params);
 	// convert keys back
 	$arr = [];
-	foreach ($params['data'] as $k => $v) {
+	foreach ($params[array_key_last($params)] as $k => $v) {
 		$arr[substr($k, 1)] = $v;
 	}
 }
@@ -746,7 +747,7 @@ function array_key_get(& $arr, $keys = null, $options = []) {
  * 		boolean append - whether to append value to array
  *		boolean append_unique
  */
-function array_key_set(& $arr, $keys = null, $value, $options = []) {
+function array_key_set(& $arr, $keys = null, $value = null, $options = []) {
 	if (!isset($arr)) {
 		$arr = [];
 	}
@@ -785,7 +786,7 @@ function array_key_set(& $arr, $keys = null, $value, $options = []) {
  * @param mixed $value
  * @param array $options
  */
-function array_key_set_by_key_name(& $arr, $keys = null, $value, $options = array()) {
+function array_key_set_by_key_name(& $arr, $keys = null, $value = null, $options = array()) {
 	// transform keys
 	if (!is_array($keys)) {
 		$keys = explode(',', $keys . '');
@@ -1160,7 +1161,7 @@ function is_json($input) {
  * @return bool
  */
 function is_html($input) {
-	return !(strip_tags($input) == $input);
+	return !(strip_tags($input . '') == $input . '');
 }
 
 /**
@@ -1371,4 +1372,49 @@ function array_nested_levels_count(array & $arr, int $level = 1) : int {
 		}
 	}
 	return $level;
+}
+
+/**
+ * Increment version
+ *
+ * @param string $version
+ * @return string
+ */
+function version_increment(string $version): string {
+	if (empty($version)) {
+		return '1.0.0';
+	}
+	$parts = explode('.', $version);
+	if ($parts[2] + 1 < 99) {
+		$parts[2] ++;
+	} else {
+		$parts[2] = 0;
+		if ($parts[1] + 1 < 99) {
+			$parts[1] ++;
+		} else {
+			$parts[1] = 0;
+			$parts[0] ++;
+		}
+	}
+	return implode('.', $parts);
+}
+
+/**
+ * Print options array
+ *
+ * @param array $arr
+ * @return string
+ */
+function print_options_array(array $arr) : string {
+	$result = [];
+	foreach ($arr as $k => $v) {
+		$temp = $k . ' - ';
+		if (is_array($v)) {
+			$temp.= $v['name'];
+		} else {
+			$temp.= $v;
+		}
+		$result[] = $temp;
+	}
+	return implode(', ', $result);
 }

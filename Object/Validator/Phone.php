@@ -9,7 +9,7 @@ class Phone extends \Object\Validator\Base {
 	public function validate($value, $options = []) {
 		$result = $this->result;
 		$result['placeholder'] = '# (###) ###-#### ext ####';
-		if (!preg_match('/^[0-9+\(\)#\.\s\/ext-]+$/', $value)) {
+		if (!preg_match('/^[0-9+\(\)#\.\s\/ext-]+$/', $value . '')) {
 			$result['error'][] = 'Invalid phone number!';
 		} else {
 			$result['success'] = true;

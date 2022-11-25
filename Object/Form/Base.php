@@ -1137,7 +1137,7 @@ class Base extends \Object\Form\Parent2 {
 										$default = null;
 										if (array_key_exists('default', $v6['options'])) {
 											$default = $this->processDefaultValue($k6, $v6['options']['default'], $value, $subdetail, false);
-											if (strpos($v6['options']['default'], 'static::') !== false || is_null($value)) {
+											if (strpos($v6['options']['default'] . '', 'static::') !== false || is_null($value)) {
 												$value = $default;
 											}
 										}
@@ -2758,7 +2758,7 @@ convertMultipleColumns:
 		if (!empty($options['unique_options_hash'])) {
 			$hash = sha1($message . serialize($options));
 		} else {
-			$hash = sha1($message);
+			$hash = sha1($message . '');
 		}
 		// i18n
 		if (empty($options['skip_i18n'])) {
@@ -3553,16 +3553,16 @@ convertMultipleColumns:
 	 * @return mixed
 	 */
 	public function processDefaultValue($key, $default, $value, & $neighbouring_values, $set_neightbouring_values = true, $changed_field = [], $options = []) {
-		if (strpos($default, 'dependent::') !== false) {
+		if (strpos($default . '', 'dependent::') !== false) {
 			// nothing
-		} else if (strpos($default, 'master_object::') !== false) {
+		} else if (strpos($default . '', 'master_object::') !== false) {
 			$field = explode('::', str_replace(['master_object::', 'static::'], '', $default));
 			if (isset($this->master_object->{$field[0]}->{$field[1]}->{$field[2]})) {
 				return $this->master_object->{$field[0]}->{$field[1]}->{$field[2]};
 			} else {
 				return null;
 			}
-		} else if (strpos($default, 'parent::') !== false) {
+		} else if (strpos($default . '', 'parent::') !== false) {
 			$field = str_replace(['parent::', 'static::'], '', $default);
 			$value = $this->values[$field] ?? null;
 		} else {
@@ -3595,7 +3595,7 @@ convertMultipleColumns:
 	 * @return boolean
 	 */
 	public function canProcessDefaultValue($value, $options, $default = null) {
-		if (strpos($options['options']['default'], 'static::') !== false || strpos($options['options']['default'], 'master_object::') !== false || strpos($options['options']['default'], 'dependent::') !== false || (is_null($value) && empty($options['options']['null']))) {
+		if (strpos($options['options']['default'] . '', 'static::') !== false || strpos($options['options']['default'] . '', 'master_object::') !== false || strpos($options['options']['default'] . '', 'dependent::') !== false || (is_null($value) && empty($options['options']['null']))) {
 			return true;
 		} else if (is_string($default) || is_array($default) || is_numeric($default)) {
 			return true;

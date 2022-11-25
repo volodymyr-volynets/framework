@@ -285,6 +285,9 @@ class Math {
 		if ($reverse2) {
 			$arg1 = self::opposite($arg1, $scale);
 		}
+		if ($scale !== null) {
+			$arg1 = self::round($arg1, $scale);
+		}
 		return $arg1;
 	}
 

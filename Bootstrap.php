@@ -160,7 +160,7 @@ class Bootstrap {
 		if (empty(\Object\Error\Base::$flag_error_already)) {
 			$last_error = error_get_last();
 			$flag_render = false;
-			if (in_array($last_error['type'], [E_COMPILE_ERROR, E_PARSE, E_ERROR])) {
+			if (isset($last_error['type']) && in_array($last_error['type'], [E_COMPILE_ERROR, E_PARSE, E_ERROR])) {
 				\Object\Error\Base::errorHandler($last_error['type'], $last_error['message'], $last_error['file'], $last_error['line']);
 				\Object\Error\Base::$flag_error_already = true;
 				$flag_render = true;
@@ -186,7 +186,7 @@ class Bootstrap {
 		}
 		// debugging toolbar last
 		if (\Debug::$toolbar && !$__run_only_bootstrap) {
-			echo str_replace('<!-- [numbers: debug toolbar] -->', \Debug::render(), \Helper\Ob::clean());
+			echo str_replace('<!-- [numbers: debug toolbar] -->', \Debug::render() . '', \Helper\Ob::clean() . '');
 		}
 		// flush data to client
 		flush();

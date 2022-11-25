@@ -7,6 +7,15 @@ define('DANGER', 'danger');
 define('WARNING', 'warning');
 define('SUCCESS', 'success');
 define('DEF', 'default');
+define('DEF2', 'default2');
+define('DEF3', 'default3');
+define('DEF4', 'default4');
+define('DEF5', 'default5');
+define('CHART', 'chart');
+define('CHART2', 'chart2');
+define('CHART3', 'chart3');
+define('CHART4', 'chart4');
+define('CHART5', 'chart5');
 define('NONE', 0);
 define('ODD', 1);
 define('EVEN', 2);
@@ -328,6 +337,7 @@ function extract_keys($keys, $data) {
  * @param string $key
  * @param array $options
  * 		boolean unique
+ *		type string
  * @return array
  */
 function array_extract_values_by_key(array $array, string $key, array $options = []): array {
@@ -344,7 +354,15 @@ function array_extract_values_by_key(array $array, string $key, array $options =
 			if (!$found)
 				continue;
 		}
-		$result[] = $v[$key];
+		if (isset($options['type'])) {
+			if ($options['type'] == 'varchar') {
+				$result[] = $v[$key] . '';
+			} else {
+				$result[] = $v[$key];
+			}
+		} else {
+			$result[] = $v[$key];
+		}
 	}
 	// if unique
 	if (!empty($options['unique'])) {
@@ -389,22 +407,94 @@ function http_append_to_url(string $url, array $parameters): string {
  * Strip tags
  *
  * @param array|string $arr
+ * @param array $options
+ *		array skip_xss_on_keys
+ *		boolean trim_empty_html_input
+ *		boolean remove_script_tag
  * @return array
  */
-function strip_tags2($arr) {
+function strip_tags2($arr, array $options = []) {
 	if (is_array($arr)) {
 		$result = [];
 		foreach ($arr as $k => $v) {
 			if (is_string($k)) {
 				$k = strip_tags($k);
 			}
-			$result[$k] = strip_tags2($v);
+			// when we need to skip some keys
+			if (!empty($options['skip_xss_on_keys'])) {
+				foreach ($options['skip_xss_on_keys'] as $v2) {
+					if (strpos($k, $v2) !== false) {
+						// remove javascript tags
+						if (!empty($options['remove_script_tag'])) {
+							$v = sanitize_string_tags($v, 'script_only');
+						}
+						// sanitize empty string
+						if (!empty($options['trim_empty_html_input'])) {
+							$temp = sanitize_string_tags($v, 'all');
+							$temp = trim($temp, "'\n\t\" ");
+							if ($temp == '') {
+								$v = null;
+							}
+						}
+						$result[$k] = $v;
+						goto end_of_loop;
+					}
+				}
+			}
+			$result[$k] = strip_tags2($v, $options);
+end_of_loop:
 		}
 		return $result;
 	} else if (is_string($arr)) {
-		return strip_tags($arr);
+		return sanitize_string_tags($arr, 'all');
 	}
 	return $arr;
+}
+
+/**
+ * Check is string has tags
+ *
+ * @param string $input
+ * @param array $tags
+ * @return bool
+ */
+function has_tags(string $input, array $tags) : bool {
+	foreach ($tags as $v) {
+		if (stripos($input, $v) !== false) {
+			return true;
+		}
+	}
+	return false;
+}
+
+/**
+ * Sanitize tags
+ *
+ * @param type $str
+ * @param string $type
+ * @param array $options
+ *	boolean remove_white_spaces
+ * @return string
+ */
+function sanitize_string_tags($str, string $type = 'all', array $options = []) : string {
+	switch ($type) {
+		case 'script_only':
+			return preg_replace('/<script[^>]*?.*?<\/script>/siu', ' ', $str . '');
+		case 'all':
+		default:
+			$str = preg_replace(['/<head[^>]*?>.*?<\/head>/siu', '/<style[^>]*?>.*?<\/style>/siu', '/<script[^>]*?.*?<\/script>/siu', '/<object[^>]*?.*?<\/object>/siu', '/<embed[^>]*?.*?<\/embed>/siu', '/<applet[^>]*?.*?<\/applet>/siu', '/<noframes[^>]*?.*?<\/noframes>/siu', '/<noscript[^>]*?.*?<\/noscript>/siu', '/<noembed[^>]*?.*?<\/noembed>/siu'], ' ', $str . '');
+			$str = preg_replace(['/<((br)|(hr))/iu', '/<\/?((address)|(blockquote)|(center)|(del))/iu', '/<\/?((div)|(h[1-9])|(ins)|(isindex)|(p)|(pre))/iu', '/<\/?((dir)|(dl)|(dt)|(dd)|(li)|(menu)|(ol)|(ul))/iu', '/<\/?((table)|(th)|(td)|(caption))/iu', '/<\/?((form)|(button)|(fieldset)|(legend)|(input))/iu', '/<\/?((label)|(select)|(optgroup)|(option)|(textarea))/iu', '/<\/?((frameset)|(frame)|(iframe))/iu'], "\n\$0", $str);
+			$str = str_replace('&nbsp;', ' ', $str);
+			$str = str_replace('&amp;', '&', $str);
+	}
+	if (empty($options['remove_white_spaces'])) {
+		return strip_tags($str);
+	} else {
+		$result = strip_tags($str);
+		$result = str_replace(["\n", "\t"], ' ', $result);
+		$result = preg_replace('/\s\s+/', ' ', $result);
+		return $result;
+	}
 }
 
 /**
@@ -412,20 +502,35 @@ function strip_tags2($arr) {
  *
  * @param array $data
  * @param array $map
+ * @param boolean $unique
  * @return array
  */
-function remap(& $data, $map) {
+function remap(& $data, $map, $unique = false) {
 	$result = [];
+	$lock = [];
 	foreach ($data as $k => $v) {
 		foreach ($map as $k2 => $v2) {
 			$k2 = str_replace('*', '', $k2);
 			if (isset($result[$k][$v2])) {
 				if (isset($v[$k2])) {
 					if ($v[$k2] . '' !== '') {
-						$result[$k][$v2] .= Format::$symbol_semicolon . ' ' . $v[$k2];
+						if ($unique) {
+							if (!isset($lock[$k][$v2])) {
+								$result[$k][$v2].= Format::$symbol_semicolon . ' ' . $v[$k2];
+								$lock[$k][$v2] = [$v[$k2]];
+							} else if (!in_array($v[$k2], $lock[$k][$v2])) {
+								$result[$k][$v2].= Format::$symbol_semicolon . ' ' . $v[$k2];
+								$lock[$k][$v2][] = $v[$k2];
+							}
+						} else {
+							$result[$k][$v2].= Format::$symbol_semicolon . ' ' . $v[$k2];
+						}
 					}
 				}
 			} else {
+				if ($unique && isset($v[$k2])) {
+					$lock[$k][$v2] = [$v[$k2]];
+				}
 				$result[$k][$v2] = $v[$k2] ?? null;
 			}
 		}
@@ -457,8 +562,9 @@ function array_to_field(array $arr): string {
  * @return array
  */
 function array_change_key_name(array $arr, $old_key, $new_key): array {
-	if (!array_key_exists($old_key, $arr))
+	if (!array_key_exists($old_key, $arr)) {
 		return $arr;
+	}
 	$keys = array_keys($arr);
 	$keys[array_search($old_key, $keys)] = $new_key;
 	return array_combine($keys, $arr);
@@ -492,11 +598,12 @@ function array_key_sort(& $arr, $keys, $methods = []) {
 	foreach ($arr as $k => $v) {
 		$final['_' . $k] = $v;
 	}
-	$params['data'] = & $final;
+	$params = array_values($params);
+	$params[] = & $final;
 	call_user_func_array('array_multisort', $params);
 	// convert keys back
 	$arr = [];
-	foreach ($params['data'] as $k => $v) {
+	foreach ($params[array_key_last($params)] as $k => $v) {
 		$arr[substr($k, 1)] = $v;
 	}
 }
@@ -612,8 +719,9 @@ function array_key_get(& $arr, $keys = null, $options = []) {
 		$last = array_pop($key);
 		$pointer = & $arr;
 		foreach ($key as $k2) {
-			if (!isset($pointer[$k2]))
+			if (!isset($pointer[$k2])) {
 				return null;
+			}
 			$pointer = & $pointer[$k2];
 		}
 		if (isset($pointer[$last])) {
@@ -637,8 +745,9 @@ function array_key_get(& $arr, $keys = null, $options = []) {
  * @param mixed $value
  * @param array $options
  * 		boolean append - whether to append value to array
+ *		boolean append_unique
  */
-function array_key_set(& $arr, $keys = null, $value, $options = []) {
+function array_key_set(& $arr, $keys = null, $value = null, $options = []) {
 	if (!isset($arr)) {
 		$arr = [];
 	}
@@ -658,7 +767,11 @@ function array_key_set(& $arr, $keys = null, $value, $options = []) {
 			if (!is_array($pointer)) {
 				$pointer = [];
 			}
-			$pointer[] = $value;
+			if (!empty($options['append_unique']) && in_array($value, $pointer)) {
+				// nothing
+			} else {
+				$pointer[] = $value;
+			}
 		} else {
 			$pointer = $value;
 		}
@@ -673,7 +786,7 @@ function array_key_set(& $arr, $keys = null, $value, $options = []) {
  * @param mixed $value
  * @param array $options
  */
-function array_key_set_by_key_name(& $arr, $keys = null, $value, $options = array()) {
+function array_key_set_by_key_name(& $arr, $keys = null, $value = null, $options = array()) {
 	// transform keys
 	if (!is_array($keys)) {
 		$keys = explode(',', $keys . '');
@@ -818,12 +931,18 @@ function array_compare_inteligent($arr1, $arr2, $arr1a, $arr2a) {
  * @param array $arr
  * @param string $key_prefix
  * @param boolean $unset
+ * @param boolean $not_empty
  * @return array
  */
-function array_key_extract_by_prefix(& $arr, $key_prefix, $unset = true) {
+function array_key_extract_by_prefix(& $arr, $key_prefix, $unset = true, $not_empty = false) {
 	$result = [];
 	foreach ($arr as $k => $v) {
 		if (strpos($k, $key_prefix) === 0) {
+			if ($not_empty) {
+				if (empty($v)) {
+					continue;
+				}
+			}
 			$result[str_replace($key_prefix, '', $k)] = $v;
 			if ($unset) {
 				unset($arr[$k]);
@@ -888,7 +1007,7 @@ function mixedtolower($mixed) {
 }
 
 /**
- * i18n, alias
+ * I18n, alias
  *
  * @param int $i18n
  * @param mixed $text
@@ -912,6 +1031,16 @@ function i18n_if($text, $translate) {
 	} else {
 		return $text;
 	}
+}
+
+/**
+ * Registry, alias
+ *
+ * @param string $key
+ * @return mixed
+ */
+function registry(string $key) {
+	return \Registry::get($key);
 }
 
 /**
@@ -948,30 +1077,32 @@ function chance($percent) {
 	return (mt_rand(0, 99) < $percent);
 }
 
-/**
- * Split multi-byte strings
- *
- * @param string $string
- * @param int $limit
- * @param string $pattern
- * @return array
- */
-function mb_str_split($string, $limit = -1, $pattern = null) {
-	if (isset($pattern)) {
-		return mb_split($pattern, $string, $limit);
-	} else {
-		$result = [];
-		$counter = 0;
-		$strlen = mb_strlen($string);
-		while ($strlen) {
-			$counter++;
-			if ($limit != -1 && $counter > $limit)
-				break;
-			$result[] = mb_substr($string, 0, 1, 'UTF-8');
-			$string = mb_substr($string, 1, $strlen, 'UTF-8');
+if (!function_exists('mb_str_split')) {
+	/**
+	 * Split multi-byte strings
+	 *
+	 * @param string $string
+	 * @param int $limit
+	 * @param string $pattern
+	 * @return array
+	 */
+	function mb_str_split($string, $limit = -1, $pattern = null) {
+		if (isset($pattern)) {
+			return mb_split($pattern, $string, $limit);
+		} else {
+			$result = [];
+			$counter = 0;
 			$strlen = mb_strlen($string);
+			while ($strlen) {
+				$counter++;
+				if ($limit != -1 && $counter > $limit)
+					break;
+				$result[] = mb_substr($string, 0, 1, 'UTF-8');
+				$string = mb_substr($string, 1, $strlen, 'UTF-8');
+				$strlen = mb_strlen($string);
+			}
+			return $result;
 		}
-		return $result;
 	}
 }
 
@@ -1024,6 +1155,40 @@ function is_json($input) {
 }
 
 /**
+ * Check if its a HTML string
+ *
+ * @param string $input
+ * @return bool
+ */
+function is_html($input) {
+	return !(strip_tags($input . '') == $input . '');
+}
+
+/**
+ * Check if string is base64 encoded
+ *
+ * @param string $input
+ * @return boolean
+ */
+function is_base64($input) {
+	if (base64_encode(base64_decode($input, true)) === $input) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
+/**
+ * Check if string is UTF-8
+ *
+ * @param string $input
+ * @return boolean
+ */
+function is_utf8($input) {
+        return (utf8_encode(utf8_decode($input)) === $input);
+}
+
+/**
  * Check if its a valid XML string
  *
  * @param mixed $input
@@ -1060,6 +1225,9 @@ function array2xml($arr, $xml = false) {
 		$xml = new SimpleXMLElement('<root/>');
 	}
 	foreach ($arr as $k => $v) {
+		if (is_numeric($k)) {
+			$k = 'index_' . $k;
+		}
 		if (is_array($v)) {
 			array2xml($v, $xml->addChild($k));
 		} else {
@@ -1173,6 +1341,37 @@ function array_iterate_recursive_get_keys(array $arr, array & $result, array $pa
  */
 function split_on_uppercase(string $str): array {
 	return preg_split('/(?=[A-Z])/', $str, -1, PREG_SPLIT_NO_EMPTY);
+}
+
+/**
+ * Opposite to nl2br
+ *
+ * @param string $str
+ * @return string
+ */
+function br2nl($str, bool $oposite = false) : string {
+	if ($oposite) {
+		return str_replace(["\n", "\r"], ['<br />', ''], $str . '');
+	} else {
+		return str_replace(['<br />', '<br/>', '<br>'], "\n", $str . '');
+	}
+}
+
+/**
+ * Count nested level of first element
+ *
+ * @param array $arr
+ * @param int $level
+ * @return int
+ */
+function array_nested_levels_count(array & $arr, int $level = 1) : int {
+	foreach ($arr as $k => $v) {
+		if (is_array($v)) {
+			$level++;
+			return array_nested_levels_count($v, $level);
+		}
+	}
+	return $level;
 }
 
 /**
