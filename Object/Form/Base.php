@@ -2540,7 +2540,7 @@ convertMultipleColumns:
 		if (empty($error_field)) {
 			$error_field = $k;
 		}
-		$result = \Object\Table\Columns::validateSingleColumn($k, $v['options'], $in_value);
+		$result = \Object\Table\Columns::validateSingleColumn($k, $v['options'], $in_value, ['process_domains' => true]);
 		if (!$result['success']) {
 			$this->error('danger', $result['error'], $error_field, ['skip_i18n' => true]);
 		}

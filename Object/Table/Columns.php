@@ -92,6 +92,12 @@ class Columns extends \Object\Data {
 				}
 			}
 		}
+		// process domain
+		if (!empty($options['process_domains'])) {
+			$temp = [$column_name => $column_options];
+			$temp = \Object\Data\Common::processDomainsAndTypes($temp);
+			$column_options = $temp[$column_name];
+		}
 		$result = [];
 		// processing as per different data types
 		if ($column_options['type'] == 'boolean') { // booleans
@@ -269,7 +275,7 @@ class Columns extends \Object\Data {
 				$result['data']['flag_error'] = true;
 			}
 		} else {
-			$result['error'][] = i18n(null, \Object\Content\Messages::unknown_value);
+			$result['error'][] = i18n(null, \Object\Content\Messages::UNKNOWN_VALUE);
 			$result['data']['flag_error'] = true;
 		}
 		if (empty($result['error'])) $result['success'] = true;

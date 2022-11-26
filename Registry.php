@@ -82,5 +82,12 @@ class Registry {
 				array_key_set(self::$settings, explode('.', $k), $v);
 			}
 		}
+		// environment overrides
+		$environment = \Application::get('environment');
+		if (!empty($data[$environment])) {
+			foreach ($data[$environment] as $k => $v) {
+				array_key_set(self::$settings, explode('.', $k), $v);
+			}
+		}
 	}
 }

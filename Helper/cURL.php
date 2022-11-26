@@ -19,7 +19,9 @@ class cURL {
 		$result = [
 			'success' => false,
 			'error' => [],
-			'data' => null
+			'data' => null,
+			'info' => null,
+			'params' => $options['params'] ?? []
 		];
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, $url);
@@ -49,6 +51,9 @@ class cURL {
 		if (!empty($options['json']) && is_json($result['data'])) {
 			$result['data'] = json_decode($result['data'], true);
 		}
+		if (!curl_errno($ch)) {
+			$result['info'] = curl_getinfo($ch);
+		}
 		curl_close($ch);
 		$result['success'] = true;
 		return $result;
@@ -65,7 +70,9 @@ class cURL {
 		$result = [
 			'success' => false,
 			'error' => [],
-			'data' => null
+			'data' => null,
+			'info' => [],
+			'params' => $options['params'] ?? []
 		];
 		if (!empty($options['params'])) {
 			if (strpos($url, '?') !== false) {
@@ -92,6 +99,9 @@ class cURL {
 		$result['data'] = curl_exec($ch);
 		if (!empty($options['json']) && is_json($result['data'])) {
 			$result['data'] = json_decode($result['data'], true);
+		}
+		if (!curl_errno($ch)) {
+			$result['info'] = curl_getinfo($ch);
 		}
 		curl_close($ch);
 		$result['success'] = true;

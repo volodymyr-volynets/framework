@@ -213,14 +213,16 @@ class Report {
 	public function addSummary(string $report_name, string $header_name, array $header_columns, array $options = []) {
 		// process header
 		$header = $this->data[$report_name]['header'][$header_name];
-		$temp = [];
+		$temp = $temp2 = [];
 		foreach ($header as $k => $v) {
 			if (array_key_exists($k, $header_columns)) {
 				$temp[$v['__index']] = $header_columns[$k];
+				$temp2[$k] = $v['__index'];
 			}
 		}
 		// replace header
 		$this->data[$report_name]['header_summary'][$header_name] = $temp;
+		$this->data[$report_name]['header_summary2'][$header_name] = $temp2;
 		$this->data[$report_name]['header_summary_options'][$header_name] = $options;
 	}
 
@@ -246,9 +248,16 @@ class Report {
 					if (($row_data[3] ?? '') != $k) {
 						continue;
 					}
-					if ($v2['function'] != 'summary') {
+					if ($v2['function'] == 'avg_not_null') {
+						if (!empty($row_data[6][$k2])) {
+							$this->data[$report_name]['header_summary_calculated'][$k][$k2]['counter']++;
+							$this->data[$report_name]['header_summary_calculated'][$k][$k2]['sum']+= $row_data[6][$k2];
+							goto calc_other_fields;
+						}
+					} else if ($v2['function'] != 'summary') {
 						$this->data[$report_name]['header_summary_calculated'][$k][$k2]['counter']++;
 						$this->data[$report_name]['header_summary_calculated'][$k][$k2]['sum']+= $row_data[6][$k2];
+calc_other_fields:
 						if (!isset($this->data[$report_name]['header_summary_calculated'][$k][$k2]['min'])) {
 							$this->data[$report_name]['header_summary_calculated'][$k][$k2]['min'] = $row_data[6][$k2];
 						} else if ($this->data[$report_name]['header_summary_calculated'][$k][$k2]['min'] > $row_data[6][$k2]) {
@@ -264,6 +273,7 @@ class Report {
 						$this->data[$report_name]['header_summary_calculated'][$k][$k2]['final'] = $this->data[$report_name]['header_summary_calculated'][$k][$k2]['sum'];
 						break;
 					case 'avg':
+					case 'avg_not_null':
 						if (!empty($this->data[$report_name]['header_summary_calculated'][$k][$k2]['counter'])) {
 							$this->data[$report_name]['header_summary_calculated'][$k][$k2]['final'] = $this->data[$report_name]['header_summary_calculated'][$k][$k2]['sum'] / $this->data[$report_name]['header_summary_calculated'][$k][$k2]['counter'];
 						} else {
@@ -286,6 +296,11 @@ class Report {
 				unset($this->data[$report_name]['header_summary_calculated'][$k][$k2]['sum']);
 				unset($this->data[$report_name]['header_summary_calculated'][$k][$k2]['min']);
 				unset($this->data[$report_name]['header_summary_calculated'][$k][$k2]['max']);
+			}
+			// custom calculator
+			if (!empty($this->data[$report_name]['header_summary_options'][$k]['custom_calculator'])) {
+				$method = explode('::', $this->data[$report_name]['header_summary_options'][$k]['custom_calculator']);
+				call_user_func_array($method, [$k, & $this->data[$report_name]['header_summary2'][$k], & $this->data[$report_name]['header_summary_calculated'][$k]]);
 			}
 		}
 	}

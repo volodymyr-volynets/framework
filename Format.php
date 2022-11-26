@@ -614,7 +614,7 @@ class Format {
 	 * @return string
 	 */
 	public static function amount($amount, $options = []) {
-		if (!isset($amount)) {
+		if (!isset($amount) || $amount === '') {
 			return null;
 		}
 		$amount = trim($amount . '');
