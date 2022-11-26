@@ -14,10 +14,15 @@
 	},
 	"license": "Apache-2.0",
 	"extra": {
-		"installer-name": "Framework",
 		"installer-types": ["library"],
 		"installer-paths": {
 			"vendor/Numbers/Framework/": ["numbers/framework"]
+		}
+	},
+	"config": {
+		"allow-plugins": {
+			"composer/installers": true,
+			"oomphinc/composer-installers-extender": true
 		}
 	}
 }
