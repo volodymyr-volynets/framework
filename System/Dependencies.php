@@ -374,6 +374,7 @@ class Dependencies {
 			}
 			// updating composer.json file
 			if ($options['mode'] == 'commit') {
+				/*
 				$composer_data['extra'] = [
 					'installer-types' => ['library'],
 					'installer-paths' => []
@@ -386,6 +387,7 @@ class Dependencies {
 					}
 				}
 				$composer_data['require']['oomphinc/composer-installers-extender'] = '~1.0';
+				 */
 				\Helper\File::write('../libraries/composer.json', json_encode($composer_data, JSON_PRETTY_PRINT));
 			}
 			// assinging variables to return to the caller
