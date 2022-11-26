@@ -77,11 +77,6 @@ class Config {
 			$ini_data = self::ini($file, $result['environment']);
 			$result = array_merge2($result, $ini_data);
 		}
-		// registry
-		$file = $ini_folder . 'registry.ini';
-		if (file_exists($file)) {
-			\Registry::load($file);
-		}
 		return $result;
 	}
 }

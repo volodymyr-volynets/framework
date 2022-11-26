@@ -757,4 +757,26 @@ class Table extends \Object\Table\Options {
 		}
 		return true;
 	}
+
+	/**
+	 * Get widget model
+	 *
+	 * @param string $type
+	 * @return \Object\Table
+	 */
+	public function getWidgetModel(string $type) : \Object\Table {
+		return \Factory::model($this->{$type . '_model'});
+	}
+
+	/**
+	 * Get widget model (static)
+	 *
+	 * @param string $type
+	 * @return \Object\Table
+	 */
+	public static function getWidgetModelStatic(string $type) : \Object\Table {
+		$class = get_called_class();
+		$model = new $class();
+		return $model->getWidgetModel($type);
+	}
 }

@@ -435,7 +435,7 @@ class Can {
 		$roles = \User::get('role_ids');
 		foreach (\User::$cached_owners[$owner_code] as $k => $v) {
 			foreach ($v as $k2 => $v2) {
-				if (in_array($v2['role_id'], $roles) && in_array($v2['organization_id'], $organizations)) {
+				if (in_array($v2['role_id'], $roles ?? []) && in_array($v2['organization_id'], $organizations ?? [])) {
 					return true;
 				}
 			}
