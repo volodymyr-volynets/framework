@@ -17,7 +17,7 @@
 		"installer-name": "Numbers/Framework",
 		"installer-types": ["library"],
 		"installer-paths": {
-			"vendor/Numbers/Framework/": ["numbers/framework"]
+			"vendor/{$name}/": ["numbers/framework"]
 		}
 	},
 	"config": {
