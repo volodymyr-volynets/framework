@@ -9,15 +9,7 @@
 		}
 	],
 	"require": {
-		"php": ">=8.0.0",
-		"oomphinc/composer-installers-extender": "~2.0"
+		"php": ">=8.0.0"
 	},
-	"license": "Apache-2.0",
-	"extra": {
-		"installer-name": "Framework",
-		"installer-types": ["library"],
-		"installer-paths": {
-			"vendor/Numbers/Framework/": ["numbers/framework"]
-		}
-	}
+	"license": "Apache-2.0"
 }
