@@ -34,7 +34,7 @@ class Application {
 			$key = str_replace('.', '/', $key);
 			// we must set current working directory
 			chdir(\Application::get('application.path_full'));
-			return file_exists('./../libraries/vendor/' . $key);
+			return file_exists('./../libraries/vendor/' . strtolower($key));
 		}
 		// get data from settings
 		$result = array_key_get(self::$settings, $key);
@@ -88,7 +88,7 @@ class Application {
 		$paths = [];
 		$paths[] = $application_path_full;
 		$application_path_temp = preg_replace('/\/application$/', '', $application_path_full);
-		$paths[] = $application_path_temp . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'Numbers' . DIRECTORY_SEPARATOR . 'Framework';
+		$paths[] = $application_path_temp . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'numbers' . DIRECTORY_SEPARATOR . 'framework';
 		$paths[] = $application_path_temp . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . 'private';
 		$paths[] = $application_path_temp . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . 'vendor';
 		set_include_path(implode(PATH_SEPARATOR, $paths));

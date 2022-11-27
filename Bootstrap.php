@@ -25,7 +25,7 @@ class Bootstrap {
 		}
 		// get flags & backend
 		$flags = \Application::get('flag');
-		$backend = \Application::get('Numbers.Backend', ['backend_exists' => true]);
+		$backend = \Application::get('numbers.backend', ['backend_exists' => true]);
 		// alive
 		if (!empty($flags['alive']['autoconnect'])) {
 			\Alive::start();
@@ -228,7 +228,7 @@ class Bootstrap {
 			}
 		}
 		// emails with errors
-		if (!empty(\Debug::$email) && \Application::get('Numbers.Backend', ['backend_exists' => true]) && \Application::get('Numbers.Frontend', ['backend_exists' => true])) {
+		if (!empty(\Debug::$email) && \Application::get('numbers.backend', ['backend_exists' => true]) && \Application::get('numbers.frontend', ['backend_exists' => true])) {
 			\Debug::sendErrorsToAdmin();
 		}
 	}

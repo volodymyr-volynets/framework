@@ -97,7 +97,7 @@ class Sequence extends \Object\Override\Data {
 		}
 		// process sequence name and schema
 		$db_object = \Factory::get(['db', $this->db_link, 'object']);
-		if (method_exists($db_object, 'handleName')) {
+		if (isset($db_object) && method_exists($db_object, 'handleName')) {
 			$this->full_sequence_name = $db_object->handleName($this->schema, $this->name);
 		} else {
 			if (!empty($this->schema)) {
