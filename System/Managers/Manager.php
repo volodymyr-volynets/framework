@@ -18,7 +18,7 @@ if (file_exists('../libraries/vendor/autoload.php')) {
 }
 
 // running application
-require('../libraries/vendor/Numbers/Framework/Application.php');
+require('../libraries/vendor/numbers/framework/Application.php');
 Application::run(['__run_only_bootstrap' => 1]);
 
 // disable debug
