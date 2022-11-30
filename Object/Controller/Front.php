@@ -116,6 +116,12 @@ class Front {
 			$controller_class = str_replace(' ', '\\', implode(' ', $data['controllers']));
 			$file = './../libraries/private/' . str_replace('\\', DIRECTORY_SEPARATOR, $controller_class . '.php');
 			if (!file_exists($file)) {
+				if ($data['controllers'][0] == 'Numbers') {
+					$temp = $data['controllers'];
+					$temp[0] = strtolower($temp[0]);
+					$temp[1] = strtolower($temp[1]);
+					$controller_class = str_replace(' ', '\\', implode(' ', $temp));
+				}
 				$file = './../libraries/vendor/' . str_replace('\\', DIRECTORY_SEPARATOR, $controller_class . '.php');
 			}
 		} else {

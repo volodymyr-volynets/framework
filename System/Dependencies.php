@@ -753,8 +753,14 @@ import_data:
 				if (!is_array($v2) && !empty($v2)) {
 					$name = $k . '/' . $k2;
 					$composer_data[$name] = $v2;
-					$dir = '../libraries/' . $type . '/' . $k . '/' . $k2 . '/';
-					if (!file_exists($dir)) continue;
+					if ($type == 'vendor') {
+						$dir = '../libraries/' . $type . '/' . strtolower($k) . '/' . strtolower($k2) . '/';
+					} else {
+						$dir = '../libraries/' . $type . '/' . $k . '/' . $k2 . '/';
+					}
+					if (!file_exists($dir)) {
+						continue;
+					}
 					$composer_dirs[$name] = $dir;
 					if ($k2 != '__any') {
 						$origin_dependencies[$origin_submodule][$name] = $name;
@@ -763,8 +769,14 @@ import_data:
 					foreach ($v2 as $k3 => $v3) {
 						if (!is_array($v3) && !empty($v3)) {
 							$name = $k . '/' . $k2 . '/' . $k3;
-							$dir = '../libraries/' . $type . '/' . $k . '/' . $k2 . '/' . $k3 . '/';
-							if (!file_exists($dir)) continue;
+							if ($type == 'vendor') {
+								$dir = '../libraries/' . $type . '/' . strtolower($k) . '/' . strtolower($k2) . '/' . $k3 . '/';
+							} else {
+								$dir = '../libraries/' . $type . '/' . $k . '/' . $k2 . '/' . $k3 . '/';
+							}
+							if (!file_exists($dir)) {
+								continue;
+							}
 							$composer_dirs[$name] = $dir;
 							if ($k3 != '__any') {
 								$origin_dependencies[$origin_submodule][$name] = $name;
@@ -773,8 +785,14 @@ import_data:
 							foreach ($v3 as $k4 => $v4) {
 								if (!is_array($v4) && !empty($v4)) {
 									$name = $k . '/' . $k2 . '/' . $k3 . '/' . $k4;
-									$dir = '../libraries/' . $type . '/' . $k . '/' . $k2 . '/' . $k3 . '/' . $k4 . '/';
-									if (!file_exists($dir)) continue;
+									if ($type == 'vendor') {
+										$dir = '../libraries/' . $type . '/' . strtolower($k) . '/' . strtolower($k2) . '/' . $k3 . '/' . $k4 . '/';
+									} else {
+										$dir = '../libraries/' . $type . '/' . $k . '/' . $k2 . '/' . $k3 . '/' . $k4 . '/';
+									}
+									if (!file_exists($dir)) {
+										continue;
+									}
 									$composer_dirs[$name] = $dir;
 									if ($k4 != '__any') {
 										$origin_dependencies[$origin_submodule][$name] = $name;
@@ -783,8 +801,14 @@ import_data:
 									foreach ($v4 as $k5 => $v5) {
 										if (!is_array($v5) && !empty($v5)) {
 											$name = $k . '/' . $k2 . '/' . $k3 . '/' . $k4 . '/' . $k5;
-											$dir = '../libraries/' . $type . '/' . $k . '/' . $k2 . '/' . $k3 . '/' . $k4 . '/' . $k5 . '/';
-											if (!file_exists($dir)) continue;
+											if ($type == 'vendor') {
+												$dir = '../libraries/' . $type . '/' . strtolower($k) . '/' . strtolower($k2) . '/' . $k3 . '/' . $k4 . '/' . $k5 . '/';
+											} else {
+												$dir = '../libraries/' . $type . '/' . $k . '/' . $k2 . '/' . $k3 . '/' . $k4 . '/' . $k5 . '/';
+											}
+											if (!file_exists($dir)) {
+												continue;
+											}
 											$composer_dirs[$name] = $dir;
 											if ($k5 != '__any') {
 												$origin_dependencies[$origin_submodule][$name] = $name;
@@ -793,8 +817,14 @@ import_data:
 											foreach ($v5 as $k6 => $v6) {
 												if (!is_array($v6) && !empty($v6)) {
 													$name = $k . '/' . $k2 . '/' . $k3 . '/' . $k4 . '/' . $k5 . '/' . $k6;
-													$dir = '../libraries/' . $type . '/' . $k . '/' . $k2 . '/' . $k3 . '/' . $k4 . '/' . $k5 . '/' . $k6 . '/';
-													if (!file_exists($dir)) continue;
+													if ($type == 'vendor') {
+														$dir = '../libraries/' . $type . '/' . strtolower($k) . '/' . strtolower($k2) . '/' . $k3 . '/' . $k4 . '/' . $k5 . '/' . $k6 . '/';
+													} else {
+														$dir = '../libraries/' . $type . '/' . $k . '/' . $k2 . '/' . $k3 . '/' . $k4 . '/' . $k5 . '/' . $k6 . '/';
+													}
+													if (!file_exists($dir)) {
+														continue;
+													}
 													$composer_dirs[$name] = $dir;
 													if ($k6 != '__any') {
 														$origin_dependencies[$origin_submodule][$name] = $name;
@@ -803,8 +833,14 @@ import_data:
 													foreach ($v6 as $k7 => $v7) {
 														if (!is_array($v7) && !empty($v7)) {
 															$name = $k . '/' . $k2 . '/' . $k3 . '/' . $k4 . '/' . $k5 . '/' . $k6 . '/' . $k7;
-															$dir = '../libraries/' . $type . '/' . $k . '/' . $k2 . '/' . $k3 . '/' . $k4 . '/' . $k5 . '/' . $k6 . '/' . $k7 . '/';
-															if (!file_exists($dir)) continue;
+															if ($type == 'vendor') {
+																$dir = '../libraries/' . $type . '/' . strtolower($k) . '/' . strtolower($k2) . '/' . $k3 . '/' . $k4 . '/' . $k5 . '/' . $k6 . '/' . $k7 . '/';
+															} else {
+																$dir = '../libraries/' . $type . '/' . $k . '/' . $k2 . '/' . $k3 . '/' . $k4 . '/' . $k5 . '/' . $k6 . '/' . $k7 . '/';
+															}
+															if (!file_exists($dir)) {
+																continue;
+															}
 															$composer_dirs[$name] = $dir;
 															if ($k7 != '__any') {
 																$origin_dependencies[$origin_submodule][$name] = $name;

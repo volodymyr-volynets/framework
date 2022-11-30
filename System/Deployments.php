@@ -150,7 +150,15 @@ class Deployments {
 						if (file_exists($dep_dir . '/libraries/private' . $v2['origin'])) {
 							$copy_from = $dep_dir . '/libraries/private' . $v2['origin'];
 						} else {
-							$copy_from = $dep_dir . '/libraries/vendor' . $v2['origin'];
+							if (strpos($v2['origin'], '/Numbers/') === 0) {
+								$updated_origin = explode('/', $v2['origin']);
+								$updated_origin[1] = strtolower($updated_origin[1]);
+								$updated_origin[2] = strtolower($updated_origin[2]);
+								$updated_origin = implode('/', $updated_origin);
+							} else {
+								$updated_origin = $v2['origin'];
+							}
+							$copy_from = $dep_dir . '/libraries/vendor' . $updated_origin;
 						}
 						$copy_to = $media_dir_submodule . $v2['destination'];
 						if ($k == 'js' || $k == 'css' || $k == 'other') {

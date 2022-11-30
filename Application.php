@@ -169,6 +169,7 @@ class Application {
 		\Object\Controller\Front::setMvc($options['request_uri'] ?? null);
 		// check if controller exists
 		if (!file_exists(self::$settings['mvc']['controller_file'])) {
+			trigger_error('Resource not found [' . self::$settings['mvc']['controller_file'] . ']!');
 			Throw new \Exception('Resource not found!', -1);
 		}
 		// initialize the controller
@@ -231,6 +232,12 @@ class Application {
 		// we need to check if we have customization for classes, we only allow 
 		// customizaton for models and controllers
 		$file = str_replace(['_', '\\'], DIRECTORY_SEPARATOR, $class) . '.php';
+		if (strpos($file, 'Numbers') === 0) {
+			$file = explode(DIRECTORY_SEPARATOR, $file);
+			$file[0] = strtolower($file[0]);
+			$file[1] = strtolower($file[1]);
+			$file = implode(DIRECTORY_SEPARATOR, $file);
+		}
 		// we need to store class path so we can load js, css and scss files
 		self::$settings['application']['loaded_classes'][$class] = [
 			'class' => $class,

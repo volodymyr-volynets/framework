@@ -73,7 +73,7 @@ class Tree {
 	 * @param array $options
 	 * @param array $result
 	 */
-	public static function convertTreeToOptionsMulti($data, $level = 0, $options = [], & $result, $parent_keys = []) {
+	public static function convertTreeToOptionsMulti($data, $level = 0, $options = [], & $result = [], $parent_keys = []) {
 		if (empty($options['name_field'])) $options['name_field'] = 'name';
 		if (!isset($options['i18n'])) $options['i18n'] = true;
 		// skip_keys - convert to array

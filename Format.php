@@ -96,11 +96,15 @@ class Format {
 			'symbols' => []
 		];
 		// settings from config files
-		$config = Application::get('flag.global.format');
+		$config = Application::get('flag.global.i18n');
 		// settings from user account
 		$user_settings = User::get('internalization');
 		if (!empty($user_settings)) {
-			foreach ($user_settings as $k => $v) if (empty($v)) unset($user_settings[$k]);
+			foreach ($user_settings as $k => $v) {
+				if (empty($v)) {
+					unset($user_settings[$k]);
+				}
+			}
 		}
 		// merge all of them together
 		self::$options = array_merge_hard(self::$defaut_options, $config, \I18n::$options, $user_settings, $options);
@@ -112,8 +116,8 @@ class Format {
 		// fix values
 		self::$options['format_amount_frm'] = (int) self::$options['format_amount_frm'];
 		self::$options['format_amount_fs'] = (int) self::$options['format_amount_fs'];
-		self::$options['locale_options']['mon_thousands_sep'] = self::$options['locale_options']['mon_thousands_sep'] ?? ',';
-		self::$options['locale_options']['mon_decimal_point'] = self::$options['locale_options']['mon_decimal_point'] ?? '.';
+		self::$options['locale_options']['mon_thousands_sep'] = self::$options['locale_options']['mon_thousands_sep'] ?: ',';
+		self::$options['locale_options']['mon_decimal_point'] = self::$options['locale_options']['mon_decimal_point'] ?: '.';
 		if (empty(self::$options['locale_options']['mon_grouping'])) {
 			self::$options['locale_options']['mon_grouping'] = [3, 3];
 		}
@@ -668,15 +672,19 @@ class Format {
 		}
 		// formatting if we use locale
 		if (self::useLocale()) {
-			$amount = self::moneyFormat($amount, $options);
+			$formater = new \NumberFormatter(self::$options['locale_code'], \NumberFormatter::CURRENCY);
+			if (!empty($options['currency_code'])) {
+				$formater->setTextAttribute($formater::CURRENCY_CODE, $options['currency_code']);
+			}
+			$formater->setAttribute($formater::FRACTION_DIGITS, $options['decimals']);
+			return $formater->format($amount);
 		} else { // if we are not using locale
 			if (!empty($options['accounting']) && $amount < 0) {
-				$amount = '(' . number_format(abs($amount), $options['decimals'], self::$options['locale_options']['mon_decimal_point'], self::$options['locale_options']['mon_thousands_sep']) . ')';
+				return '(' . number_format(abs($amount), $options['decimals'], self::$options['locale_options']['mon_decimal_point'] ?? '.', self::$options['locale_options']['mon_thousands_sep']) . ')';
 			} else {
-				$amount = number_format($amount, $options['decimals'], self::$options['locale_options']['mon_decimal_point'], self::$options['locale_options']['mon_thousands_sep']);
+				return number_format($amount, $options['decimals'], self::$options['locale_options']['mon_decimal_point'] ?? '.', self::$options['locale_options']['mon_thousands_sep']);
 			}
 		}
-		return $amount;
 	}
 
 	/**
@@ -780,145 +788,6 @@ class Format {
 				$number = $locale_override_class::amount($number . '', $options);
 			} else {
 				$number = $locale_override_class::readFloatval($number . '', $options);
-			}
-		}
-		return $number;
-	}
-
-	/**
-	 * Money format
-	 *
-	 * @param mixed $amount
-	 * @param array $options
-	 * @return string
-	 */
-	public static function moneyFormat($amount, $options = []) {
-		$format = array_merge_hard(self::$options['locale_options'], $options['locale_options'] ?? []);
-		$options['decimals'] = $options['decimals'] ?? 2;
-		// sometimes symbols contain decimal point, we change it to thousands_sep
-		if (!empty($options['symbol'])) {
-			$options['symbol'] = str_replace($format['mon_decimal_point'], $format['mon_thousands_sep'], $options['symbol']);
-		} else {
-			$options['symbol'] = '';
-		}
-		// convert to string
-		if (!is_string($amount)) {
-			$amount = $amount . '';
-		}
-		$negative = strpos($amount, '-') !== false;
-		$amount = ltrim($amount, '-');
-		// if the number portion has been formatted
-		if (empty($options['amount_partially_formatted'])) {
-			$temp = explode('.', $amount);
-			$number = $temp[0];
-			$fraction = $temp[1] ?? '';
-			// process number
-			if (empty($number)) $number = '0';
-			if ($format['mon_thousands_sep'] . '' !== '' && !empty($format['mon_grouping'])) {
-				$counter = 0;
-				$mon_grouping = [];
-				$symbols = array_reverse(mb_str_split($number), true);
-				$number = '';
-				foreach ($symbols as $k => $v) {
-					// grab group size
-					if ($counter == 0) {
-						if (empty($mon_grouping)) $mon_grouping = $format['mon_grouping'];
-						if (count($mon_grouping) > 1) {
-							$counter = array_shift($mon_grouping);
-						} else {
-							$counter = $mon_grouping[0];
-						}
-					}
-					// skip number of characters
-					$counter--;
-					$number = $v . $number;
-					if ($counter == 0 && $k > 0) {
-						$number = $format['mon_thousands_sep'] . $number;
-					}
-				}
-			}
-			// left precision
-			if (!empty($options['digits'])) {
-				if (strlen($number) < $options['digits']) {
-					$number = str_pad($number, $options['digits'], ' ', STR_PAD_LEFT);
-				}
-			}
-			// right precision
-			if ($options['decimals'] > 0) {
-				$fraction = substr(str_pad($fraction, $options['decimals'], '0', STR_PAD_RIGHT), 0, $options['decimals']);
-				$number = $number . $format['mon_decimal_point'] . $fraction;
-			}
-		} else {
-			$number = $amount;
-		}
-		// translate characters
-		$number = self::numberToFromNativeLanguage($number, $options);
-		// format based on settings
-		$cs_precedes = $negative ? $format['n_cs_precedes'] : $format['p_cs_precedes'];
-		$sep_by_space = $negative ? $format['n_sep_by_space'] : $format['p_sep_by_space'];
-		// financial statements override
-		if (!empty($options['fs'])) {
-			$sep_by_space = 1;
-		}
-		$sign_posn = $negative ? $format['n_sign_posn'] : $format['p_sign_posn'];
-		// if accounting formatting
-		if (!empty($options['accounting'])) {
-			// if we have currency symbol we added it based on settings
-			if (!empty($options['symbol'])) {
-				$number = ($cs_precedes ? ($options['symbol'] . ($sep_by_space === 1 ? ' ' : '')) : '') . $number . (!$cs_precedes ? (($sep_by_space === 1 ? ' ' : '') . $options['symbol']) : '');
-			}
-			if ($negative) {
-				$number = '(' . $number . ')';
-			} else {
-				$number = ' ' . $number . ' ';
-			}
-		} else {
-			$positive_sign = $format['positive_sign'];
-			$negative_sign = $format['negative_sign'];
-			$sign = $negative ? $negative_sign : $positive_sign;
-			$other_sign = $negative ? $positive_sign : $negative_sign;
-			$sign_padding = '';
-			if ($sign_posn) {
-				for ($i = 0; $i < (strlen($other_sign) - strlen($sign)); $i++) {
-					$sign_padding.= ' ';
-				}
-			}
-			$temp_value = '';
-			switch ($sign_posn) {
-				case 0: // parentheses surround value and currency symbol
-					if (!empty($options['symbol'])) {
-						$number = $cs_precedes ? ($options['symbol'] . ($sep_by_space === 1 ? ' ' : '') . $number) : ($number . ($sep_by_space === 1 ? ' ' : '') . $options['symbol']);
-					}
-					$number = '(' . $number . ')';
-					break;
-				case 1: // sign precedes
-					if (!empty($options['symbol'])) {
-						$number = $cs_precedes ? ($options['symbol'] . ($sep_by_space === 1 ? ' ' : '') . $number) : ($number . ($sep_by_space === 1 ? ' ' : '') . $options['symbol']);
-					}
-					$number = $sign_padding . $sign . ($sep_by_space === 2 ? ' ' : '') . $number;
-					break;
-				case 2: // sign follows
-					if (!empty($options['symbol'])) {
-						$number = $cs_precedes ? ($options['symbol'] . ($sep_by_space === 1 ? ' ' : '') . $number) : ($number . ($sep_by_space === 1 ? ' ' : '') . $options['symbol']);
-					}
-					$number = $number . ($sep_by_space === 2 ? ' ' : '') . $sign . $sign_padding;
-					break;
-				case 3: //sign precedes currency symbol
-					$symbol = '';
-					if (!empty($options['symbol'])) {
-						$symbol = $cs_precedes ? ($options['symbol'] . ($sep_by_space === 1 ? ' ' : '')) : (($sep_by_space === 2 ? ' ' : '') . $options['symbol']);
-					}
-					$number = $cs_precedes ? ($sign_padding . $sign . ($sep_by_space === 2 ? ' ' : '') . $symbol . $number) : ($number . ($sep_by_space === 1 ? ' ' : '') . $sign . $sign_padding . $symbol);
-					break;
-				case 4: // sign succeeds currency symbol
-					$symbol = '';
-					$symbol_sep = '';
-					if (!empty($options['symbol'])) {
-						$symbol = $options['symbol'];
-						$symbol_sep = ($sep_by_space === 1 ? ' ' : '');
-					}
-					$number = $cs_precedes ? ($symbol . ($sep_by_space === 2 ? ' ' : '') . $sign_padding . $sign . $symbol_sep . $number) : ($number . $symbol_sep . $symbol . ($sep_by_space === 2 ? ' ' : '') . $sign . $sign_padding);
-					break;
 			}
 		}
 		return $number;
