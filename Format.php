@@ -685,7 +685,11 @@ class Format {
 		}
 		// formatting if we use locale
 		if (self::useLocale()) {
-			$formater = new \NumberFormatter(self::$options['locale_code'], \NumberFormatter::CURRENCY);
+			if ($options['symbol'] ?? false) {
+				$formater = new \NumberFormatter(self::$options['locale_code'], \NumberFormatter::CURRENCY);
+			} else {
+				$formater = new \NumberFormatter(self::$options['locale_code'], \NumberFormatter::PATTERN_DECIMAL);
+			}
 			if (!empty($options['currency_code'])) {
 				$formater->setTextAttribute($formater::CURRENCY_CODE, $options['currency_code']);
 			}
