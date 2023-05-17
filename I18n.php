@@ -98,7 +98,7 @@ class I18n {
 		// important: replaces must be translated/formatted separatly
 		if (!empty($options['replace'])) {
 			foreach ($options['replace'] as $k => $v) {
-				$text = str_replace($k, $v, $text);
+				$text = str_replace($k, $v ?? '', $text . '');
 			}
 		}
 		return $text;

@@ -24,6 +24,13 @@ class Debug {
 	public static $toolbar = false;
 
 	/**
+	 * Whether we use firewall.
+	 *
+	 * @var boolean
+	 */
+	public static $firewall = false;
+
+	/**
 	 * All variables will be stored in here
 	 *
 	 * @var array
@@ -116,6 +123,10 @@ class Debug {
 	 * Send errors to administrator
 	 */
 	public static function sendErrorsToAdmin() {
+		// if we use firewall we do not need to send an email.
+		if (\Debug::$firewall) {
+			return;
+		}
 		// determine if we need to send anything
 		$found = false;
 		foreach (\Object\Error\Base::$errors as $k => $v) {
@@ -128,7 +139,7 @@ class Debug {
 		if ($found || !empty(self::$data['js'])) {
 			$message = '<hr/>';
 			$message.= '<br/>IP: ' . \Request::ip();
-			$message.= '<br/>Host: ' . \Request::host();
+			$message.= '<br/>Host: ' . rtrim(\Request::host(), '/') . $_SERVER['REQUEST_URI'];
 			$message.= '<br/>Script folder: ' . getcwd();
 			$message.= '<br/>MVC: ' . \Application::get('mvc.full');
 			$message.= '<br/>User #: ' . \User::id();

@@ -203,6 +203,7 @@ class Math {
 		if (!isset($scale)) {
 			$scale = self::$scale;
 		}
+		$arg1 = $arg1 . '';
 		if ($arg1[0] != '-') {
 			return bcadd($arg1, '0.' . str_repeat('0', $scale) . '5', $scale);
 		} else {
@@ -218,6 +219,7 @@ class Math {
 	 * @return string
 	 */
 	public static function floor($arg1, $scale = 0) : string {
+		$arg1 = $arg1 . '';
 		if ($arg1[0] != '-') {
 			return bcadd($arg1, '0', $scale);
 		} else {
@@ -237,6 +239,7 @@ class Math {
 	 * @return string
 	 */
 	public static function ceil($arg1, $scale = 0) : string {
+		$arg1 = $arg1 . '';
 		if ($arg1[0] != '-') {
 			$value = '1';
 			if ($scale != 0) {

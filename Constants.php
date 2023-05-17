@@ -22,3 +22,50 @@ $constants['NUMBERS_FLAG_TIMESTAMP_UNIX_TIMESTAMP'] = \Format::now('unix');
 foreach ($constants as $k => $v) {
 	define($k, $v);
 }
+
+// user values.
+$user_data = \User::get(null);
+$user_variables = [
+	'id',
+	'code',
+	'name',
+	'company',
+	'email',
+	'phone',
+	'cell',
+	'fax',
+	'login_username',
+	'login_last_set',
+	'hold',
+	'inactive',
+	'roles',
+	'role_ids',
+	'permissions',
+	'organizations',
+	'organization_countries',
+	'super_admin',
+	'maximum_role_weight',
+	'linked_accounts',
+	'teams',
+	'features',
+	'notifications',
+	'subresources',
+	'flags',
+	'apis',
+	'organization_id',
+	'photo_file_id',
+	'operating_country_code',
+	'operating_province_code',
+	'internalization'
+];
+foreach ($user_variables as $v) {
+	define('NUMBERS_USER_PROFILE_' . strtoupper($v), $user_data[$v] ?? null);
+}
+
+// Owners.
+if (is_null(\User::$cached_owners) && !\Object\Error\Base::$flag_database_tenant_not_found) {
+	\User::$cached_owners = \Object\ACL\Resources::getStatic('owners', 'primary');
+}
+foreach (array_keys(\User::$cached_owners) as $v) {
+	define('NUMBERS_USER_PROFILE_' . $v, \Can::userIsOwner($v));
+}

@@ -68,6 +68,13 @@ class Format {
 	public static $cached_currencies;
 
 	/**
+	 * Initialized
+	 *
+	 * @var bool
+	 */
+	public static $initialized = false;
+
+	/**
 	 * Initialize
 	 * 
 	 * @param array $options
@@ -146,6 +153,7 @@ class Format {
 		foreach (self::$symbol_defaults as $k => $v) {
 			self::$options['symbols'][$k] = self::${'symbol_' . $k};
 		}
+		self::$initialized = true;
 	}
 
 	/**
@@ -219,6 +227,9 @@ class Format {
 	 * @return string
 	 */
 	public static function getDateFormat($type) {
+		if (!self::$initialized) {
+			self::init();
+		}
 		if (!isset(self::$options['format_' . $type])) {
 			$type = 'date';
 		}
@@ -549,9 +560,11 @@ class Format {
 	public static function readFloatval($amount, array $options = []) {
 		$amount = self::numberToFromNativeLanguage($amount . '', $options, true);
 		$negative = strpos($amount, '-') !== false || strpos($amount, '(') !== false;
-		$amount = str_replace(self::$options['locale_options']['mon_thousands_sep'], '', $amount);
+		if (!empty(self::$options['locale_options']['mon_thousands_sep'])) {
+			$amount = str_replace(self::$options['locale_options']['mon_thousands_sep'], '', $amount);
+		}
 		// handle decimal separator
-		if (self::$options['locale_options']['mon_decimal_point'] !== '.') {
+		if (!empty(self::$options['locale_options']['mon_decimal_point']) && self::$options['locale_options']['mon_decimal_point'] !== '.') {
 			$amount = str_replace(self::$options['locale_options']['mon_decimal_point'], '.', $amount);
 		}
 		$amount = preg_replace('/[^0-9.]/', '', $amount);

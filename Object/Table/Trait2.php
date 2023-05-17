@@ -76,6 +76,7 @@ trait Trait2 {
 	 * Get data as an array of rows
 	 *
 	 * @param array $options
+	 *		cache - if we cache
 	 *		no_cache - if we need to skip caching
 	 *		search - array of search condition
 	 *		where - array of where conditions
@@ -95,7 +96,7 @@ trait Trait2 {
 		}
 		$options_query = [];
 		// if we are caching
-		if (!empty($this->cache) && empty($options['no_cache'])) {
+		if ((!empty($this->cache) || !empty($options['cache'])) && empty($options['no_cache'])) {
 			$options_query['cache'] = true;
 		}
 		$options_query['cache_tags'] = !empty($this->cache_tags) ? array_values($this->cache_tags) : [];
@@ -202,7 +203,11 @@ trait Trait2 {
 		}
 		// single row
 		if (!empty($options['single_row'])) {
-			$data = current($result['rows']);
+			if (empty($result['rows'])) {
+				$data = [];
+			} else {
+				$data = current($result['rows']);
+			}
 		} else {
 			$data = $result['rows'];
 		}

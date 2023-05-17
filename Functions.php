@@ -1418,3 +1418,21 @@ function print_options_array(array $arr) : string {
 	}
 	return implode(', ', $result);
 }
+
+/**
+ * Run through an array and find by key.
+ * @param array $options
+ * @param mixed $value
+ * @return mixed
+ */
+function array_walk_recursive_find_by_key($options, $value) {
+	foreach ($options ?? [] as $k => $v) {
+		if ($k == $value) {
+			return $v;
+		}
+		if (isset($v['options'])) {
+			return array_walk_recursive_find_by_key($v['options'], $value);
+		}
+	}
+	return null;
+}

@@ -28,7 +28,7 @@ abstract class API extends \Object\Controller {
 	 *
 	 * @var array
 	 */
-	public $api_input;
+	public $api_input = [];
 
 	/**
 	 * Content type
@@ -49,10 +49,10 @@ abstract class API extends \Object\Controller {
 		if (!empty($raw)) {
 			// json
 			if (is_json($raw)) {
-				$this->api_input = arary_merge_hard($this->api_input, json_decode($raw));
+				$this->api_input = array_merge_hard($this->api_input, json_decode($raw, true));
 			} else if (is_xml($raw)) {
 				$xml = simplexml_load_string($raw);
-				$this->api_input = arary_merge_hard($this->api_input, xml2array($xml));
+				$this->api_input = array_merge_hard($this->api_input, xml2array($xml));
 			}
 		}
 		// content type
@@ -73,6 +73,12 @@ abstract class API extends \Object\Controller {
 	 * @param mixed $result
 	 */
 	public function handleOutput($result) {
+		// We allow CORS by refferer.
+		if(!empty($this->api_input['cors'])) {
+			header('Access-Control-Allow-Origin: ' . rtrim($_SERVER['HTTP_REFERER'], '/'));
+			header('Access-Control-Allow-Methods: POST');
+			header('Access-Control-Allow-Headers: Accept, Content-Type, Authorization');
+		}
 		switch ($this->api_content_type) {
 			case 'application/xml':
 				\Layout::renderAs($result, 'application/xml');
