@@ -807,8 +807,13 @@ class Base extends \Object\Form\Parent2 {
 				}
 			}
 			// id we need to refresh master object
-			if (isset($this->master_options['refresh_if_set']) && $k == $this->master_options['refresh_if_set'] && (!empty($this->master_options['refresh_full_reload']) || !$this->master_object->isDataFound())) {
-				$this->master_object = \Factory::model($this->master_options['model'], true, [$this->values['__module_id'], $this->master_options['ledger'], & $this]);
+			if (isset($this->master_options['refresh_if_set'])) {
+				if (!is_array($this->master_options['refresh_if_set'])) {
+					$this->master_options['refresh_if_set'] = [$this->master_options['refresh_if_set']];
+				}
+				if (in_array($k, $this->master_options['refresh_if_set']) && (!empty($this->master_options['refresh_full_reload']) || !$this->master_object->isDataFound())) {
+					$this->master_object = \Factory::model($this->master_options['model'], true, [$this->values['__module_id'], $this->master_options['ledger'], & $this]);
+				}
 			}
 			// file upload handling
 			if (!empty($v['options']['documents_save']) && empty($options['for_load_values_only']) && !$this->hasErrors($k)) {
@@ -1675,6 +1680,7 @@ processAllValues:
 		// onchange fields
 		$this->misc_settings['__form_onchange_field_values_key'] = null;
 		$this->misc_settings['__form_field_changed'] = null;
+		$this->misc_settings['__default_field_changed'] = [];
 		if (!empty($this->options['input']['__form_onchange_field_values_key'])) {
 			$this->misc_settings['__form_onchange_field_values_key'] = explode('[::]', $this->options['input']['__form_onchange_field_values_key']);
 			$this->misc_settings['__form_field_changed'] = $this->misc_settings['__form_onchange_field_values_key'][0] ?? '';
@@ -3558,6 +3564,7 @@ convertMultipleColumns:
 		} else if (strpos($default . '', 'master_object::') !== false) {
 			$field = explode('::', str_replace(['master_object::', 'static::'], '', $default));
 			if (isset($this->master_object->{$field[0]}->{$field[1]}->{$field[2]})) {
+				$this->misc_settings['__default_field_changed'][] = $key;
 				return $this->master_object->{$field[0]}->{$field[1]}->{$field[2]};
 			} else {
 				return null;
