@@ -29,7 +29,7 @@ class Date {
 	 * @return int
 	 */
 	public static function is($date1, $date2) : int {
-		return strtotime($date1) <=> strtotime($date2);
+		return strtotime($date1 ?? '1970-01-01 00:00:00') <=> strtotime($date2 ?? '1970-01-01 00:00:00');
 	}
 
 	/**

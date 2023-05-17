@@ -123,6 +123,17 @@ class Bootstrap {
 		\Layout::addAction('print', ['value' => 'Print', 'icon' => 'fas fa-print', 'onclick' => 'window.print();', 'order' => -31000]);
 		// include constants
 		require('Constants.php');
+		// And we need to check firewall.
+		$firewalls = \Object\ACL\Resources::getStatic('firewalls', 'primary');
+		if (!empty($firewalls)) {
+			$ips = call_user_func_array($firewalls['list'], []);
+			if (in_array(\Request::ip(), $ips)) {
+				\Debug::$firewall = true;
+				header('HTTP/1.1 403');
+				echo 'Forbidden';
+				exit;
+			}
+		}
 	}
 
 	/**

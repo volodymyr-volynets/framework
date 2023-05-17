@@ -130,6 +130,14 @@ class Session {
 		if (!\User::authorized()) {
 			\User::roleGrant(\Object\ACL\Resources::getStatic('user_roles', 'anonymous', 'data'));
 		}
+		// Protection for over usage.
+		$allowed_ips = \Application::get('firewalls.primary.allow.ips') ?? [];
+		if (empty($allowed_ips)) {
+			$allowed_ips[] = '127.0.0.1';
+		}
+		if (!in_array($ip, $allowed_ips)) {
+			self::$object->checkOverUsage($ip, \Application::get('firewalls.primary.rules') ?? []);
+		}
 	}
 
 	/**
