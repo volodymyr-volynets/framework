@@ -27,7 +27,7 @@ class Wizard {
 	public function render() {
 		$result = \HTML::wizard([
 			'type' => $this->options['wizard']['type'] ?? null,
-			'step' => $this->options['input']['__wizard_step'] ?? null,
+			'step' => $this->options['wizard']['__wizard_step'] ?? $this->options['input']['__wizard_step'] ?? null,
 			'options' => $this->options['wizard']['options'] ?? []
 		]);
 		if (!empty($result)) {

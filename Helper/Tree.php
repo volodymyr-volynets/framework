@@ -82,6 +82,7 @@ class Tree {
 		}
 		$inactive = i18n(null, \Object\Content\Messages::INFO_INACTIVE);
 		// translate name column
+		$order_present = false;
 		foreach ($data as $k => $v) {
 			if (is_array($options['name_field'])) {
 				$temp = [];
@@ -97,9 +98,18 @@ class Tree {
 			if (!empty($v['inactive']) && strpos($data[$k]['name'], \Format::$symbol_comma . ' ' . $inactive) !== false) {
 				$data[$k]['name'].= \Format::$symbol_comma . ' ' . $inactive;
 			}
+			// order
+			if (isset($v['order'])) {
+				$order_present = true;
+			}
 		}
 		// sorting
-		if (!empty($options['i18n']) && $options['i18n'] !== 'skip_sorting') {
+		if ($order_present) {
+			$options['orderby'] = ['order' => SORT_ASC];
+		}
+		if (!empty($options['orderby'])) {
+			array_key_sort($data, $options['orderby']);
+		} else if (!empty($options['i18n']) && $options['i18n'] !== 'skip_sorting') {
 			array_key_sort($data, ['name' => SORT_ASC], ['name' => SORT_NATURAL]);
 		}
 		// assemble

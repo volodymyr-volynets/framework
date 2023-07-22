@@ -262,4 +262,14 @@ class Data extends \Object\Table\Options {
 		$object = new $class();
 		return $object->exists($options);
 	}
+
+	/**
+	 * @see $this->get()
+	 */
+	public static function getOneKeyStatic($key, array $options = []) {
+		$class = get_called_class();
+		$object = new $class();
+		$data = $object->options($options);
+		return $data[$key]['name'];
+	}
 }

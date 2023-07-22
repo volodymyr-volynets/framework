@@ -243,6 +243,96 @@ class Request {
 	}
 
 	/**
+	 * Build URL from name
+	 *
+	 * @param string $name
+	 * @param string $action
+	 * @param array $params
+	 * @param string|null $host
+	 * @param string|null $anchor
+	 * @param bool $as_json
+	 * @return string
+	 */
+	public static function buildFromName(string $name, string $action = 'Edit', array $params = [], ?string $host = null, ?string $anchor = null, bool $as_json = false) : string {
+		if (is_null(\Object\Controller::$cached_controllers) && !\Object\Error\Base::$flag_database_tenant_not_found) {
+			\Object\Controller::$cached_controllers = \Object\ACL\Resources::getStatic('controllers', 'primary');
+		}
+		if (is_null(\Object\Controller::$cached_controllers_by_names)) {
+			foreach (\Object\Controller::$cached_controllers as $k => $v) {
+				$v['key'] = $k;
+				\Object\Controller::$cached_controllers_by_names[$v['name']] = $v;
+			}
+		}
+		$url = '/';
+		$template = '';
+		if (!empty(\Object\Controller::$cached_controllers_by_names[$name])) {
+			$v = \Object\Controller::$cached_controllers_by_names[$name];
+			$url = rtrim($host ?? '', '/') . '/' . \Application::get('application.template.url_path_name') . '-' . ucfirst($v['template']) . '/'. ltrim(str_replace('\\', '/', $v['key']), '/') . '/_' . $action . '?' . http_build_query($params) . ($anchor ? ('#' . $anchor) : '');
+			$url = rtrim($url, '?');
+			$template = $v['template'];
+		}
+		if ($as_json) {
+			return json_encode([
+				'name' => $name,
+				'action' => $action,
+				'params' => $params,
+				'host' => $host,
+				'anchor' => $anchor,
+				'template' => $template
+			]);
+		} else {
+			return $url;
+		}
+	}
+
+	/**
+	 * Build URL from JSON
+	 *
+	 * @param string $json
+	 * @param string|null $host
+	 * @return string
+	 */
+	public static function buildFromJson(string $json, ?string $host = null) : string {
+		$json = json_decode($json, true);
+		return self::buildFromName($json['name'], $json['action'] ?? 'Edit', $json['params'] ?? [], $host ?? $json['host'] ?? null, $json['anchor']);
+	}
+
+
+	/**
+	 * Build URL for current controller
+	 *
+	 * @param string|null $action
+	 * @return string
+	 */
+	public static function buildFromCurrentController(?string $action = null) : string {
+		$mvc = \Application::get('mvc');
+		$controller_class = $mvc['controller_class'];
+		$controller_object = new $controller_class();
+		return rtrim(self::buildFromName($controller_object->title, $action ?? $mvc['controller_action_raw']), '?');
+	}
+
+	/**
+	 * Fix URL
+	 *
+	 * @param string|null $url
+	 * @param string $template
+	 * @param string $default
+	 * @return string
+	 */
+	public static function fixUrl(?string $url, string $template, string $default = '') : string {
+		if (!empty($url)) {
+			if ($url[0] === '/') {
+				if (strpos($url, '/' . \Application::get('application.template.url_path_name') ?? 'X-Template') === false) {
+					$url = '/' .  \Application::get('application.template.url_path_name') . '-' . ucfirst($template) . $url;
+				}
+			}
+			return $url;
+		} else {
+			return $default;
+		}
+	}
+
+	/**
 	 * Get request method
 	 *
 	 * @return string
@@ -261,5 +351,27 @@ class Request {
 	 */
 	public static function hash(array $options) : string {
 		return 'hash::' . implode('::', $options);
+	}
+
+	/**
+	 * Replace HTML tags
+	 *
+	 * In HTML we can add: href="[[Url;U/M Sign In;Index]]"
+	 *
+	 * @param string $html
+	 * @return string
+	 */
+	public static function htmlReplaceTags(string $html) : string {
+		$matches = [];
+		preg_match_all('/\[\[(.*?)\]\]/is', $html, $matches, PREG_PATTERN_ORDER);
+		if (!empty($matches[1])) {
+			foreach ($matches[1] as $k => $v) {
+				$v = explode(';', $v);
+				if (strtolower($v[0]) === 'url') {
+					$html = str_replace($matches[0][$k], \Request::buildFromName($v[1], $v[2]), $html);
+				}
+			}
+		}
+		return $html;
 	}
 }

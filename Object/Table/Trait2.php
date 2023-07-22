@@ -232,18 +232,23 @@ trait Trait2 {
 	/**
 	 * Get by column
 	 *
-	 * @param string $column
+	 * @param string|array $where
 	 * @param mixed $value
 	 * @param mixed $only_column
 	 * @return mixed
 	 */
-	public function getByColumn(string $column, $value, $only_column = null) {
+	public function getByColumn(string|array $where, $value = null, $only_column = null) {
+		if (is_string($where)) {
+			$key = $where;
+			$where = [
+				$where => $value
+			];
+		} else {
+			$key = null;
+		}
 		$result = $this->get([
-			//'columns' => ($only_column ? [$only_column] : null),
-			'where' => [
-				$column => $value
-			],
-			'pk' => [$column],
+			'where' => $where,
+			'pk' => $key,
 			'single_row' => true,
 			'skip_acl' => true
 		]);
@@ -259,10 +264,10 @@ trait Trait2 {
 	 *
 	 * @see $this::get_by_column()
 	 */
-	public static function getByColumnStatic(string $column, $value, $only_column = null) {
+	public static function getByColumnStatic(string|array $where, $value = null, $only_column = null) {
 		$class = get_called_class();
 		$object = new $class();
-		return $object->getByColumn($column, $value, $only_column);
+		return $object->getByColumn($where, $value, $only_column);
 	}
 
 	/**

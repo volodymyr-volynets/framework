@@ -1,6 +1,8 @@
 <?php
 
 namespace Object;
+
+#[\AllowDynamicProperties]
 class Controller {
 
 	/**
@@ -107,6 +109,7 @@ class Controller {
 	 */
 	public static $cached_controllers;
 	public static $cached_controllers_by_ids;
+	public static $cached_controllers_by_names;
 
 	/**
 	 * Cached actions
@@ -171,6 +174,13 @@ class Controller {
 	 * @var array
 	 */
 	private static $cached_subresources;
+
+	/**
+	 * Main content class
+	 *
+	 * @var string
+	 */
+	public static $main_content_class = 'container';
 
 	/**
 	 * Constructor
@@ -1057,6 +1067,7 @@ class Controller {
 	 *		brand_logo
 	 *		brand_url
 	 * @return string
+	 * @deprecated 8.2
 	 */
 	public static function renderMenu(array $options = []) : string {
 		if (!\Object\Error\Base::$flag_database_tenant_not_found) {

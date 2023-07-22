@@ -106,6 +106,7 @@ class Cache {
 	 * @return mixed
 	 */
 	public function get($cache_id, $return_data_only = false) {
+		$microtime_start = microtime(true);
 		$result = $this->object->get($cache_id);
 		// if we are debugging
 		if (\Debug::$debug) {
@@ -113,7 +114,8 @@ class Cache {
 				'type' => 'get',
 				'link' => $this->object->cache_link,
 				'cache_id' => $cache_id,
-				'have_data' => $result['success']
+				'have_data' => $result['success'],
+				'time' => microtime(true) - $microtime_start,
 			);
 			// todo: log errors
 		}
@@ -139,6 +141,7 @@ class Cache {
 	 * @return array
 	 */
 	public function set($cache_id, $data, $expire = null, $tags = []) {
+		$microtime_start = microtime(true);
 		$result = $this->object->set($cache_id, $data, $expire, $tags);
 		// if we are debugging
 		if (\Debug::$debug) {
@@ -146,9 +149,9 @@ class Cache {
 				'type' => 'set',
 				'link' => $this->object->cache_link,
 				'cache_id' => $cache_id,
-				'have_data' => $result['success']
+				'have_data' => $result['success'],
+				'time' => microtime(true) - $microtime_start,
 			);
-			// todo: log errors
 		}
 		return $result;
 	}

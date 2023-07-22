@@ -116,8 +116,9 @@ class Bootstrap {
 				Throw new \Exception('Could not initialize i18n.');
 			}
 		}
-		// format
+		// format & html
 		\Format::init();
+		\HTML::init();
 		// default actions
 		\Layout::addAction('refresh', ['value' => 'Refresh', 'icon' => 'fas fa-sync', 'onclick' => 'location.reload();', 'order' => -32000]);
 		\Layout::addAction('print', ['value' => 'Print', 'icon' => 'fas fa-print', 'onclick' => 'window.print();', 'order' => -31000]);

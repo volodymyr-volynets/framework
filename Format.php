@@ -317,6 +317,28 @@ class Format {
 	}
 
 	/**
+	 * Format sysdate
+	 *
+	 * @param mixed $value
+	 * @param array $options
+	 * @return string
+	 */
+	public static function sysdate($value, array $options = []) {
+		return self::dateFormat($value, 'date', ['format' => 'Y-m-d']);
+	}
+
+	/**
+	 * Format sysdatetime no seconds
+	 *
+	 * @param mixed $value
+	 * @param array $options
+	 * @return string
+	 */
+	public static function sysdatetime($value, array $options = []) {
+		return self::dateFormat($value, 'date', ['format' => $options['format'] ?? 'Y-m-d H:i:s']);
+	}
+
+	/**
 	 * Format time
 	 *
 	 * @param mixed $value

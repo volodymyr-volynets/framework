@@ -40,12 +40,19 @@ class Date {
 	 * @param string $type
 	 *	days
 	 *	abs days
+	 *	hours
+	 *	abs hours
+	 *	minutes
+	 *	abs minutes
 	 *	seconds
 	 *	abs seconds
 	 * @param boolean $round
 	 * @return mixed
 	 */
 	public static function diff($date1, $date2, $type = 'days', $round = true) {
+		if (is_null($date2)) {
+			$date2 = $date1;
+		}
 		$result = strtotime($date2) - strtotime($date1);
 		switch ($type) {
 			case 'days':
@@ -54,12 +61,22 @@ class Date {
 			case 'abs days':
 				$result = abs($result / 86400);
 				break;
+			case 'hours':
+				$result = $result / (60 * 60);
+				break;
+			case 'abs hours':
+				$result = abs($result / (60 * 60));
+				break;
+			case 'minutes':
+				$result = $result / 60;
+				break;
+			case 'abs minutes':
+				$result = abs($result / 60);
+				break;
 			case 'seconds':
 				return $result;
-				break;
 			case 'abs seconds':
 				return abs($result);
-				break;
 		}
 		// rounding
 		if ($round) {

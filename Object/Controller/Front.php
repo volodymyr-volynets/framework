@@ -130,7 +130,6 @@ class Front {
 		}
 		$controller_class = '\\' . $controller_class;
 		// assembling everything into settings
-		$data = $data;
 		$data['controller_class'] = $controller_class;
 		$data['controller_action'] = 'action' . str_replace('_', ' ', $data['action']);
 		$data['controller_action_code'] = $data['action'];
@@ -140,6 +139,8 @@ class Front {
 		$data['controller_layout_extension'] = \Application::get('application.layout.extension') ?? 'html';
 		$data['controller_layout_file'] = \Application::get(['application', 'path_full']) . 'Layout/' . $data['controller_layout'] . '.' . $data['controller_layout_extension'];
 		$data['controller_file'] = $file;
+		$data['controller_template'] = \Application::get('application.template.name');
+		$data['controller_action_raw'] = $data['action'];
 		\Application::set('mvc', $data);
 	}
 

@@ -98,6 +98,34 @@ class Application {
 		require('Functions.php');
 		// load ini settings
 		self::$settings = \System\Config::load($ini_folder);
+		// template
+		$request_uri = $options['request_uri'] ?? $_SERVER['REQUEST_URI'] ?? '';
+		$template = \Application::get('application.template');
+		if (!empty($request_uri) && !empty($template['name']) && !empty($template['url_path_name'])) {
+			$matches = [];
+			preg_match('/\/' . $template['url_path_name'] . '-([A-Za-z0-9]+)\//i', $request_uri, $matches);
+			if (!empty($matches[1])) {
+				$template['name'] = strtolower(trim($matches[1]));
+				$available = \Application::get('application.template.available');
+				if (!empty($available)) {
+					if (in_array($template['name'], $available)) {
+						\Application::set('application.template.name', $template['name']);
+					}
+				} else {
+					\Application::set('application.template.name', $template['name']);
+				}
+				$request_uri = str_replace($matches[0], '/', $request_uri);
+			}
+			// template.ini only if activated in previous files
+			if (!empty($template['name'])) {
+				$file = $ini_folder . 'template.ini';
+				if (file_exists($file)) {
+					$ini_data = \System\Config::ini($file, $template['name'] . '-' . \Application::get('environment'));
+					self::$settings = array_merge2(self::$settings, $ini_data);
+				}
+			}
+		}
+		// registry last
 		if (file_exists($ini_folder . 'registry.ini')) {
 			\Registry::load($ini_folder . 'registry.ini');
 		}
@@ -166,7 +194,7 @@ class Application {
 			return;
 		}
 		// processing mvc settings
-		\Object\Controller\Front::setMvc($options['request_uri'] ?? null);
+		\Object\Controller\Front::setMvc($request_uri);
 		// check if controller exists
 		if (!file_exists(self::$settings['mvc']['controller_file'])) {
 			trigger_error('Resource not found [' . self::$settings['mvc']['controller_file'] . ']!');
