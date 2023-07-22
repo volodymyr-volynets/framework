@@ -25,6 +25,7 @@ class Collection extends \Object\Override\Data {
 		'pk' => [],
 		'details' => [
 			'[model]' => [
+				'readonly' => false,
 				'pk' => [],
 				'type' => '1M',
 				'map' => ['[parent key]' => '[child key]'],
@@ -104,6 +105,22 @@ class Collection extends \Object\Override\Data {
 			'max_records' => []
 		];
 		do {
+			if (!empty($options['cache']) && isset($this->primary_model->db_object->object->options['cache_link'])) {
+				$cache_id = !empty($options['cache_id']) ? $options['cache_id'] : 'Db_Collection_' . trim(sha1(get_class($this) . serialize($options)));
+				// memory caching
+				if (!empty($options['cache_memory']) && isset(\Cache::$memory_storage[$cache_id])) {
+					return \Cache::$memory_storage[$cache_id];
+				}
+				// regular cache
+				$cache_object = new \Cache($this->primary_model->db_object->object->options['cache_link']);
+				$cached_result = $cache_object->get($cache_id, true);
+				if ($cached_result !== false) {
+					// we cannot debug here because we do not have data
+					return $cached_result;
+				}
+			} else {
+				$options['cache'] = false;
+			}
 			// if we have import from command line we need to intialize
 			if (method_exists($this->primary_model->db_object->object, 'initialzeWhenNeeded')) {
 				$this->primary_model->db_object->object->initialzeWhenNeeded(['import' => true]);
@@ -179,6 +196,16 @@ class Collection extends \Object\Override\Data {
 			$this->primary_model->db_object->commit();
 			$result['success'] = true;
 		} while(0);
+		// caching if no error
+		if (!empty($options['cache']) && empty($result['error'])) {
+			$result['cache'] = true;
+			// we try cachng in postponed mode
+			\Factory::postponedExecution([& $cache_object, 'set'], [$cache_id, $result, null, $this->primary_model->cache_tags ?? []]);
+			// memory caching
+			if (!empty($options['cache_memory'])) {
+				\Cache::$memory_storage[$cache_id] = & $result;
+			}
+		}
 		return $result;
 	}
 
@@ -377,7 +404,19 @@ class Collection extends \Object\Override\Data {
 						}
 						array_unshift($master_key, $parent_keys2[$k3]);
 						if (($parent_types2[$k3 - 1] ?? '') != '11') {
-							array_unshift($master_key, implode('::', $temp));
+							$parent_first_key = implode('::', $temp);
+							if (!isset($parent_rows[$parent_first_key])) {
+								foreach ($parent_rows as $k_parent => $v_parent) {
+									$temp2 = [];
+									foreach (array_keys($v3) as $v_key) {
+										$temp2[] = $v_parent[$v_key];
+									}
+									if (implode('::', $temp2) === $parent_first_key) {
+										$parent_first_key = $k_parent;
+									}
+								}
+							}
+							array_unshift($master_key, $parent_first_key);
 						}
 					}
 					array_key_set($parent_rows, $master_key, $v2);
@@ -711,7 +750,7 @@ error:
 				if (strpos($k, 'relation_id') !== false) {
 					$data_row_final[$v] = $parent_row[$k];
 				} else {
-					$data_row_final[$v] = $parent_pk[$k];
+					$data_row_final[$v] = $parent_pk[$k] ?? $parent_row[$k];
 				}
 			}
 		}

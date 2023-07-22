@@ -27,7 +27,10 @@ class View {
 				break;
 			case 'html':
 			default:
+				ob_start();
 				require($file);
+				$html = \I18n::htmlReplaceTags(ob_get_clean());
+				echo \Request::htmlReplaceTags($html);
 		}
 		// set values back into controller
 		$vars = get_object_vars($this);

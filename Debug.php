@@ -168,7 +168,7 @@ class Debug {
 			self::$data['session'] = [$_SESSION];
 		}
 		$application = \Application::get();
-		$result = '<div class="container" dir="ltr">';
+		$result = '<div id="numbers_debug_container" class="container" dir="ltr">';
 			$result.= '<table cellpadding="2" cellspacing="2" width="100%">';
 				$result.= '<tr>';
 					$result.= '<td>';
@@ -289,7 +289,7 @@ class Debug {
 						$result.= '<h3>Sql (' . count(self::$data['sql']) . ')' . '</h3>';
 						$result.= '<table border="1" cellpadding="2" cellspacing="2" width="100%">';
 							foreach (self::$data['sql'] as $k => $v) {
-								$temp = is_array($v['key']) ? implode('<br/>', $v['key']) : $v['key'];
+								$temp = is_array($v['key'] ?? null) ? implode('<br/>', $v['key']) : $v['key'];
 								// header first
 								$result.= '<tr>';
 									$result.= '<th colspan="4" style="color: red;">Sql</th>';
@@ -375,6 +375,7 @@ class Debug {
 								$result.= '<th>Link</th>';
 								$result.= '<th>Cache #</th>';
 								$result.= '<th>Has Data</th>';
+								$result.= '<th>Time</th>';
 							$result.= '</tr>';
 							foreach (self::$data['cache'] as $k => $v) {
 								$result.= '<tr>';
@@ -382,6 +383,7 @@ class Debug {
 									$result.= '<td valign="top">' . $v['link'] . '</td>';
 									$result.= '<td valign="top">' . $v['cache_id'] . '</td>';
 									$result.= '<td valign="top">' . ($v['have_data'] ? 'Yes' : 'No') . '</td>';
+									$result.= '<td valign="top">' . (round($v['time'] ?? 0, 5)) . '</td>';
 								$result.= '</tr>';
 							}
 						$result.= '</table>';

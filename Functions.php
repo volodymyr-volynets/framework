@@ -315,6 +315,34 @@ function array_merge_hard($arr1, $arr2) {
 }
 
 /**
+ * Merging with skipping
+ *
+ * @param array $arr1
+ * @param array $arr2
+ * @return array
+ */
+function array_merge_skip($arr1, $arr2) {
+	$arrays = func_get_args();
+	$merged = [];
+	while ($arrays) {
+		$array = array_shift($arrays);
+		if (!is_array($array) || empty($array)) {
+			continue;
+		}
+		foreach ($array as $k => $v) {
+			if (is_array($v) && array_key_exists($k, $merged) && is_array($merged[$k])) {
+				$merged[$k] = array_merge_skip($merged[$k], $v);
+			} else {
+				if (!array_key_exists($k, $merged)) {
+					$merged[$k] = $v;
+				}
+			}
+		}
+	}
+	return $merged;
+}
+
+/**
  * Extract primary key values from an array
  *
  * @param mixed $keys
@@ -441,7 +469,16 @@ function strip_tags2($arr, array $options = []) {
 					}
 				}
 			}
-			$result[$k] = strip_tags2($v, $options);
+			if (strpos($k, '_wysiwyg') !== false) {
+				$result[$k] = sanitize_string_tags($v, 'script_only');
+				$temp = sanitize_string_tags($result[$k], 'all');
+				$temp = trim($temp, "'\n\t\" ");
+				if ($temp == '') {
+					$result[$k] = null;
+				}
+			} else {
+				$result[$k] = strip_tags2($v, $options);
+			}
 end_of_loop:
 		}
 		return $result;

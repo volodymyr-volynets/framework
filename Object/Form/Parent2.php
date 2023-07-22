@@ -16,6 +16,11 @@ class Parent2 extends \Object\Override\Data {
 	const LIST_LINE_CONTAINER = '__list_line_container';
 
 	/**
+	 * Kanban
+	 */
+	const KANBAN_CONTAINER = '__kanban_container';
+
+	/**
 	 * List buttons
 	 */
 	const LIST_BUTTONS = '__list_buttons';

@@ -88,6 +88,13 @@ class Base extends \Object\Form\Parent2 {
 	public $original_values = [];
 
 	/**
+	 * Original input
+	 *
+	 * @var array
+	 */
+	public $original_input = [];
+
+	/**
 	 * Tracked values
 	 *
 	 * @var array
@@ -360,6 +367,14 @@ class Base extends \Object\Form\Parent2 {
 	 * @var bool
 	 */
 	public $is_api;
+
+	/**
+	 * Changed field
+	 *
+	 * @var string|array|null
+	 */
+	public $changed_field;
+	public $changed_detail;
 
 	/**
 	 * Constructor
@@ -697,7 +712,7 @@ class Base extends \Object\Form\Parent2 {
 		];
 		if (!empty($this->misc_settings['__form_onchange_field_values_key']) && count($this->misc_settings['__form_onchange_field_values_key']) == 1) {
 			if (isset($fields[$this->misc_settings['__form_onchange_field_values_key'][0]])) {
-				$changed_field['parent'] = $this->misc_settings['__form_onchange_field_values_key'][0];
+				$this->changed_field = $changed_field['parent'] = $this->misc_settings['__form_onchange_field_values_key'][0];
 			}
 		}
 		// process json_contains
@@ -779,6 +794,17 @@ class Base extends \Object\Form\Parent2 {
 						$value = $temp;
 					}
 				}
+			}
+			// json processing after default
+			if ($v['options']['type'] === 'json') {
+				$value = htmlspecialchars_decode($value ?? '');
+				if ($value === 'null' || $value === '') {
+					$value = null;
+				} else if ($value === "''" || $value === '""') {
+					$value = null;
+				}
+			} else if (is_string($value) && !empty($value)) {
+				$value = htmlspecialchars_decode($value);
 			}
 			// if we need to reset
 			if ($this->initiator_class == 'list' || $this->initiator_class == 'report') {
@@ -912,6 +938,10 @@ class Base extends \Object\Form\Parent2 {
 							}
 						}
 					}
+					if (isset($changed_field_details['detail'])) {
+						$this->changed_field = $changed_field_details['detail'];
+						$this->changed_detail = $this->misc_settings['__form_onchange_field_values_key'];
+					}
 					// change detected
 					$flag_change_detected = false;
 					// put pk into detail
@@ -989,6 +1019,15 @@ class Base extends \Object\Form\Parent2 {
 								$value = $default;
 							} else if ($detail[$k3] !== $value) {
 								$value = $detail[$k3];
+							}
+						}
+						// json processing after default
+						if ($v3['options']['type'] === 'json') {
+							$value = htmlspecialchars_decode($value ?? '');
+							if ($value === 'null' || $value === '') {
+								$value = null;
+							} else if ($value === "''" || $value === '""') {
+								$value = null;
 							}
 						}
 						// see if we changed the value but not autoincrement
@@ -1436,6 +1475,8 @@ processAllValues:
 		$this->rollback = false;
 		$this->list_rendered = false;
 		$this->errorResetAll();
+		// original input
+		$this->original_input = $this->options['input'] ?? \Request::input();
 		// preload collection, must be first
 		if ($this->preloadCollectionObject() && !in_array($this->initiator_class, ['report', 'list'])) {
 			// if we have relation
@@ -1582,6 +1623,13 @@ processAllValues:
 				}
 			}
 		}
+		// if we need to have list fields but not in a form
+		if (!empty($this->options['include_list_fields'])) {
+			$this->element($this::HIDDEN, $this::HIDDEN, '__limit', ['label_name' => 'Limit', 'type' => 'integer', 'null' => true, 'default' => $this->form_parent->list_options['default_limit'] ?? 30, 'method'=> 'hidden']);
+			$this->element($this::HIDDEN, $this::HIDDEN, '__offset', ['label_name' => 'Offset', 'type' => 'integer', 'null' => true, 'default' => 0, 'method'=> 'hidden']);
+			$this->element($this::HIDDEN, $this::HIDDEN, '__preview', ['label_name' => 'Preview', 'type' => 'integer', 'null' => true, 'default' => $this->form_parent->list_options['default_preview'] ?? 0, 'method'=> 'hidden']);
+			$this->element($this::HIDDEN, $this::HIDDEN, '__sort', ['label_name' => 'Sort', 'type' => 'text', 'null' => true, 'method'=> 'hidden']);
+		}
 		// extra elements for report
 		if ($this->initiator_class == 'report') {
 			// default sort
@@ -1619,6 +1667,7 @@ processAllValues:
 				if (!empty($this->options['input']['__subform_load_window'])) {
 					$modal = \HTML::modal([
 						'id' => 'form_subform_' . $input['__subform_link'] . '_form',
+						'modal_class' => $form_model->options['modal_class'] ?? 'numbers_frontend_form_modal_level_1',
 						'class' => 'numbers_frontend_modal_full_width',
 						'title' => i18n(null, $this->form_parent->subforms[$this->options['input']['__subform_link']]['label_name']),
 						'body' => $form_model->render(),
@@ -1664,6 +1713,13 @@ processAllValues:
 				$this->flag_another_ajax_call = true;
 				return;
 			}
+		}
+		// collection refresh
+		if (!empty($this->options['input']['__collection_refresh']) && $this->initiator_class == 'form' && (!empty($this->options['__parent_options']['flag_main_form'])) || !empty($this->options['flag_main_form'])) {
+			$this->getOriginalValues($this->options['input'] ?? [], false);
+			$this->values = $this->original_values;
+			$this->triggerMethod('refresh');
+			goto convertMultipleColumns;
 		}
 		// call from another form
 		if (!empty($this->options['input']['__form_link']) && !($this->options['input']['__form_link'] == $this->form_link || $this->options['input']['__subform_link'] == $this->form_link)) {
@@ -1785,7 +1841,7 @@ otherFormSubmitted:
 		// if form has been submitted
 		if ($this->submitted && ($this->initiator_class != 'list' || !empty($this->wrapper_methods['validate']))) {
 			// call attached method to the form
-			if (!$this->delete) {
+			if (!$this->delete || !empty($this->options['validate_when_delete'])) {
 				// create a snapshot of values for rollback
 				$this->snapshot_values = $this->values;
 				// execute validate method
@@ -1889,8 +1945,9 @@ loadValues2:
 				}
 				// we need to preserver module #
 				if (isset($this->options['input']['__module_id'])) {
-					$this->values['__module_id'] = $this->options['input']['__module_id'];
+					$this->values['__module_id'] = (int) $this->options['input']['__module_id'];
 				}
+				// if we have extra variable that are not in database
 				$this->values_loaded = true;
 			} else if ($this->values_loaded) { // otherwise set loaded values
 				$this->values = $this->original_values;
@@ -2105,11 +2162,12 @@ convertMultipleColumns:
 				],
 				'affected_rows' => 1,
 				'error_rows' => 0,
-				'url' => \Application::get('mvc.full') . '?' . http_build_query($refresh_params),
+				'url' => \Application::get('mvc.full') . '?' . http_build_query2($refresh_params),
 			]);
 		}
 		// process all values
 		$this->triggerMethod('processAllValues');
+		$this->triggerMethod('redirect');
 		// debug
 		//print_r2($this->errors);
 		//print_r2($this->values);
@@ -2150,12 +2208,15 @@ convertMultipleColumns:
 	 *
 	 * @param object $query
 	 */
-	public function processReportQueryFilter(& $query) {
+	public function processReportQueryFilter(& $query, array $options = []) {
 		$where = [];
 		foreach ($this->fields as $k => $v) {
 			// filter by value
 			if (!empty($v['options']['query_builder']) && isset($this->values[$k])) {
 				if (is_array($this->values[$k]) && empty($this->values[$k])) continue;
+				if (strpos($k, '_module_id') !== false && !empty($options['skip_module'])) {
+					continue;
+				}
 				$where[$v['options']['query_builder']] = $this->values[$k];
 			}
 			// subquery - fetch data
@@ -2401,6 +2462,7 @@ convertMultipleColumns:
 				self::BUTTON_SUBMIT_DELETE,
 				self::BUTTON_CONTINUE,
 				self::BUTTON_STOP,
+				self::BUTTON_SUBMIT_OTHER
 			];
 			// process
 			$not_allowed = [];
@@ -2591,7 +2653,7 @@ convertMultipleColumns:
 			return false;
 		} else { // if success
 			// show warnings
-			if (!empty($result['warning'])) {
+			if (!empty($result['warning']) && empty($this->options['skip_wannings'])) {
 				foreach ($result['warning'] as $v) {
 					$this->error('warning', $v);
 				}
@@ -3096,6 +3158,13 @@ convertMultipleColumns:
 	 * @param array $options
 	 */
 	public function element($container_link, $row_link, $element_link, $options = []) {
+		// if we explicitly hiding navigation
+		if (!empty($options['navigation']) && !empty($this->options['hide_navigation'])) {
+			unset($options['navigation']);
+			if ($this->options['hide_navigation'] === 'readonly') {
+				$options['readonly'] = true;
+			}
+		}
 		// if we have a lock we do not add elements
 		if (!empty($this->misc_settings['acl_subresource_locks'][$container_link]['remove']) || !empty($this->misc_settings['acl_subresource_locks'][$container_link . '::' . $row_link]['remove'])) {
 			return;
@@ -3513,6 +3582,9 @@ convertMultipleColumns:
 	public function processParamsAndDepends(& $params, & $neighbouring_values, $options, $flag_params = true) {
 		foreach ($params as $k => $v) {
 			if (is_array($v)) continue;
+			if (!isset($v)) {
+				continue;
+			}
 			// if we have master object
 			if (strpos($v, 'master_object::') !== false) {
 				$field = explode('::', str_replace(['master_object::', 'static::'], '', $v));
@@ -3901,7 +3973,7 @@ convertMultipleColumns:
 			if (!empty($v['options']['options_model'])) {
 				$value = $this->renderListContainerDefaultOptions($v['options'], $value, $this->values);
 			} else if (!empty($v['options']['options'])) {
-				$value = $v['options']['options'][$value]['name'];
+				$value = $v['options']['options'][$value]['name'] ?? null;
 			}
 			if (is_array($value)) {
 				$value = implode(', ', $value);
@@ -3928,7 +4000,7 @@ convertMultipleColumns:
 	/**
 	 * Validate details primary column
 	 *
-	 * @param string $detail
+	 * @param string|array $detail
 	 * @param string $primary_column
 	 * @param string $inactive_column
 	 * @param string $pk_column
@@ -3936,12 +4008,14 @@ convertMultipleColumns:
 	 * @param array $options
 	 * @return int | null
 	 */
-	public function validateDetailsPrimaryColumn(string $detail, string $primary_column, string $inactive_column, string $pk_column, string & $key = null, array $options = []) {
-		if (empty($this->values[$detail])) return null;
+	public function validateDetailsPrimaryColumn(string|array $detail, string $primary_column, string $inactive_column, string $pk_column, string & $key = null, array $options = []) {
+		$data = array_key_get($this->values, $detail);
+		if (empty($data)) return null;
 		$primary_found = 0;
 		$primary_first_line = null;
 		$primary_pk_id = null;
-		foreach ($this->values[$detail] as $k => $v) {
+		$detail = $this->parentKeysToErrorName($detail);
+		foreach ($data as $k => $v) {
 			if (!isset($primary_first_line)) {
 				$primary_first_line = "{$detail}[{$k}][{$primary_column}]";
 			}
@@ -3976,6 +4050,23 @@ convertMultipleColumns:
 			$this->error(DANGER, $message, $primary_first_line);
 		}
 		return $primary_pk_id;
+	}
+
+	/**
+	 * Validate quick required
+	 *
+	 * @param string|array $field
+	 * @param string $message
+	 * @return void
+	 */
+	public function validateQuikRequired(string|array $field, string $message = \Object\Content\Messages::REQUIRED_FIELD) : void {
+		if (!is_array($field)) {
+			$field = [$field];
+		}
+		$value = array_key_get($this->values, $field);
+		if (empty($value)) {
+			$this->error(DANGER, $message, $this->parentKeysToErrorName($field));
+		}
 	}
 
 	/**
@@ -4101,11 +4192,20 @@ convertMultipleColumns:
 		if (!empty($subform_options['actions']['button']['title'])) {
 			$title.= i18n(null, $subform_options['actions']['button']['title']);
 		}
+		// when we pass too much data we can create a function to process it instead of adding it to a tag
+		if (!empty($options['onclick_as_function'])) {
+			$onclick_code = $onclick;
+			if (!empty($options['onclick_disable_link'])) {
+				$onclick_code.= '$(element).replaceWith("<div style=\"color: red;\">' . i18n(null, 'Please save the form after saving the sub issue.') . '</div>");';
+			}
+			$onclick = 'subform_onclick_function_' . $temp_collection_link . '_' .$subform_link . '(this);';
+			\Layout::onLoad('function ' . 'subform_onclick_function_' . $temp_collection_link . '_' .$subform_link . '(element) {' . $onclick_code . '}');
+		}
 		// for menu
 		if (!empty($options['for_menu'])) {
-			return ['id' => $subform_link, 'href' => 'javascript:void(0);', 'onclick' => $onclick, 'value' => $name, 'title' => $title];
+			return ['id' => $options['id'] ?? $subform_link, 'href' => 'javascript:void(0);', 'onclick' => $onclick, 'value' => $name, 'title' => $title];
 		} else {
-			return \HTML::a(['id' => $subform_link, 'href' => 'javascript:void(0);', 'onclick' => $onclick . 'return false;', 'value' => $name, 'title' => $title]);
+			return \HTML::a(['id' => $options['id'] ?? $subform_link, 'href' => 'javascript:void(0);', 'onclick' => $onclick . 'return false;', 'value' => $name, 'title' => $title, 'class' => $options['class'] ?? '', 'style' => $options['style'] ?? '']);
 		}
 	}
 
@@ -4132,5 +4232,24 @@ convertMultipleColumns:
 			unset($values['__submit_button_2'], $values['__list_report_filter_loaded'], $values['__filter_name']);
 		}
 		return $values;
+	}
+
+	/**
+	 * Set detail values
+	 *
+	 * @param array $changed_detail
+	 * @param array $data
+	 */
+	public function setDetailValues(array $changed_detail, array $data = [], callable $function = null) : void {
+		$counter = 1;
+		foreach ($this->values[$changed_detail[0]] as $k => $v) {
+			if ($counter == $changed_detail[1]) {
+				if (!empty($function)) {
+					$data = $function($v);
+				}
+				$this->values[$changed_detail[0]][$k] = array_merge($v, $data);
+			}
+			$counter++;
+		}
 	}
 }

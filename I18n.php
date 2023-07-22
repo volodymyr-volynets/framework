@@ -169,4 +169,22 @@ class I18n {
 			array_key_sort($data, ['name' => SORT_ASC], ['name' => SORT_NATURAL]);
 		}
 	}
+
+	/**
+	 * Replace HTML tags
+	 *
+	 * @param string $html
+	 * @return string
+	 */
+	public static function htmlReplaceTags(string $html) : string {
+		$matches = [];
+		preg_match_all('@<(i18n)>(.+?)</\1>@is', $html, $matches, PREG_PATTERN_ORDER);
+		//print_r2($matches);
+		if (!empty($matches[2])) {
+			foreach ($matches[2] as $k => $v) {
+				$html = str_replace($matches[0][$k], i18n(null, $v), $html);
+			}
+		}
+		return $html;
+	}
 }

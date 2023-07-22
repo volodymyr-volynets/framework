@@ -81,6 +81,11 @@ abstract class Collection {
 	const WIDGETS_ROW = '__collection_widgets_row';
 
 	/**
+	 * Sub forms row
+	 */
+	const SUBFORMS_ROW = '__collection_subforms_row';
+
+	/**
 	 * Current tab
 	 *
 	 * @var array
@@ -237,6 +242,10 @@ abstract class Collection {
 			if (($row_v['options']['type'] ?? 'forms') == 'forms') {
 				foreach ($forms as $form_k => $form_v) {
 					$skeletons[$form_k] = true;
+					// subforms do not to be rendered
+					if (!empty($form_v['skip_rendering'])) {
+						continue;
+					}
 					if (isset($submitted_form_cached[$form_k])) {
 						// render to grid
 						$result[$index]['grid']['options'][$row_k][$form_k][$form_k] = [

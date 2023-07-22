@@ -1,5 +1,6 @@
 <?php
 
+#[\AllowDynamicProperties]
 class Layout extends View {
 
 	/**
@@ -316,6 +317,55 @@ class Layout extends View {
 	 */
 	public static function renderBreadcrumbs() : string {
 		if (!empty(Application::$controller->breadcrumbs)) {
+			$temp = array_slice(Application::$controller->breadcrumbs, 1, 2);
+			$keys = [];
+			foreach ($temp as $v) {
+				$keys[] = $v;
+				$keys[] = 'options';
+			}
+			$data = \Object\ACL\Resources::getStatic('menu', 'primary');
+			// submenu is available only when we have breadcrumbs and menu is there
+			$submenu = '';
+			if (!empty($keys) && !empty($data[200])) {
+				$data = array_key_get($data[200], $keys);
+				$submenu = [];
+				if (is_array($data)) {
+					array_key_sort($data, ['name' => SORT_ASC], ['name' => SORT_NATURAL]);
+					foreach ($data as $k => $v) {
+						$submenu[] = \HTML::a([
+							'href' => \Request::fixUrl($v['url'], $v['template']),
+							'value' => \HTML::icon(['type' => $v['icon']]) . ' ' . $v['name'],
+						]);
+						if (!empty($v['options'])) {
+							array_key_sort($v['options'], ['name' => SORT_ASC], ['name' => SORT_NATURAL]);
+							foreach ($v['options'] as $k2 => $v2) {
+								$submenu[] = \HTML::a([
+									'href' => \Request::fixUrl($v2['url'], $v2['template']),
+									'value' => '&nbsp;&nbsp;&nbsp;' . \HTML::icon(['type' => $v2['icon']]) . ' ' . $v2['name']
+								]);
+								if (!empty($v2['options'])) {
+									array_key_sort($v2['options'], ['name' => SORT_ASC], ['name' => SORT_NATURAL]);
+									foreach ($v2['options'] as $k3 => $v3) {
+										$submenu[] = \HTML::a([
+											'href' => \Request::fixUrl($v3['url'], $v3['template']),
+											'value' => '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' . \HTML::icon(['type' => $v3['icon']]) . ' ' . $v3['name']
+										]);
+									}
+								}
+							}
+						}
+					}
+					$submenu = \HTML::popover([
+						'id' => 'breadcrumbs_submenu',
+						'value' => \HTML::icon(['type' => 'fas fa-sticky-note']),
+						'content' => implode(\HTML::br(), $submenu),
+						'style' => 'overflow-y: scroll;'
+					]);
+				}
+			}
+			if (!empty($submenu)) {
+				Application::$controller->breadcrumbs[] = $submenu;
+			}
 			return \HTML::breadcrumbs(Application::$controller->breadcrumbs);
 		} else {
 			return '';

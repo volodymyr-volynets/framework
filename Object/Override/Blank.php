@@ -1,6 +1,8 @@
 <?php
 
 namespace Object\Override;
+
+#[\AllowDynamicProperties]
 class Blank {
 
 	/**

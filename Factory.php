@@ -52,6 +52,10 @@ class Factory {
 			if (empty($class)) {
 				Throw new Exception("You must indicate $submodule submodule!");
 			}
+			// check if we have autoloa
+			if (!class_exists($class)) {
+				\Application::autoloader($class);
+			}
 			self::$class_objects['submodule'][$submodule] = new $class();
 			return self::$class_objects['submodule'][$submodule];
 		}

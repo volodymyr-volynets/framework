@@ -77,6 +77,18 @@ class Math {
 	}
 
 	/**
+	 * Is less then amount and equal
+	 *
+	 * @param mixed $arg1
+	 * @param mixed $arg2
+	 * @param int $scale
+	 * @return boolean
+	 */
+	public static function isLessThenAndEqualAmount($arg1, $arg2, $scale = null) {
+		return (self::compare($arg1, $arg2, $scale ?? 13) <= 0);
+	}
+
+	/**
 	 * Is not zero
 	 *
 	 * @param mixed $arg1

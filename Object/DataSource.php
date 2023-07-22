@@ -137,6 +137,9 @@ class DataSource extends \Object\Table\Options {
 			foreach ($this->parameters as $k => $v) {
 				// if we have a parameter
 				if (array_key_exists($k, $options['where'])) {
+					if (!empty($v['swap_keys']) && !empty($options['where'][$k])) {
+						$options['where'][$k] = array_keys($options['where'][$k]);
+					}
 					if (!empty($v['multiple_column'])) {
 						if (!is_array($options['where'][$k])) $options['where'][$k] = [$options['where'][$k]];
 						$parameters[$k] = [];

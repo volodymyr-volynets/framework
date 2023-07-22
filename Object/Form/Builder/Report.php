@@ -85,7 +85,7 @@ class Report {
 		}
 		// add to others
 		$this->other[] = [
-			'type' => 'list',
+			'type' => $this->data[$report_name]['options']['type'],
 			'report_name' => $report_name,
 		];
 	}
