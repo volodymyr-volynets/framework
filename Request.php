@@ -97,7 +97,9 @@ class Request {
 					}
 				}
 			} else {
-				if (empty($v['tmp_name'])) continue;
+				if (empty($v['name'])) {
+					continue;
+				}
 				$files[$k] = $v;
 			}
 		}
