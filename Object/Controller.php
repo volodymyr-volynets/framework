@@ -185,8 +185,10 @@ class Controller {
 	/**
 	 * Constructor
 	 */
-	public function __construct() {
-		$class = '\\' . get_called_class();
+	public function __construct(?string $class = null) {
+		if (empty($class)) {
+			$class = '\\' . get_called_class();
+		}
 		if ($class != '\Controller\Errors') {
 			// load all controllers from datasource
 			if (is_null(self::$cached_controllers) && !\Object\Error\Base::$flag_database_tenant_not_found) {

@@ -280,6 +280,8 @@ class Domains extends \Object\Data {
 		'calendar_id_sequence' => ['name' => 'Calendar #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'contract_id' => ['name' => 'Contract #', 'type' => 'bigint', 'default' => null, 'placeholder' => 'Contract', 'format' => 'id'],
 		'contract_id_sequence' => ['name' => 'Contract #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id'],
+		'seal_id' => ['name' => 'Seal #', 'type' => 'bigint', 'default' => null, 'placeholder' => 'Seal', 'format' => 'id'],
+		'seal_id_sequence' => ['name' => 'Seal #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		// services
 		'workflow_id' => ['name' => 'Workflow #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Workflow', 'format' => 'id', 'searchable' => true],
 		'workflow_id_sequence' => ['name' => 'Workflow #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
