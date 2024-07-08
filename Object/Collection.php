@@ -129,7 +129,8 @@ class Collection extends \Object\Override\Data {
 			// building query
 			$query = $this->primary_model->queryBuilder([
 				'initiator' => 'collection',
-				'skip_acl' => $this->options['skip_acl']
+				'skip_acl' => $this->options['skip_acl'],
+				'skip_global_scope' => true,
 			])->select()->columns('a.*');
 			// process column overrides
 			$query->columnOverrides($this->primary_model->columns);
@@ -455,6 +456,23 @@ class Collection extends \Object\Override\Data {
 		} else {
 			return null;
 		}
+	}
+
+	/**
+	 * Delete data from database
+	 *
+	 * @param array $data
+	 * @param array $options
+	 *		original - original row from database, if not set it would be loaded from database
+	 *		options_model - whether we need to validate provided options
+	 *		flag_delete_row - if we are deleting
+	 *		skip_optimistic_lock
+	 * @return array
+	 */
+	public function delete($data, $options = []) {
+		$options['flag_delete_row'] = true;
+		$options['skip_optimistic_lock'] = true;
+		return $this->merge($data, $options);
 	}
 
 	/**

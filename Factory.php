@@ -173,6 +173,6 @@ no_cache:
 	 * @param array $params
 	 */
 	public static function postponedExecution($method, $params) {
-		self::$postponed_execution[] = [$method, $params];
+		self::$postponed_execution[sha1(serialize($method) . '::' . serialize($params))] = [$method, $params];
 	}
 }

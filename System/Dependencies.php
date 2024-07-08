@@ -44,6 +44,9 @@ class Dependencies {
 			$data['__submodule_dependencies'] = [];
 			$data['components'] = [];
 			$data['extra_configs'] = [];
+			$data['route'] = $data['route'] ?? [];
+			$data['api'] = $data['api'] ?? [];
+			$data['constant'] = $data['constant'] ?? [];
 			$dummy = $dummy2 = [];
 			// we have small chicken and egg problem with composer
 			$composer_data = [];
@@ -136,6 +139,22 @@ class Dependencies {
 									foreach ($v78 as $v79) {
 										$data['media'][$k78][] = $v79;
 									}
+								}
+							}
+							// routes
+							if (!empty($sub_data['route'])) {
+								foreach ($sub_data['route'] as $k78 => $v78) {
+									$data['route'][] = $v . $v78;
+								}
+							}
+							// apis
+							if (!empty($sub_data['api'])) {
+								$data['api'] = array_merge_hard($data['api'], $sub_data['api']);
+							}
+							// constants
+							if (!empty($sub_data['constant'])) {
+								foreach ($sub_data['constant'] as $k78 => $v78) {
+									$data['constant'][] = $v . $v78;
 								}
 							}
 							// forms
@@ -293,8 +312,258 @@ class Dependencies {
 				}
 			}
 			unset($data['__submodule_dependencies'], $data['__model_dependencies'], $data['model_import']);
-			// handling overrides, cleanup directory first
+			// we do need to write files
+			if ($options['mode'] == 'test') {
+				$result['data'] = $data;
+				$result['success'] = true;
+				return $result;
+			}
+			// active record models, scopes, pivots and relations
+			$override_pivot_scope_relation = [];
 			\Helper\File::delete('./Overrides/Class', ['only_contents' => true, 'skip_files' => ['.gitkeep']]);
+			$period_tables = [];
+			foreach ($data['model_processed'] as $k => $v) {
+				if ($v != '\Object\Table') {
+					continue;
+				}
+				$reflector = new \ReflectionClass($k);
+				$pathinfo = pathinfo($reflector->getFileName(), PATHINFO_ALL);
+				$ar_name = $pathinfo['filename'] . 'AR';
+				$ar_filename = $pathinfo['dirname'] . DIRECTORY_SEPARATOR . $ar_name . '.php';
+				$ar_class = explode("\\", $k);
+				$original_name = array_pop($ar_class);
+				$ar_namespace = ltrim(implode("\\", $ar_class), "\\");
+				array_push($ar_class, $ar_name);
+				$ar_class = implode("\\", $ar_class);
+				// delete file
+				if (file_exists($ar_filename)) {
+					\Helper\File::delete($ar_filename);
+				}
+				$class_code = <<<TTT
+<?php
+
+namespace {$ar_namespace};
+class {$ar_name} extends \Object\ActiveRecord {
+	/**
+	 * @var string
+	 */
+	public string \$object_table_class = {$k}::class;
+
+	/**
+	 * Constructing object
+	 *
+	 * @param array \$options
+	 *		skip_db_object
+	 *		skip_table_object
+	 */
+	public function __construct(\$options = []) {
+		if (empty(\$options['skip_table_object'])) {
+			\$this->object_table_object = new \$this->object_table_class(\$options);
+		}
+	}
+TTT;
+				/** @var $model \Object\Table */
+				$model = new $k(['skip_db_object' => true]);
+				if ($model->periods['type'] !== 'none') {
+					if ($model->periods['type'] == YEAR) {
+						for ($i = $model->periods['year_start']; $i <= $model->periods['year_end']; $i++) {
+							$period_short_name = str_replace(['[table]', '[year]'], [$original_name, $i], $model->periods['class']);
+							$period_tables[$period_short_name] = [
+								'model' => $model,
+								'class' => $k,
+								'namespace' => $ar_namespace,
+								'dirname' => $pathinfo['dirname'],
+								'periods' => $model->periods,
+								'short_name' => $period_short_name,
+								'original_name' => $pathinfo['dirname'] . '\\' . $original_name,
+								'table_name' => $model->name . '_generated_year_' . $i,
+								'original_table' => $model->name,
+								'filter' => [
+									$model->column_prefix . 'year' => $i,
+								],
+								'constraints' => $model->constraints,
+							];
+						}
+					}
+					if ($model->periods['type'] == YEAR_AND_MONTH) {
+						for ($i = $model->periods['year_start']; $i <= $model->periods['year_end']; $i++) {
+							for ($j = $model->periods['month_start']; $j <= $model->periods['month_end']; $j++) {
+								$period_month = str_pad($j, 2, '0', STR_PAD_LEFT);
+								$period_short_name = str_replace(['[table]', '[year]', '[month]'], [$original_name, $i, $period_month], $model->periods['class']);
+								$period_tables[$period_short_name] = [
+									'model' => $model,
+									'class' => $k,
+									'namespace' => $ar_namespace,
+									'dirname' => $pathinfo['dirname'],
+									'periods' => $model->periods,
+									'short_name' => $period_short_name,
+									'original_name' => $pathinfo['dirname'] . '\\' . $original_name,
+									'table_name' => $model->name . '_generated_year_' . $i . '_month_' . $period_month,
+									'original_table' => $model->name,
+									'filter' => [
+										$model->column_prefix . 'year' => $i,
+										$model->column_prefix . 'month' => $j,
+									],
+									'constraints' => $model->constraints,
+								];
+							}
+						}
+					}
+				}
+				foreach ($model->columns as $k2 => $v2) {
+					if ($v2['php_type'] == 'integer') {
+						$v2['php_type'] = 'int';
+					}
+					$column = 'public ?' . $v2['php_type'] . ' $' . $k2;
+					if (array_key_exists('default', $v2)) {
+						$column.= ' = ' . var_export($v2['default'], true) . ';';
+					} else {
+						$column.= ' = null;';
+					}
+					$domain = '';
+					$comment_domain = '';
+					if (isset($v2['domain'])) {
+						$domain.= ' Domain: ' . $v2['domain'];
+						$comment_domain = ' {domain{' . $v2['domain'] . '}}';
+					}
+					if (isset($v2['type'])) {
+						$domain.= ' Type: ' . $v2['type'];
+					}
+					$domain = trim($domain);
+					$comment_generated = '';
+					$comment_column_settings = '';
+					$comment_options_model = '';
+					if (isset($v2['options_model'])) {
+						$comment_options_model = ' {options_model{' . $v2['options_model'] . '}}';
+					}
+					if (isset($model->column_settings[$k2])) {
+						$comment_generated = ' (Generated)';
+						$cs = $model->column_settings[$k2];
+						foreach (ACTION_KEYS as $v3) {
+							unset($cs[$v3]);
+						}
+						$comment_column_settings = ' ' . implode(', ', $cs);
+					}
+					$class_code.= <<<TTT
+
+	/**
+	 * {$v2['name']}{$comment_generated}
+	 *
+	 *{$comment_column_settings}
+	 *{$comment_options_model}
+	 *{$comment_domain}
+	 *
+	 * @var {$v2['php_type']} {$domain}
+	 */
+	{$column}
+
+TTT;
+				}
+				// column settings for overrides
+				if (!empty($model->column_settings)) {
+					foreach ($model->column_settings as $k2 => $v2) {
+						if (isset($model->columns[$k2])) {
+							continue;
+						}
+						$column = 'public $' . $k2 . ' = null;';
+						foreach (ACTION_KEYS as $v3) {
+							unset($v2[$v3]);
+						}
+						$comment = implode(', ', $v2);
+						$class_code.= <<<TTT
+
+	/**
+	 * (Generated) (Non Database)
+	 *
+	 * {$comment}
+	 *
+	 * @var mixed
+	 */
+	{$column}
+
+TTT;
+					}
+				}
+				$class_code.= <<<TTT
+}
+TTT;
+				\Helper\File::write($ar_filename, $class_code);
+				// process pivots, relations and scopes
+				$reflection = new \ReflectionClass($model);
+				$short_name = $reflection->getShortName();
+				foreach ($reflection->getMethods() as $method) {
+					$method_name = $method->getName();
+					if (str_starts_with($method_name, 'scope')) {
+						$method_name_new = str_replace('scope', '', $method_name);
+						if (isset($override_pivot_scope_relation[$short_name]['scope'][$method_name_new])) {
+							Throw new \Exception("Scope $short_name $method_name_new already exists!");
+						}
+						$scope = [
+							'class' => $k,
+							'method' => $method_name,
+							'short_class' => $short_name,
+							'short_method' => $short_name
+						];
+						$override_pivot_scope_relation[$short_name . '::' . 'scope' . '::' . $method_name_new] = $scope;
+						$override_pivot_scope_relation['Scope' . $short_name . $method_name_new] = $scope;
+					}
+				}
+				$class_code = "<?php\n\n" . '$object_override_blank_object = ' . var_export($override_pivot_scope_relation, true) . ';';
+				\Helper\File::write('./Overrides/Class/Override_Object_Scopes_Relations_Pivots.php', $class_code);
+			}
+			// periods tables
+			foreach ($period_tables as $k2 => $v2) {
+				$filter = var_export($v2['filter'], true);
+				$constraints = [];
+				foreach ($v2['constraints'] ?? [] as $k3 => $v3) {
+					if (str_starts_with($k3, $v2['original_table'])) {
+						$constraints[str_replace($v2['original_table'], $v2['table_name'], $k3)] = $v3;
+					} else {
+						$constraints[$v2['table_name'] . '_' . $k3] = $v3;
+					}
+				}
+				$constraints = var_export($constraints, true);
+				$class_code = <<<TTT
+<?php
+
+namespace {$v2['namespace']};
+class {$v2['short_name']} extends {$v2['class']} {
+	/**
+	 * Name
+	 *
+	 * @var string
+	 */
+	public \$name = '{$v2['table_name']}';
+
+	/**
+	 * Constraints
+	 *
+	 * @var array
+	 */
+	public \$constraints = {$constraints};
+
+	/**
+	 * Is period table
+	 *
+	 * @var bool
+	 */
+	public bool \$is_period_table = true;
+
+	/**
+	 * Filter
+	 *
+	 * @var array
+	 */
+	public array \$filter = {$filter};
+}
+TTT;
+				$period_filename = $v2['dirname'] . DIRECTORY_SEPARATOR . $v2['short_name'] . '.php';
+				if (file_exists($period_filename)) {
+					\Helper\File::delete($period_filename);
+				}
+				\Helper\File::write($period_filename, $class_code);
+			}
+			// handling overrides, cleanup directory first
 			if (!empty($data['override'])) {
 				array_keys_to_string($data['override'], $data['override_processed']);
 				$override_classes = [];
@@ -338,6 +607,108 @@ class Dependencies {
 				}
 				$class_code = "<?php\n\n" . '$object_override_blank_object = ' . var_export($temp_models, true) . ';';
 				\Helper\File::write('./Overrides/Class/Override_Object_ACL_Registered.php', $class_code);
+			}
+			// routes
+			if (!empty($data['route'])) {
+				$php_code = '';
+				foreach ($data['route'] as $v) {
+					$php_code.= str_replace('<?php', '', \Helper\File::read($v));
+				}
+				\Helper\File::write('./Miscellaneous/Routes/AllRoutes.php', "<?php" . "\n" . $php_code);
+			}
+			// apis
+			if (!empty($data['api'])) {
+				$php_code = '';
+				$import = [];
+				foreach ($data['api'] as $k => $v) {
+					$method_code = \Object\Reflection::getMethodCode($k, 'routes');
+					$method_code = str_replace('self::class', $k . '::class', $method_code);
+					$method_object = \Factory::model($k, true, [['skip_constructor_loading' => true]]);
+					$method_code = str_replace('$this->name', var_export($method_object->name, true), $method_code);
+					$method_code = str_replace('$this->base_url', var_export($method_object->base_url, true), $method_code);
+					$method_code = str_replace('$this->route_options', var_export($method_object->route_options, true), $method_code);
+					$php_code.= "\n\n" . $method_code;
+					// prepare for import
+					$methods = \Object\Reflection::getMethods($k, \ReflectionMethod::IS_PUBLIC, \Route::HTTP_REQUEST_METHOD_LOWER_CASE);
+					$api_methods = [
+						[
+							'sm_rsrcapimeth_method_code' => 'AllActions',
+							'sm_rsrcapimeth_method_name' => 'All Methods',
+							'sm_rsrcapimeth_inactive' => 0,
+						],
+					];
+					$method_counter = 0;
+					foreach ($methods as $k2 => $v2) {
+						foreach ($v2 as $k3 => $v3) {
+							$api_methods[] = [
+								'sm_rsrcapimeth_method_code' => $k3,
+								'sm_rsrcapimeth_method_name' => $v3['name_nice'],
+								'sm_rsrcapimeth_inactive' => 0,
+							];
+							$method_counter++;
+						}
+					}
+					$import[$k] = [
+						'sm_resource_id' => '::id::' . $k,
+						'sm_resource_code' => $k,
+						'sm_resource_type' => 150,
+						'sm_resource_classification' => 'APIs',
+						'sm_resource_name' => $method_object->name,
+						'sm_resource_version_code' => $method_object->version,
+						'sm_resource_api_method_counter' => $method_counter,
+						'sm_resource_description' => null,
+						'sm_resource_icon' => 'fas fa-tape',
+						'sm_resource_module_code' => $method_object->group[0] ?? 'SM',
+						'sm_resource_group1_name' => $method_object->group[1] ?? null,
+						'sm_resource_group2_name' => $method_object->group[2] ?? null,
+						'sm_resource_group3_name' => $method_object->group[3] ?? null,
+						'sm_resource_group4_name' => $method_object->group[4] ?? null,
+						'sm_resource_group5_name' => $method_object->group[5] ?? null,
+						'sm_resource_group6_name' => $method_object->group[6] ?? null,
+						'sm_resource_group7_name' => $method_object->group[7] ?? null,
+						'sm_resource_group8_name' => $method_object->group[8] ?? null,
+						'sm_resource_group9_name' => $method_object->group[9] ?? null,
+						'sm_resource_acl_public' => $method_object->acl['public'] ? 1 : 0,
+						'sm_resource_acl_authorized' => $method_object->acl['authorized'] ? 1 : 0,
+						'sm_resource_acl_permission' => $method_object->acl['permission'] ? 1 : 0,
+						'sm_resource_menu_acl_resource_id' => null,
+						'sm_resource_menu_acl_method_code' => null,
+						'sm_resource_menu_acl_action_id' => null,
+						'sm_resource_menu_url' => null,
+						'sm_resource_menu_options_generator' => null,
+						'sm_resource_inactive' => 0,
+						'\Numbers\Backend\System\Modules\Model\Resource\Features' => [],
+						'\Numbers\Backend\System\Modules\Model\Resource\APIMethods' => $api_methods
+					];
+				}
+				\Helper\File::write('./Miscellaneous/Routes/APIRoutes.php', "<?php" . "\n" . $php_code);
+				if (!empty($import)) {
+					$temp = var_export(array_values($import), true);
+					$php_code = <<<TTT
+namespace Overrides\Imports;
+class APIControllers extends \Object\Import {
+	public \$data = [
+		'controllers' => [
+			'options' => [
+				'pk' => ['sm_resource_id'],
+				'model' => '\Numbers\Backend\System\Modules\Model\Collection\Resources',
+				'method' => 'save'
+			],
+			'data' => {$temp}
+		]
+	];
+}
+TTT;
+					\Helper\File::write('./Overrides/Imports/APIControllers.php', "<?php" . "\n" . $php_code);
+				}
+			}
+			// constants
+			if (!empty($data['constant'])) {
+				$php_code = '';
+				foreach ($data['constant'] as $v) {
+					$php_code.= str_replace('<?php', '', \Helper\File::read($v));
+				}
+				\Helper\File::write('./Miscellaneous/Constants/AllConstants.php', "<?php" . "\n" . $php_code);
 			}
 			// unit tests
 			\Helper\File::delete('./Overrides/UnitTests', ['only_contents' => true, 'skip_files' => ['.gitkeep']]);

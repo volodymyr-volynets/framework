@@ -41,7 +41,7 @@ class Base extends \Object\Form\Parent2 {
 	/**
 	 * Form parent
 	 *
-	 * @var string
+	 * @var object
 	 */
 	public $form_parent;
 
@@ -1643,6 +1643,11 @@ processAllValues:
 				}
 			}
 		}
+		// error messages
+		$html_messages = '';
+		if (!empty(\Object\Error\Base::$errors)) {
+			$html_messages = '<br/><hr/>' . print_r(\Object\Error\Base::$errors, true);
+		}
 		// ajax requests from other forms are filtered by id
 		if (!empty($this->options['input']['__ajax'])) {
 			$this->is_ajax_reload = true;
@@ -1670,10 +1675,10 @@ processAllValues:
 						'modal_class' => $form_model->options['modal_class'] ?? 'numbers_frontend_form_modal_level_1',
 						'class' => 'numbers_frontend_modal_full_width',
 						'title' => i18n(null, $this->form_parent->subforms[$this->options['input']['__subform_link']]['label_name']),
-						'body' => $form_model->render(),
+						'body' => $form_model->render() . $html_messages,
 					]);
 				} else {
-					$modal = $form_model->render();
+					$modal = $form_model->render() . $html_messages;
 				}
 				$result = [
 					'success' => true,
@@ -2018,9 +2023,25 @@ convertMultipleColumns:
 						$where[$k0] = \User::id();
 					}
 				}
-				$this->query = call_user_func_array([$this->form_parent->query_primary_model, 'queryBuilderStatic'], [[
+				$query_primary_model = new $this->form_parent->query_primary_model();
+				// if we have periods
+				if (isset($query_primary_model->periods) && $query_primary_model->periods['type'] != 'none') {
+					$reflector = new \ReflectionClass($query_primary_model);
+					$reflector->getShortName();
+					$period_year = \Request::input($query_primary_model->column_prefix . 'year') ?? date('Y');
+					$period_month = str_pad(date('m'), 2, '0', STR_PAD_LEFT);
+					$period_short_name = str_replace(['[table]', '[year]', '[month]'], [$reflector->getShortName(), $period_year, $period_month], $query_primary_model->periods['class']);
+					$ar_class = explode("\\", $this->form_parent->query_primary_model);
+					array_pop($ar_class);
+					array_push($ar_class, $period_short_name);
+					$new_class_name = implode('\\', $ar_class);
+					$query_primary_model = new $new_class_name();
+					$where = array_merge_hard($query_primary_model->filter, $where);
+				}
+				$this->query = $query_primary_model->queryBuilder([
 					'initiator' => 'list',
-				]])->select();
+					'skip_global_scope' => true,
+				])->select();
 				if (!empty($where)) {
 					$this->query->whereMultiple('AND', $where);
 				}
@@ -2076,6 +2097,8 @@ convertMultipleColumns:
 				$this->misc_settings['list']['columns'] = $this->data[$this::LIST_CONTAINER]['rows'] ?? [];
 			}
 			$this->misc_settings['list']['full_text_search'] = $this->values['full_text_search'] ?? null;
+			$this->misc_settings['list']['full_text_search2'] = $this->values['full_text_search2'] ?? null;
+			$this->misc_settings['list']['full_text_search3'] = $this->values['full_text_search3'] ?? null;
 			// save filter id
 			$this->misc_settings['list']['__form_filter_id'] = $this->triggerMethod('filterChanged');
 		}
@@ -2100,6 +2123,13 @@ convertMultipleColumns:
 					'history' => false,
 				]);
 			}
+			\Log::add([
+				'type' => 'List',
+				'only_chanel' => 'default',
+				'message' => 'List opened: ' . $this->title,
+				'affected_rows' => $this->misc_settings['list']['num_rows'] ?? 0,
+				'error_rows' => $this->errors['flag_num_errors']
+			]);
 		}
 		// usage for report
 		if ($this->initiator_class == 'report') {
@@ -2122,6 +2152,13 @@ convertMultipleColumns:
 					'history' => false,
 				]);
 			}
+			\Log::add([
+				'type' => 'Report',
+				'only_chanel' => 'default',
+				'message' => 'Report opened: ' . $this->title,
+				'affected_rows' => $this->misc_settings['report']['num_rows'] ?? 0,
+				'error_rows' => $this->errors['flag_num_errors'],
+			]);
 		}
 		// report, filter form must be submitted
 		if ($this->initiator_class == 'report' && !$this->hasErrors() && $this->submitted) {
@@ -2144,7 +2181,7 @@ convertMultipleColumns:
 			]);
 		}
 		// usage for form
-		if ($this->initiator_class == 'form' && !empty($this->options['__parent_options']['flag_main_form'])) {
+		if ($this->initiator_class == 'form' || !empty($this->options['__parent_options']['flag_main_form'])) {
 			$refresh_params = [];
 			if ($this->values_loaded) {
 				$refresh_params = $this->pk;
@@ -2161,8 +2198,17 @@ convertMultipleColumns:
 					'[form_name]' => $this->title,
 				],
 				'affected_rows' => 1,
-				'error_rows' => 0,
-				'url' => \Application::get('mvc.full') . '?' . http_build_query2($refresh_params),
+				'error_rows' => $this->errors['flag_num_errors'],
+				'url' => \Application::get('mvc.full') . '?' . http_build_query($refresh_params),
+			]);
+			\Log::add([
+				'type' => 'Form',
+				'only_chanel' => 'default',
+				'message' => 'Form opened: ' . $this->title,
+				'affected_rows' => 1,
+				'error_rows' => $this->errors['flag_num_errors'],
+				'trace' => $this->hasErrors() ? \Object\Error\Base::debugBacktraceString(null, ['skip_params' => true]) : null,
+				'form_statistics' => $this->apiResult(),
 			]);
 		}
 		// process all values
@@ -2175,17 +2221,25 @@ convertMultipleColumns:
 
 	/**
 	 * Process list query order by clause
+	 *
+	 * @param bool $set_query
+	 * @return array
 	 */
-	public function processListQueryOrderBy() {
+	public function processListQueryOrderBy(bool $set_query = true) : array {
+		$result = [];
 		if (!empty($this->values['\Object\Form\Model\Dummy\Sort'])) {
 			foreach ($this->values['\Object\Form\Model\Dummy\Sort'] as $k => $v) {
 				if (!empty($v['__sort'])) {
 					$name = $this->detail_fields['\Object\Form\Model\Dummy\Sort']['elements']['__sort']['options']['options'][$v['__sort']]['name'];
 					$this->misc_settings['list']['sort'][$name] = $v['__order'];
-					$this->query->orderby([$v['__sort'] => $v['__order']]);
+					if ($set_query) {
+						$this->query->orderby([$v['__sort'] => $v['__order']]);
+					}
+					$result[$v['__sort']] = $v['__order'];
 				}
 			}
 		}
+		return $result;
 	}
 
 	/**

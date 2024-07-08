@@ -18,6 +18,9 @@ $constants['NUMBERS_FLAG_TIMESTAMP_DATETIME'] = \Format::now('datetime');
 $constants['NUMBERS_FLAG_TIMESTAMP_TIME'] = \Format::now('time');
 $constants['NUMBERS_FLAG_TIMESTAMP_TIMESTAMP'] = \Format::now('timestamp');
 $constants['NUMBERS_FLAG_TIMESTAMP_UNIX_TIMESTAMP'] = \Format::now('unix');
+$constants['NUMBERS_FLAG_CURRENT_YEAR'] = (int) date('Y');
+// hostname
+$constants['NUMBERS_HOSTNAME'] = \Request::host();
 // define constants
 foreach ($constants as $k => $v) {
 	define($k, $v);
@@ -63,9 +66,12 @@ foreach ($user_variables as $v) {
 }
 
 // Owners.
-if (is_null(\User::$cached_owners) && !\Object\Error\Base::$flag_database_tenant_not_found) {
+if (is_null(\User::$cached_owners) && !\Object\Error\Base::$flag_database_tenant_not_found && \Object\Error\Base::$flag_database_default_initiated) {
 	\User::$cached_owners = \Object\ACL\Resources::getStatic('owners', 'primary');
 }
-foreach (array_keys(\User::$cached_owners) as $v) {
+foreach (array_keys(\User::$cached_owners ?? []) as $v) {
 	define('NUMBERS_USER_PROFILE_' . $v, \Can::userIsOwner($v));
 }
+
+// Include all constants from all modules
+require_if_exists(\Application::get(['application', 'path_full']) . 'Miscellaneous/Constants/AllConstants.php');

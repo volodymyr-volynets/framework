@@ -194,6 +194,72 @@ class HTML {
 	}
 
 	/**
+	 * H1
+	 *
+	 * @param array $options
+	 * @return string
+	 */
+	public static function h1(array $options = []) : string {
+		$options['tag'] = 'h1';
+		return Factory::delegate('flag.numbers.framework.html', 'tag', [$options]);
+	}
+
+	/**
+	 * H2
+	 *
+	 * @param array $options
+	 * @return string
+	 */
+	public static function h2(array $options = []) : string {
+		$options['tag'] = 'h2';
+		return Factory::delegate('flag.numbers.framework.html', 'tag', [$options]);
+	}
+
+	/**
+	 * H3
+	 *
+	 * @param array $options
+	 * @return string
+	 */
+	public static function h3(array $options = []) : string {
+		$options['tag'] = 'h3';
+		return Factory::delegate('flag.numbers.framework.html', 'tag', [$options]);
+	}
+
+	/**
+	 * H4
+	 *
+	 * @param array $options
+	 * @return string
+	 */
+	public static function h4(array $options = []) : string {
+		$options['tag'] = 'h4';
+		return Factory::delegate('flag.numbers.framework.html', 'tag', [$options]);
+	}
+
+	/**
+	 * H5
+	 *
+	 * @param array $options
+	 * @return string
+	 */
+	public static function h5(array $options = []) : string {
+		$options['tag'] = 'h5';
+		return Factory::delegate('flag.numbers.framework.html', 'tag', [$options]);
+	}
+
+	/**
+	 * H6
+	 *
+	 * @param array $options
+	 * @return string
+	 */
+	public static function h6(array $options = []) : string {
+		$options['tag'] = 'h6';
+		return Factory::delegate('flag.numbers.framework.html', 'tag', [$options]);
+	}
+
+	/**
 	 * Label
 	 *
 	 * @param array $options
@@ -218,6 +284,16 @@ class HTML {
 	 */
 	public static function label2(array $options = []) : string {
 		return \Factory::delegate('flag.numbers.framework.html', 'label2', [$options]);
+	}
+
+	/**
+	 * Badge with background
+	 *
+	 * @param array $options
+	 * @return string
+	 */
+	public static function badge(array $options = []) : string {
+		return Factory::delegate('flag.numbers.framework.html', 'label2', [$options]);
 	}
 
 	/**

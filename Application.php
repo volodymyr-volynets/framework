@@ -130,6 +130,15 @@ class Application {
 			\Registry::load($ini_folder . 'registry.ini');
 		}
 		self::$settings['application']['system']['request_time'] = $application_request_time;
+		// server
+		$request_uri = $options['request_uri'] ?? $_SERVER['REQUEST_URI'] ?? null;
+		if (isset($request_uri) && !empty(self::$settings['server']['extension']['skip'])) {
+			$temp = explode('.', $_SERVER['REQUEST_URI']);
+			$extension = array_pop($temp);
+			if (in_array($extension, self::$settings['server']['extension']['skip'])) {
+				\Request::error(404);
+			}
+		}
 		// special handling of media files for development, so there's no need to redeploy application
 		if (self::$settings['environment'] == 'development' && isset($_SERVER['REQUEST_URI'])) {
 			\System\Media::serveMediaIfExists($_SERVER['REQUEST_URI'], $application_path);
@@ -143,6 +152,7 @@ class Application {
 		self::$settings['application']['name'] = $application_name;
 		self::$settings['application']['path'] = $application_path;
 		self::$settings['application']['path_full'] = $application_path_full . '/';
+		self::$settings['application']['paths'] = $paths;
 		self::$settings['application']['loaded_classes'] = []; // class paths
 		self::$settings['layout'] = []; // layout settings
 		// flags
@@ -150,7 +160,9 @@ class Application {
 		self::$settings['flag']['global']['__run_only_bootstrap'] = !empty($options['__run_only_bootstrap']);
 		// magic variables processed here
 		self::$settings['flag']['global']['__content_type'] = 'text/html';
-		self::processMagicVariables();
+		self::processMagicVariables([
+			'request_uri' => $request_uri,
+		]);
 		// alive for HTML pages
 		if (self::$settings['flag']['global']['__content_type'] == 'text/html') {
 			\Alive::start();
@@ -193,16 +205,69 @@ class Application {
 			}
 			return;
 		}
+		// processing routes from misc routes
+		$request_route = null;
+		if (require_if_exists($application_path_full . '/Miscellaneous/Routes/AllRoutes.php')) {
+			// all API routes exists in additional file
+			require_if_exists($application_path_full . '/Miscellaneous/Routes/APIRoutes.php');
+			// math route
+			$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+			$route = \Route::match($request_uri, $method);
+			if ($route['success']) {
+				if ($route['wrong_method']) {
+					\Object\Content\Messages::message('ROUTE_INVALID_METHOD', ['[method]' => $method], true, true);
+				}
+				$request_uri = $route['request_uri'];
+				if ($route['route']->acl['as_controller']) {
+					goto route_load_controller;
+				} else {
+					// if we do not have permission we throw exception
+					if (!\Route::checkAcl($route['name'])) {
+						\Object\Content\Messages::message('ROUTE_PERMISSION_DENIED', null, true, true, -1);
+					}
+					/** @var \Route $request_route */
+					$request_route = $route['route'];
+					// we need to put parameters into $_GET
+					if (!empty($request_route->parameters['from_request'])) {
+						$_GET = array_merge_hard($_GET, $request_route->parameters['from_request']);
+					}
+					// if its API route we execute
+					if ($route['type'] == 'API') {
+						$api_controller = new $request_route->resource[0]([
+							'skip_constructor_loading' => false,
+						]);
+						do {
+							$api_result = RESULT_BLANK;
+							// if we have columns we validate by deefault
+							$api_columns = $api_controller->{$request_route->resource[1] . '_columns'} ?? null;
+							if (!empty($api_columns)) {
+								$validator = \Validator::validateInputStatic($api_controller->input, $api_columns);
+								if ($validator->hasErrors()) {
+									$api_result = $validator->errors('result');
+									break;
+								}
+								$api_controller->values = $validator->values;
+							}
+							// execute method
+							$api_result = $api_controller->{$request_route->resource[1]}();
+						} while(0);
+						\Layout::renderAs($api_result, \Application::get('flag.global.__accept') ?? 'application/json');
+					}
+				}
+			}
+		}
 		// processing mvc settings
+route_load_controller:
 		\Object\Controller\Front::setMvc($request_uri);
 		// check if controller exists
-		if (!file_exists(self::$settings['mvc']['controller_file'])) {
+		if (!file_exists(self::$settings['mvc']['controller_file']) && (!$request_route || $request_route->resource != 'callable')) {
 			trigger_error('Resource not found [' . self::$settings['mvc']['controller_file'] . ']!');
-			Throw new \Exception('Resource not found!', -1);
+			Throw new \Object\Error\ResourseNotFoundException('Resource not found!', -1);
 		}
 		// initialize the controller
 		$controller_class = self::$settings['mvc']['controller_class'];
 		self::$controller = new $controller_class;
+		self::$controller->route = $request_route;
 		// forcing people to do things
 		if (!empty($_SESSION['numbers']['force'])) {
 			$already = false;
@@ -300,7 +365,7 @@ class Application {
 		// check ACL
 		if ($controller_class != '\Controller\Errors') {
 			if (!self::$controller->permitted(['redirect' => true])) {
-				Throw new \Exception('Permission denied!', -1);
+				Throw new \Object\Error\PermissionException('Permission denied!', -1);
 			}
 		}
 		// auto populating input property in controller
@@ -313,9 +378,14 @@ class Application {
 		}
 		// check if action exists
 		if (!method_exists(self::$controller, self::$controller->action_method)) {
-			Throw new \Exception('Action does not exists: ' . self::$controller->action_method . ', Controller: ' . get_class(self::$controller) . '!');
+			Throw new \Object\Error\ResourseNotFoundException('Action does not exists: ' . self::$controller->action_method . ', Controller: ' . get_class(self::$controller) . '!');
 		}
 		// calling action
+		\Log::add([
+			'type' => 'System',
+			'only_chanel' => 'default',
+			'message' => 'Calling controller: ' . self::$controller->title,
+		]);
 		echo call_user_func(array(self::$controller, self::$controller->action_method));
 		// auto rendering view only if view exists, processing extension order as specified in .ini file
 		$temp_reflection_obj = new ReflectionClass(self::$controller);
@@ -369,7 +439,8 @@ class Application {
 				'<!-- [numbers: css links] -->',
 				'<!-- [numbers: layout onload] -->',
 				'<!-- [numbers: layout onhtml] -->',
-				'<!-- [numbers: workflows] -->'
+				'<!-- [numbers: workflows] -->',
+				'<!-- [numbers: layout footer] -->'
 			];
 			$to = [
 				\Layout::renderMessages(),
@@ -382,7 +453,8 @@ class Application {
 				\Layout::renderCss(),
 				\Layout::renderOnload(),
 				\Layout::$onhtml,
-				\Object\Form\Workflow\Base::render()
+				\Object\Form\Workflow\Base::render(),
+				\Object\Controller::renderFooter(),
 			];
 			echo str_replace($from, $to, \Helper\Ob::clean());
 		} else {
@@ -419,8 +491,11 @@ class Application {
 
 	/**
 	 * Process magic variables
+	 *
+	 * @param array $options
+	 * 		string request_uri
 	 */
-	public static function processMagicVariables() {
+	public static function processMagicVariables(array $options = []) {
 		$variables_object = new \Object\Magic\Variables();
 		$variables = $variables_object->get();
 		$input = \Request::input(null, true, true);
@@ -437,6 +512,29 @@ class Application {
 				}
 			} else {
 				self::$settings['flag']['global'][$k] = $input[$k];
+			}
+		}
+		// other
+		$headers = getallheaders();
+		self::$settings['flag']['global']['__accept'] = $headers['Content-Type'] ?? null;
+		if (!isset(self::$settings['flag']['global']['__accept'])) {
+			$accept = $headers['Accept'] ?? null;
+			if (isset($accept)) {
+				self::$settings['flag']['global']['__accept'] = explode(',', $accept)[0];
+			}
+		}
+		// is api
+		self::$settings['flag']['global']['__is_api'] = false;
+		if (str_starts_with($options['request_uri'] ?? '', '/API/')) {
+			self::$settings['flag']['global']['__is_api'] = true;
+		}
+		// authorization and bearer token
+		self::$settings['flag']['global']['__bearer_token'] = null;
+		self::$settings['flag']['global']['__authorization'] = null;
+		if (!empty($headers['Authorization'])) {
+			self::$settings['flag']['global']['__authorization'] = trim($headers['Authorization']);
+			if (str_starts_with($headers['Authorization'], 'Bearer ')) {
+				self::$settings['flag']['global']['__bearer_token'] = trim(str_replace('Bearer ', '', $headers['Authorization']));
 			}
 		}
 	}

@@ -1,7 +1,7 @@
 <?php
 
 namespace Object\Error;
-class UserException extends \Exception {
+class ResourseNotFoundException extends \Exception {
 
 	/**
 	 * Constructor

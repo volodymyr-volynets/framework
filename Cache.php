@@ -47,7 +47,7 @@ class Cache {
 				Throw new Exception('You must enable ' . $class . ' first!');
 			}
 			// replaces in case we have it as submodule
-			$class = str_replace('.', '_', trim($class));
+			$class = str_replace('.', '\\', trim($class));
 			// if we are replacing database connection with the same link we
 			// need to manually close connection
 			if (!empty($temp['object']) && $temp['class'] != $class) {
@@ -63,8 +63,19 @@ class Cache {
 		} else if (!empty($temp['object'])) {
 			$this->object = $temp['object'];
 		} else {
-			Throw new Exception('You must specify cache link and/or class!');
+			Throw new Exception('Could not initialize cache object!');
 		}
+	}
+
+	/**
+	 * Initialized
+	 *
+	 * @param string $cache_link
+	 * @return bool
+	 */
+	public static function initialized(string $cache_link) : bool {
+		$object = \Factory::get(['cache', $cache_link, 'object']);
+		return !empty($object);
 	}
 
 	/**

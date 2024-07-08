@@ -206,7 +206,7 @@ class Columns extends \Object\Data {
 					$error = true;
 				}
 			} else if ($column_options['php_type'] == 'integer') {
-				if ($value . '' !== '' && !\Format::readIntval($value, ['valid_check' => 1])) {
+				if (!is_array($value) && $value . '' !== '' && !\Format::readIntval($value, ['valid_check' => 1])) {
 					$result['error'][] = i18n(null, 'Wrong integer value!');
 					$error = true;
 				}

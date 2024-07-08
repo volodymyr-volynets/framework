@@ -17,6 +17,7 @@ class Domains extends \Object\Data {
 		'null' => ['name' => 'Null', 'type' => 'boolean', 'default' => 0],
 		'precision' => ['name' => 'Precision', 'type' => 'smallint'],
 		'scale' => ['name' => 'Scale', 'type' => 'smallint'],
+		'uuid' => ['name' => 'UUID', 'type' => 'boolean', 'default' => 0],
 		'php_type' => ['name' => 'PHP Type', 'type' => 'text', 'default' => 'string', 'options_model' => '\Object\Data\PHP\Types'],
 		// misc settings
 		'format' => ['name' => 'Format', 'type' => 'text'],
@@ -35,16 +36,19 @@ class Domains extends \Object\Data {
 		'description' => ['name' => 'Description', 'type' => 'varchar', 'length' => 2000, 'placeholder' => 'Description'],
 		'comment' => ['name' => 'Comment', 'type' => 'text', 'placeholder' => 'Comment'],
 		'symlink' => ['name' => 'Symlink', 'type' => 'json', 'default' => null, 'null' => true, 'placeholder' => 'Symlink'],
+		'message' => ['name' => 'Message', 'type' => 'text', 'placeholder' => 'Message'],
 		'address' => ['name' => 'Address', 'type' => 'varchar', 'length' => 255, 'placeholder' => 'Address'],
 		'city' => ['name' => 'City', 'type' => 'varchar', 'length' => 255, 'placeholder' => 'City'],
 		'keywords' => ['name' => 'Keywords', 'type' => 'varchar', 'length' => 120, 'placeholder' => 'Keywords'],
 		'url' => ['name' => 'Url', 'type' => 'text', 'placeholder' => 'Url'],
 		// codes
+		'uuid' => ['name' => 'UUID', 'type' => 'char', 'length' => 36, 'uuid' => 1],
 		'code' => ['name' => 'Code', 'type' => 'varchar', 'length' => 255],
 		'short_code' => ['name' => 'Short Code', 'type' => 'varchar', 'length' => 6, 'validator_method' => '\Object\Validator\UpperCase::validate'],
 		'type_code' => ['name' => 'Type Code', 'type' => 'varchar', 'length' => 15, 'validator_method' => '\Object\Validator\UpperCase::validate', 'placeholder' => 'Type'],
 		'group_code' => ['name' => 'Group Code', 'type' => 'varchar', 'length' => 30, 'validator_method' => '\Object\Validator\UpperCase::validate'],
 		'token' => ['name' => 'Token', 'type' => 'varchar', 'length' => 255],
+		'session_id' => ['name' => 'Session', 'type' => 'varchar', 'length' => 255],
 		'hash' => ['name' => 'Hash', 'type' => 'varchar', 'length' => 255],
 		'status_one' => ['name' => 'Status (1)', 'type' => 'char', 'length' => 1],
 		'status_two' => ['name' => 'Status (2)', 'type' => 'char', 'length' => 2],
@@ -73,6 +77,8 @@ class Domains extends \Object\Data {
 		// date & time
 		'optimistic_lock' => ['name' => 'Optimistic Lock', 'type' => 'timestamp', 'null' => false, 'default' => 'now()', 'format' => '', 'validator_method' => '', 'placeholder' => ''],
 		'timestamp_now' => ['name' => 'Timestamp (Now)', 'type' => 'timestamp', 'default' => 'now()', 'null' => false, 'format' => '', 'validator_method' => '', 'placeholder' => ''],
+		'duration' => ['name' => 'Duration', 'type' => 'bigint', 'default' => 0, 'null' => false, 'format' => 'niceDuration', 'placeholder' => 'Duration'],
+		'duration_float' => ['name' => 'Duration (Float)', 'type' => 'bcnumeric', 'precision' => 24, 'scale' => 8, 'placeholder' => 'Duration', 'default' => '0.00', 'format' => 'number', 'align' => 'right'],
 		// personal
 		'email' => ['name' => 'Email', 'type' => 'varchar', 'length' => 255, 'validator_method' => '\Object\Validator\Email::validate', 'null' => true],
 		'subject' => ['name' => 'Subject', 'type' => 'varchar', 'length' => 255, 'null' => true],
@@ -85,10 +91,16 @@ class Domains extends \Object\Data {
 		// login
 		'login' => ['name' => 'Login', 'type' => 'varchar', 'length' => 30, 'validator_method' => '\Object\Validator\LowerCase::validate'],
 		'password' => ['name' => 'Password', 'type' => 'text', 'validator_method' => '\Object\Validator\Password::validate'],
+		'username' => ['name' => 'Username', 'type' => 'varchar', 'length' => 255, 'validator_method' => '\Object\Validator\Username::validate', 'null' => true],
+		'password_input' => ['name' => 'Password', 'type' => 'text'],
 		'encrypted_password' => ['name' => 'Password (Encrypted)', 'type' => 'bytea'],
 		'ip' => ['name' => 'IP', 'type' => 'varchar', 'length' => 46, 'placeholder' => 'IP'],
+		'host' => ['name' => 'Host', 'type' => 'varchar', 'length' => 255, 'placeholder' => 'Host'],
+		'url' => ['name' => 'URL', 'type' => 'varchar', 'length' => 5000, 'placeholder' => 'URL'],
 		'domain_part' => ['name' => 'Domain Part', 'type' => 'varchar', 'length' => 30, 'validator_method' => 'object_validator_domain_part::validate'],
 		// system
+		'log_id' => ['name' => 'Log #', 'type' => 'bigint', 'default' => null, 'format' => 'id', 'placeholder' => 'Log #'],
+		'log_id_sequence' => ['name' => 'Log #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'ledger_id' => ['name' => 'Ledger #', 'type' => 'integer', 'default' => null, 'format' => 'id'],
 		'ledger_id_sequence' => ['name' => 'Ledger #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'language_code' => ['name' => 'Language Code', 'type' => 'char', 'length' => 3, 'validator_method' => '\Object\Validator\LowerCase::validate', 'placeholder' => 'Language'],
@@ -137,6 +149,7 @@ class Domains extends \Object\Data {
 		'datasource_id' => ['name' => 'Data Source #', 'type' => 'bigint', 'default' => null, 'placeholder' => 'Data Source', 'format' => 'id', 'searchable' => true],
 		'datasource_id_sequence' => ['name' => 'Data Source #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id', 'searchable' => true],
 		'sql_query' => ['name' => 'SQL Query', 'type' => 'varchar', 'length' => 5000, 'placeholder' => 'SQL Query'],
+		'sql_long_query' => ['name' => 'SQL Query (Long)', 'type' => 'text', 'placeholder' => 'SQL Query', 'null' => true, 'default' => null],
 		// country management
 		'country_code' => ['name' => 'Country Code', 'type' => 'char', 'length' => 2, 'validator_method' => '\Object\Validator\UpperCase::validate', 'placeholder' => 'Country', 'searchable' => true],
 		'country_code3' => ['name' => 'Country Code (3)', 'type' => 'char', 'length' => 3, 'validator_method' => '\Object\Validator\UpperCase::validate'],
@@ -312,6 +325,11 @@ class Domains extends \Object\Data {
 		// crm
 		'contact_id' => ['name' => 'Contact #', 'type' => 'bigint', 'default' => null, 'placeholder' => 'Contact', 'format' => 'id'],
 		'contact_id_sequence' => ['name' => 'Contact #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id'],
+		// date
+		'year' => ['name' => 'Year', 'type' => 'smallint', 'validator_method' => '\Object\Validator\Year::validate', 'format' => 'id', 'searchable' => true],
+		'month' => ['name' => 'Month', 'type' => 'smallint', 'validator_method' => '\Object\Validator\Month::validate', 'format' => 'id', 'searchable' => true],
+		'day' => ['name' => 'Day', 'type' => 'smallint', 'validator_method' => '\Object\Validator\Day::validate', 'format' => 'id', 'searchable' => true],
+		'period' => ['name' => 'Period', 'type' => 'smallint', 'validator_method' => '\Object\Validator\Period::validate', 'format' => 'id', 'searchable' => true],
 		// accounting
 		'classification_id' => ['name' => 'Classification #', 'type' => 'integer', 'default' => null, 'format' => 'id', 'placeholder' => 'Classification'],
 		'classification_id_sequence' => ['name' => 'Classification #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],
@@ -319,8 +337,6 @@ class Domains extends \Object\Data {
 		'customer_id_sequence' => ['name' => 'Customer #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id'],
 		'vendor_id' => ['name' => 'Vendor #', 'type' => 'bigint', 'default' => null, 'placeholder' => 'Vendor', 'format' => 'id'],
 		'vendor_id_sequence' => ['name' => 'Vendor #', 'type' => 'bigserial', 'placeholder' => 'Sequence', 'format' => 'id'],
-		'year' => ['name' => 'Year', 'type' => 'smallint', 'validator_method' => '\Object\Validator\Year::validate', 'format' => 'id', 'searchable' => true],
-		'period' => ['name' => 'Period', 'type' => 'smallint', 'validator_method' => '\Object\Validator\Period::validate', 'format' => 'id', 'searchable' => true],
 		'uom' => ['name' => 'UOM', 'type' => 'varchar', 'length' => 15, 'placeholder' => 'Unit of Measure'],
 		'uom_id' => ['name' => 'UoM #', 'type' => 'integer', 'default' => null, 'placeholder' => 'Unit of Measure', 'format' => 'id'],
 		'uom_id_sequence' => ['name' => 'UoM #', 'type' => 'serial', 'placeholder' => 'Sequence', 'format' => 'id'],

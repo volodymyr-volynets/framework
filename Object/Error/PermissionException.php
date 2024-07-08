@@ -1,7 +1,7 @@
 <?php
 
 namespace Object\Error;
-class UserException extends \Exception {
+class PermissionException extends \Exception {
 
 	/**
 	 * Constructor

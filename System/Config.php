@@ -43,7 +43,9 @@ class Config {
 		// proccesing environment specific sectings
 		foreach ($data as $section => $values) {
 			$sections = explode(',', $section);
-			if (empty($values) || (!in_array($environment, $sections) && !in_array('*', $sections))) continue;
+			if (empty($values) || (!in_array($environment, $sections) && !in_array('*', $sections))) {
+				continue;
+			}
 			foreach ($values as $k => $v) {
 				if (empty($options['simple_keys'])) {
 					array_key_set($result, $k, $v);
@@ -66,16 +68,21 @@ class Config {
 			'environment' => 'production'
 		];
 		// environment ini file first
-		$file = $ini_folder . 'environment.ini';
-		if (file_exists($file)) {
-			$ini_data = self::ini($file);
+		$environment_file = $ini_folder . 'environment.ini';
+		if (file_exists($environment_file)) {
+			$ini_data = self::ini($environment_file);
 			$result = array_merge2($result, $ini_data);
 		}
 		// application.ini file second
-		$file = $ini_folder . 'application.ini';
-		if (file_exists($file)) {
-			$ini_data = self::ini($file, $result['environment']);
+		$application_file = $ini_folder . 'application.ini';
+		if (file_exists($application_file)) {
+			$ini_data = self::ini($application_file, $result['environment']);
 			$result = array_merge2($result, $ini_data);
+		}
+		// add dev environment last to override settings from applicaiton.ini
+		if ($result['environment'] == 'development') {
+			$ini_data = self::ini($environment_file, $result['environment']);
+			$result = array_merge_hard($result, $ini_data);
 		}
 		return $result;
 	}

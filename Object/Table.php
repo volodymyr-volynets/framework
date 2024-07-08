@@ -7,6 +7,9 @@ class Table extends \Object\Table\Options {
 	 * Include common trait
 	 */
 	use \Object\Table\Trait2;
+	use \Object\Traits\Debugable;
+	use \Object\Traits\Stringable;
+	use \Object\Traits\ObjectableAndStaticable;
 
 	/**
 	 * Link to database
@@ -97,6 +100,13 @@ class Table extends \Object\Table\Options {
 		//'id' => array('name' => '#', 'type' => 'bigserial'),
 		//'name' => array('name' => 'Name', 'type' => 'varchar', 'length' => 255),
 	];
+
+	/**
+	 * Column settings
+	 *
+	 * @var array
+	 */
+	public $column_settings = [];
 
 	/**
 	 * Table constraints
@@ -267,8 +277,44 @@ class Table extends \Object\Table\Options {
 	public $who = [
 		//'inserted' => true,
 		//'updated' => true,
-		//'posted' => true
+		//'posted' => true,
+		//'inactivated' => true,
 	];
+
+	/**
+	 * Periods
+	 *
+	 * @var array
+	 */
+	public $periods = [
+		'type' => 'none',
+		'year_start' => null,
+		'year_end' => null,
+		'month_start' => null,
+		'month_end' => null,
+		'class' => '[table]GeneratedYear[year]Month[month]',
+	];
+
+	/**
+	 * Is period table
+	 *
+	 * @var bool
+	 */
+	public bool $is_period_table = false;
+
+	/**
+	 * Filter
+	 *
+	 * @var array
+	 */
+	public array $filter = [];
+
+	/**
+	 * Have overrides
+	 *
+	 * @var bool
+	 */
+	public bool $have_overrides = false;
 
 	/**
 	 * Acl options returned from get, used in options and presets
@@ -408,7 +454,7 @@ class Table extends \Object\Table\Options {
 		}
 		// see if we have special handling
 		$db_object = \Factory::get(['db', $this->db_link, 'object']);
-		if (method_exists($db_object, 'handleName')) {
+		if (!empty($db_object) && method_exists($db_object, 'handleName')) {
 			$this->full_table_name = $db_object->handleName($this->schema, $this->name, ['temporary' => $this->temporary]);
 		} else { // process table name and schema
 			if (!empty($this->schema)) {
@@ -444,6 +490,40 @@ class Table extends \Object\Table\Options {
 				$this->columns[$this->column_prefix . $k . '_user_id'] = ['name' => ucwords($k) . ' User #', 'domain' => 'user_id', 'null' => true];
 			}
 		}
+		// periods
+		if ($this->periods['type'] != 'none') {
+			if ($this->periods['type'] == YEAR || $this->periods['type'] == YEAR_AND_MONTH) {
+				if (empty($this->periods['year_start']) || empty($this->periods['year_end'])) {
+					Throw new \Exception('You need to provide year start and/or end values in periods.');
+				}
+				$year = (int) date('Y');
+				if ($year < $this->periods['year_start'] || $year > $this->periods['year_end']) {
+					Throw new \Exception('There is no table for given year.');
+				}
+				if (empty($this->columns[$this->column_prefix . 'year'])) {
+					Throw new \Exception('Table must have year column.');
+				}
+			}
+			if ($this->periods['type'] == YEAR_AND_MONTH) {
+				if (empty($this->periods['month_start']) || empty($this->periods['month_end'])) {
+					Throw new \Exception('You need to provide month start and/or end values in periods.');
+				}
+				$month = (int) date('m');
+				if ($month < $this->periods['month_start'] || $month > $this->periods['month_end']) {
+					Throw new \Exception('There is no table for given month.');
+				}
+				if (empty($this->columns[$this->column_prefix . 'month'])) {
+					Throw new \Exception('Table must have month column.');
+				}
+			}
+			if (empty($this->periods['class'])) {
+				Throw new \Exception('Table must have class defined in periods.');
+			}
+			// preset filter
+			if ($this->is_period_table) {
+				$this->processPeriodsFilter($this->periods['type'], $this->filter);
+			}
+		}
 		// process domain in columns
 		$this->columns = \Object\Data\Common::processDomainsAndTypes($this->columns, null, $this);
 		// initialize db object
@@ -469,6 +549,23 @@ class Table extends \Object\Table\Options {
 			} else {
 				$this->{$widget} = false;
 			}
+		}
+	}
+
+	/**
+	 * Process period filter
+	 *
+	 * @param string $type
+	 * @param array $filter
+	 */
+	public function processPeriodsFilter(string $type, array & $filter) {
+		if ($type == YEAR || $type == YEAR_AND_MONTH) {
+			$filter = [
+				$this->column_prefix . 'year' => (int) date('Y')
+			];
+		}
+		if ($type == YEAR_AND_MONTH) {
+			$filter[$this->column_prefix . 'month'] = (int) date('m');
 		}
 	}
 

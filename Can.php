@@ -455,10 +455,28 @@ class Can {
 	public static function controllerActionPermitted(string $controller, string $method_code, string $action, $module_id = null) {
 		$controller = str_replace('/', '\\', $controller);
 		if (empty($module_id)) {
-			$module_code = \Object\Controller::$cached_controllers[$controller]['module_code'];
-			$module_id = key(\Object\Controller::$cached_modules[$module_code]['module_ids']);
+			$module_code = \Object\Controller::$cached_controllers[$controller]['module_code'] ?? null;
+			$module_id = key(\Object\Controller::$cached_modules[$module_code]['module_ids'] ?? []);
 		}
-		$controller_id = \Object\Controller::$cached_controllers[$controller]['id'];
+		$controller_id = \Object\Controller::$cached_controllers[$controller]['id'] ?? null;
 		return \Application::$controller->canExtended($controller_id, $method_code, $action, $module_id);
+	}
+
+	/**
+	 * Check if action is authorized in API
+	 *
+	 * @param string $controller
+	 * @param string $method_code
+	 * @param int|null $module_id
+	 * @return boolean
+	 */
+	public static function apiActionPermitted(string $controller, string $method_code, $module_id = null) {
+		$controller = str_replace('/', '\\', $controller);
+		if (empty($module_id)) {
+			$module_code = \Object\Controller::$cached_controllers[$controller]['module_code'] ?? null;
+			$module_id = key(\Object\Controller::$cached_modules[$module_code]['module_ids'] ?? []);
+		}
+		$controller_id = \Object\Controller::$cached_controllers[$controller]['id'] ?? null;
+		return \Object\Controller::canAPIExtended($controller_id, $method_code, $module_id);
 	}
 }

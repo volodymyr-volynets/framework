@@ -3,6 +3,79 @@
 namespace Object\Table;
 trait Trait2 {
 
+	use \Object\Traits\ObjectableAndStaticable;
+	use \Object\Table\ColumnSettings;
+
+	/**
+	 * Query builder (Static)
+	 *
+	 * @param array $options
+	 *		string alias, default a
+	 *		boolean skip_tenant
+	 *		boolean skip_acl
+	 *		boolean skip_global_scope
+	 *		mixed existing_values
+	 * @return \Object\Query\Builder
+	 */
+	public static function queryBuilderStatic(array $options = []) : \Object\Query\Builder {
+		$class = get_called_class();
+		$object = new $class();
+		return $object->queryBuilder($options);
+	}
+
+	/**
+	 * Get (static)
+	 *
+	 * @param array $options
+	 *		cache - if we cache
+	 *		no_cache - if we need to skip caching
+	 *		search - array of search condition
+	 *		where - array of where conditions
+	 *		orderby - array of columns to sort by
+	 *		pk - primary key to be used by query
+	 *		columns - if we need to get certain columns
+	 *		limit - set this integer if we need to limit query
+	 *		skip_tenant - if we need to skip tenant
+	 *		skip_acl - if we need to skip acl
+	 *		skip_global_scope - if we need to skip global scopes
+	 * 		cast_to_class - if we need to cast results to a class
+	 *		skip_column_settings - if we need to skip column settings for example maskable
+	 *			ALL, MASKABLE, PASSWORDABLE, GENERABLE, READ_ONLY, READ_ONLY_IF_SET
+	 * @return array
+	 */
+	public static function getStatic(array $options = []) {
+		$class = get_called_class();
+		$object = new $class();
+		return $object->get($options);
+	}
+
+	/**
+	 * Query assembler
+	 *
+	 * @param array $data
+	 * @param array $options
+	 * 		alias - alias of a table
+	 * @return \Object\Query\Assembler
+	 */
+	public static function queryAssemblerStatic(array & $data, array $options = []) : \Object\Query\Assembler {
+		$class = get_called_class();
+		$model = new $class();
+		return $model->queryAssembler($data, $options);
+	}
+
+	/**
+	 * Counter
+	 *
+	 * @param array $where
+	 * @param array $options
+	 * @return int
+	 */
+	public static function counterStatic(array $where, array $options = []) : int {
+		$class = get_called_class();
+		$model = new $class();
+		return $model->counter($where, $options);
+	}
+
 	/**
 	 * Query builder
 	 *
@@ -10,6 +83,7 @@ trait Trait2 {
 	 *		string alias, default a
 	 *		boolean skip_tenant
 	 *		boolean skip_acl
+	 *		boolean skip_global_scope
 	 *		mixed existing_values
 	 * @return \Object\Query\Builder
 	 */
@@ -32,6 +106,17 @@ trait Trait2 {
 		if ($model->tenant && empty($options['skip_tenant'])) {
 			$object->where('AND', [$alias . '.' . $model->column_prefix . 'tenant_id', '=', \Tenant::id()]);
 			$object->where('AND', [$model->column_prefix . 'tenant_id', '=', \Tenant::id()], false, ['for_delete' => true]);
+		}
+		// global scopes
+		if (empty($options['skip_global_scope'])) {
+			$reflection = new \ReflectionClass($object->primary_model);
+			foreach ($reflection->getMethods() as $v) {
+				$method_name = $v->getName();
+				if (str_starts_with($method_name, 'scope') && str_ends_with($method_name, 'Global')) {
+					$method_name = str_replace('scope', '', $method_name);
+					$object->withScope([$method_name]);
+				}
+			}
 		}
 		// ABAC ACL
 		if (empty($options['skip_acl'])) {
@@ -58,21 +143,6 @@ trait Trait2 {
 	}
 
 	/**
-	 * Query builder (static)
-	 *
-	 * @param array $options
-	 *		string alias, default a
-	 *		boolean skip_tenant
-	 *		boolean skip_acl
-	 * @return \Object\Query\Builder
-	 */
-	public static function queryBuilderStatic(array $options = []) : \Object\Query\Builder {
-		$class = get_called_class();
-		$model = new $class();
-		return $model->queryBuilder($options);
-	}
-
-	/**
 	 * Get data as an array of rows
 	 *
 	 * @param array $options
@@ -85,6 +155,11 @@ trait Trait2 {
 	 *		columns - if we need to get certain columns
 	 *		limit - set this integer if we need to limit query
 	 *		skip_tenant - if we need to skip tenant
+	 *		skip_acl - if we need to skip acl
+	 *		skip_global_scope - if we need to skip global scopes
+	 * 		cast_to_class - if we need to cast results to a class
+	 *		skip_column_settings - if we need to skip column settings for example maskable
+	 *			ALL, MASKABLE, PASSWORDABLE, GENERABLE, READ_ONLY, READ_ONLY_IF_SET
 	 * @return array
 	 */
 	public function get($options = []) {
@@ -108,6 +183,7 @@ trait Trait2 {
 		$query = $this->queryBuilder([
 			'skip_tenant' => $options['skip_tenant'] ?? false,
 			'skip_acl' => $options['skip_acl'] ?? false,
+			'skip_global_scope' => $options['skip_global_scope'] ?? true,
 			'initiator' => 'table',
 			'existing_values' => $options['existing_values'] ?? null,
 			'where' => $where_acl ?? [],
@@ -196,10 +272,30 @@ trait Trait2 {
 			}
 		}
 		// query
-		$result = $query->query($pk, $options_query);
+		$result = $query->query(null, $options_query);
 		$this->sql_last_query = $query->sql();
 		if (!$result['success']) {
 			Throw new \Exception(implode(", ", $result['error']));
+		}
+		// cast to class
+		if (!empty($options['cast_to_class']) && count($result['rows']) > 0) {
+			foreach ($result['rows'] as $k => $v) {
+				$destination = new $options['cast_to_class'](['skip_table_object']);
+				object_cast($destination, (object) $v);
+				// we load full PK
+				foreach ($this->pk as $v2) {
+					$destination->object_table_pk[$v2] = $v[$v2];
+				}
+				// process column settings
+				if (!$this->processColumnSettingsForObjects($this->column_settings, $destination, $options)) {
+					Throw new \Exception('Could not process column settings!');
+				}
+				$result['rows'][$k] = $destination;
+			}
+		}
+		// change primary keys
+		if ($pk) {
+			pk($pk, $result['rows']);
 		}
 		// single row
 		if (!empty($options['single_row'])) {
@@ -219,22 +315,11 @@ trait Trait2 {
 	}
 
 	/**
-	 * Get (static)
-	 *
-	 * @see $this::get()
-	 */
-	public static function getStatic(array $options = []) {
-		$class = get_called_class();
-		$object = new $class();
-		return $object->get($options);
-	}
-
-	/**
 	 * Get by column
 	 *
 	 * @param string|array $where
 	 * @param mixed $value
-	 * @param mixed $only_column
+	 * @param string $only_column
 	 * @return mixed
 	 */
 	public function getByColumn(string|array $where, $value = null, $only_column = null) {
@@ -273,10 +358,11 @@ trait Trait2 {
 	/**
 	 * Exists
 	 *
-	 * @see $this->get()
+	 * @param array $options
 	 * @return boolean
+	 * @see $this->get()
 	 */
-	public function exists($options = []) {
+	public function exists(array $options = []) : bool {
 		$data = $this->get($options);
 		return !empty($data);
 	}
@@ -284,10 +370,11 @@ trait Trait2 {
 	/**
 	 * Exists (static)
 	 *
-	 * @see $this->get()
+	 * @param array $options
 	 * @return boolean
+	 * @see $this->get()
 	 */
-	public static function existsStatic($options = []) {
+	public static function existsStatic(array $options = []) : \Object\Query\Builder {
 		$class = get_called_class();
 		$object = new $class();
 		return $object->exists($options);
@@ -296,27 +383,57 @@ trait Trait2 {
 	/**
 	 * Load by id
 	 *
-	 * @param int $id
-	 * @param string $column
-	 * @return array | boolean
+	 * @param int|array $id
+	 * @param string|array $options
+	 * 		column - column name
+	 * 		cast_to_class - class name
+	 * @return mixed
 	 */
-	public static function loadById(int $id, string $column = '') {
-		$class = get_called_class();
-		$model = new $class();
-		$pk = $model->pk;
-		$last = array_pop($model->pk);
-		$result = $model->get([
-			'where' => [
+	public function loadById(int|array $id, string|array $options = []) {
+		if (is_string($options)) {
+			$options = ['column' => $options];
+		}
+		$options['cast_to_class'] = $options['cast_to_class'] ?? null;
+		$pk = $this->pk;
+		$last = array_pop($pk);
+		if (is_array($id)) {
+			$where = $id;
+		} else {
+			$where = [
 				$last => $id
-			],
+			];
+		}
+		$result = $this->get([
+			'where' => $where,
 			'pk' => [$last],
 			'single_row' => true,
-			'skip_acl' => true
+			'skip_acl' => true,
+			'cast_to_class' => $options['cast_to_class'],
+			'cache_memory' => $options['cache_memory'] ?? null,
 		]);
-		if (!empty($column)) {
-			return $result[$column] ?? null;
+		if (isset($options['column'])) {
+			if (is_object($result)) {
+				return $result->{$options['column']};
+			} else {
+				return $result[$options['column']] ?? null;
+			}
 		}
 		return $result;
+	}
+
+	/**
+	 * Load by id (static)
+	 *
+	 * @param int|array $id
+	 * @param string|array $options
+	 * 		column - column name
+	 * 		cast_to_class - class name
+	 * @return mixed
+	 */
+	public static function loadByIdStatic(int|array $id, string|array $options = []) {
+		$class = get_called_class();
+		$object = new $class();
+		return $object->loadById($id, $options);
 	}
 
 	/**
@@ -325,6 +442,7 @@ trait Trait2 {
 	 * @param array $where
 	 * @param array $options
 	 * @return int
+	 * @see $this->get()
 	 */
 	public function counter(array $where, array $options = []) : int {
 		$query = $this->queryBuilder()->select();
@@ -334,5 +452,19 @@ trait Trait2 {
 		]);
 		$result = $query->query(null, $options);
 		return ($result['rows'][0]['counter'] ?? 0);
+	}
+
+	/**
+	 * Query assembler
+	 *
+	 * @param array $data
+	 * @param array $options
+	 * 		alias - alias of a table
+	 * @return \Object\Query\Assembler
+	 */
+	public function queryAssembler(array & $data, array $options = []) : \Object\Query\Assembler {
+		$options['alias'] = $options['alias'] ?? 'relation_a';
+		$object = new \Object\Query\Assembler($this, $data, $options);
+		return $object;
 	}
 }

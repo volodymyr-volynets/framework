@@ -482,6 +482,9 @@ class Format {
 			case 'timestamp':
 				return date('Y-m-d H:i:s', $time) . '.' . str_pad(round($msec * 1000000, 0), 6, '0', STR_PAD_LEFT);
 				break;
+			case 'timestamp_file':
+				return date('Ymd_His', $time) . '_' . str_pad(round($msec * 1000000, 0), 6, '0', STR_PAD_LEFT);
+				break;
 			case 'time':
 				return date('H:i:s', $time);
 				break;
@@ -631,11 +634,32 @@ class Format {
 	 * @param mixed $amount
 	 * @param array $options
 	 *		boolean - valid_check
-	 * @return number
+	 * @return number|array
 	 */
 	public static function readIntval($amount, array $options = []) {
+		if (is_numeric_key_array($amount)) {
+			return $amount;
+		}
 		$options['valid_check_type'] = FILTER_VALIDATE_INT;
 		return self::readFloatval($amount, $options);
+	}
+
+
+	/**
+	 * Strip
+	 *
+	 * @param mixed $value
+	 * @param array $options
+	 * 		length - as int
+	 * @return string
+	 */
+	public static function strip($value, array $options = []) : string {
+		$value = $value . '';
+		$options['length'] = $options['length'] ?? 50;
+		if (strlen($value) > $options['length']) {
+			$value = substr($value, 0, $options['length']) . '...';
+		}
+		return $value;
 	}
 
 	/**
@@ -905,13 +929,17 @@ class Format {
 	 * @return string
 	 */
 	public static function niceDuration($value, array $options = []) : string {
-		if (empty($value)) return '';
-		if ($value < 60) {
-			return self::id($value) . ' ' . i18n(null, 'seconds');
+		if (empty($value)) {
+			return '';
+		}
+		if ($value < 1) {
+			return self::id(round($value, 4)) . i18n(null, 'ms');
+		} else if ($value < 60) {
+			return self::id(round($value, 0)) . i18n(null, 'sec');
 		} else if ($value < 360) {
-			return self::id(round($value / 60, 2)) . ' ' . i18n(null, 'minutes');
+			return self::id(round($value / 60, 2)) . i18n(null, 'min');
 		} else {
-			return self::id(round($value / 360, 2)) . ' ' . i18n(null, 'hours');
+			return self::id(round($value / 360, 2)) . i18n(null, 'hours');
 		}
 	}
 

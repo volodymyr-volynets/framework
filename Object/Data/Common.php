@@ -10,7 +10,7 @@ class Common {
 	 */
 	public static $attributes = [
 		'global' => ['domain', 'type'],
-		'schema' => ['default', 'length', 'null', 'precision', 'scale', 'sequence', 'is_numeric_key'],
+		'schema' => ['default', 'length', 'null', 'precision', 'scale', 'sequence', 'is_numeric_key', 'uuid'],
 		'php' => ['php_type'],
 		'misc' => ['format', 'format_options', 'align', 'validator_method', 'validator_params', 'placeholder', 'searchable', 'tree']
 	];
@@ -130,7 +130,9 @@ class Common {
 				$model = $temp[0];
 				$method = $temp[1];
 			}
-			if ($model == 'this' && !empty($existing_object)) {
+			if ($model == 'parent' && !empty($existing_object)) {
+				$object = $existing_object->form_parent;
+			} else if ($model == 'this' && !empty($existing_object)) {
 				$object = $existing_object;
 			} else {
 				$object = \Factory::model($model, true);
