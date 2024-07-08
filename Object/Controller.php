@@ -11,6 +11,13 @@ class Controller {
 	public $title;
 
 	/**
+	 * Route
+	 *
+	 * @var \Route|null
+	 */
+	public \Route|null $route = null;
+
+	/**
 	 * Icon
 	 *
 	 * @var string 
@@ -171,6 +178,13 @@ class Controller {
 	 * @var array
 	 */
 	private static $cached_subresources;
+
+	/**
+	 * Main content class
+	 *
+	 * @var string
+	 */
+	public static $main_content_class;
 
 	/**
 	 * Constructor
@@ -584,7 +598,7 @@ class Controller {
 		// rearrange controllers
 		if (!isset(self::$cached_controllers_by_ids)) {
 			self::$cached_controllers_by_ids = [];
-			foreach (self::$cached_controllers as $k => $v) {
+			foreach (self::$cached_controllers ?? [] as $k => $v) {
 				self::$cached_controllers_by_ids[$v['id']] = $k;
 			}
 		}
@@ -667,7 +681,7 @@ class Controller {
 	 * @return bool
 	 * @throws Exception
 	 */
-	public function canAPIExtended($resource_id, $method_code, $module_id = null) : bool {
+	public static function canAPIExtended($resource_id, $method_code, $module_id = null) : bool {
 		// rearrange controllers
 		if (!isset(self::$cached_controllers_by_ids)) {
 			self::$cached_controllers_by_ids = [];
@@ -684,7 +698,7 @@ class Controller {
 		// missing features
 		if (!empty(self::$cached_controllers[self::$cached_controllers_by_ids[$resource_id]]['missing_features'])) return false;
 		// super admin
-		if (\User::get('super_admin')) return true;
+		if (\Application::get('flag.numbers.framework.api.allow_super_admin') && \User::get('super_admin')) return true;
 		// see if we have permission overrides
 		$apis = \User::get('apis');
 		if (!empty($apis)) {
@@ -721,7 +735,7 @@ class Controller {
 		}
 		// go through roles
 		foreach ($roles as $v) {
-			$temp = $this->processAPIRole($v, $resource_id, $method_code, $module_id);
+			$temp = self::processAPIRole($v, $resource_id, $method_code, $module_id);
 			if ($temp === 1) {
 				return true;
 			} else if ($temp === 2) {
@@ -730,7 +744,7 @@ class Controller {
 		}
 		// go through teams
 		foreach (\User::teams() as $v) {
-			$temp = $this->processAPITeam($v, $resource_id, $method_code, $module_id);
+			$temp = self::processAPITeam($v, $resource_id, $method_code, $module_id);
 			if ($temp === 1) {
 				return true;
 			} else if ($temp === 2) {
@@ -804,7 +818,7 @@ class Controller {
 	 * @param string $method_code
 	 * @return int
 	 */
-	private function processAPIRole(string $role, int $resource_id, string $method_code, $module_id = null) : int {
+	private static function processAPIRole(string $role, int $resource_id, string $method_code, $module_id = null) : int {
 		// load all roles from datasource
 		if (is_null(self::$cached_roles) && !\Object\Error\Base::$flag_database_tenant_not_found) {
 			self::$cached_roles = \Object\ACL\Resources::getStatic('roles', 'primary');
@@ -835,13 +849,13 @@ class Controller {
 			return 2;
 		}
 		// super admin
-		if (!empty(self::$cached_roles[$role]['super_admin'])) return 1;
+		if (\Application::get('flag.numbers.framework.api.allow_super_admin') && !empty(self::$cached_roles[$role]['super_admin'])) return 1;
 		// if permission is not found we need to check parents
 		if (empty(self::$cached_roles[$role]['parents'])) return 0;
 		// go though parents
 		foreach (self::$cached_roles[$role]['parents'] as $k => $v) {
 			if (!empty($v)) continue;
-			$temp = $this->processAPIRole($k, $resource_id, $method_code);
+			$temp = self::processAPIRole($k, $resource_id, $method_code);
 			if ($temp === 1) {
 				return 1;
 			} else if ($temp === 2) {
@@ -955,7 +969,7 @@ class Controller {
 	 * @param string $method_code
 	 * @return int
 	 */
-	private function processAPITeam(int $team_id, int $resource_id, string $method_code, $module_id = null) : int {
+	private static function processAPITeam(int $team_id, int $resource_id, string $method_code, $module_id = null) : int {
 		// load all roles from datasource
 		if (is_null(self::$cached_teams) && !\Object\Error\Base::$flag_database_tenant_not_found) {
 			self::$cached_teams = \Object\ACL\Resources::getStatic('roles', 'teams');
@@ -1084,6 +1098,69 @@ class Controller {
 		} else {
 			return '';
 		}
+	}
+
+	/**
+	 * Render footer
+	 *
+	 * @param array $options
+	 * @return string
+	 */
+	public static function renderFooter(array $options = []) : string {
+		$data = [];
+		foreach (\Route::$footer['grouped'] as $k => $v) {
+			if (isset($v['options'])) {
+				foreach ($v['options'] as $k2 => $v2) {
+					$v2['order'] = \Route::$routes[$v2['name']]->options['order'] ?? 0;
+					if (\Route::checkAcl($v2['name'], false)) {
+						if (!isset($data[$k])) {
+							$data[$k] = [
+								'label' => $v['label'],
+								'order' => $v['order'],
+								'options' => []
+							];
+						}
+						$data[$k]['options'][$k2] = $v2;
+					}
+				}
+			}
+		}
+		if (empty($data)) {
+			return '';
+		}
+		array_key_sort($data, ['order' => SORT_ASC]);
+		$result = '<table class="numbers_footer_table">';
+			$result.= '<tr>';
+				foreach ($data as $k => $v) {
+					$result.= '<th>';
+						$result.= i18n(null, $k);
+					$result.= '</th>';
+				}
+			$result.= '</tr>';
+			$result.= '<tr>';
+				foreach ($data as $k => $v) {
+					$result.= '<td valign="top">';
+						if (!empty($v['options'])) {
+							$result.= '<table>';
+								array_key_sort($v['options'], ['order' => SORT_ASC]);
+									foreach ($v['options'] as $k2 => $v2) {
+										$result.= '<tr>';
+											$result.= '<td>';
+												$icon = '';
+												if ($v2['icon']) {
+													$icon = \HTML::icon(['type' => $v2['icon']]) . ' ';
+												}
+												$result.= \HTML::a(['href' => \Route::link($k2), 'value' => $icon . i18n(null, $v2['label'])]);
+											$result.= '</td>';
+										$result.= '</tr>';
+									}
+							$result.= '</table>';
+						}
+					$result.= '</td>';
+				}
+			$result.= '</tr>';
+		$result.= '</table>';
+		return $result;
 	}
 
 	/**

@@ -104,9 +104,16 @@ class File {
 	 *		array only_extensions
 	 *		array only_files
 	 *		boolean extended
+	 *		boolean only_file_names
+	 *		boolean strip_extension
+	 *		string files_start_with
+	 *		boolean sort_files
 	 * @return array
 	 */
 	public static function iterate(string $dir, array $options = []) : array {
+		if (isset($options['only_extensions']) && !is_array($options['only_extensions'])) {
+			$options['only_extensions'] = [$options['only_extensions']];
+		}
 		$result = [];
 		$relative_path = realpath($dir);
 		if (empty($options['recursive'])) {
@@ -115,12 +122,12 @@ class File {
 			$iterator = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($dir));
 		}
 		foreach ($iterator as $v) {
+			$filename = $v->getFilename();
 			if (method_exists($v, 'isDot')) {
 				if ($v->isDot()) {
 					continue;
 				}
 			} else {
-				$filename = $v->getFilename();
 				if ($filename === '.' || $filename === '..') {
 					continue;
 				}
@@ -131,8 +138,18 @@ class File {
 			if (!empty($options['only_files']) && !in_array($filename, $options['only_files'])) {
 				continue;
 			}
+			if (!empty($options['files_start_with']) && !str_starts_with($filename, $options['files_start_with'])) {
+				continue;
+			}
+			if (!empty($options['strip_extension'])) {
+				$filename = $v->getBasename('.' . $v->getExtension());
+			}
 			if (empty($options['extended'])) {
-				$result[] = $v->getPathname();
+				if (!empty($options['only_file_names'])) {
+					$result[] = $filename;
+				} else {
+					$result[] = $v->getPathname();
+				}
 			} else {
 				$pathname = $v->getPathname();
 				$result[$pathname] = [
@@ -144,10 +161,17 @@ class File {
 					'type' => $v->getType(),
 					'directory' => $v->getPath(),
 					'basename' => $v->getBasename(),
+					'basename_no_extension' => $v->getBasename('.' . $v->getExtension()),
 					'filename' => $v->getFilename(),
 					'relative_directory' => self::iterateProcessPathInnerHelper($v->getPath(), $relative_path),
 				];
 			}
+		}
+		// sort
+		if (empty($options['extended'])) {
+			sort($result);
+		} else {
+			array_key_sort($result, ['pathname' => SORT_ASC]);
 		}
 		return $result;
 	}

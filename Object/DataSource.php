@@ -122,6 +122,41 @@ class DataSource extends \Object\Table\Options {
 	public $tenant_column;
 
 	/**
+	 * View
+	 *
+	 * @var bool
+	 */
+	public $view = false;
+
+	/**
+	 * View full name
+	 *
+	 * @var string
+	 */
+	public $view_full_name;
+
+	/**
+	 * View temporary
+	 *
+	 * @var bool
+	 */
+	public $view_temporary = false;
+
+	/**
+	 * Temporary table
+	 *
+	 * @var bool
+	 */
+	public $table_temporary = false;
+
+	/**
+	 * Temporary table full name
+	 *
+	 * @var string
+	 */
+	public $table_temporary_full_name;
+
+	/**
 	 * Get
 	 *
 	 * @param array $options
@@ -187,7 +222,9 @@ class DataSource extends \Object\Table\Options {
 				}
 			}
 			// query
-			$this->query = call_user_func_array([$this->primary_model, 'queryBuilderStatic'], [$options])->select();
+			$options2 = $options;
+			$options2['skip_global_scope'] = true;
+			$this->query = call_user_func_array([$this->primary_model, 'queryBuilderStatic'], [$options2])->select();
 		}
 		// we need to determine db link
 		if (empty($this->db_link)) {
@@ -240,6 +277,40 @@ class DataSource extends \Object\Table\Options {
 			// grab cache tags from query object
 			if (!empty($this->query->cache_tags)) {
 				$this->cache_tags = array_unique(array_merge($this->cache_tags, $this->query->cache_tags));
+			}
+		}
+		// view
+		if ($this->view && !empty($parameters['__view_create'])) {
+			$view_name = $this->view_full_name;
+			if ($this->view_temporary) {
+				$view_name.= '_' . \Math::randomHash(16);
+			} else {
+				$view_name.= '_' . sha1(serialize($parameters));
+			}
+			$this->query->view($view_name, $this->view_temporary);
+			$view_result = $this->query->query();
+			// we query from temporary view instead of the table
+			if ($view_result['success']) {
+				$this->query = new \Object\Query\Builder($this->db_link, []);
+				$this->query->columns('a.*');
+				$this->query->from($view_name, 'a');
+				$this->sql_last_query = $this->query->sql();
+			}
+		} else if ($this->table_temporary && !empty($parameters['__temporary_table_create'])) {
+			$table_name = $this->table_temporary_full_name;
+			if ($this->view_temporary) {
+				$table_name.= '_' . \Math::randomHash(16);
+			} else {
+				$table_name.= '_' . sha1(serialize($parameters));
+			}
+			$this->query->temporaryTable($table_name);
+			$table_result = $this->query->query();
+			// we query from temporary view instead of the table
+			if ($table_result['success']) {
+				$this->query = new \Object\Query\Builder($this->db_link, []);
+				$this->query->columns('a.*');
+				$this->query->from($table_name, 'a');
+				$this->sql_last_query = $this->query->sql();
 			}
 		}
 		// determine caching strategy

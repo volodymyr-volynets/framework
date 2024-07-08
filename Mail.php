@@ -43,6 +43,20 @@ class Mail {
 		} else {
 			$result['success'] = true;
 		}
+		// log
+		$notifications = [];
+		if (isset($options['notification_data'])) {
+			$notifications = ['notifications' => $options['notification_data']];
+		}
+		\Log::add([
+			'type' => 'Mail',
+			'only_chanel' => 'default',
+			'message' => 'Mail sent: [' . ($options['notification_name'] ?? 'Direct Mail') . '] ' . $options['subject'],
+			'affected_rows' => $result['error'] ? 0 : 1,
+			'error_rows' => $result['error'] ? 1 : 0,
+			'trace' => $result['error'] ? \Object\Error\Base::debugBacktraceString(null, ['skip_params' => true]) : null,
+			'affected_users' => ['email' => $options['to'], 'user_id' => $options['user_id'] ?? null, 'notification_code' => $options['notification_code'] ?? null],
+		] + $notifications);
 		return $result;
 	}
 

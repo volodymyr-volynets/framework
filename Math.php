@@ -408,4 +408,27 @@ class Math {
 		}
 		return array_shift($arg1);
 	}
+
+	/**
+	 * Random hash
+	 *
+	 * @param int $length
+	 * @return string
+	 */
+	public static function randomHash(int $length) : string {
+		$str = bin2hex(random_bytes($length));
+		return substr($str, 0, $length);
+	}
+
+	/**
+	 * Random number
+	 *
+	 * @param int $length
+	 * @return string
+	 */
+	public static function randomNumber(int $length) : string {
+		$min = (int) str_pad('1', $length - 1, '0', STR_PAD_RIGHT);
+		$max = (int) str_pad('9', $length - 1, '9', STR_PAD_RIGHT);
+		return rand($min, $max);
+	}
 }

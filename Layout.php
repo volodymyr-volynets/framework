@@ -340,6 +340,11 @@ class Layout extends View {
 			header('Content-Disposition: attachment; filename=' . $options['output_file_name']);
 		}
 		$options['extension'] = ($options['extension'] ?? '');
+		\Log::add([
+			'type' => 'Layout',
+			'only_chanel' => 'default',
+			'message' => 'Content type generated: ' . $content_type,
+		]);
 		switch ($content_type . $options['extension']) {
 			case 'application/json':
 				header('Connection: close');
@@ -378,6 +383,7 @@ class Layout extends View {
 			default:
 				echo $data;
 		}
+		\Log::deliver();
 		exit;
 	}
 

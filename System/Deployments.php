@@ -61,7 +61,7 @@ class Deployments {
 				break;
 			}
 			// copying code repository
-			if (!\Helper\File::copy($code_dir, $dep_dir, ['skip_directories' => ['.numbers', '.git', '.docs'], 'skip_files' => ['Makefile', 'Make.cmd', '.gitignore']])) {
+			if (!\Helper\File::copy($code_dir, $dep_dir, ['skip_directories' => ['.numbers', '.git', '.docs', '.vue'], 'skip_files' => ['Makefile', 'Make.cmd', '.gitignore']])) {
 				$result['error'][] = ' - unable to copy code!';
 				break;
 			}
@@ -173,6 +173,28 @@ class Deployments {
 						}
 					}
 				}
+			}
+			// vue
+			if (file_exists($code_dir . '/.vue/dist')) {
+				$vue_dir = $dep_dir . '/public_html/vue';
+				\Helper\File::mkdir($vue_dir, 0777);
+				$files = \Helper\File::iterate($code_dir . '/.vue/dist', ['recursive' => true]);
+				foreach ($files as $v3) {
+					$relative = explode('/application/.vue/dist/', $v3);
+					\Helper\File::copy($v3, $vue_dir . DIRECTORY_SEPARATOR . $relative[1]);
+				}
+				$htaccess = <<<TTT
+<IfModule mod_rewrite.c>
+	RewriteEngine On
+	RewriteCond %{REQUEST_FILENAME} -s [OR]
+	RewriteCond %{REQUEST_FILENAME} -l [OR]
+	RewriteCond %{REQUEST_FILENAME} -d
+	RewriteRule ^.*$ - [NC,L]
+	RewriteRule ^.*$ index.html [NC,L]
+</IfModule>
+DirectoryIndex index.html
+TTT;
+				file_put_contents($vue_dir . DIRECTORY_SEPARATOR . '.htaccess', $htaccess);
 			}
 			// setting permissions
 			\Helper\File::chmod($dep_dir, 0777);

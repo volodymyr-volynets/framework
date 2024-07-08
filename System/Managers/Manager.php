@@ -21,6 +21,9 @@ if (file_exists('../libraries/vendor/autoload.php')) {
 require('../libraries/vendor/numbers/framework/Application.php');
 Application::run(['__run_only_bootstrap' => 1]);
 
+// include constants
+require('../libraries/vendor/numbers/framework/Constants.php');
+
 // disable debug
 \Debug::$debug = false;
 
@@ -68,7 +71,6 @@ try {
 					'db_schema_owner' => $settings['db_schema_owner'],
 					'skip_db_object' => true
 				]);
-				//print_r2($code_result);
 				$result['hint'][] = "   -> Code objects:";
 				foreach ($code_result['count']['default'] as $k2 => $v2) {
 					$result['hint'][] = "       * {$k2}: $v2";
@@ -83,7 +85,6 @@ try {
 					'mode' => $mode,
 					'skip_db_object' => true
 				]);
-				//print_r2($migration_result);
 				$result['hint'][] = "   -> Migration objects:";
 				if (!empty($migration_result['count']['default'])) {
 					foreach ($migration_result['count']['default'] as $k2 => $v2) {
@@ -545,5 +546,5 @@ error:
 }
 
 // success message
-$seconds = Format::timeSeconds(microtime(true) - Application::get('application.system.request_time'));
+$seconds = Format::timeSeconds(microtime(true) - \Application::get('application.system.request_time'));
 echo "\nOperation \"$type\" with mode \"$mode\" completed in {$seconds} seconds!\n\n";

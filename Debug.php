@@ -139,7 +139,7 @@ class Debug {
 		if ($found || !empty(self::$data['js'])) {
 			$message = '<hr/>';
 			$message.= '<br/>IP: ' . \Request::ip();
-			$message.= '<br/>Host: ' . rtrim(\Request::host(), '/') . $_SERVER['REQUEST_URI'];
+			$message.= '<br/>Host: ' . rtrim(\Request::host(), '/') . ($_SERVER['REQUEST_URI'] ?? '');
 			$message.= '<br/>Script folder: ' . getcwd();
 			$message.= '<br/>MVC: ' . \Application::get('mvc.full');
 			$message.= '<br/>User #: ' . \User::id();
@@ -510,5 +510,26 @@ TTT;
 			$result.= '</table>';
 		$result.= '</div>';
 		return $result;
+	}
+
+	/**
+	 * Dump database logs.
+	 */
+	public static function dumpDbLogs(): void {
+		$file = rtrim(\Application::get('debug.log.sql'), '/') . DIRECTORY_SEPARATOR;
+		$file.= 'tenant_' . \Tenant::id() . '_' . \Format::now('timestamp_file') . '.sql';
+		// assemble
+		$log = "";
+		foreach (self::$data['sql'] as $v) {
+			$log.= '---------------------------------------------------------------------------------------------------';
+			$log.= "\n";
+			$log.= $v['sql'];
+			$log.= "\n";
+			$log.= print_r($v['backtrace'], true);
+		}
+		// dump to file
+		$fp = fopen($file, 'x');
+		fwrite($fp, $log);
+		fclose($fp);
 	}
 }

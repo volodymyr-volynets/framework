@@ -63,6 +63,7 @@ class Bootstrap {
 		// create database connections
 		$db = \Application::get('db');
 		if (!empty($db) && $backend) {
+			$db_links = [];
 			foreach ($db as $db_link => $db_settings) {
 				if (empty($db_settings['autoconnect']) || empty($db_settings['servers']) || empty($db_settings['submodule'])) continue;
 				// establish connection
@@ -75,28 +76,81 @@ class Bootstrap {
 					} else {
 						Throw new \Exception('Unable to open database connection!');
 					}
+				} else if ($db_link == 'default') {
+					\Object\Error\Base::$flag_database_default_initiated = true;
 				}
+				$db_links[] = $db_link;
 			}
+			\Log::add([
+				'type' => 'System',
+				'only_chanel' => 'default',
+				'message' => 'Initialized database(s): ' . implode(', ', $db_links),
+			]);
+		}
+		// initialize logs
+		$log = \Application::get('log');
+		unset($log['settings']); // special key for slow query and request
+		if (!empty($log) && $backend) {
+			$log_links = [];
+			foreach ($log as $log_link => $log_settings) {
+				if (empty($log_settings['autoconnect'])) {
+					continue;
+				}
+				$log_model = new \Log($log_link, $log_settings['submodule'], $log_settings);
+				$log_links[]= $log_link;
+			}
+			\Log::add([
+				'type' => 'System',
+				'only_chanel' => 'default',
+				'message' => 'Initialized log(s): ' . implode(', ', $log_links),
+			]);
 		}
 		// initialize caches
 		$cache = \Application::get('cache');
 		if (!empty($cache) && $backend) {
+			$cache_links = [];
 			foreach ($cache as $cache_link => $cache_settings) {
 				if (empty($cache_settings['submodule']) || empty($cache_settings['autoconnect'])) continue;
 				$cache_result = \Cache::connectToServers($cache_link, $cache_settings);
 				if (!$cache_result['success']) {
 					Throw new \Exception(implode(', ', $cache_result['error']));
 				}
+				$cache_links[] = $cache_link;
 			}
+			\Log::add([
+				'type' => 'System',
+				'only_chanel' => 'default',
+				'message' => 'Initialized caches(s): ' . implode(', ', $cache_links),
+			]);
 		}
 		// initialize session
 		$session = \Application::get('flag.global.session');
-		if (!empty($session['start']) && $backend && !\Application::get('flag.global.__skip_session')) {
+		$skip_session = \Application::get('flag.global.__skip_session') ?? false;
+		if (\Application::get('flag.global.__is_api')) {
+			$skip_session = true;
+			$bearer_token = \Application::get('flag.global.__bearer_token');
+			$crypt = new \Crypt();
+			if ($bearer_token && $crypt->bearerAuthorizationTokenValidate($bearer_token)) {
+				\Application::set('flag.global.__session_id', $crypt->bearerAuthorizationTokenDecode($bearer_token)['session_id']);
+				$skip_session = false;
+			}
+		}
+		if (!empty($session['start']) && $backend && !$skip_session) {
 			\Session::start($session['options'] ?? []);
+			\Log::add([
+				'type' => 'System',
+				'only_chanel' => 'default',
+				'message' => 'Initialized session: ' . session_id(),
+			]);
 		}
 		// load tenant
 		if (!empty($application_structure_model) && !empty($application_structure['tenant_multiple'])) {
 			\Factory::model($application_structure_model, true)->tenant();
+			\Log::add([
+				'type' => 'System',
+				'only_chanel' => 'default',
+				'message' => 'Initialized tenant: ' . \Tenant::id(),
+			]);
 		}
 		// we need to get overrides from session and put them back to flag array
 		$flags = array_merge_hard($flags, \Session::get('numbers.flag'));
@@ -115,6 +169,11 @@ class Bootstrap {
 			if (!$temp_result['success']) {
 				Throw new \Exception('Could not initialize i18n.');
 			}
+			\Log::add([
+				'type' => 'System',
+				'only_chanel' => 'default',
+				'message' => 'Initialized I18n!',
+			]);
 		}
 		// format
 		\Format::init();
@@ -132,6 +191,16 @@ class Bootstrap {
 				header('HTTP/1.1 403');
 				echo 'Forbidden';
 				exit;
+			}
+			// domain rules
+			$domains = \Application::get('firewalls.primary.rules.domains');
+			if (!empty($domains)) {
+				if (!\Request::urlWhitelisted(\Request::host(), $domains)) {
+					\Debug::$firewall = true;
+					header('HTTP/1.1 403');
+					echo 'Forbidden';
+					exit;
+				}
 			}
 		}
 	}
@@ -231,12 +300,25 @@ class Bootstrap {
 		}
 		// write sessions
 		session_write_close();
+		// logs just before db closing
+		\Log::add([
+			'type' => 'Request',
+			'only_chanel' => 'default',
+			'message' => 'Request ends.',
+			'duration' => microtime(true) - \Application::get('application.system.request_time'),
+		]);
+		\Log::deliver();
 		// close db connections
 		$dbs = \Factory::get(['db']);
 		if (!empty($dbs)) {
 			foreach ($dbs as $k => $v) {
 				$v['object']->close();
 			}
+		}
+		// logs
+		//\Log::deliver();
+		if (\Application::get('debug.log.sql')) {
+			\Debug::dumpDbLogs();
 		}
 		// emails with errors
 		if (!empty(\Debug::$email) && \Application::get('numbers.backend', ['backend_exists' => true]) && \Application::get('numbers.frontend', ['backend_exists' => true])) {

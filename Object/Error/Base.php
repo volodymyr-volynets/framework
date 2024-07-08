@@ -39,6 +39,13 @@ class Base {
 	public static $flag_database_tenant_not_found = false;
 
 	/**
+	 * Database initiated (default)
+	 *
+	 * @var boolean
+	 */
+	public static $flag_database_default_initiated = false;
+
+	/**
 	 * List of error codes
 	 *
 	 * @var array 
@@ -92,6 +99,16 @@ class Base {
 				'code' => '',
 				'backtrace' => []
 			];
+			\Log::add([
+				'type' => 'Error',
+				'only_chanel' => ['default', 'email'],
+				'status' => $errno,
+				'message' => 'Javascript error ocured: ' . $error,
+				'affected_rows' => 0,
+				'error_rows' => 1,
+				'trace' => null,
+				'level' => 'JAVASCRIPT'
+			]);
 		} else if (error_reporting() !== 0) { // important: we do not process suppressed errors
 			self::$errors[] = [
 				'errno' => $errno,
@@ -101,6 +118,16 @@ class Base {
 				'code' => self::getCode($file, $line),
 				'backtrace' => self::debugBacktraceString()
 			];
+			\Log::add([
+				'type' => 'Error',
+				'only_chanel' => ['default', 'email'],
+				'status' => $errno,
+				'message' => 'Error ocured: ' . $error,
+				'affected_rows' => 0,
+				'error_rows' => 1,
+				'trace' => \Object\Error\Base::debugBacktraceString(null, ['skip_params' => true]),
+				'level' => self::$error_codes[$errno],
+			]);
 		} else if (\Debug::$debug) {
 			\Debug::$data['suppressed'][] = [
 				'errno' => $errno,
@@ -110,6 +137,16 @@ class Base {
 				'code' => self::getCode($file, $line),
 				'backtrace' => self::debugBacktraceString()
 			];
+			\Log::add([
+				'type' => 'Error',
+				'only_chanel' => ['default', 'email'],
+				'status' => $errno,
+				'message' => 'Supperssed error ocured: ' . $error,
+				'affected_rows' => 0,
+				'error_rows' => 1,
+				'trace' => \Object\Error\Base::debugBacktraceString(null, ['skip_params' => true]),
+				'level' => self::$error_codes[$errno],
+			]);
 		}
 		// hashing errors
 		if ($errno != 'javascript') {
@@ -127,17 +164,40 @@ class Base {
 	 */
 	public static function exceptionHandler(\Throwable $e) {
 		$code = $e->getCode();
-		if (get_class($e) == 'Object\Error\UserException') {
-			$code = -1;
+		switch (get_class($e)) {
+			case \Object\Error\UserException::class:
+				$code = -1;
+				$type= 'Exception (User)';
+				break;
+			case \Object\Error\ResourseNotFoundException::class:
+				$code = -1;
+				$type = 'Exception (Resourse Not Found)';
+				break;
+			case \Object\Error\PermissionException::class:
+				$code = -1;
+				$type = 'Exception (Permission)';
+				break;
+			default:
+				$type = 'Exception (General)';
 		}
 		self::$errors[] = [
 			'errno' => $code,
-			'error' => [$e->getMessage()],
+			'error' => explode("\n", $e->getMessage()),
 			'file' => $e->getFile(),
 			'line' => $e->getLine(),
 			'code' => self::getCode($e->getFile(), $e->getLine()),
 			'backtrace' => self::debugBacktraceString($e->getTrace())
 		];
+		\Log::add([
+			'type' => $type,
+			'only_chanel' => ['default', 'email'],
+			'status' => $code,
+			'message' => 'Exception ocured: ' . $e->getMessage(),
+			'affected_rows' => 0,
+			'error_rows' => 1,
+			'trace' => \Object\Error\Base::debugBacktraceString($e->getTrace(), ['skip_params' => true]),
+			'level' => 'EXCEPTION',
+		]);
 		self::$flag_exception = true;
 		exit;
 	}
@@ -173,7 +233,7 @@ class Base {
 	 * @param array $trace
 	 * @return array
 	 */
-	public static function debugBacktraceString($trace = null) {
+	public static function debugBacktraceString($trace = null, array $options = []) {
 		$result = [];
 		//if (!\Debug::$debug) return $result;
 		$i = 1;
@@ -197,12 +257,15 @@ class Base {
 				if (isset($v['args'])) {
 					foreach ($v['args'] as $v2) {
 						if (gettype($v2) == 'string') {
-							$params[] = str_replace(["\n", "\r", "\t"], ' ', $v2);
+							$params[] = str_replace(["\n", "\r", "\t", "'", '"'], ' ', $v2);
 						} else if (is_array($v2)) {
 							$temp = var_export_condensed($v2, ['skip_objects' => true]);
-							$params[] = substr($temp, 0, 100) . '...';
+							$temp = str_replace(["\n", "\r", "\t", "'", '"'], ' ', $temp);
+							$params[] = substr($temp, 0, 200) . '...';
 						} else {
-							$params[] = var_export_condensed($v2, ['skip_objects' => true]);
+							$temp = var_export_condensed($v2, ['skip_objects' => true]);
+							$temp = str_replace(["\n", "\r", "\t", "'", '"'], ' ', $temp);
+							$params[] = substr($temp, 0, 200) . '...';
 						}
 					}
 				}

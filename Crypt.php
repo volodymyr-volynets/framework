@@ -157,4 +157,37 @@ class Crypt {
 	public function uncompress($data) {
 		return $this->object->uncompress($data);
 	}
+
+	/**
+	 * Bearer authorization token create
+	 *
+	 * @param int|null $user_id
+	 * @param int|null $tenant_id
+	 * @param string|null $ip
+	 * @param string|null $session_id
+	 * @return string
+	 */
+	public function bearerAuthorizationTokenCreate(?int $user_id = null, ?int $tenant_id = null, ?string $ip = null, ?string $session_id = null) : string {
+		return $this->object->bearerAuthorizationTokenCreate($user_id, $tenant_id, $ip, $session_id);
+	}
+
+	/**
+	 * Bearer authorization token validate
+	 *
+	 * @param string $token
+	 * @return bool
+	 */
+	public function bearerAuthorizationTokenValidate(string $token) : bool {
+		return $this->object->bearerAuthorizationTokenValidate($token);
+	}
+
+	/**
+	 * Bearer authorization token decode
+	 *
+	 * @param string $token
+	 * @return array
+	 */
+	public function bearerAuthorizationTokenDecode(string $token) : array {
+		return $this->object->bearerAuthorizationTokenDecode($token);
+	}
 }

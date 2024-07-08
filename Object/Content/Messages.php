@@ -21,6 +21,7 @@ class Messages {
 	const OPTIMISTIC_LOCK = 'Someone has updated the record while you were editing, please refresh!';
 	const NO_CHANGES = 'Records have not been changed, nothing to save!';
 	const SUBMISSION_PROBLEM = 'There was a problem with your submission!';
+	const SUBMISSION_COUNT_PROBLEM = 'There was [count] problem(s) with your submission!';
 	const SUBMISSION_WARNING = 'Your submission contains warnings!';
 	const STRING_UPPERCASE = 'The string must be uppercase!';
 	const STRING_LOWERCASE = 'The string must be lowercase!';
@@ -36,6 +37,7 @@ class Messages {
 	const AMOUNT_ROUNDED = 'The amount has been rounded!';
 	// good messages
 	const RECORD_DELETED = 'Record(s) has been successfully deleted!';
+	const RECORD_NUMBER_DELETED = '[number] record(s) has been successfully deleted!';
 	const RECORD_INSERTED = 'Record(s) has been successfully created!';
 	const RECORD_UPDATED = 'Record(s) has been successfully updated!';
 	const RECORD_POSTED = 'Record(s) has been successfully posted!';
@@ -45,7 +47,7 @@ class Messages {
 	const OPERATION_EXECUTED = 'Operation has been successfully executed!';
 	const FILTER_DELETED = 'Filter has been deleted!';
 	// confirmation
-	const CONFIRM_DELETE = 'Are you sure you want to delete this record?';
+	const CONFIRM_DELETE = 'Are you sure you want to delete this record(s)?';
 	const CONFIRM_RESET = 'Are you sure you want to reset?';
 	const CONFIRM_BLANK = 'The changes you made would be lost, proceed?';
 	const CONFIRM_CUSTOM = 'Are you sure you want to [action]?';
@@ -64,6 +66,22 @@ class Messages {
 	const CLICK_HERE = 'Click here';
 	// other
 	const NEW = 'New';
+	const LOADING = 'Loading...';
+	const LOADING_PERCENT = 'Loading [percent].';
+	const LOADING_COMPLETED = 'Loading [percent], [completed] of [total].';
+	// Route messages
+	const ROUTE_INVALID_METHODS = 'Invalid methods [methods] provided!';
+	const ROUTE_INVALID_METHOD = 'Invalid method [method] provided!';
+	const ROUTE_NAME_EXISTS = 'Provided named route [name] already exists!';
+	const ROUTE_UNKNOWN_ACL_PARAMETER = 'Unknown ACL parameter [parameter]!';
+	const ROUTE_NAME_NOT_FOUND = 'Provided named route [name] not found!';
+	const ROUTE_NOT_FOUND = 'Route not found!';
+	const ROUTE_ACL_UNAUTHORIZED = 'Unauthorized!';
+	const ROUTE_ACL_NOT_PUBLIC = 'Not public controller!';
+	const ROUTE_ACL_NOT_AUTHORIZED = 'You cannnot view this controller when authorized!';
+	const ROUTE_PERMISSION_DENIED = 'You do not have permission to access this route!';
+	const ROUTE_INVALID_TYPE = 'Invalid type [type] provided!';
+	const ROUTE_BEARER_TOKEN_EXPIRED = 'Bearer token is missing or expired!';
 
 	/**
 	 * Active
@@ -76,5 +94,34 @@ class Messages {
 			$value = $value ? false : true;
 		}
 		return i18n(null, !empty($value) ? 'Yes' : 'No');
+	}
+
+	/**
+	 * Throw message
+	 *
+	 * @param string $const
+	 * @param array|null $replace
+	 * @param bool $i18n
+	 * @param bool $throw
+	 * @return string
+	 */
+	public static function message(string $const, ?array $replace = null, bool $i18n = true, bool $throw = false, int $code = 0) : string {
+		if (strpos($const, '::') === false) {
+			$const = '\Object\Content\Messages::'. $const;
+		}
+		$text = constant($const);
+		if ($i18n) {
+			$text = i18n(null, $text, ['replace' => $replace]);
+		} else {
+			if (isset($replace)) {
+				foreach ($replace as $k => $v) {
+					$text = str_replace($k, $v ?? '', $text . '');
+				}
+			}
+		}
+		if ($throw) {
+			Throw new \Exception($text, $code);
+		}
+		return $text;
 	}
 }

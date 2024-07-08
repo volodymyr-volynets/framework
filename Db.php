@@ -288,4 +288,96 @@ class Db {
 		$result['error'][] = 'Unable to open db connection!';
 		return $result;
 	}
+
+	/**
+	 * Transaction
+	 *
+	 * @param string $db_link
+	 * @param callable $callback
+	 * @return array
+	 */
+	public function transaction(string $db_link, callable $callback) : array {
+		$this->begin();
+		$result = $callback($db_link, $this);
+		if ($result === false) {
+			return $this->rollback();
+		}
+		return $this->commit();
+	}
+
+	/**
+	 * Transaction static
+	 *
+	 * @param string $db_link
+	 * @param callable $callback
+	 * @return array
+	 */
+	public function transactionStatic(string $db_link, callable $callback) : array {
+		$db_object = new static($db_link);
+		return $db_object->transaction($db_link, $callback);
+	}
+
+	/**
+	 * UUID4
+	 *
+	 * @return string
+	 */
+	public static function uuid4() : string {
+		$bytes = bin2hex(random_bytes(16));
+		return sprintf("%s-%s-%s-%s-%s",
+			substr($bytes, 0, 8),
+			substr($bytes, 8, 4),
+			substr($bytes, 12, 4),
+			substr($bytes, 16, 4),
+			substr($bytes, 20)
+		);
+	}
+
+	/**
+	 * UUID for tenant
+	 *
+	 * @param int|null $tenant_id
+	 * 		0 - all tenants
+	 * 		null - current tenant
+	 * @param ?string $ip
+	 * @return string
+	 */
+	public static function uuidTenanted(?int $tenant_id = null, ?string $ip = null) : string {
+		if ($tenant_id === null) {
+			$tenant_id = \Tenant::id() ?? 0;
+		}
+		if (!$ip) {
+			$ip = \Request::ip();
+		}
+		$microtime = explode(" ", microtime());
+		return sprintf('%04x-%08s-%08s-%04s-%04x%04x',
+			$tenant_id,
+			dechex(ip2long($ip)),
+			substr("00000000" . dechex($microtime[1]), -8),
+			substr("0000" . dechex(round($microtime[0] * 65536)), -4),
+			mt_rand(0, 0xffff),
+			mt_rand(0, 0xffff)
+		);
+	}
+
+	/**
+	 * UUID for tenant (Decode)
+	 *
+	 * @param string $uuid
+	 * @return array
+	 */
+	public static function uuidTenantedDecode(string $uuid) : array {
+		$result = [];
+		$parts = explode('-', $uuid);
+		if (is_array($parts) && count($parts) == 5) {
+			$result = [
+				'tenant_id' => (int) $parts[0],
+				'ip' => long2ip(hexdec($parts[1])),
+				'unixtime' => hexdec($parts[2]),
+				'micro' => hexdec($parts[3]) / 65536,
+				'random' => ($parts[4]),
+			];
+		}
+		return $result;
+	}
 }

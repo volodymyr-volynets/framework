@@ -19,6 +19,26 @@ define('CHART5', 'chart5');
 define('NONE', 0);
 define('ODD', 1);
 define('EVEN', 2);
+// table / active record constants
+define('MASKABLE', 'MASKABLE');
+define('PASSWORDABLE', 'PASSWORDABLE');
+define('GENERABLE', 'GENERABLE');
+define('READ_ONLY', 'READ_ONLY');
+define('READ_IF_SET', 'READ_IF_SET');
+define('CASTABLE', 'CASTABLE');
+define('FORMATABLE', 'FORMATABLE');
+define('ACTION_ALL', [MASKABLE, PASSWORDABLE, GENERABLE, READ_ONLY, READ_IF_SET, CASTABLE, FORMATABLE]);
+define('ACTION_KEYS', ['concat', 'method', 'php_type', 'format', 'options']);
+define('ALL', 'ALL');
+// date constants
+define('YEAR', 'YEAR');
+define('YEAR_AND_MONTH', 'YEAR_AND_MONTH');
+define('MONTH', 'MONTH');
+define('PERIOD', 'PERIOD');
+define('DAY', 'DAY');
+// result
+define('RESULT_BLANK', ['success' => false, 'error' => [], 'data' => []]);
+define('RESULT_SUCCESS', ['success' => true, 'error' => [], 'data' => []]);
 
 /**
  * Concatenate parameters if not empty
@@ -167,13 +187,24 @@ function array_remove_token($tokens, $token) {
  * @param mixed $data
  * @param string $name
  * @param boolean $return
+ * @param array $options
+ * 		width
  * @return string
  */
-function print_r2($data, string $name = '', bool $return = false) {
+function print_r2($data, string $name = '', bool $return = false, array $options = []) {
 	if (!empty($name)) {
 		$name = "\n[" . $name . "]\n\n";
 	}
-	$result = '<pre>' . $name . print_r($data, true) . '</pre>' . "\n";
+	$style = '';
+	if (isset($options['width'])) {
+		$style = 'width: ' . $options['width'];
+	}
+	// for command line we just print
+	if (\Helper\Cmd::isCli()) {
+		$result = $name . print_r($data, true) . "\n";
+	} else { // HTML
+		$result = '<pre style="' . $style . '">' . $name . print_r($data, true) . '</pre>' . "\n";
+	}
 	if ($return) {
 		return $result;
 	} else {
@@ -649,12 +680,23 @@ function array_key_sort_prepare_keys($keys, $flag_string = false) {
  * @param string $suffix
  * @param boolean $strip
  */
-function array_key_prefix_and_suffix(& $arr, $prefix = null, $suffix = null, $strip = false) {
+function array_key_prefix_and_suffix(& $arr, $prefix = null, $suffix = null, $strip = false, $existing_check = false) {
 	if ($prefix . '' != '' || $suffix . '' != '') {
 		foreach ($arr as $k => $v) {
 			// appending / prepending
 			if (!$strip) {
-				$arr[$prefix . $k . $suffix] = $v;
+				$new_key = $k;
+				if ($existing_check) {
+					if ($prefix !== null && !str_starts_with($k, $prefix)) {
+						$new_key = $prefix . $new_key;
+					}
+					if ($suffix !== null && !str_ends_with($k, $suffix)) {
+						$new_key = $new_key . $suffix;
+					}
+				} else {
+					$new_key = $prefix . $new_key . $suffix;
+				}
+				$arr[$new_key] = $v;
 			} else { // stripping
 				$arr[str_replace([$prefix, $suffix], '', $k)] = $v;
 			}
@@ -662,6 +704,22 @@ function array_key_prefix_and_suffix(& $arr, $prefix = null, $suffix = null, $st
 		}
 	}
 }
+
+/**
+ * Prefix and suffix string to keys in multi-dimentional array
+ *
+ * @param array $arr
+ * @param string $prefix
+ * @param string $suffix
+ * @param boolean $strip
+ */
+function array_multiple_prefix_and_suffix(& $arr, $prefix = null, $suffix = null, $strip = false, $existing_check = false) {
+	foreach ($arr as $k => $v) {
+		array_key_prefix_and_suffix($v, $prefix, $suffix, $strip, $existing_check);
+		$arr[$k] = $v;
+	}
+}
+
 
 /**
  * Perform math on an array
@@ -738,6 +796,30 @@ function array_key_get(& $arr, $keys = null, $options = []) {
 }
 
 /**
+ * Check if key exists in an array
+ *
+ * @param array $arr
+ * @param mixed $keys
+ * @return bool
+ */
+function array_key_check_if_key_exists(& $arr, $keys) : bool {
+	$keys = array_key_convert_key($keys);
+	$key = $keys;
+	$last = array_pop($key);
+	$pointer = & $arr;
+	foreach ($key as $k2) {
+		if (!array_key_exists($k2, $pointer)) {
+			return false;
+		}
+		$pointer = & $pointer[$k2];
+	}
+	if (array_key_exists($last, $pointer)) {
+		return true;
+	}
+	return false;
+}
+
+/**
  * Set value in the array
  *
  * @param array $arr
@@ -793,7 +875,11 @@ function array_key_set_by_key_name(& $arr, $keys = null, $value = null, $options
 	}
 	$temp = [];
 	foreach ($keys as $k) {
-		$temp[] = $value[$k];
+		if (is_object($value)) {
+			$temp[] = $value->{$k};
+		} else {
+			$temp[] = $value[$k];
+		}
 	}
 	// unsetting keys
 	if (!empty($options['unset_keys'])) {
@@ -1435,4 +1521,186 @@ function array_walk_recursive_find_by_key($options, $value) {
 		}
 	}
 	return null;
+}
+
+/**
+ * Array column unique
+ *
+ * @param array $arr
+ * @param string $column
+ * @return array
+ */
+function array_column_unique(array $arr, string $column) : array {
+	return array_unique(array_column($arr, $column));
+}
+
+/**
+ * Array2 helper function
+ *
+ * @param array|JsonSerializable|Traversable|string $data
+ * @return \Array2
+ */
+function array2(array|JsonSerializable|Traversable|string $data = []) : \Array2 {
+	return new \Array2($data);
+}
+
+/**
+ * Object cast
+ *
+ * @param object $destination
+ * @param object $source
+ * @return bool
+ */
+function object_cast(& $destination, $source) : bool {
+    $reflection = new \ReflectionObject($source);
+    $properties = $reflection->getProperties();
+    foreach ($properties as $v) {
+        $name = $v->getName();
+        if (gettype($source->{$name}) == "object") {
+            object_cast($destination->{$name}, $source->{$name});
+        } else {
+            $destination->{$name} = $source->{$name};
+        }
+    }
+	return true;
+}
+
+/**
+ * Class method exists
+ *
+ * @param mixed $class
+ * @param string $method
+ * @param string $type
+ */
+function is_class_method_exists($class, string $method, string $type = 'any') : bool {
+	try {
+		$reflection = new \ReflectionMethod($class, $method);
+		switch($type) {
+			case 'static':
+				return $reflection->isStatic();
+			case 'public':
+				return $reflection->isPublic();
+			case 'protected':
+				return $reflection->isProtected();
+			case 'private':
+				return $reflection->isProtected();
+		}
+		return method_exists($class, $method);
+	} catch (\Exception $e) {
+		return false;
+	}
+ }
+
+ /**
+  * Is numeric key array
+  *
+  * @param mixed $arr
+  * @return bool
+  */
+function is_numeric_key_array($arr) : bool {
+	if (!is_array($arr)) {
+		return false;
+	}
+	if ($arr === []) {
+		return true;
+	}
+	return array_keys($arr) === range(0, count($arr) - 1);
+}
+
+/**
+ * Array arguments
+ *
+ * @param array $arguments
+ * @return array
+ */
+function array_arguments(array $arguments) : array {
+	foreach ($arguments as $k => $v) {
+		if (is_string($v)) {
+			$arguments[$k] = [$v];
+		}
+	}
+	if (count($arguments) == 1) {
+		return $arguments[0];
+	} else {
+		return array_merge(...$arguments);
+	}
+}
+
+/**
+ * Define if not set
+ *
+ * @param string $name
+ * @param mixed $value
+ */
+function define_if_not_set(string $name, $value) : void {
+	if (!defined($name)) {
+		define($name, $value);
+	}
+}
+
+/**
+ * Require if exists
+ *
+ * @param string $filename
+ * @param bool $once
+ * @return bool
+ */
+function require_if_exists(string $filename, bool $once = true) : bool {
+	if (file_exists($filename)) {
+		if ($once) {
+			require_once($filename);
+		} else {
+			require($filename);
+		}
+		return true;
+	} else {
+		return false;
+	}
+}
+
+/**
+ * Assemble string until characters are not met
+ *
+ * @param string $str
+ * @param array $until
+ * @return string
+ */
+function str_assemble_until(string $str, array $until = ["\n", "\r", "\t", ' ']) : string {
+	$result = '';
+	foreach (str_split($str) as $v) {
+		if (in_array($v, $until)) {
+			break;
+		}
+		$result.= $v;
+	}
+	return $result;
+}
+
+/**
+ * Print nicely
+ *
+ * @param mixed $arr
+ * @param array $options
+ * @return string
+ */
+function print_r_nicely($arr, array $options = []) : string {
+	$options['remove_system_fields'] = $options['remove_system_fields'] ?? true;
+	$options['remove_empty_fields'] = $options['remove_empty_fields'] ?? false;
+	$options['width'] = $options['width'] ?? null;
+	if (is_json($arr)) {
+		$arr = json_decode($arr, true);
+	} if (is_string($arr)) {
+		return print_r2($arr, '', true, ['width' => $options['width']]);
+	}
+	foreach ($arr as $k => $v) {
+		if ($options['remove_system_fields'] && str_starts_with($k, '__')) {
+			unset($arr[$k]);
+			continue;
+		}
+		if ($options['remove_empty_fields'] && empty($v)) {
+			unset($arr[$k]);
+			continue;
+		}
+	}
+	return print_r2($arr, '', true, ['width' => $options['width']]);
 }

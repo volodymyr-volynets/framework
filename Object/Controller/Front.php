@@ -10,7 +10,7 @@ class Front {
 	 * @return array
 	 */
 	public static function mvc($url = '') {
-		$result = array(
+		$result = [
 			'controller' => '',
 			'controller_extension' => '',
 			'action' => '',
@@ -20,7 +20,7 @@ class Front {
 			'hash_parts' => [],
 			'filename' => '',
 			'controllers' => [],
-		);
+		];
 		// remove an extra backslashes from left side
 		$request_uri = explode('?', trim($url, '/'));
 		$request_uri = $request_uri[0];
@@ -112,7 +112,10 @@ class Front {
 		// parsing request
 		$data = self::mvc($request_uri);
 		// forming class name and file
-		if (in_array('Controller', $data['controllers'])) {
+		if ($data['controllers'][0] == 'Controller') {
+			$controller_class = str_replace(' ', '\\', implode(' ', $data['controllers']));
+			$file = './' . str_replace('\\', DIRECTORY_SEPARATOR, $controller_class . '.php');
+		} else if (in_array('Controller', $data['controllers'])) {
 			$controller_class = str_replace(' ', '\\', implode(' ', $data['controllers']));
 			$file = './../libraries/private/' . str_replace('\\', DIRECTORY_SEPARATOR, $controller_class . '.php');
 			if (!file_exists($file)) {
@@ -132,6 +135,7 @@ class Front {
 		// assembling everything into settings
 		$data = $data;
 		$data['controller_class'] = $controller_class;
+		$data['controller_path'] = '/' . implode('/', $data['controllers']);
 		$data['controller_action'] = 'action' . str_replace('_', ' ', $data['action']);
 		$data['controller_action_code'] = $data['action'];
 		$data['controller_id'] = $data['id'];
