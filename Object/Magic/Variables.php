@@ -12,6 +12,7 @@ class Variables extends \Object\Data {
 	];
 	public $data = [
 		'__module_id' => ['no_magic_variable_description' => 'Module #'],
+		'__db_token' => ['no_magic_variable_description' => 'Db Token'],
 		'__content_type' => ['no_magic_variable_description' => 'Content Type'],
 		//'__in_language_code' => ['no_magic_variable_description' => 'I/N Language Code'],
 		'__in_group_id' => ['no_magic_variable_description' => 'I/N Group #'],

@@ -88,6 +88,7 @@ class Front {
 		}
 		// full string
 		$result['full'] = $result['controller'] . '/_' . $result['action'];
+		$result['full_with_template'] = \Request::fixUrl($result['controller'] . '/_' . $result['action'], \Application::get('application.template.name'));
 		$result['full_with_host'] = rtrim(\Request::host(), '/') . $result['controller'] . '/_' . $result['action'];
 		return $result;
 	}

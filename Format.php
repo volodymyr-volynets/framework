@@ -729,6 +729,8 @@ class Format {
 				$options['locale_options']['mon_thousands_sep'] = '';
 			}
 		}
+		// we need to clean number
+		$amount = self::readFloatval($amount);
 		// formatting if we use locale
 		if (self::useLocale()) {
 			if ($options['symbol'] ?? false) {
@@ -740,7 +742,16 @@ class Format {
 				$formater->setTextAttribute($formater::CURRENCY_CODE, $options['currency_code']);
 			}
 			$formater->setAttribute($formater::FRACTION_DIGITS, $options['decimals']);
-			return $formater->format($amount);
+			$result = $formater->format($amount);
+			if (!empty($options['skip_decimal_zeros'])) {
+				$result = rtrim($result, '0');
+				$result = rtrim($result, '.');
+			}
+			if (!empty($options['accounting']) && $amount < 0) {
+				return '(' . $result . ')';
+			} else {
+				return $result;
+			}
 		} else { // if we are not using locale
 			if (!empty($options['accounting']) && $amount < 0) {
 				return '(' . number_format(abs($amount), $options['decimals'], self::$options['locale_options']['mon_decimal_point'] ?? '.', self::$options['locale_options']['mon_thousands_sep']) . ')';

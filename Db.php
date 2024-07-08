@@ -226,7 +226,7 @@ class Db {
 	 * Generate sequence
 	 *
 	 * @param string $sequence_name
-	 * @param string $type - nextval or curval
+	 * @param string $type - nextval or currval
 	 * @param int $tenant
 	 * @param int $module
 	 * @return array

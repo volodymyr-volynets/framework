@@ -204,6 +204,12 @@ class Parent2 extends \Object\Override\Data {
 	const BUTTON_PRINT_DATA = ['order' => -100, 'button_group' => 'left', 'value' => 'Print', 'type' => 'default', 'icon' => 'fas fa-print', 'method' => 'button2', 'accesskey' => 'p', 'process_submit' => true];
 
 	/**
+	 * Submit generate
+	 */
+	const BUTTON_SUBMIT_GENERATE = '__submit_generate';
+	const BUTTON_SUBMIT_GENERATE_DATA = ['order' => 100, 'button_group' => 'left', 'value' => 'Generate', 'type' => 'danger', 'method' => 'button2', 'icon' => 'fas fa-sync-alt', 'accesskey' => 'g', 'process_submit' => true];
+
+	/**
 	 * Standard buttons
 	 */
 	const BUTTONS_DATA_GROUP = [

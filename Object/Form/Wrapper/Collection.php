@@ -78,6 +78,11 @@ abstract class Collection {
 	/**
 	 * Widgets row
 	 */
+	const FEATURED_ROW = '__collection_featured_row';
+
+	/**
+	 * Widgets row
+	 */
 	const WIDGETS_ROW = '__collection_widgets_row';
 
 	/**

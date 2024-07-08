@@ -211,7 +211,7 @@ class Layout extends View {
 	 * @return string
 	 */
 	public static function renderDocumentTitle() {
-		$title = strip_tags(self::renderTitle());
+		$title = trim(strip_tags(self::renderTitle() ?? ''));
 		return '<title>' . $title . '</title>';
 	}
 

@@ -277,6 +277,20 @@ class HTML {
 	}
 
 	/**
+	 * Accordion
+	 *
+	 * @param array $options
+	 *	options - array of options
+	 *		id
+	 *		title
+	 *		content
+	 * @return string
+	 */
+	public static function accordion(array $options = []) : string {
+		return \Factory::delegate('flag.numbers.framework.html', 'accordion', [$options]);
+	}
+	
+	/**
 	 * Labels with background
 	 *
 	 * @param array $options

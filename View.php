@@ -12,7 +12,7 @@ class View {
 	 * @param string $file
 	 * @return object
 	 */
-	public function __construct(& $controller, string $file, string $type = 'html') {
+	public function __construct(& $controller, string $file, string $type = 'html', ?string $controller_html = null) {
 		// get values from controller
 		foreach ((array) $controller->data as $k => $v) {
 			$this->{$k} = $v;
@@ -30,6 +30,9 @@ class View {
 				ob_start();
 				require($file);
 				$html = \I18n::htmlReplaceTags(ob_get_clean());
+				if (isset($controller_html)) {
+					$html = str_replace('<!-- [numbers: controller content] -->', $controller_html, $html);
+				}
 				echo \Request::htmlReplaceTags($html);
 		}
 		// set values back into controller

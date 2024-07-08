@@ -8,7 +8,7 @@ class Month extends \Object\Validator\Base {
 	 */
 	public function validate($value, $options = []) {
 		$result = $this->result;
-		$result['placeholder'] = '##';
+		$result['placeholder'] = 'MM';
 		$result['placeholder_select'] = 'Month';
 		$value = (int) $value;
 		if ($value < 1 || $value > 12) {

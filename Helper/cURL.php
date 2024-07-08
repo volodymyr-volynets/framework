@@ -21,7 +21,8 @@ class cURL {
 			'error' => [],
 			'data' => null,
 			'info' => null,
-			'params' => $options['params'] ?? []
+			'params' => $options['params'] ?? [],
+			'url' => $url
 		];
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, $url);
@@ -38,6 +39,7 @@ class cURL {
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 		curl_setopt($ch, CURLOPT_USERAGENT, self::USERAGENT);
 		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 		// basic authentication
 		if (!empty($options['basic_auth'])) {
 			curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
@@ -53,6 +55,8 @@ class cURL {
 		}
 		if (!curl_errno($ch)) {
 			$result['info'] = curl_getinfo($ch);
+		} else {
+			$result['error'][] = curl_error($ch);
 		}
 		curl_close($ch);
 		$result['success'] = true;
@@ -87,6 +91,7 @@ class cURL {
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 		curl_setopt($ch, CURLOPT_USERAGENT, self::USERAGENT);
 		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 		// basic authentication
 		if (!empty($options['basic_auth'])) {
 			curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
@@ -102,6 +107,8 @@ class cURL {
 		}
 		if (!curl_errno($ch)) {
 			$result['info'] = curl_getinfo($ch);
+		} else {
+			$result['error'][] = curl_error($ch);
 		}
 		curl_close($ch);
 		$result['success'] = true;
@@ -112,14 +119,18 @@ class cURL {
 	 * Multi exec get
 	 *
 	 * @param array $urls
-	 *		url
+	 *	url
+	 * @param array $options
+	 *	bool json
+	 *      bool info
 	 * @return array
 	 */
-	public static function multiExecGet(array $urls) : array {
+	public static function multiExecGet(array $urls, array $options =[]) : array {
 		$result = [
 			'success' => false,
 			'error' => [],
-			'data' => []
+			'data' => [],
+			'info' => []
 		];
 		// create both cURL resources
 		$ch = [];
@@ -127,27 +138,47 @@ class cURL {
 		foreach ($urls as $k => $v) {
 			$ch[$k] = curl_init();
 			curl_setopt($ch[$k], CURLOPT_URL, $v['url']);
+			curl_setopt($ch[$k], CURLOPT_USERAGENT, self::USERAGENT);
 			curl_setopt($ch[$k], CURLOPT_HEADER, 0);
 			curl_setopt($ch[$k], CURLOPT_RETURNTRANSFER, 1);
+			curl_setopt($ch[$k], CURLOPT_FOLLOWLOCATION, true);
 			curl_setopt($ch[$k], CURLOPT_SSL_VERIFYPEER, false);
+			curl_setopt($ch[$k], CURLOPT_SSL_VERIFYHOST, false);
+			curl_setopt($ch[$k], CURLOPT_VERBOSE, 1);
 			// add handles
 			curl_multi_add_handle($mh, $ch[$k]);
 		}
 		$active = null;
 		// execute the handles
 		do {
-			$status = curl_multi_exec($mh, $active);
-			if ($active) {
-				curl_multi_select($mh);
+			$mrc = curl_multi_exec($mh, $active);
+			usleep(10000);
+		} while ($mrc == CURLM_CALL_MULTI_PERFORM);
+		while ($active && $mrc == CURLM_OK) {
+			if (curl_multi_select($mh) != -1) {
+				do {
+					$mrc = curl_multi_exec($mh, $active);
+					usleep(10000);
+				} while ($mrc == CURLM_CALL_MULTI_PERFORM);
 			}
-			// check for errors
-			if ($status > 0) {
-				$result['error'][] = curl_multi_strerror($status);
-			}
-		} while ($active && $status == CURLM_OK);
+		}
+		// Check for errors
+		if ($mrc != CURLM_OK) {
+			$result['error'][] = curl_multi_strerror($mrc);
+		}
 		// close the handles
 		foreach ($ch as $k => $v) {
 			$result['data'][$k] = curl_multi_getcontent($v); // get the content
+			if (!empty($options['json']) && !empty($result['data'][$k])) {
+				$result['data'][$k] = json_decode($result['data'][$k], true);
+			}
+			if (!empty($options['info'])) {
+				$result['info'][$k] = curl_getinfo($v);
+			}
+			$error = curl_error($v);
+			if ($error) {
+				$result['error'][] = $error;
+			}
 			curl_multi_remove_handle($mh, $v);
 			curl_close($v);
 		}

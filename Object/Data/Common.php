@@ -163,6 +163,7 @@ class Common {
 		$format = [];
 		$options_map_new = [];
 		$format_methods = [];
+		$prefix = [];
 		foreach ($options_map as $k => $v) {
 			if (is_array($v)) {
 				$options_map_new[$k] = $v['field'];
@@ -173,6 +174,9 @@ class Common {
 					$format[$k] = $v;
 					$format_methods[$k] = \Factory::method($v['format'], 'format');
 				}
+				if (!empty($v['prefix'])) {
+					$prefix[$k] = i18n(null, $v['prefix']);
+				}
 			} else {
 				$options_map_new[$k] = $v;
 				if (!empty($options['i18n']) && $v != 'icon_class' && $v != 'flag_country_code') {
@@ -181,7 +185,7 @@ class Common {
 			}
 		}
 		// we need to i18n and process formats
-		if (!empty($i18n) || !empty($format)) {
+		if (!empty($i18n) || !empty($format) || !empty($prefix)) {
 			foreach ($data as $k => $v) {
 				// localize
 				if (!empty($i18n)) {
@@ -200,6 +204,12 @@ class Common {
 							}
 						}
 						$data[$k][$k2] = call_user_func_array([$format_methods[$k2][0], $format_methods[$k2][1]], [$data[$k][$k2], $v2['format_options'] ?? []]);
+					}
+				}
+				// prefix
+				if (!empty($prefix)) {
+					foreach ($prefix as $k2 => $v2) {
+						$data[$k][$k2] = $v2 . ' ' . $data[$k][$k2];
 					}
 				}
 			}

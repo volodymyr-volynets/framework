@@ -49,6 +49,7 @@ class API {
 	 * @return array
 	 */
 	public function get(array $input, array $options = []) : array {
+		$input = array_merge($input, ['__is_api_get' => true]);
 		$this->form->form_object->addInput($input);
 		$this->form->form_object->process();
 		return $this->form->form_object->apiResult($options);

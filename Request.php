@@ -146,7 +146,10 @@ class Request {
 		}
 		if (!empty($params['level3'])) {
 			$host = str_replace('www.', '', $host);
-			$host = @$params['level3'] . '.' . $host;
+			$host_parts = self::hostParts($host);
+			$host_parts[3] = $params['level3'];
+			krsort($host_parts);
+			$host = implode('.', $host_parts);
 		}
 		$result = $protocol . '://' . $host . $port . (!empty($params['request']) ? $_SERVER['REQUEST_URI'] : '/');
 		// append mvc
@@ -180,6 +183,18 @@ class Request {
 			$counter++;
 		}
 		return $result;
+	}
+
+	/**
+	 * Is tenant
+	 *
+	 * @param int $level
+	 * @param string|null $host
+	 * @return bool
+	 */
+	public static function isTenant(int $level = 3, ?string $host = null) : bool {
+		$parts = self::hostParts($host);
+		return count($parts) == $level && $parts[$level] !== 'www';
 	}
 
 	/**
@@ -269,7 +284,13 @@ class Request {
 		$template = '';
 		if (!empty(\Object\Controller::$cached_controllers_by_names[$name])) {
 			$v = \Object\Controller::$cached_controllers_by_names[$name];
-			$url = rtrim($host ?? '', '/') . '/' . \Application::get('application.template.url_path_name') . '-' . ucfirst($v['template']) . '/'. ltrim(str_replace('\\', '/', $v['key']), '/') . '/_' . $action . '?' . http_build_query($params) . ($anchor ? ('#' . $anchor) : '');
+			$temp = \Application::get('application.template.url_path_name');
+			if ($temp) {
+				$temp.= '-' . ucfirst($v['template']);
+			} else {
+				$temp = ucfirst($v['template']);
+			}
+			$url = rtrim($host ?? '', '/') . '/' . $temp . '/'. ltrim(str_replace('\\', '/', $v['key']), '/') . '/_' . $action . '?' . http_build_query($params) . ($anchor ? ('#' . $anchor) : '');
 			$url = rtrim($url, '?');
 			$template = $v['template'];
 		}
@@ -310,6 +331,10 @@ class Request {
 		$mvc = \Application::get('mvc');
 		$controller_class = $mvc['controller_class'];
 		$controller_object = new $controller_class();
+		// if we do not have title
+		if (empty($controller_object->title)) {
+			return '/'. ltrim(str_replace('\\', '/', $controller_class), '/') . '/_' . ($action ?? $mvc['controller_action_raw']);
+		}
 		return rtrim(self::buildFromName($controller_object->title, $action ?? $mvc['controller_action_raw']), '?');
 	}
 
@@ -324,8 +349,15 @@ class Request {
 	public static function fixUrl(?string $url, string $template, string $default = '') : string {
 		if (!empty($url)) {
 			if ($url[0] === '/') {
-				if (strpos($url, '/' . \Application::get('application.template.url_path_name') ?? 'X-Template') === false) {
-					$url = '/' .  \Application::get('application.template.url_path_name') . '-' . ucfirst($template) . $url;
+				if (\Application::get('application.template.url_path_name')) {
+					if (strpos($url, '/' . \Application::get('application.template.url_path_name') ?? 'X-Template') === false) {
+						$url = '/' .  \Application::get('application.template.url_path_name') . '-' . ucfirst($template) . $url;
+					}
+				} else {
+					$first_fragment = explode('/', $url);
+					if ($first_fragment[1] !== ucfirst($template)) {
+						$url = '/' .  ucfirst($template) . $url;
+					}
 				}
 			}
 			return $url;

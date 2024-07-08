@@ -438,6 +438,9 @@ class Table extends \Object\Table\Options {
 		// we need to handle overrrides
 		parent::overrideHandle($this);
 		// we need to determine db link
+		if (isset($options['db_link'])) {
+			$this->db_link = $options['db_link'];
+		}
 		if (empty($this->db_link)) {
 			// get from flags first
 			if (!empty($this->db_link_flag)) {
@@ -454,9 +457,14 @@ class Table extends \Object\Table\Options {
 		}
 		// see if we have special handling
 		$db_object = \Factory::get(['db', $this->db_link, 'object']);
-		if (!empty($db_object) && method_exists($db_object, 'handleName')) {
+		if (!isset($db_object)) {
+			goto assembleSchema;
+		}
+		if (method_exists($db_object, 'handleName')) {
 			$this->full_table_name = $db_object->handleName($this->schema, $this->name, ['temporary' => $this->temporary]);
-		} else { // process table name and schema
+		} else {
+assembleSchema:
+			// process table name and schema
 			if (!empty($this->schema)) {
 				$this->full_table_name = $this->schema . '.' . $this->name;
 			} else {

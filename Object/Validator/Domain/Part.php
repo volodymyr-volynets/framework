@@ -8,6 +8,7 @@ class Part extends \Object\Validator\Base {
 	 */
 	public function validate($value, $options = []) {
 		$result = $this->result;
+		$value = $value ?? '';
 		if (!preg_match('/[^a-zA-Z0-9_]+/', $value)) {
 			$result['success'] = true;
 			$result['data'] = strtolower($value);

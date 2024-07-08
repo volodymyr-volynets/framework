@@ -6,6 +6,7 @@
 define('DANGER', 'danger');
 define('WARNING', 'warning');
 define('SUCCESS', 'success');
+define('INFO', 'info');
 define('DEF', 'default');
 define('DEF2', 'default2');
 define('DEF3', 'default3');
@@ -1229,37 +1230,39 @@ if (!function_exists('mb_str_split')) {
 	}
 }
 
-/**
- * Pad multi-byte string
- *
- * @param string $input
- * @param int $length
- * @param string $string
- * @param const $type
- * @return string
- */
-function mb_str_pad($input, $length, $string = ' ', $type = STR_PAD_LEFT, $encoding = 'UTF-8') {
-	if ($type == STR_PAD_RIGHT) {
-		while (mb_strlen($input, $encoding) < $length) {
-			$input .= $string;
-		}
-	} else if ($type == STR_PAD_LEFT) {
-		while (mb_strlen($input, $encoding) < $length) {
-			$input = $string . $input;
-		}
-	} else if ($type == STR_PAD_BOTH) {
-		// if not an even number, the right side gets the extra padding
-		$counter = 1;
-		while (mb_strlen($input, $encoding) < $length) {
-			if ($counter % 2) {
+if (!function_exists('mb_str_pad')) {
+	/**
+	 * Pad multi-byte string
+	 *
+	 * @param string $input
+	 * @param int $length
+	 * @param string $string
+	 * @param const $type
+	 * @return string
+	 */
+	function mb_str_pad($input, $length, $string = ' ', $type = STR_PAD_LEFT, $encoding = 'UTF-8') {
+		if ($type == STR_PAD_RIGHT) {
+			while (mb_strlen($input, $encoding) < $length) {
 				$input .= $string;
-			} else {
+			}
+		} else if ($type == STR_PAD_LEFT) {
+			while (mb_strlen($input, $encoding) < $length) {
 				$input = $string . $input;
 			}
-			$counter++;
+		} else if ($type == STR_PAD_BOTH) {
+			// if not an even number, the right side gets the extra padding
+			$counter = 1;
+			while (mb_strlen($input, $encoding) < $length) {
+				if ($counter % 2) {
+					$input .= $string;
+				} else {
+					$input = $string . $input;
+				}
+				$counter++;
+			}
 		}
+		return $input;
 	}
-	return $input;
 }
 
 /**
