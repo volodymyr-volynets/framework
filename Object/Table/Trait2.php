@@ -230,6 +230,19 @@ trait Trait2 {
 	}
 
 	/**
+	 * Get single (static)
+	 *
+	 * @see $this::get()
+	 */
+	public static function getSingleStatic(array $options = []) {
+		$class = get_called_class();
+		$object = new $class();
+		$options['pk'] = null;
+		$options['single_row'] = true;
+		return $object->get($options);
+	}
+
+	/**
 	 * Get by column
 	 *
 	 * @param string|array $where

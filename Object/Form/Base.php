@@ -116,6 +116,13 @@ class Base extends \Object\Form\Parent2 {
 	public $escaped_values = [];
 
 	/**
+	 * Values formatted.
+	 *
+	 * @var array
+	 */
+	public $formatted_values = [];
+
+	/**
 	 * API values
 	 *
 	 * @var array
@@ -366,7 +373,7 @@ class Base extends \Object\Form\Parent2 {
 	 *
 	 * @var bool
 	 */
-	public $is_api;
+	public bool $is_api = false;
 
 	/**
 	 * Changed field
@@ -375,6 +382,7 @@ class Base extends \Object\Form\Parent2 {
 	 */
 	public $changed_field;
 	public $changed_detail;
+	public $changed_api_fields;
 
 	/**
 	 * Constructor
@@ -1454,6 +1462,10 @@ processAllValues:
 	 */
 	public function addInput(array $input) {
 		$this->options['input'] = $input;
+		// if we are passing all fields that changed via API.
+		if (!empty($input['__changed_api_fields'])) {
+			$this->changed_api_fields = $input['__changed_api_fields'];
+		}
 	}
 
 	/**
@@ -1562,6 +1574,12 @@ processAllValues:
 				$module_id = $this->master_options['module_id'] ?? $module_id;
 				$this->master_object = \Factory::model($this->master_options['model'], true, [$module_id ?? 0, $this->master_options['ledger'], & $this]);
 			}
+		}
+		// fetch API data
+		if (!empty($this->options['input']['__is_api_get'])) {
+			$this->getOriginalValues($this->options['input'] ?? [], false);
+			$this->values = $this->original_values;
+			goto convertMultipleColumns;
 		}
 		// preserve blank and validate through session
 		$this->misc_settings['validate_through_session'] = [];
@@ -1684,6 +1702,34 @@ processAllValues:
 					'media_js' => \Layout::renderJs(['return_list' => true]),
 					'media_css' => \Layout::renderCss(['return_list' => true]),
 				];
+				\Layout::renderAs($result, 'application/json');
+			} else if (!empty($this->options['input']['__ajax_custom_calculate_total'])) { // custom form recalculation
+				do {
+					$result = [
+						'success' => false,
+						'error' => [],
+						'data' => [],
+						'return' => null
+					];
+					$func = $this->options['input']['__ajax_custom_calculate_function'] ?? 'customCalculateTotal';
+					if (!method_exists($this->form_parent, $func)) {
+						$result['error'][] = i18n(null, 'Calculation method does not exists!');
+					}
+					$this->getAllValues($this->options['input']);
+					// assemble parameters
+					$params = [& $this];
+					$temp = json_decode($this->options['input']['__ajax_custom_calculate_params'] ?? '[]', true);
+					if (!empty($temp)) {
+						foreach ($temp as $v) {
+							$params[] = $v;
+						}
+					}
+					$result['return'] = call_user_func_array([$this->form_parent, $func], $params);
+					$this->formatAllValues($this->values);
+					$result['data'] = $this->formatted_values;
+					$result['success'] = true;
+				} while(0);
+				// todos
 				\Layout::renderAs($result, 'application/json');
 			} else if (($this->options['input']['__ajax_form_id'] ?? '') == "form_{$this->form_link}_form") { // if its ajax call to this form
 				// if its a call to auto complete
@@ -2278,7 +2324,9 @@ convertMultipleColumns:
 	 */
 	public function closeTransaction() {
 		if ($this->transaction) {
-			if ($this->values_saved) { // we commit
+			if (!empty($this->options['commit_on_error'])) { // we commit if error occurs
+				$this->collection_object->primary_model->db_object->commit();
+			} else if ($this->values_saved) { // we commit
 				$this->collection_object->primary_model->db_object->commit();
 			} else if (!$this->rollback) {
 				$this->collection_object->primary_model->db_object->rollback();
@@ -2462,7 +2510,8 @@ convertMultipleColumns:
 				self::BUTTON_SUBMIT_DELETE,
 				self::BUTTON_CONTINUE,
 				self::BUTTON_STOP,
-				self::BUTTON_SUBMIT_OTHER
+				self::BUTTON_SUBMIT_OTHER,
+				self::BUTTON_SUBMIT_GENERATE
 			];
 			// process
 			$not_allowed = [];
@@ -2522,7 +2571,8 @@ convertMultipleColumns:
 				self::BUTTON_SUBMIT_DELETE,
 				self::BUTTON_SUBMIT_OTHER_DELETE,
 				self::BUTTON_CONTINUE,
-				self::BUTTON_STOP
+				self::BUTTON_STOP,
+				self::BUTTON_SUBMIT_GENERATE
 			];
 		}
 		// validate if we have that button
@@ -4250,6 +4300,195 @@ convertMultipleColumns:
 				$this->values[$changed_detail[0]][$k] = array_merge($v, $data);
 			}
 			$counter++;
+		}
+	}
+
+	/**
+	 * Is submitted button.
+	 *
+	 * @param string|array $button
+	 * @return bool
+	 */
+	public function isSubmitted(string|array $button) : bool {
+		if (!is_array($button)) {
+			$button = [$button];
+		}
+		foreach ($button as $v) {
+			if (!empty($this->process_submit[$v])) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Change tab
+	 *
+	 * @param string $tab_container
+	 * @param string $tab_name
+	 */
+	public function changeTab(string $tab_container, string $tab_name) : void {
+		$_POST['form_tabs_' . $this->form_link . '_' . $tab_container . '_active_hidden'] = $tab_name;
+	}
+
+	/**
+	 * Is field.
+	 *
+	 * @param array|string $fields
+	 * @param array $options
+	 *	bool not_empty
+	 *	bool tracked_difference
+	 * @return bool
+	 */
+	public function isField(array|string $fields, array $options = []) : bool {
+		// if we did not change anything.
+		if (empty($this->changed_field) && empty($this->changed_api_fields)) { // && empty($this->misc_settings['__default_field_changed'])
+			return false;
+		}
+		if (!is_array($fields)) {
+			$fields = [$fields];
+		}
+		if (!empty($this->changed_api_fields)) {
+			if (!is_array($this->changed_api_fields)) {
+				$this->changed_api_fields = [$this->changed_api_fields];
+			}
+			foreach ($this->changed_api_fields as $v) {
+				if (in_array($v, $fields)) {
+					return true;
+				}
+			}
+		}
+		if (!empty($options['not_empty']) && empty($this->values[$this->changed_field])) {
+			return false;
+		}
+		if (!empty($options['tracked_difference']) && in_array($this->changed_field, $fields)) {
+			if (!empty($this->values[$this->changed_field]) && ($this->tracked_values[$this->changed_field] ?? '') != $this->values[$this->changed_field]) {
+				return true;
+			}
+		}
+		// we might have fields that changed in defauls.
+		/*
+		if (!empty($this->misc_settings['__default_field_changed'])) {
+			foreach ($this->misc_settings['__default_field_changed'] as $v) {
+				if (in_array($v, $fields)) {
+					return true;
+				}
+			}
+		}
+		*/
+		return in_array($this->changed_field, $fields);
+	}
+
+	/**
+	 * Format all values.
+	 *
+	 * @param array $input
+	 * @param array $options
+	 */
+	public function formatAllValues($input, $options = []) {
+		// reset values
+		$this->formatted_values = [];
+		// sort fields
+		$fields = $this->sortFieldsForProcessing($this->fields);
+		// process fields
+		foreach ($fields as $k => $v) {
+			// get value
+			$value = array_key_get($input, $v['options']['values_key']);
+			if (is_null($value)) {
+				continue;
+			}
+			// format
+			if (!empty($v['options']['format']) && empty($v['options']['options_model'])) {
+				$method = \Factory::method($v['options']['format'], 'Format');
+				if (!empty($v['options']['format_depends'])) {
+					$this->processParamsAndDepends($v['options']['format_depends'], $input, $v['options'], true);
+					$v['options']['format_options'] = array_merge_hard($v['options']['format_options'] ?? [], $v['options']['format_depends']);
+				}
+				$value = call_user_func_array([$method[0], $method[1]], [$value, $v['options']['format_options'] ?? []]);
+				array_key_set($this->formatted_values, $v['options']['values_key'], $value);
+			}
+		}
+		// process details & subdetails
+		if (!empty($this->detail_fields)) {
+			foreach ($this->detail_fields as $k => $v) {
+				$this->formatted_values[$k] = []; // a must
+				$details = $input[$k] ?? [];
+				// 1 to 1
+				if (!empty($v['options']['details_11'])) {
+					$details = [$details];
+				}
+				// sort fields
+				$fields = $this->sortFieldsForProcessing($v['elements'], $v['options']);
+				foreach ($details as $k2 => $v2) {
+					$detail = [];
+					// process fields
+					foreach ($fields as $k3 => $v3) {
+						// get value, grab from neighbouring values first
+						$value = $detail[$k3] ?? $v2[$k3] ?? null;
+						if (is_null($value)) {
+							continue;
+						}
+						// format
+						if (!empty($v3['options']['format']) && empty($v3['options']['options_model'])) {
+							$method = \Factory::method($v3['options']['format'], 'Format');
+							if (!empty($v3['options']['format_depends'])) {
+								$this->processParamsAndDepends($v3['options']['format_depends'], $v2, $v3['options'], true);
+								$v3['options']['format_options'] = array_merge_hard($v3['options']['format_options'] ?? [], $v3['options']['format_depends']);
+							}
+							$value = call_user_func_array([$method[0], $method[1]], [$value, $v3['options']['format_options'] ?? []]);
+						}
+						// add field to details
+						$detail[$k3] = $value;
+					}
+					// process subdetails, first to detect change
+					if (!empty($v['subdetails'])) {
+						foreach ($v['subdetails'] as $k0 => $v0) {
+							// make empty array
+							$detail[$k0] = [];
+							// sort fields
+							$subdetail_fields = $this->sortFieldsForProcessing($v0['elements']);
+							// go through data
+							if (!empty($v0['options']['details_11'])) {
+								$subdetail_data = [$v2[$k0] ?? []];
+							} else {
+								$subdetail_data = $v2[$k0] ?? [];
+							}
+							if (!empty($subdetail_data)) {
+								foreach ($subdetail_data as $k5 => $v5) {
+									foreach ($subdetail_fields as $k6 => $v6) {
+										$value = $v5[$k6] ?? null;
+										if (is_null($value)) {
+											continue;
+										}
+										// format
+										if (!empty($v6['options']['format']) && empty($v6['options']['options_model'])) {
+											$method = \Factory::method($v6['options']['format'], 'Format');
+											if (!empty($v6['options']['format_depends'])) {
+												$this->processParamsAndDepends($v6['options']['format_depends'], $v5, $v6['options'], true);
+												$v6['options']['format_options'] = array_merge_hard($v6['options']['format_options'] ?? [], $v6['options']['format_depends']);
+											}
+											$value = call_user_func_array([$method[0], $method[1]], [$value, $v6['options']['format_options'] ?? []]);
+										}
+										$subdetail[$k6] = $value;
+									}
+									// set value
+									if (!empty($v0['options']['details_11'])) {
+										$detail[$k0] = $subdetail;
+									} else {
+										$detail[$k0][$k5] = $subdetail;
+									}
+								}
+							}
+						}
+					}
+					// 1 to 1
+					if (!empty($v['options']['details_11'])) {
+						$this->formatted_values[$k] = $detail;
+					} else { // 1 to M
+						$this->formatted_values[$k][$k2] = $detail;
+					}
+				}
+			}
 		}
 	}
 }

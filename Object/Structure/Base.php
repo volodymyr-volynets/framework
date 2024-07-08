@@ -6,7 +6,7 @@ class Base {
 	/**
 	 * Get settings
 	 *	- database
-	 *  - cache
+	 *	- cache
 	 *
 	 * @return array
 	 */

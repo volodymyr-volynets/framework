@@ -101,20 +101,33 @@ class Application {
 		// template
 		$request_uri = $options['request_uri'] ?? $_SERVER['REQUEST_URI'] ?? '';
 		$template = \Application::get('application.template');
-		if (!empty($request_uri) && !empty($template['name']) && !empty($template['url_path_name'])) {
+		if (!empty($request_uri) && !empty($template['name'])) {
 			$matches = [];
-			preg_match('/\/' . $template['url_path_name'] . '-([A-Za-z0-9]+)\//i', $request_uri, $matches);
-			if (!empty($matches[1])) {
-				$template['name'] = strtolower(trim($matches[1]));
-				$available = \Application::get('application.template.available');
-				if (!empty($available)) {
-					if (in_array($template['name'], $available)) {
+			if (!empty($template['url_path_name'])) {
+				preg_match('/\/' . $template['url_path_name'] . '-([A-Za-z0-9]+)\//i', $request_uri, $matches);
+				if (!empty($matches[1])) {
+					$template['name'] = strtolower(trim($matches[1]));
+					$available = \Application::get('application.template.available');
+					if (!empty($available)) {
+						if (in_array($template['name'], $available)) {
+							\Application::set('application.template.name', $template['name']);
+						}
+					} else {
 						\Application::set('application.template.name', $template['name']);
 					}
-				} else {
-					\Application::set('application.template.name', $template['name']);
+					$request_uri = str_replace($matches[0], '/', $request_uri);
 				}
-				$request_uri = str_replace($matches[0], '/', $request_uri);
+			} else {
+				$available = \Application::get('application.template.available');
+				$first_fragment = explode('/', $request_uri);
+				foreach ($available as $v) {
+					if (ucfirst($v) === $first_fragment[1]) {
+						$template['name'] = strtolower(trim($first_fragment[1]));
+						$request_uri = str_replace('/' . $first_fragment[1] . '/', '/', $request_uri);
+						\Application::set('application.template.name', $template['name']);
+						break;
+					}
+				}
 			}
 			// template.ini only if activated in previous files
 			if (!empty($template['name'])) {
@@ -261,10 +274,12 @@ class Application {
 		// customizaton for models and controllers
 		$file = str_replace(['_', '\\'], DIRECTORY_SEPARATOR, $class) . '.php';
 		if (strpos($file, 'Numbers') === 0) {
-			$file = explode(DIRECTORY_SEPARATOR, $file);
-			$file[0] = strtolower($file[0]);
-			$file[1] = strtolower($file[1]);
-			$file = implode(DIRECTORY_SEPARATOR, $file);
+			$temp = explode(DIRECTORY_SEPARATOR, $file);
+			$temp[0] = strtolower($temp[0]);
+			$temp[1] = strtolower($temp[1]);
+			if (in_array($temp[1], ['backend', 'communication', 'countries', 'documentation', 'framework', 'frontend', 'internalization', 'services', 'tenants', 'users'])) {
+				$file = implode(DIRECTORY_SEPARATOR, $temp);
+			}
 		}
 		// we need to store class path so we can load js, css and scss files
 		self::$settings['application']['loaded_classes'][$class] = [
@@ -318,17 +333,19 @@ class Application {
 		// calling action
 		echo call_user_func(array(self::$controller, self::$controller->action_method));
 		// auto rendering view only if view exists, processing extension order as specified in .ini file
-		$temp_reflection_obj = new ReflectionClass(self::$controller);
-		$controller_dir = pathinfo($temp_reflection_obj->getFileName(), PATHINFO_DIRNAME) . '/';
+		$controller_dir = \Application::get('old.controller.dir');
+		if (!$controller_dir) {
+			$temp_reflection_obj = new \ReflectionClass(\Application::$controller);
+			$controller_dir = pathinfo($temp_reflection_obj->getFileName(), PATHINFO_DIRNAME) . '/';
+		}
 		$controller_file = end(self::$settings['mvc']['controllers']);
 		$view = self::$settings['mvc']['controller_view'];
 		$flag_view_found = false;
 		if (!empty($view)) {
-			$extensions = explode(',', isset(self::$settings['application']['view']['extension']) ? self::$settings['application']['view']['extension'] : 'html');
+			$extensions = explode(',', self::$settings['application']['view']['extension'] ?? 'html');
 			foreach ($extensions as $extension) {
 				$file = $controller_dir  . $controller_file . '.' . $view . '.' . $extension;
 				if (file_exists($file)) {
-					$view_object = new \View(self::$controller, $file, $extension);
 					$flag_view_found = true;
 					break;
 				}
@@ -338,10 +355,19 @@ class Application {
 				Throw new \Exception('View ' . $view . ' does not exists!');
 			}
 		}
+		$view_html = null;
+		if ($flag_view_found) {
+			\Helper\Ob::start();
+			$view_object = new \View(self::$controller, $file, $extension);
+			$view_html = \Helper\Ob::clean();
+		}
 		// autoloading media files
 		\Layout::includeMedia($controller_dir, $controller_file, $view, $controller_class);
 		// appending view after controllers output
 		self::$controller->data->view = (self::$controller->data->view ?? '') . \Helper\Ob::clean();
+		if (isset($view_html) && str_contains($view_html, '<!-- [numbers: controller content] -->')) {
+			self::$controller->data->view = str_replace('<!-- [numbers: controller content] -->', self::$controller->data->view, $view_html);
+		}
 		// if we have to render debug toolbar
 		if (\Debug::$toolbar) {
 			\Helper\Ob::start();
@@ -410,6 +436,7 @@ class Application {
 		switch ($what) {
 			case 'layout':
 				self::$settings['mvc']['controller_layout'] = $how;
+				self::$settings['mvc']['controller_layout_file'] = \Application::get(['application', 'path_full']) . 'Layout/' . $how . '.html';
 				break;
 			case 'view':
 				self::$settings['mvc']['controller_view'] = $how;

@@ -16,8 +16,9 @@ spl_autoload_register(array('Application', 'autoloader'));
 Application::run(['__run_only_bootstrap' => 1]);
 
 // increase in memory and unlimited execution time
-ini_set('memory_limit', '2048M');
+ini_set('memory_limit', '8192M');
 set_time_limit(0);
+\Application::set('debug.debug', 0);
 
 // confirmation whether to run the script
 if (!\Helper\Cmd::confirm("Run Unit Tests?")) exit;

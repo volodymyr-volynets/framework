@@ -130,7 +130,7 @@ class Debug {
 		// determine if we need to send anything
 		$found = false;
 		foreach (\Object\Error\Base::$errors as $k => $v) {
-			if ($v['errno'] != -1) {
+			if ($v['errno'] != -1 && $v['errno'] != 8192) {
 				$found = true;
 				break;
 			}

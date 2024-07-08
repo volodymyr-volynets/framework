@@ -405,7 +405,7 @@ class Collection extends \Object\Override\Data {
 						array_unshift($master_key, $parent_keys2[$k3]);
 						if (($parent_types2[$k3 - 1] ?? '') != '11') {
 							$parent_first_key = implode('::', $temp);
-							if (!isset($parent_rows[$parent_first_key])) {
+							if (count($reverse_map) == 1 && !isset($parent_rows[$parent_first_key])) {
 								foreach ($parent_rows as $k_parent => $v_parent) {
 									$temp2 = [];
 									foreach (array_keys($v3) as $v_key) {

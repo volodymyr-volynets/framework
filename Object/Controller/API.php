@@ -43,7 +43,7 @@ abstract class API extends \Object\Controller {
 	public function __construct() {
 		parent::__construct();
 		// detect input type
-		$this->api_input = \Request::input();
+		$this->api_input = \Request::input(null, true);
 		// raw data from the request
 		$raw = file_get_contents('php://input');
 		if (!empty($raw)) {
