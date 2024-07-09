@@ -2,7 +2,7 @@
 
 namespace Object\Override;
 
-use stdClass
+use stdClass;
 
 #[\AllowDynamicProperties]
 class Data {
