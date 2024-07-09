@@ -1744,3 +1744,18 @@ function print_r_nicely($arr, array $options = []) : string {
 	}
 	return print_r2($arr, '', true, ['width' => $options['width']]);
 }
+
+if (!function_exists('getallheaders')) {
+    /**
+     * Get all headers
+     */
+    function getallheaders() {
+	$headers = [];
+	foreach ($_SERVER as $name => $value) {
+	    if (substr($name, 0, 5) == 'HTTP_') {
+		$headers[str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($name, 5)))))] = $value;
+	    }
+	}
+	return $headers;
+    }
+}
