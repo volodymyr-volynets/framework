@@ -1,0 +1,11 @@
+{
+    "AtDatetime": "At Datetime",
+    "Cron": "Cron",
+    "Daemon": "Daemon",
+    "Event": "Event",
+    "New": "New",
+    "Realtime": "Realtime",
+    "Regular": "Regular",
+    "RequestEnd": "Request End",
+    "Task": "Task"
+}

@@ -1,21 +1,34 @@
 <?php
 
+/*
+ * This file is part of Numbers Framework.
+ *
+ * (c) Volodymyr Volynets <volodymyr.volynets@gmail.com>
+ *
+ * This source file is subject to the Apache 2.0 license that is bundled
+ * with this source code in the file LICENSE.
+ */
+
 namespace Numbers\Framework\Helper\Model\Date;
-class CalendarTypes extends \Object\Data {
-	public $module_code = 'NO';
-	public $title = 'N/O Date Calendar Types';
-	public $column_key = 'id';
-	public $column_prefix = '';
-	public $orderby = [
-		'id' => SORT_ASC
-	];
-	public $columns = [
-		'id' => ['name' => 'Type #', 'domain' => 'type_id'],
-		'name' => ['name' => 'Name', 'type' => 'text']
-	];
-	public $data = [
-		//10 => ['name' => 'Day'],
-		20 => ['name' => 'Week'],
-		30 => ['name' => 'Month'],
-	];
+
+use Object\Data;
+
+class CalendarTypes extends Data
+{
+    public $module_code = 'NO';
+    public $title = 'N/O Date Calendar Types';
+    public $column_key = 'id';
+    public $column_prefix = '';
+    public $orderby = [
+        'id' => SORT_ASC
+    ];
+    public $columns = [
+        'id' => ['name' => 'Type #', 'domain' => 'type_id'],
+        'name' => ['name' => 'Name', 'type' => 'text']
+    ];
+    public $data = [
+        //10 => ['name' => 'Day'],
+        20 => ['name' => 'Week'],
+        30 => ['name' => 'Month'],
+    ];
 }

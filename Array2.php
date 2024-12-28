@@ -1,10 +1,19 @@
 <?php
 
+/*
+ * This file is part of Numbers Framework.
+ *
+ * (c) Volodymyr Volynets <volodymyr.volynets@gmail.com>
+ *
+ * This source file is subject to the Apache 2.0 license that is bundled
+ * with this source code in the file LICENSE.
+ */
+
 /**
  * Array2
  */
-class Array2 {
-
+class Array2
+{
     /**
      * @var array
      */
@@ -20,7 +29,8 @@ class Array2 {
      *
      * @param array|JsonSerializable|Traversable|string $data
      */
-    public function __construct(array|JsonSerializable|Traversable|string $data) {
+    public function __construct(array|JsonSerializable|Traversable|string $data)
+    {
         $this->data = $this->dataToArray2($data);
     }
 
@@ -28,9 +38,10 @@ class Array2 {
      * Data to \Array2
      *
      * @param array|JsonSerializable|Traversable|string $data
-     * @throws \Exception
+     * @throws Exception
      */
-    protected function dataToArray2(array|JsonSerializable|Traversable|string $data) : array {
+    protected function dataToArray2(array|JsonSerializable|Traversable|string $data): array
+    {
         if (is_array($data)) {
             return $data;
         } elseif ($data instanceof JsonSerializable) {
@@ -40,7 +51,7 @@ class Array2 {
         } elseif (is_json($data)) {
             return json_decode($data, true);
         } else {
-            Throw new \Exception('Unknown data.');
+            throw new Exception('Unknown data.');
         }
     }
 
@@ -49,7 +60,8 @@ class Array2 {
      *
      * @return array
      */
-    public function toArray() : array|stdClass {
+    public function toArray(): array|stdClass
+    {
         if (in_array($this->last_operation, ['__first', '__last'])) {
             return current($this->data);
         } else {
@@ -62,7 +74,8 @@ class Array2 {
      *
      * @return array|stdClass
      */
-    public function toObjects() : array|stdClass {
+    public function toObjects(): array|stdClass
+    {
         $result = [];
         foreach ($this->data as $k => $v) {
             $result[$k] = (object) $v;
@@ -79,7 +92,8 @@ class Array2 {
      *
      * @return string
      */
-    public function toJson() : string {
+    public function toJson(): string
+    {
         if (in_array($this->last_operation, ['__first', '__last'])) {
             return json_encode(current($this->data));
         } else {
@@ -88,11 +102,33 @@ class Array2 {
     }
 
     /**
+     * To HTML
+     *
+     * @param array|null $columns
+     * @param array $options
+     * @return string
+     */
+    public function toHTML(?array $columns = null, array $options = []): string
+    {
+        if ($columns === null && $this->count() > 0) {
+            $temp = current($this->data);
+            $columns = array_combine(array_keys($temp), array_keys($temp));
+        }
+        return HTML::table($options + [
+            'header' => $columns,
+            'options' => $this->data,
+            'show_zero_rows' => $this->count() == 0,
+            'show_row_number' => true
+        ]);
+    }
+
+    /**
      * First
      *
-     * @return \Array2
+     * @return Array2
      */
-    public function first() : \Array2 {
+    public function first(): Array2
+    {
         $this->last_operation = '__first';
         $key = array_key_first($this->data);
         if ($key !== null) {
@@ -104,9 +140,10 @@ class Array2 {
     /**
      * Last
      *
-     * @return \Array2
+     * @return Array2
      */
-    public function last() : \Array2 {
+    public function last(): Array2
+    {
         $this->last_operation = '__last';
         $key = array_key_last($this->data);
         if ($key !== null) {
@@ -119,9 +156,10 @@ class Array2 {
      * Map
      *
      * @param  callable  $callback
-     * @return \Array2
+     * @return Array2
      */
-    public function map(callable $callback) : \Array2 {
+    public function map(callable $callback): Array2
+    {
         $keys = array_keys($this->data);
         $values = array_map($callback, $this->data, $keys);
         return new static(array_combine($keys, $values));
@@ -131,9 +169,10 @@ class Array2 {
      * Filter
      *
      * @param  callable|null $callback
-     * @return \Array2
+     * @return Array2
      */
-    public function filter(callable $callback = null) : \Array2 {
+    public function filter(?callable $callback = null): Array2
+    {
         if ($callback) {
             return new static(array_filter($this->data, $callback, ARRAY_FILTER_USE_BOTH));
         }
@@ -147,7 +186,8 @@ class Array2 {
      * @param  mixed  $initial
      * @return mixed
      */
-    public function reduce(callable $callback, $initial = null) {
+    public function reduce(callable $callback, $initial = null)
+    {
         return array_reduce($this->data, $callback, $initial);
     }
 
@@ -157,7 +197,8 @@ class Array2 {
      * @param  callable|string|null  $value
      * @return callable
      */
-    protected function getCallbackRowValue($callback) {
+    protected function getCallbackRowValue($callback)
+    {
         if (!is_string($callback) && is_callable($callback)) {
             return $callback;
         }
@@ -172,7 +213,8 @@ class Array2 {
      * @param  callable|string|null $callback
      * @return mixed
      */
-    public function min($callback = null) {
+    public function min($callback = null)
+    {
         $callback = $this->getCallbackRowValue($callback);
         return $this->map(function ($value) use ($callback) {
             return $callback($value);
@@ -189,7 +231,8 @@ class Array2 {
      * @param  callable|string|null $callback
      * @return mixed
      */
-    public function max($callback = null) {
+    public function max($callback = null)
+    {
         $callback = $this->getCallbackRowValue($callback);
         return $this->map(function ($value) use ($callback) {
             return $callback($value);
@@ -204,9 +247,10 @@ class Array2 {
      * Wrap and convert to \Array2
      *
      * @param mixed $value
-     * @return \Array2
+     * @return Array2
      */
-    public static function wrap($value) : \Array2 {
+    public static function wrap($value): Array2
+    {
         if (is_null($value)) {
             $value = [];
         } else {
@@ -221,8 +265,9 @@ class Array2 {
      * @param mixed $value
      * @return array
      */
-    public function unwrap($value) : array {
-        if ($value instanceof \Array2) {
+    public function unwrap($value): array
+    {
+        if ($value instanceof Array2) {
             return $value->toArray();
         } else {
             return (array) $value;
@@ -233,13 +278,14 @@ class Array2 {
      * Times
      *
      * @param int $number
-     * @param callable  $callback
-     * @return \Array2
+     * @param callable|null $callback
+     * @return Array2
      */
-    public static function times(int $number, callable $callback = null) : \Array2 {
+    public static function times(int $number, ?callable $callback = null): Array2
+    {
         if ($number == 0) {
             return new static([]);
-        } else if (is_null($callback)) {
+        } elseif (is_null($callback)) {
             return new static(range(1, $number));
         } else {
             return (new static(range(1, $number)))->map($callback);
@@ -251,7 +297,8 @@ class Array2 {
      *
      * @return array
      */
-    public function all() : array {
+    public function all(): array
+    {
         return $this->data;
     }
 
@@ -261,7 +308,8 @@ class Array2 {
      * @param  callable|string|null  $callback
      * @return mixed
      */
-    public function avg($callback = null) {
+    public function avg($callback = null)
+    {
         $callback = $this->getCallbackRowValue($callback);
         $items = $this->map(function ($value) use ($callback) {
             return $callback($value);
@@ -278,7 +326,8 @@ class Array2 {
      *
      * @return int
      */
-    public function count() : int {
+    public function count(): int
+    {
         return count($this->data);
     }
 
@@ -288,9 +337,10 @@ class Array2 {
      * @param callable|string|null $callback
      * @return mixed
      */
-    public function sum($callback = null) {
+    public function sum($callback = null)
+    {
         if (is_null($callback)) {
-            $callback = function($value) { return $value; };
+            $callback = function ($value) { return $value; };
         } else {
             $callback = $this->getCallbackRowValue($callback);
         }
@@ -303,9 +353,10 @@ class Array2 {
      * Push
      *
      * @param mixed $value
-     * @return \Array2
+     * @return Array2
      */
-    public function push($value) : \Array2 {
+    public function push($value): Array2
+    {
         $result = new static($this->data);
         array_push($this->data, $value);
         return $result;
@@ -316,7 +367,8 @@ class Array2 {
      *
      * @return mixed
      */
-    public function pop() {
+    public function pop()
+    {
         return array_pop($this->data);
     }
 
@@ -324,9 +376,10 @@ class Array2 {
      * Unshift
      *
      * @param mixed $value
-     * @return \Array2
+     * @return Array2
      */
-    public function unshift($value) : \Array2 {
+    public function unshift($value): Array2
+    {
         $result = new static($this->data);
         array_unshift($this->data, $value);
         return $result;
@@ -337,7 +390,8 @@ class Array2 {
      *
      * @return mixed
      */
-    public function shift() {
+    public function shift()
+    {
         return array_shift($this->data);
     }
 
@@ -345,9 +399,10 @@ class Array2 {
      * Each
      *
      * @param callable $callback
-     * @return \Array2
+     * @return Array2
      */
-    public function each(callable $callback) : \Array2 {
+    public function each(callable $callback): Array2
+    {
         foreach ($this->data as $k => & $v) {
             if ($callback($v, $k) === false) {
                 break;
@@ -365,7 +420,8 @@ class Array2 {
      * @param array $methods
      * 		['id' => SORT_NUMERIC, 'name' => SORT_NATURAL]
      */
-    public function sort($keys, $methods = []) : \Array2 {
+    public function sort($keys, $methods = []): Array2
+    {
         array_key_sort($this->data, $keys, $methods);
         return $this;
     }
@@ -375,16 +431,17 @@ class Array2 {
      *
      * @param string|int $order
      * @param int $flags
-     * @return \Array2
+     * @return Array2
      */
-    public function sortKeys(string|int $order = SORT_ASC, int $flags = SORT_REGULAR) : \Array2 {
+    public function sortKeys(string|int $order = SORT_ASC, int $flags = SORT_REGULAR): Array2
+    {
         if (in_array($order, [SORT_ASC, SORT_DESC])) {
-			// we accept those as is
-		} else if (strtolower($v) == 'desc') {
-			$order = SORT_DESC;
-		} else {
-			$order = SORT_ASC;
-		}
+            // we accept those as is
+        } elseif (strtolower($v) == 'desc') {
+            $order = SORT_DESC;
+        } else {
+            $order = SORT_ASC;
+        }
         if ($order == SORT_ASC) {
             ksort($this->data, $flags);
         } else {
@@ -396,12 +453,13 @@ class Array2 {
     /**
      * Collapse multi-dimensional array into one dimension
      *
-     * @return \Array2
+     * @return Array2
      */
-    public function collapse() : \Array2 {
+    public function collapse(): Array2
+    {
         $result = [];
         foreach ($this->data as $v) {
-            if ($v instanceof \Array2) {
+            if ($v instanceof Array2) {
                 $v = $v->all();
             } elseif (!is_array($v)) {
                 continue;
@@ -426,22 +484,23 @@ class Array2 {
      * @param callable|null $callback
      * @return static
      */
-    public function diff(array|JsonSerializable|Traversable|string $data, string $type = 'array_diff', callable|null $callback = null) : \Array2 {
+    public function diff(array|JsonSerializable|Traversable|string $data, string $type = 'array_diff', ?callable $callback = null): Array2
+    {
         // for these 3 callback is mandatory
         if (in_array($type, ['array_udiff', 'array_diff_uassoc', 'array_diff_ukey']) && !$callback) {
-            Throw new \Exception('Callback?');
+            throw new Exception('Callback?');
         }
         if ($type == 'array_diff') {
             return new static(array_diff($this->data, $this->dataToArray2($data)));
-        } else if ($type == 'array_diff_assoc') {
+        } elseif ($type == 'array_diff_assoc') {
             return new static(array_diff_assoc($this->data, $this->dataToArray2($data)));
-        } else if ($type == 'array_udiff') {
+        } elseif ($type == 'array_udiff') {
             return new static(array_udiff($this->data, $this->dataToArray2($data), $callback));
-        } else if ($type == 'array_diff_uassoc') {
+        } elseif ($type == 'array_diff_uassoc') {
             return new static(array_diff_uassoc($this->data, $this->dataToArray2($data), $callback));
-        } else if ($type == 'array_diff_key') {
+        } elseif ($type == 'array_diff_key') {
             return new static(array_diff_key($this->data, $this->dataToArray2($data)));
-        } else if ($type == 'array_diff_ukey') {
+        } elseif ($type == 'array_diff_ukey') {
             return new static(array_diff_ukey($this->data, $this->dataToArray2($data), $callback));
         }
     }
@@ -450,10 +509,11 @@ class Array2 {
      * Reject
      *
      * @param callable|mixed $callback
-     * @return \Array2
+     * @return Array2
      */
-    public function reject($callback) : \Array2 {
-        return $this->filter(function($value, $key) use ($callback) {
+    public function reject($callback): Array2
+    {
+        return $this->filter(function ($value, $key) use ($callback) {
             return !is_string($callback) && is_callable($callback)
                 ? !$callback($value, $key)
                 : $value != $callback;
@@ -464,10 +524,11 @@ class Array2 {
      * Every
      *
      * @param callable|mixed $callback
-     * @return \Array2
+     * @return Array2
      */
-    public function every($callback) : \Array2 {
-        return $this->filter(function($value, $key) use ($callback) {
+    public function every($callback): Array2
+    {
+        return $this->filter(function ($value, $key) use ($callback) {
             return !is_string($callback) && is_callable($callback)
                 ? $callback($value, $key)
                 : $value == $callback;
@@ -478,9 +539,10 @@ class Array2 {
      * Except
      *
      * @param array $keys
-     * @return \Array2
+     * @return Array2
      */
-    public function except(array $keys) : \Array2 {
+    public function except(array $keys): Array2
+    {
         $result = [];
         foreach ($this->data as $k => $v) {
             foreach ($keys as $key) {
@@ -497,9 +559,10 @@ class Array2 {
      * Only
      *
      * @param array $keys
-     * @return \Array2
+     * @return Array2
      */
-    public function only(array $keys) : \Array2 {
+    public function only(array $keys): Array2
+    {
         $result = [];
         foreach ($this->data as $k => $v) {
             $result[$k] = [];
@@ -515,18 +578,19 @@ class Array2 {
      *
      * @param string|callable|null $key
      * @param bool $strict
-     * @return \Array2
+     * @return Array2
      */
-    public function unique(string|callable|null $key = null, bool $strict = false) : \Array2 {
+    public function unique(string|callable|null $key = null, bool $strict = false): Array2
+    {
         if (!is_string($key) && is_callable($key)) {
             $callback = $key;
         } else {
-            $callback = function($item) use ($key) {
+            $callback = function ($item) use ($key) {
                 return array_key_get($item, $key);
             };
         }
         $existing = [];
-        return $this->reject(function($item, $key) use ($callback, $strict, & $existing) {
+        return $this->reject(function ($item, $key) use ($callback, $strict, & $existing) {
             if (in_array($id = $callback($item, $key), $existing, $strict)) {
                 return true;
             }
@@ -552,7 +616,8 @@ class Array2 {
      * @param bool $strict
      * @return static
      */
-    public function position($value, string $type = 'next_value', bool $strict = false) {
+    public function position($value, string $type = 'next_value', bool $strict = false)
+    {
         $callback = null;
         $result = [];
         if (!is_string($value) && is_callable($value)) {
@@ -573,7 +638,7 @@ class Array2 {
             } else {
                 $key = array_search($value, $this->data, $strict);
             }
-        } else if ($type == 'next_key' || $type == 'next_keys' || $type == 'prev_key' || $type == 'prev_keys' || $type == 'current_key') {
+        } elseif ($type == 'next_key' || $type == 'next_keys' || $type == 'prev_key' || $type == 'prev_keys' || $type == 'current_key') {
             if ($callback) {
                 $pairs = array_map(null, array_keys($this->data), array_values($this->data));
                 $key = array_reduce($pairs, function ($result, $pair) use ($callback) {
@@ -631,7 +696,8 @@ class Array2 {
      *
      * @param string $name
      */
-    public function print(string $name = '') {
+    public function print(string $name = '')
+    {
         print_r2($this->data, $name);
     }
 
@@ -640,7 +706,8 @@ class Array2 {
      *
      * @return bool
      */
-    public function isEmpty() : bool {
+    public function isEmpty(): bool
+    {
         return count($this->data) == 0;
     }
 
@@ -649,25 +716,28 @@ class Array2 {
      *
      * @return bool
      */
-    public function isNotEmpty() : bool {
+    public function isNotEmpty(): bool
+    {
         return count($this->data) != 0;
     }
 
     /**
      * Keys
      *
-     * @return \Array2
+     * @return Array2
      */
-    public function keys() : \Array2 {
+    public function keys(): Array2
+    {
         return new static(array_keys($this->data));
     }
 
     /**
      * Values
      *
-     * @return \Array2
+     * @return Array2
      */
-    public function values() : \Array2 {
+    public function values(): Array2
+    {
         return new static(array_values($this->data));
     }
 
@@ -678,10 +748,11 @@ class Array2 {
      * @param int $number
      * @return mixed
      */
-    public function value(string|array $key, int $number = 1) {
+    public function value(string|array $key, int $number = 1)
+    {
         $result = [];
         $counter = 0;
-        foreach($this->data as $k => $v) {
+        foreach ($this->data as $k => $v) {
             $result[] = array_key_get($v, $key);
             $counter++;
             if ($counter == $number) {
@@ -700,9 +771,10 @@ class Array2 {
      *
      * @param int $offset
      * @param int $length
-     * @return \Array2
+     * @return Array2
      */
-    public function slice(int $offset, int|null $length = null) : \Array2 {
+    public function slice(int $offset, int|null $length = null): Array2
+    {
         return new static(array_slice($this->data, $offset, $length, true));
     }
 
@@ -710,9 +782,10 @@ class Array2 {
      * Take the first or last number of elements.
      *
      * @param int $number
-     * @return \Array2
+     * @return Array2
      */
-    public function take(int $number) : \Array2 {
+    public function take(int $number): Array2
+    {
         if ($number < 0) {
             return $this->slice($number, abs($number));
         } else {
@@ -726,8 +799,9 @@ class Array2 {
      * @param callable|mixed $callback
      * @return bool
      */
-    public function contains($callback) : bool {
-        $result = $this->filter(function($value, $key) use ($callback) {
+    public function contains($callback): bool
+    {
+        $result = $this->filter(function ($value, $key) use ($callback) {
             return !is_string($callback) && is_callable($callback)
                 ? $callback($value, $key)
                 : $value == $callback;
@@ -741,7 +815,8 @@ class Array2 {
      * @param callable|mixed $callback
      * @return bool
      */
-    public function some($callback) : bool {
+    public function some($callback): bool
+    {
         return $this->contains($callback);
     }
 
@@ -751,8 +826,9 @@ class Array2 {
      * @param callable|mixed $callback
      * @return bool
      */
-    public function missing($callback) : bool {
-        $result = $this->filter(function($value, $key) use ($callback) {
+    public function missing($callback): bool
+    {
+        $result = $this->filter(function ($value, $key) use ($callback) {
             return !is_string($callback) && is_callable($callback)
                 ? $callback($value, $key)
                 : $value == $callback;
@@ -764,9 +840,10 @@ class Array2 {
      * Pk
      *
      * @param array|string $keys
-     * @return \Array2
+     * @return Array2
      */
-    public function pk(array|string $keys) : \Array2 {
+    public function pk(array|string $keys): Array2
+    {
         $result = pk($keys, $this->data, true);
         return new static($result);
     }
@@ -777,7 +854,8 @@ class Array2 {
      * @param int $size
      * @retrun \Array2
      */
-    public function chunk(int $size) : \Array2 {
+    public function chunk(int $size): Array2
+    {
         $chunks = [];
         foreach (array_chunk($this->data, $size, true) as $chunk) {
             $chunks[] = new static($chunk);
@@ -789,9 +867,10 @@ class Array2 {
      * Split
      *
      * @param int $number
-     * @return \Array2
+     * @return Array2
      */
-    public function split(int $number) : \Array2 {
+    public function split(int $number): Array2
+    {
         $result = new static([]);
         if ($this->isEmpty()) {
             return $result;
@@ -806,7 +885,7 @@ class Array2 {
             }
             if ($counter) {
                 $result->push(new static(array_slice($this->data, $start, $counter)));
-                $start+= $counter;
+                $start += $counter;
             }
         }
         return $result;
@@ -817,9 +896,10 @@ class Array2 {
      *
      * @param array|null $keys
      * @param array $values
-     * @return \Array2
+     * @return Array2
      */
-    public function combine(array|null $keys, array $values) : \Array2 {
+    public function combine(array|null $keys, array $values): Array2
+    {
         if ($keys == null) {
             $keys = array_values($this->data);
         }
@@ -839,9 +919,10 @@ class Array2 {
     /**
      * Shuffle
      *
-     * @return \Array2
+     * @return Array2
      */
-    public function shuffle() : \Array2 {
+    public function shuffle(): Array2
+    {
         $result = $this->data;
         shuffle($result);
         return new static($result);
@@ -853,9 +934,10 @@ class Array2 {
      * @param string|int|float $start
      * @param string|int|float $end
      * @param int|float $step
-     * @return \Array2
+     * @return Array2
      */
-    public function range(string|int|float $start, string|int|float $end, int|float $step = 1) : \Array2 {
+    public function range(string|int|float $start, string|int|float $end, int|float $step = 1): Array2
+    {
         return new static(range($start, $end, $step));
     }
 
@@ -864,9 +946,10 @@ class Array2 {
      *
      * @param string|array $column_value
      * @param string|array|null $column_key
-     * @return \Array
+     * @return Array
      */
-    public function pluck(string|array $column_value, string|array|null $column_key = null) : \Array2 {
+    public function pluck(string|array $column_value, string|array|null $column_key = null): Array2
+    {
         $result = [];
         foreach ($this->data as $k => $v) {
             if ($column_key !== null) {
@@ -883,9 +966,10 @@ class Array2 {
      * Cross join
      *
      * @param array ...$values
-     * @return \Array2
+     * @return Array2
      */
-    public function crossJoin(array ...$values) : \Array2 {
+    public function crossJoin(array ...$values): Array2
+    {
         $result = [[]];
         if ($this->count()) {
             array_unshift($values, $this->data);
@@ -907,9 +991,10 @@ class Array2 {
      * Random
      *
      * @param int $number
-     * @return \Array2
+     * @return Array2
      */
-    public function random(int $number = 1) : \Array2 {
+    public function random(int $number = 1): Array2
+    {
         $count = $this->count();
         if ($number > $count) {
             $number = $count;
@@ -930,10 +1015,11 @@ class Array2 {
      * @param callable|null $default
      * @return static|mixed
      */
-    public function when($condition, callable $callback, callable|null $default = null) {
+    public function when($condition, callable $callback, callable|null $default = null)
+    {
         if ($condition) {
             return $callback($this, $condition);
-        } else if ($default) {
+        } elseif ($default) {
             return $default($this, $condition);
         }
         return $this;
@@ -947,7 +1033,8 @@ class Array2 {
      * @param callable|null $default
      * @return static|mixed
      */
-    public function whenIsNotEmpty(callable $callback, callable|null $default = null) {
+    public function whenIsNotEmpty(callable $callback, callable|null $default = null)
+    {
         return $this->when($this->isNotEmpty(), $callback, $default);
     }
 
@@ -959,7 +1046,8 @@ class Array2 {
      * @param callable|null $default
      * @return static|mixed
      */
-    public function whenIsEmpty(callable $callback, callable|null $default = null) {
+    public function whenIsEmpty(callable $callback, callable|null $default = null)
+    {
         return $this->when($this->isEmpty(), $callback, $default);
     }
 
@@ -971,7 +1059,8 @@ class Array2 {
      * @param callable|null $default
      * @return static|mixed
      */
-    public function unless($condition, callable $callback, callable|null $default = null) {
+    public function unless($condition, callable $callback, callable|null $default = null)
+    {
         return !$this->when($condition, $callback, $default);
     }
 
@@ -983,7 +1072,8 @@ class Array2 {
      * @param callable|null $default
      * @return static|mixed
      */
-    public function unlessIsNotEmpty(callable $callback, callable|null $default = null) {
+    public function unlessIsNotEmpty(callable $callback, callable|null $default = null)
+    {
         return $this->when($this->isEmpty(), $callback, $default);
     }
 
@@ -995,7 +1085,8 @@ class Array2 {
      * @param callable|null $default
      * @return static|mixed
      */
-    public function unlessIsEmpty(callable $callback, callable|null $default = null) {
+    public function unlessIsEmpty(callable $callback, callable|null $default = null)
+    {
         return $this->when($this->isNotEmpty(), $callback, $default);
     }
 
@@ -1006,7 +1097,8 @@ class Array2 {
      * @param string $type_or_class
      * @return bool
      */
-    public function typeCheck(string|array|null $key, string $type_or_class) : bool {
+    public function typeCheck(string|array|null $key, string $type_or_class): bool
+    {
         $is_class = !in_array($type_or_class, ['boolean', 'integer', 'double', 'string', 'array', 'object', 'resource', 'NULL']);
         foreach ($this->data as $k => $v) {
             if ($key == null) {
@@ -1018,7 +1110,7 @@ class Array2 {
                 if (!is_a($value, $type_or_class)) {
                     return false;
                 }
-            } else if (gettype($value) !== $type_or_class) {
+            } elseif (gettype($value) !== $type_or_class) {
                 return false;
             }
         }
@@ -1030,9 +1122,10 @@ class Array2 {
      *
      * @param string|array|null $key
      * @param string $type_or_class
-     * @return \Array2
+     * @return Array2
      */
-    public function typeCast(string|array|null $key, string $type_or_class) : \Array2 {
+    public function typeCast(string|array|null $key, string $type_or_class): Array2
+    {
         $is_class = !in_array($type_or_class, ['boolean', 'integer', 'double', 'string', 'array', 'object', 'resource', 'unset']);
         $result = [];
         foreach ($this->data as $k => $v) {
@@ -1047,7 +1140,7 @@ class Array2 {
                     object_cast($destination, (object) $value);
                     $value = $destination;
                 }
-            } else if (gettype($value) !== $type_or_class) {
+            } elseif (gettype($value) !== $type_or_class) {
                 settype($value, $type_or_class);
             }
             if ($key == null) {
@@ -1058,5 +1151,76 @@ class Array2 {
             }
         }
         return new static($result);
+    }
+
+    /**
+     * Duplicate
+     *
+     * @param int $times
+     * @return Array2
+     */
+    public function duplicate(int $times = 1, ?string $column = null): Array2
+    {
+        $result = array_values($this->data);
+        if ($column) {
+            array_set_column($result, $column, 1);
+        }
+        for ($i = 2; $i <= $times; $i++) {
+            $temp = array_values($this->data);
+            if ($column) {
+                array_set_column($temp, $column, $i);
+            }
+            $result = array_merge($result, $temp);
+        }
+        return new static($result);
+    }
+
+    /**
+     * Sequence
+     *
+     * @param string $column
+     * @param int $step
+     * @return Array2
+     */
+    public function sequence(string $column, int $step = 1): Array2
+    {
+        $result = $this->data;
+        $index = 1;
+        foreach ($result as $k => $v) {
+            $result[$k][$column] = $index;
+            $index += $step;
+        }
+        return new static($result);
+    }
+
+    /**
+     * Implode
+     *
+     * @param string $separator
+     * @return String2
+     */
+    public function implode(string $separator = ''): String2
+    {
+        return new String2(implode($separator, $this->data));
+    }
+
+    /**
+     * Group
+     *
+     * @param array $keys
+     * @return Array2
+     */
+    public function group(array $keys): Array2
+    {
+        $result = [];
+        foreach ($this->data as $k => $v) {
+            $temp_key = [];
+            foreach ($keys as $v2) {
+                $temp_key[] = $v[$v2];
+            }
+            array_key_set($result, $temp_key, $v);
+        }
+        $this->data = $result;
+        return $this;
     }
 }

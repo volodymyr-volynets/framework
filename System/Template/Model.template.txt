@@ -1,0 +1,46 @@
+<?php
+
+namespace {namespace};
+
+use Object\Table;
+
+class {classname} extends Table
+{
+    public $db_link;
+    public $db_link_flag;
+    public $module_code = '{module}';
+    public $title = '';
+    public $name = '';
+    public $pk = [];
+    public $tenant = true;
+    public $orderby;
+    public $limit;
+    public $column_prefix = '';
+    public $columns = [
+        // code here
+    ];
+    public $constraints = [
+        // code here
+    ];
+    public $indexes = [
+        // code here
+    ];
+    public $history = false;
+    public $audit = false;
+    public $optimistic_lock = false;
+    public $options_map = [];
+    public $options_active = [];
+    public $engine = [
+        'MySQLi' => 'InnoDB'
+    ];
+
+    public $cache = false;
+    public $cache_tags = [];
+    public $cache_memory = false;
+
+    public $data_asset = [
+        'classification' => 'client_confidential',
+        'protection' => 2,
+        'scope' => 'enterprise'
+    ];
+}

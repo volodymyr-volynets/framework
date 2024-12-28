@@ -1,175 +1,204 @@
 <?php
 
-class User {
+/*
+ * This file is part of Numbers Framework.
+ *
+ * (c) Volodymyr Volynets <volodymyr.volynets@gmail.com>
+ *
+ * This source file is subject to the Apache 2.0 license that is bundled
+ * with this source code in the file LICENSE.
+ */
 
-	/**
-	 * Cached users
-	 *
-	 * @var array
-	 */
-	public static $cached_users = [];
+use Object\ACL\Resources;
 
-	/**
-	 * Cached owners
-	 *
-	 * @var array
-	 */
-	public static $cached_owners;
+class User
+{
+    /**
+     * Cached users
+     *
+     * @var array
+     */
+    public static $cached_users = [];
 
-	/**
-	 * Override user id
-	 *
-	 * @var int
-	 */
-	protected static $override_user_id;
+    /**
+     * Cached owners
+     *
+     * @var array
+     */
+    public static $cached_owners;
 
-	/**
-	 * Set user
-	 *
-	 * @param int|null $user_id
-	 */
-	public static function setUser($user_id) {
-		self::$override_user_id = $user_id;
-	}
+    /**
+     * Override user id
+     *
+     * @var int
+     */
+    protected static $override_user_id;
 
-	/**
-	 * Get user
-	 *
-	 * @return int|null
-	 */
-	public static function getUser() {
-		return self::$override_user_id;
-	}
+    /**
+     * Set user
+     *
+     * @param int|null $user_id
+     */
+    public static function setUser($user_id)
+    {
+        self::$override_user_id = $user_id;
+    }
 
-	/**
-	 * User #
-	 *
-	 * @return int
-	 */
-	public static function id() {
-		return $_SESSION['numbers']['user']['id'] ?? null;
-	}
+    /**
+     * Get user
+     *
+     * @return int|null
+     */
+    public static function getUser()
+    {
+        return self::$override_user_id;
+    }
 
-	/**
-	 * Authorized
-	 *
-	 * @return boolean
-	 */
-	public static function authorized() {
-		return (!empty($_SESSION['numbers']['flag_authorized']) ? true : false);
-	}
+    /**
+     * User #
+     *
+     * @return int
+     */
+    public static function id()
+    {
+        return $_SESSION['numbers']['user']['id'] ?? null;
+    }
 
-	/**
-	 * Get
-	 *
-	 * @param mixed $key
-	 * @return mixed
-	 */
-	public static function get($key) {
-		if (!empty(self::$override_user_id)) {
-			return array_key_get(self::$cached_users[self::$override_user_id], $key);
-		} else if (isset($_SESSION['numbers']['user'])) {
-			return array_key_get($_SESSION['numbers']['user'], $key);
-		}
-	}
+    /**
+     * Authorized
+     *
+     * @return boolean
+     */
+    public static function authorized()
+    {
+        return (!empty($_SESSION['numbers']['flag_authorized']) ? true : false);
+    }
 
-	/**
-	 * Authorize user
-	 *
-	 * @param array $data
-	 */
-	public static function userAuthorize(array $data) {
-		$_SESSION['numbers']['user'] = $data;
-		// flag as authorized
-		$_SESSION['numbers']['flag_authorized'] = true;
-		// add authorized role
-		$roles = \Object\ACL\Resources::getStatic('user_roles', 'authorized', 'data');
-		self::roleGrant($roles);
-	}
+    /**
+     * Get
+     *
+     * @param mixed $key
+     * @return mixed
+     */
+    public static function get($key)
+    {
+        if (!empty(self::$override_user_id)) {
+            return array_key_get(self::$cached_users[self::$override_user_id], $key);
+        } elseif (isset($_SESSION['numbers']['user'])) {
+            return array_key_get($_SESSION['numbers']['user'], $key);
+        }
+    }
 
-	/**
-	 * Sign out user
-	 *
-	 * @param array $data
-	 */
-	public static function userSignOut() {
-		$_SESSION['numbers']['user'] = [];
-		$_SESSION['numbers']['flag_authorized'] = false;
-	}
+    /**
+     * Authorize user
+     *
+     * @param array $data
+     */
+    public static function userAuthorize(array $data)
+    {
+        $_SESSION['numbers']['user'] = $data;
+        // flag as authorized
+        $_SESSION['numbers']['flag_authorized'] = true;
+        // add authorized role
+        $roles = Resources::getStatic('user_roles', 'authorized', 'data');
+        self::roleGrant($roles);
+    }
 
-	/**
-	 * Roles
-	 *
-	 * @return array
-	 */
-	public static function roles() : array {
-		if (!empty(self::$override_user_id)) {
-			return self::$cached_users[self::$override_user_id]['roles'] ?? [];
-		} else {
-			return $_SESSION['numbers']['user']['roles'] ?? [];
-		}
-	}
+    /**
+     * Sign out user
+     *
+     * @param array $data
+     */
+    public static function userSignOut()
+    {
+        $_SESSION['numbers']['user'] = [];
+        $_SESSION['numbers']['flag_authorized'] = false;
+    }
 
-	/**
-	 * Teams
-	 *
-	 * @return array
-	 */
-	public static function teams() : array {
-		if (!empty(self::$override_user_id)) {
-			return self::$cached_users[self::$override_user_id]['teams'] ?? [];
-		} else {
-			return $_SESSION['numbers']['user']['teams'] ?? [];
-		}
-	}
+    /**
+     * Roles
+     *
+     * @return array
+     */
+    public static function roles(): array
+    {
+        if (!empty(self::$override_user_id)) {
+            return self::$cached_users[self::$override_user_id]['roles'] ?? [];
+        } else {
+            return $_SESSION['numbers']['user']['roles'] ?? [];
+        }
+    }
 
-	/**
-	 * Grant role(s)
-	 *
-	 * @param string|array $role
-	 */
-	public static function roleGrant($role) {
-		// add roles
-		if (!empty($role)) {
-			// initialize roles array
-			if (!isset($_SESSION['numbers']['user']['roles'])) {
-				$_SESSION['numbers']['user']['roles'] = [];
-			}
-			if (!is_array($role)) $role = [$role];
-			$_SESSION['numbers']['user']['roles'] = array_unique(array_merge($_SESSION['numbers']['user']['roles'], $role));
-		}
-	}
+    /**
+     * Teams
+     *
+     * @return array
+     */
+    public static function teams(): array
+    {
+        if (!empty(self::$override_user_id)) {
+            return self::$cached_users[self::$override_user_id]['teams'] ?? [];
+        } else {
+            return $_SESSION['numbers']['user']['teams'] ?? [];
+        }
+    }
 
-	/**
-	 * Revoke role(s)
-	 *
-	 * @param string|array $role
-	 */
-	public static function roleRevoke($role) {
-		if (!empty($role) && !empty($_SESSION['numbers']['user']['roles'])) {
-			if (!is_array($role)) $role = [$role];
-			foreach ($role as $v) {
-				$key = array_search($v, $_SESSION['numbers']['user']['roles']);
-				if ($key !== false) {
-					unset($_SESSION['numbers']['user']['roles'][$key]);
-				}
-			}
-		}
-	}
+    /**
+     * Grant role(s)
+     *
+     * @param string|array $role
+     */
+    public static function roleGrant($role)
+    {
+        // add roles
+        if (!empty($role)) {
+            // initialize roles array
+            if (!isset($_SESSION['numbers']['user']['roles'])) {
+                $_SESSION['numbers']['user']['roles'] = [];
+            }
+            if (!is_array($role)) {
+                $role = [$role];
+            }
+            $_SESSION['numbers']['user']['roles'] = array_unique(array_merge($_SESSION['numbers']['user']['roles'], $role));
+        }
+    }
 
-	/**
-	 * Check if role(s) exists
-	 *
-	 * @param string|array $role
-	 * @return boolean
-	 */
-	public static function roleExists($role) : bool {
-		if (empty($_SESSION['numbers']['user']['roles'])) return false;
-		if (is_array($role)) {
-			$temp = array_intersect($role, $_SESSION['numbers']['user']['roles']);
-			return !empty($temp);
-		} else {
-			return in_array($role, $_SESSION['numbers']['user']['roles']);
-		}
-	}
+    /**
+     * Revoke role(s)
+     *
+     * @param string|array $role
+     */
+    public static function roleRevoke($role)
+    {
+        if (!empty($role) && !empty($_SESSION['numbers']['user']['roles'])) {
+            if (!is_array($role)) {
+                $role = [$role];
+            }
+            foreach ($role as $v) {
+                $key = array_search($v, $_SESSION['numbers']['user']['roles']);
+                if ($key !== false) {
+                    unset($_SESSION['numbers']['user']['roles'][$key]);
+                }
+            }
+        }
+    }
+
+    /**
+     * Check if role(s) exists
+     *
+     * @param string|array $role
+     * @return boolean
+     */
+    public static function roleExists($role): bool
+    {
+        if (empty($_SESSION['numbers']['user']['roles'])) {
+            return false;
+        }
+        if (is_array($role)) {
+            $temp = array_intersect($role, $_SESSION['numbers']['user']['roles']);
+            return !empty($temp);
+        } else {
+            return in_array($role, $_SESSION['numbers']['user']['roles']);
+        }
+    }
 }

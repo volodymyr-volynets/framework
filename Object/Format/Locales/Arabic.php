@@ -1,18 +1,31 @@
 <?php
 
+/*
+ * This file is part of Numbers Framework.
+ *
+ * (c) Volodymyr Volynets <volodymyr.volynets@gmail.com>
+ *
+ * This source file is subject to the Apache 2.0 license that is bundled
+ * with this source code in the file LICENSE.
+ */
+
 namespace Object\Format\Locales;
-class Arabic {
 
-	public static function amount($amount) {
-		return strtr($amount . '', ['٠','١','٢','٣','٤','٥','٦','٧','٨','٩']);
-	}
+class Arabic
+{
+    public static function amount($amount)
+    {
+        return strtr($amount . '', ['٠','١','٢','٣','٤','٥','٦','٧','٨','٩']);
+    }
 
-	public static function readFloatval($amount) {
-		return strtr($amount . '', array_flip(['٠','١','٢','٣','٤','٥','٦','٧','٨','٩']));
-	}
+    public static function readFloatval($amount)
+    {
+        return strtr($amount . '', array_flip(['٠','١','٢','٣','٤','٥','٦','٧','٨','٩']));
+    }
 
-	public static function js() {
-		$js = <<<TTT
+    public static function js()
+    {
+        $js = <<<TTT
 			/* custom locale methods */
 			Numbers.Format.__custom = {
 				amount: function(amount, options) {
@@ -23,6 +36,6 @@ class Arabic {
 				}
 			};
 TTT;
-		Layout::onload($js);
-	}
+        Layout::onload($js);
+    }
 }

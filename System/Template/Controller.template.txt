@@ -1,0 +1,13 @@
+<?php
+
+namespace {namespace};
+
+use Object\Controller;
+
+class {classname} extends Controller
+{
+    public function actionIndex()
+    {
+        // code here
+    }
+}

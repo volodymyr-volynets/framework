@@ -1,0 +1,15 @@
+{
+    "BearerTokenExpired": "{errno}: Bearer token is missing or expired!",
+    "EmptyValues": "Empty value(s)!",
+    "EmptyWhatValues": "Empty {what} value(s)!",
+    "InvalidValues": "Invalid value(s)!",
+    "InvalidWhatValues": "Invalid {what} value(s)!",
+    "LengthMustBeLong": "The length must be {length} characters!",
+    "NoRowsFound": "No rows found!",
+    "RequiredField": "Required field!",
+    "RequiredJsonKey": "Required JSON key \"{field}\"!",
+    "RouteBearerTokenExpired": "{errno}: Bearer token is missing or expired!",
+    "RouteMiddlewareDenied": "{errno}: Middleware denied for this route!",
+    "StringIsTooLong": "String is too long, should be no longer than {length}!",
+    "StringPascalCase": "The string must be PascalCase!"
+}
