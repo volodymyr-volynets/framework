@@ -113,7 +113,7 @@ class Base
             ];
             \Log::add([
                 'type' => 'Error',
-                'only_chanel' => ['default'],
+                'only_channel' => ['default'],
                 'status' => $errno,
                 'message' => 'Javascript error ocured!',
                 'other' => 'Error: ' . $error,
@@ -133,7 +133,7 @@ class Base
             ];
             \Log::add([
                 'type' => 'Error',
-                'only_chanel' => ['default'],
+                'only_channel' => ['default'],
                 'status' => $errno,
                 'message' => 'Error ocured!',
                 'other' => 'Error: ' . $error,
@@ -153,7 +153,7 @@ class Base
             ];
             \Log::add([
                 'type' => 'Error',
-                'only_chanel' => ['default'],
+                'only_channel' => ['default'],
                 'status' => $errno,
                 'message' => 'Supperssed error ocured!',
                 'other' => 'Error: ' . $error,
@@ -206,7 +206,7 @@ class Base
         ];
         \Log::add([
             'type' => $type,
-            'only_chanel' => ['default'],
+            'only_channel' => ['default'],
             'status' => $code,
             'message' => 'Exception ocured!',
             'other' => 'Exception: ' . $e->getMessage(),

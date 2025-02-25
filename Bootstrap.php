@@ -33,7 +33,7 @@ class Bootstrap
         }
         // enforcing https
         $enforce_https = Application::get('application.https.enforce');
-        if (!empty($enforce_https)) {
+        if (!empty($enforce_https) && !\Helper\Cmd::isCli()) {
             if (!Request::isSSL()) {
                 $url = Request::host(['protocol' => 'https', 'request' => true]);
                 Request::redirect($url);
@@ -104,7 +104,7 @@ class Bootstrap
             if ($db_links) {
                 Log::add([
                     'type' => 'System',
-                    'only_chanel' => 'default',
+                    'only_channel' => 'default',
                     'message' => 'Initialized databases!',
                     'other' => 'Log links: ' . implode(', ', $db_links),
                 ]);
@@ -124,7 +124,7 @@ class Bootstrap
             }
             Log::add([
                 'type' => 'System',
-                'only_chanel' => 'default',
+                'only_channel' => 'default',
                 'message' => 'Initialized logs!',
                 'other' => 'Log links: ' . implode(', ', $log_links),
             ]);
@@ -146,7 +146,7 @@ class Bootstrap
             if ($cache_links) {
                 Log::add([
                     'type' => 'System',
-                    'only_chanel' => 'default',
+                    'only_channel' => 'default',
                     'message' => 'Initialized caches!',
                     'other' => 'Cache links: ' . implode(', ', $cache_links)
                 ]);
@@ -171,7 +171,7 @@ class Bootstrap
             if ($websockets_links) {
                 Log::add([
                     'type' => 'System',
-                    'only_chanel' => 'default',
+                    'only_channel' => 'default',
                     'message' => 'Initialized web sockets!',
                     'other' => 'Websocket links: ' . implode(', ', $websockets_links)
                 ]);
@@ -199,7 +199,7 @@ class Bootstrap
             Session::start($session['options'] ?? []);
             Log::add([
                 'type' => 'System',
-                'only_chanel' => 'default',
+                'only_channel' => 'default',
                 'message' => 'Initialized session!',
                 'other' => 'Session #: ' . session_id()
             ]);
@@ -209,7 +209,7 @@ class Bootstrap
             Factory::model($application_structure_model, true)->tenant();
             Log::add([
                 'type' => 'System',
-                'only_chanel' => 'default',
+                'only_channel' => 'default',
                 'message' => 'Initialized tenant!' . Tenant::id(),
                 'other' => 'Tenant #: ' . Tenant::id()
             ]);
@@ -233,7 +233,7 @@ class Bootstrap
             }
             Log::add([
                 'type' => 'System',
-                'only_chanel' => 'default',
+                'only_channel' => 'default',
                 'message' => 'Initialized I18n!',
                 'other' => 'I18n group #: ' . $temp_result['group_id'],
             ]);
@@ -390,7 +390,7 @@ class Bootstrap
         // logs just before db closing
         Log::add([
             'type' => 'Request',
-            'only_chanel' => 'default',
+            'only_channel' => 'default',
             'message' => 'Request ends!',
             'duration' => microtime(true) - Application::get('application.system.request_time'),
         ]);
@@ -403,7 +403,7 @@ class Bootstrap
             }
         }
         // emails with errors
-        if (!empty(Debug::$email) && Application::get('numbers.backend', ['backend_exists' => true]) && Application::get('numbers.frontend', ['backend_exists' => true])) {
+        if (!empty(Debug::$email) && Application::get('debug.send_realtime') && Application::get('numbers.backend', ['backend_exists' => true]) && Application::get('numbers.frontend', ['backend_exists' => true])) {
             Debug::sendErrorsToAdmin();
         }
     }

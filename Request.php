@@ -594,6 +594,7 @@ class Request
         if ($params) {
             $url = $url . '?' . http_build_query($params);
         }
+        Event::processEvents('SM::REQUEST_END');
         session_write_close(); // a must
         header('Location: ' . $url);
         exit;

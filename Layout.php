@@ -426,7 +426,7 @@ class Layout extends View
         $options['extension'] = ($options['extension'] ?? '');
         Log::add([
             'type' => 'Layout',
-            'only_chanel' => 'default',
+            'only_channel' => 'default',
             'message' => 'Content type generated!',
             'other' => 'Content type: ' . $content_type . "\n" . 'Status: ' . ($options['status'] ?? 'Unknown'),
         ]);

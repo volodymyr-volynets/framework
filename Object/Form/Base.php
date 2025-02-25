@@ -657,7 +657,7 @@ class Base extends Parent2
             } else {
                 $new_pk[] = current($values);
             }
-            $holder['pk'] = implode('::', $new_pk);
+            $holder['pk'] = implode('::', array_flatten($new_pk));
             if (!empty($holder['new_pk_locks'][$holder['pk']])) {
                 // error only if we have pk
                 if (!empty($holder['pk'])) {
@@ -1365,7 +1365,11 @@ class Base extends Parent2
         }
         foreach ($value as $k => $v) {
             if (!empty($field['multiple_column'])) {
-                $temp = $v[$field['multiple_column']];
+                if (is_array($v[$field['multiple_column']])) {
+                    $temp = current($v[$field['multiple_column']]);
+                } else {
+                    $temp = $v[$field['multiple_column']];
+                }
             } else {
                 $temp = $v;
             }
@@ -2255,7 +2259,7 @@ class Base extends Parent2
             }
             \Log::add([
                 'type' => 'List',
-                'only_chanel' => 'default',
+                'only_channel' => 'default',
                 'message' => 'List opened!',
                 'other' => 'Title: ' . $this->title,
                 'affected_rows' => $this->misc_settings['list']['num_rows'] ?? 0,
@@ -2285,7 +2289,7 @@ class Base extends Parent2
             }
             \Log::add([
                 'type' => 'Report',
-                'only_chanel' => 'default',
+                'only_channel' => 'default',
                 'message' => 'Report opened!',
                 'other' => 'Title: ' . $this->title,
                 'affected_rows' => $this->misc_settings['report']['num_rows'] ?? 0,
@@ -2337,7 +2341,7 @@ class Base extends Parent2
             ]);
             \Log::add([
                 'type' => 'Form',
-                'only_chanel' => 'default',
+                'only_channel' => 'default',
                 'message' => 'Form opened!',
                 'other' => 'Title: ' . $this->title,
                 'affected_rows' => 1,
@@ -4389,7 +4393,7 @@ class Base extends Parent2
      * @param string $message
      * @return void
      */
-    public function validateQuikRequired(string|array $field, string $message = Messages::REQUIRED_FIELD): void
+    public function validateQuickRequired(string|array $field, string $message = Messages::REQUIRED_FIELD): void
     {
         if (!is_array($field)) {
             $field = [$field];

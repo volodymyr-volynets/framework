@@ -161,7 +161,7 @@ class Import
                 // we need to process overrides
                 foreach ($v2 as $k3 => $v3) {
                     // if we have a detail
-                    if (is_array($v3)) {
+                    if (is_array($v3) && !str_ends_with($k3, '_json')) {
                         foreach ($v3 as $k4 => $v4) {
                             foreach ($v4 as $k5 => $v5) {
                                 if (is_array($v5)) {

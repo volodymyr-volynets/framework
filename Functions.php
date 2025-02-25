@@ -469,7 +469,11 @@ function array_extract_values_by_key(array $array, string $key, array $options =
         }
         if (isset($options['type'])) {
             if ($options['type'] == 'varchar') {
-                $result[] = $v[$key] . '';
+                if (is_array($v[$key])) {
+                    $result[] = current($v[$key]) . '';
+                } else {
+                    $result[] = $v[$key] . '';
+                }
             } else {
                 $result[] = $v[$key];
             }
@@ -1272,12 +1276,14 @@ function loc(string|array $key, mixed $text = '', array $options = []): string
 /**
  * Is loc
  *
- * @param string|array $key
+ * @param string|array|null $key
  * @return bool
  */
-function is_loc(string|array $key): bool
+function is_loc(string|array|null $key): bool
 {
-    if (is_string($key)) {
+    if (is_null($key)) {
+        return false;
+    } elseif (is_string($key)) {
         $temp = explode('.', $key);
         return $temp[0] == 'NF' && count($temp) == 3;
     } else {
@@ -2075,4 +2081,37 @@ function array_key_compare(mixed $arr1, mixed $arr2): bool
     }
     $result = array_intersect($arr1, $arr2);
     return !empty($result);
+}
+
+/**
+ * Array 2 ini
+ *
+ * @param array $arr
+ * @param string $key
+ * @return array
+ */
+function array2ini(array $arr, string $key = ''): array
+{
+    $result = [];
+    foreach ($arr as $k => $v) {
+        $key2 = ($key ? ($key . '.') : '') . $k;
+        if (is_array($v)) {
+            $temp = array2ini($v, $key2);
+            $result = array_merge_hard($result, $temp);
+        } else {
+            $result[$key2] = $v;
+        }
+    }
+    return $result;
+}
+
+/**
+ * Array flatten
+ *
+ * @param array $arr
+ * @return array
+ */
+function array_flatten(array $arr): array
+{
+    return array_values(array2ini($arr));
 }

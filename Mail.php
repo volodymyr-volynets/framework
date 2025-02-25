@@ -62,7 +62,7 @@ class Mail
         }
         Log::add([
             'type' => 'Mail',
-            'only_chanel' => 'default',
+            'only_channel' => 'default',
             'message' => 'Mail sent!',
             'other' => '[' . ($options['notification_name'] ?? 'Direct Mail') . '] Subject' . $options['subject'],
             'affected_rows' => $result['error'] ? 0 : 1,

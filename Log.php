@@ -186,12 +186,12 @@ class Log
     {
         self::$group_id = self::getGroupId();
         // channels
-        if (!empty($data['only_chanel'])) {
-            if (is_string($data['only_chanel'])) {
-                $data['only_chanel'] = explode(',', $data['only_chanel']);
+        if (!empty($data['only_channel'])) {
+            if (is_string($data['only_channel'])) {
+                $data['only_channel'] = explode(',', $data['only_channel']);
             }
         } else {
-            $data['only_chanel'][] = 'default';
+            $data['only_channel'][] = 'default';
         }
         // if cli
         if (Cmd::isCli()) {
@@ -257,11 +257,11 @@ class Log
         }
         $data['ajax'] = (int) $data['ajax'];
         $data['options'] = [
-            'only_chanel' => $data['only_chanel'],
+            'only_channel' => $data['only_channel'],
         ];
         // these are driver specific
-        unset($data['chanel'], $data['only_chanel']);
-        foreach ($data['options']['only_chanel'] as $v) {
+        unset($data['chanel'], $data['only_channel']);
+        foreach ($data['options']['only_channel'] as $v) {
             if (!isset(self::$logs[$v])) {
                 self::$logs[$v] = [];
             }
@@ -269,7 +269,7 @@ class Log
             // cc all messages
             foreach (Application::get('log.' . $v . '.cc') ?? [] as $v2) {
                 // skip if we sent messages there already
-                if (in_array($v2, $data['options']['only_chanel'])) {
+                if (in_array($v2, $data['options']['only_channel'])) {
                     continue;
                 }
                 if (!isset(self::$logs[$v2])) {

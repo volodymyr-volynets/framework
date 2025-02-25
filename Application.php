@@ -505,7 +505,7 @@ class Application
         // calling action
         Log::add([
             'type' => 'System',
-            'only_chanel' => 'default',
+            'only_channel' => 'default',
             'message' => 'Calling controller!',
             'other' => 'Controller title: ' . self::$controller->title,
         ]);

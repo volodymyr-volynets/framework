@@ -56,6 +56,11 @@ class Parent2 extends Data
     /**
      * Panel for SMS message
      */
+    public const SMS_SUBJECT = '__sms_subject';
+
+    /**
+     * Panel for SMS message
+     */
     public const SMS_MESSAGE = '__sms_message';
 
     /**

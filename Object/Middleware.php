@@ -117,7 +117,7 @@ abstract class Middleware
                 if (in_array('Log', $v['error'])) {
                     \Log::add([
                         'type' => 'Exception (Middleware)',
-                        'only_chanel' => ['default'],
+                        'only_channel' => ['default'],
                         'message' => 'Middleware failed!',
                         'other' => 'Middleware name: ' . $v['name'] . ', ' . implode(', ', $result['error']),
                         'error_rows' => count($result['error']),

@@ -53,9 +53,9 @@ class Deployments
                             foreach ($files as $v3) {
                                 $temp1 = explode('/' . $v2 . '/', $v3);
                                 if ($v2 == 'application') {
-                                    File::copy($code_dir . '/' . $v2 . '/' . $v3, $code_dir . '/application/Components/' . $k . '/' . $temp1[1]);
+                                    File::copy($code_dir . '/' . $v2 . '/' . $v3, $code_dir . '/application/Components/' . $k . '/' . $temp1[1], ['chmod' => 0777]);
                                 } else {
-                                    File::copy($code_dir . '/' . $v2 . '/' . $v3, $code_dir . '/application/../public_html/components/' . $k . '/' . $temp1[1]);
+                                    File::copy($code_dir . '/' . $v2 . '/' . $v3, $code_dir . '/application/../public_html/components/' . $k . '/' . $temp1[1], ['chmod' => 0777]);
                                 }
                             }
                         }
@@ -86,9 +86,9 @@ class Deployments
                     foreach ($files as $v3) {
                         $temp1 = explode('/' . $v2 . '/', $v3);
                         if ($v2 == 'application') {
-                            File::copy($code_dir . '/' . $v2 . '/' . $v3, $code_dir . '/application/Components/' . $k . '/' . $temp1[1]);
+                            File::copy($code_dir . '/' . $v2 . '/' . $v3, $code_dir . '/application/Components/' . $k . '/' . $temp1[1], ['chmod' => 0777]);
                         } else {
-                            File::copy($code_dir . '/' . $v2 . '/' . $v3, $code_dir . '/application/../public_html/components/' . $k . '/' . $temp1[1]);
+                            File::copy($code_dir . '/' . $v2 . '/' . $v3, $code_dir . '/application/../public_html/components/' . $k . '/' . $temp1[1], ['chmod' => 0777]);
                         }
                     }
                 }

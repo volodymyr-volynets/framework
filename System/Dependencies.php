@@ -54,6 +54,7 @@ class Dependencies
             $data = $data['dep'] ?? [];
             $data['composer'] = $data['composer'] ?? [];
             $data['submodule'] = $data['submodule'] ?? [];
+            $registered_submodules = array2ini($data['submodule']);
             $data['submodule_dirs'] = [];
             $data['apache'] = $data['apache'] ?? [];
             $data['php'] = $data['php'] ?? [];
@@ -148,6 +149,18 @@ class Dependencies
                                 self::processDepsArray($sub_data['submodule'], $composer_data['require'], $composer_dirs, $k, $data['__submodule_dependencies'], 'vendor');
                                 self::processDepsArray($sub_data['submodule'], $composer_data['require'], $composer_dirs, $k, $data['__submodule_dependencies'], 'private');
                                 $data['submodule'] = array_merge_hard($data['submodule'], $sub_data['submodule']);
+                                // check if submodule in application.ini file
+                                foreach (array2ini($sub_data['submodule']) ?? [] as $k12 => $v12) {
+                                    if (str_ends_with($k12, '__any')) {
+                                        continue;
+                                    }
+                                    if (str_ends_with($k12, '.Common')) {
+                                        continue;
+                                    }
+                                    if (empty($registered_submodules[$k12])) {
+                                        throw new \Exception('Module ' . $k12 . ' is not registered in applicaiton.ini');
+                                    }
+                                }
                             }
                             // apache
                             if (!empty($sub_data['apache'])) {
@@ -631,7 +644,7 @@ export default {
 TTT;
                 File::write($ar_filename, $class_code);
                 // sites
-                $sites = \Application::get('application.sites');
+                $sites = \Application::get('application.sites') ?? [];
                 foreach ($sites as $site => $site_data) {
                     if (!empty($site_data['model']['dir'])) {
                         $js_model_file_name = rtrim($site_data['model']['dir'], '/') . DIRECTORY_SEPARATOR . ltrim($ar_relative_filename, '/');
@@ -1118,7 +1131,7 @@ TTT;
             // adding presets
             if ($options['mode'] == 'commit' && \Application::get('application.structure.tenant_default_id')) {
                 \Db::connectToServers('default', \Application::get('db.default'));
-                $sites = \Application::get('application.sites');
+                $sites = \Application::get('application.sites') ?? [];
                 foreach ($data['preset'] as $k => $v) {
                     $reflector = new \ReflectionClass($k);
                     $pathinfo = pathinfo($reflector->getFileName(), PATHINFO_ALL);

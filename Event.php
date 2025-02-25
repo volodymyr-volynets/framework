@@ -156,12 +156,13 @@ class Event
         if (empty(self::$events[$type])) {
             return ['success' => true, 'error' => []];
         }
-        print_r2(self::$events[$type]);
         $model = Factory::model('\Numbers\Backend\System\Events\Base', true);
         foreach (self::$events[$type] as $k => $v) {
             $result = $model->processOneEvent($k);
-            if (!$result['succcess']) {
-                Log::warning('Event ' . $k . ' returned error: ' . implode(', ', $result['error']));
+            if (!$result['success']) {
+                Log::warning('Event returned error!', [
+                    'other' => $k . ' ' . implode(', ', $result['error']),
+                ]);
             }
         }
         return ['success' => true, 'error' => []];

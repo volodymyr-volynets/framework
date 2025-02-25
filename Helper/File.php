@@ -248,6 +248,7 @@ class File
      *		array skip_files
      *		array skip_directories
      *      array skip_directories_level1
+     *      int chmod
      * @return boolean
      */
     public static function copy(string $source, string $destination, array $options = []): bool
@@ -293,7 +294,11 @@ class File
             if (file_exists($destination) || is_link($destination)) {
                 unlink($destination);
             }
-            return copy($source, $destination);
+            $result = copy($source, $destination);
+            if (isset($options['chmod'])) {
+                self::chmod($destination, $options['chmod']);
+            }
+            return $result;
         }
     }
 

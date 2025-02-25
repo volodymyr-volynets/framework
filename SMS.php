@@ -54,7 +54,7 @@ class SMS
         $result = $object->send($options);
         Log::add([
             'type' => 'SMS',
-            'only_chanel' => 'default',
+            'only_channel' => 'default',
             'message' => 'SMS sent!',
             'other' => '[' . 'Direct SMS' . ']' . substr($options['message'], 0, 50) . '...',
             'affected_rows' => $result['error'] ? 0 : 1,
