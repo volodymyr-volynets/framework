@@ -1,0 +1,4 @@
+{
+    "InvalidMaxValue": "Valeur non valide, max {value} !",
+    "InvalidMinValue": "Valeur non valide, min {value} !"
+}

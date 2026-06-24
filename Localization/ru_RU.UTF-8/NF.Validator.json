@@ -1,0 +1,4 @@
+{
+    "InvalidMaxValue": "Недопустимое значение, макс. {value}!",
+    "InvalidMinValue": "Недопустимое значение, минимум {value}!"
+}

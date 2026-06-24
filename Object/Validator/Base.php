@@ -21,6 +21,7 @@ abstract class Base
     protected $result = [
         'success' => false,
         'error' => [],
+        'warning' => [],
         'data' => null,
         'placeholder' => null,
         'placeholder_select' => null

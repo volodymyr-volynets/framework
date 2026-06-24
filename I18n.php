@@ -145,6 +145,24 @@ class I18n
     }
 
     /**
+     * Text to loc
+     *
+     * @param string $prefix
+     * @param string $text
+     * @param array $options
+     * @return string
+     */
+    public static function textToLoc(string $prefix, string $text, array $options = []): string
+    {
+        $loc = rtrim($prefix, '.') . '.' . String2::createStatic($text)->englishOnly(true)->toString();
+        ;
+        if (empty($options['translate'])) {
+            return $loc;
+        }
+        return self::loc($loc, $text, $options);
+    }
+
+    /**
      * Check if language is RTL or return direction
      *
      * @param boolean $flag

@@ -366,8 +366,17 @@ class Debug
                     $temp = array_keys($temp2);
                     $header = array_combine($temp, $temp);
                     if (!empty($header)) {
+                        $new_rows = [];
+                        foreach ($v['rows'] as $k6 => $v6) {
+                            foreach ($v6 as $k7 => $v7) {
+                                if (is_html($v7)) {
+                                    $v7 = strip_tags($v7);
+                                }
+                                $new_rows[$k6][$k7] = $v7;
+                            }
+                        }
                         $result .= '<tr>';
-                        $result .= '<td valign="top" colspan="8" style="max-width: 1000px; overflow: scroll;">' . HTML::table(['header' => $header, 'options' => $v['rows']]) . '</td>';
+                        $result .= '<td valign="top" colspan="8" style="max-width: 1000px; overflow: scroll;">' . HTML::table(['header' => $header, 'options' => $new_rows]) . '</td>';
                         $result .= '</tr>';
                     }
                 }

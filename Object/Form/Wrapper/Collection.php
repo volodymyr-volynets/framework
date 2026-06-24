@@ -175,7 +175,6 @@ abstract class Collection
                 $model_options = $this->options['forms'][$this->collection_screen_link][$form_link]['options'] ?? [];
                 if (!empty($this->options['forms'][$this->collection_screen_link][$form_link]['options']['tabs_row_id'])) {
                     $model_options['collection_current_tab_id'] = "form_collection_tabs_{$this->collection_link}_{$this->options['forms'][$this->collection_screen_link][$form_link]['options']['tabs_row_id']}_active_hidden";
-                    ;
                 }
                 $model_options['collection_link'] = $this->collection_link;
                 $model_options['collection_screen_link'] = $this->collection_screen_link;
@@ -183,7 +182,7 @@ abstract class Collection
                 $model_options['__parent_options'] = $this->options['forms'][$this->collection_screen_link][$form_link] ?? [];
                 $model_options['__main_form_in_collection'] = !empty($this->options['forms'][$this->collection_screen_link][$form_link]['flag_main_form']);
                 // input
-                $model_options['input'] = array_merge($this->values, $model_options['input'] ?? []);
+                $model_options['input'] = array_merge_hard($this->values, $model_options['input'] ?? []);
                 $model = \Factory::model($this->options['forms'][$this->collection_screen_link][$form_link]['model'], false, [$model_options]);
                 $submitted_form_cached[$form_link] = $model->render();
                 if (isset($model->form_object)) {
@@ -219,7 +218,7 @@ abstract class Collection
                         }
                     }
                 }
-                $this->values = $submitted_bypass_values;
+                $this->values = $submitted_bypass_values = array_merge_hard($this->values, $submitted_bypass_values);
             } else {
                 $submitted_bypass_values = $this->values;
             }
@@ -290,7 +289,7 @@ abstract class Collection
                             $model_options['__parent_options'] = $form_v ?? [];
                             $model_options['__main_form_in_collection'] = !empty($form_v['flag_main_form']);
                             // input
-                            $model_options['input'] = array_merge($submitted_bypass_values, $model_options['input'] ?? []);
+                            $model_options['input'] = array_merge_hard($this->values, $submitted_bypass_values, $model_options['input'] ?? []);
                             $model = \Factory::model($form_v['model'], false, [$model_options]);
                             // extract bypass values
                             if (!empty($form_v['flag_main_form'])) {

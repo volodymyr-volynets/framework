@@ -33,7 +33,7 @@ class Data
     /**
      * Override handler
      *
-     * @param type $object
+     * @param Object $object
      * @return boolean
      */
     public function overrideHandle(& $object)

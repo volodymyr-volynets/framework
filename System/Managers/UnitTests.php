@@ -24,7 +24,11 @@ require('../libraries/vendor/Numbers/Framework/Application.php');
 spl_autoload_register(array('Application', 'autoloader'));
 
 // running application
-Application::run(['__run_only_bootstrap' => 1]);
+Application::run(['__run_only_bootstrap' => 2]);
+
+// tenant for phpunit
+$tenant_id = (int) Application::get('phpunit.tenant_default_id');
+Tenant::setOverrideTenantId($tenant_id);
 
 // increase in memory and unlimited execution time
 ini_set('memory_limit', '8192M');

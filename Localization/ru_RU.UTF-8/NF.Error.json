@@ -1,0 +1,17 @@
+{
+    "BearerTokenExpired": "{errno}: Токен на предъявителя отсутствует или просрочен!",
+    "EmptyValues": "Пустые значения!",
+    "EmptyWhatValues": "Пустые значения {what}!",
+    "InvalidHashTaggedGiven": "Хэштег должен начинаться с # и не должен содержать пробелов.",
+    "InvalidMentionGiven": "Упоминание должно начинаться с @ и не должно быть пробелов.",
+    "InvalidValues": "Недопустимое значение(я)!",
+    "InvalidWhatValues": "Недопустимые значения {what}!",
+    "LengthMustBeLong": "Длина должна быть {length} символов!",
+    "NoRowsFound": "Строки не найдены!",
+    "RequiredField": "Обязательное поле!",
+    "RequiredJsonKey": "Требуется ключ JSON &quot;{field}&quot;!",
+    "RouteBearerTokenExpired": "{errno}: Токен на предъявителя отсутствует или просрочен!",
+    "RouteMiddlewareDenied": "{errno}: Промежуточное ПО отклонено для этого маршрута!",
+    "StringIsTooLong": "Строка слишком длинная, не должна быть длиннее {length}!",
+    "StringPascalCase": "Строка должна быть в PascalCase!"
+}

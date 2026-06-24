@@ -151,11 +151,11 @@ class Report
      *
      * @param string $report_name
      * @param string $header_name
-     * @param type $odd_even
+     * @param mixed $odd_even
      * @param array $data_columns
      * @param array $options
      */
-    public function addData(string $report_name, string $header_name, $odd_even, array $data_columns, array $options = [], array $summary_columns = [])
+    public function addData(string $report_name, string $header_name, mixed $odd_even, array $data_columns, array $options = [], array $summary_columns = [])
     {
         // process header
         $header = $this->data[$report_name]['header'][$header_name];
@@ -474,7 +474,7 @@ class Report
      * @param float|string $y
      * @param float|string $w
      * @param float|string $h
-     * @param type $text
+     * @param string $text
      * @param array $options
      */
     public function addText($x, $y, $w, $h, $text, array $options = [])
@@ -493,8 +493,8 @@ class Report
     /**
      * Set XY
      *
-     * @param type $x
-     * @param type $y
+     * @param float|string|int $x
+     * @param float|string|int $y
      */
     public function setXY($x, $y)
     {

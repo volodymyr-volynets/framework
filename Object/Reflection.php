@@ -59,6 +59,31 @@ class Reflection
     }
 
     /**
+     * Get properties (public and protected)
+     *
+     * @param $class
+     * @param string|null $property
+     * @return mixed
+     */
+    public static function getPublicAndProtectedProperties($class, ?string $property = null): mixed
+    {
+        $reflect = new \ReflectionClass($class);
+        $properties = $reflect->getProperties(\ReflectionProperty::IS_PUBLIC | \ReflectionProperty::IS_PROTECTED);
+        $result = [];
+        foreach ($properties as $v) {
+            $result[$v->getName()] = [
+                'name' => $v->getName(),
+                'type' => $v->getType(),
+                'default' => $v->getDefaultValue(),
+            ];
+        }
+        if ($property) {
+            return $result[$property];
+        }
+        return $result;
+    }
+
+    /**
      * Get methods
      *
      * @param mixed $class
@@ -78,12 +103,21 @@ class Reflection
                         $name_no_prefix = str_replace($v2, '', $v->name);
                         $name_split = preg_replace("([A-Z])", " $0", $name_no_prefix);
                         $name_split = explode(' ', trim($name_split));
+                        // fetch attributes
+                        $attributes = [];
+                        foreach ($v->getAttributes() as $v13) {
+                            $attributes[$v13->name] = [
+                                'name' => $v13->name,
+                                'values' => $v13->getArguments(),
+                            ];
+                        }
                         $result[$v2][$v->name] = [
                             'name' => $v->name,
                             'name_no_prefix' => $name_no_prefix,
                             'name_split' => $name_split,
                             'name_underscore' => implode('_', $name_split),
                             'name_nice' => implode(' ', $name_split),
+                            'attributes' => $attributes,
                         ];
                     }
                 }
@@ -92,12 +126,21 @@ class Reflection
             foreach ($methods as $v) {
                 $name_split = preg_replace("([A-Z])", " $0", $v->name);
                 $name_split = explode(' ', trim($name_split));
+                // fetch attributes
+                $attributes = [];
+                foreach ($v->getAttributes() as $v13) {
+                    $attributes[$v13->name] = [
+                        'name' => $v13->name,
+                        'values' => $v13->getArguments(),
+                    ];
+                }
                 $result[$v->name] = [
                     'name' => $v->name,
                     'name_no_prefix' => $v->name,
                     'name_split' => $name_split,
                     'name_underscore' => implode('_', $name_split),
                     'name_nice' => implode(' ', $name_split),
+                    'attributes' => $attributes,
                 ];
             }
         }
@@ -143,6 +186,19 @@ class Reflection
             ];
         }
         return $result;
+    }
+
+    /**
+     * Get method return type
+     *
+     * @param mixed $class
+     * @param string $method
+     * @return array
+     */
+    public static function getMethodReturnType(mixed $class, string $method): string
+    {
+        $reflection = new \ReflectionMethod($class, $method);
+        return $reflection->getReturnType();
     }
 
     /**
@@ -214,5 +270,57 @@ class Reflection
     {
         $reflect = new \ReflectionClass($class);
         return $reflect->getConstants();
+    }
+
+    /**
+     * Get closure
+     *
+     * @param \Closure|callable $callback
+     * @return string
+     */
+    public static function getClosure(\Closure|callable $callback): string
+    {
+        if (is_callable($callback)) {
+            $callback = \Closure::fromCallable($callback);
+        }
+        $result = 'function (';
+        $reflector = new \ReflectionFunction($callback);
+        $params = [];
+        foreach ($reflector->getParameters() as $v) {
+            $temp = '';
+            if ($v->hasType()) {
+                $temp .= $v->getType() . ' ';
+            }
+            if ($v->isPassedByReference()) {
+                $temp .= '&';
+            }
+            $temp .= '$' . $v->name;
+            if ($v->isOptional()) {
+                $temp .= ' = ' . var_export($v->getDefaultValue(), true);
+            }
+            $params [] = $temp;
+        }
+        $result .= implode(', ', $params);
+        $result .= ') {' . PHP_EOL;
+        $lines = file($reflector->getFileName());
+        for ($i = $reflector->getStartLine(); $i < $reflector->getEndLine() - 1; $i++) {
+            $result .= $lines[$i];
+        }
+        $result .= PHP_EOL . '}';
+        return $result;
+    }
+
+    /**
+     * Run closure
+     *
+     * @param string $func
+     * @param array $args
+     * @return mixed
+     */
+    public static function runClosure(string $func, array $args = []): mixed
+    {
+        $__callable = null;
+        eval("\$__callable = " . $func . ';');
+        return call_user_func_array($__callable, $args);
     }
 }

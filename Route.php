@@ -161,7 +161,8 @@ class Route
         'as_controller' => false,
         'as_controller_name' => null,
         'as_api' => null,
-        // roles and teams
+        'route_alias' => null,
+        // roles
         'roles' => [],
         'role_ids' => [],
         'role_names' => [],
@@ -169,6 +170,18 @@ class Route
         'teams' => [],
         'team_ids' => [],
         'team_names' => [],
+        // domains
+        'domains' => [],
+        'domain_ids' => [],
+        'domain_names' => [],
+        // realms
+        'realms' => [],
+        'realm_ids' => [],
+        'realm_names' => [],
+        // groups
+        'groups' => [],
+        'group_ids' => [],
+        'group_names' => [],
         // features
         'owners' => [],
         'features' => [],
@@ -235,6 +248,9 @@ class Route
         // process actions
         $route->action = $action;
         // process method
+        if ($methods == self::HTTP_REQUEST_METHOD_ALL) {
+            $methods = self::HTTP_REQUEST_METHODS;
+        }
         if (is_string($methods)) {
             $methods = explode(',', $methods);
         }
@@ -439,43 +455,106 @@ class Route
             $found = false;
             // roles
             if (strpos($v, 'Role:') !== false) {
-                $v = str_replace('Role:', '', $v);
+                $v = trim(str_replace('Role:', '', $v));
                 $this->setAclValue(['roles', $v], $v);
                 $this->setAclValue(['permission'], true);
                 $found = true;
             }
             // role ids
             if (!$found && strpos($v, 'Role ID:') !== false) {
-                $v = str_replace('Role ID:', '', $v);
+                $v = trim(str_replace('Role ID:', '', $v));
                 $this->setAclValue(['role_ids', $v], (int) $v);
                 $this->setAclValue(['permission'], true);
                 $found = true;
             }
             // role names
             if (!$found && strpos($v, 'Role Name:') !== false) {
-                $v = str_replace('Role Name:', '', $v);
+                $v = trim(str_replace('Role Name:', '', $v));
                 $this->setAclValue(['role_names', $v], $v);
                 $this->setAclValue(['permission'], true);
                 $found = true;
             }
             // teams
             if (strpos($v, 'Team:') !== false) {
-                $v = str_replace('Team:', '', $v);
+                $v = trim(str_replace('Team:', '', $v));
                 $this->setAclValue(['teams', $v], $v);
                 $this->setAclValue(['permission'], true);
                 $found = true;
             }
             // team name
             if (!$found && strpos($v, 'Team Name:') !== false) {
-                $v = str_replace('Team Name:', '', $v);
+                $v = trim(str_replace('Team Name:', '', $v));
                 $this->setAclValue(['team_names', $v], $v);
                 $this->setAclValue(['permission'], true);
                 $found = true;
             }
             // team ids
             if (!$found && strpos($v, 'Team ID:') !== false) {
-                $v = str_replace('Team ID:', '', $v);
+                $v = trim(str_replace('Team ID:', '', $v));
                 $this->setAclValue(['team_ids', $v], (int) $v);
+                $this->setAclValue(['permission'], true);
+                $found = true;
+            }
+            // realms
+            if (strpos($v, 'Realm:') !== false) {
+                $v = trim(str_replace('Realm:', '', $v));
+                $this->setAclValue(['realms', $v], $v);
+                $this->setAclValue(['permission'], true);
+                $found = true;
+            }
+            // realm name
+            if (!$found && strpos($v, 'Realm Name:') !== false) {
+                $v = trim(str_replace('Realm Name:', '', $v));
+                $this->setAclValue(['realm_names', $v], $v);
+                $this->setAclValue(['permission'], true);
+                $found = true;
+            }
+            // realm ids
+            if (!$found && strpos($v, 'Realm ID:') !== false) {
+                $v = trim(str_replace('Realm ID:', '', $v));
+                $this->setAclValue(['realm_ids', $v], (int) $v);
+                $this->setAclValue(['permission'], true);
+                $found = true;
+            }
+            // domains
+            if (strpos($v, 'Domain:') !== false) {
+                $v = trim(str_replace('Domain:', '', $v));
+                $this->setAclValue(['domains', $v], $v);
+                $this->setAclValue(['permission'], true);
+                $found = true;
+            }
+            // domain name
+            if (!$found && strpos($v, 'Domain Name:') !== false) {
+                $v = trim(str_replace('Domain Name:', '', $v));
+                $this->setAclValue(['domain_names', $v], $v);
+                $this->setAclValue(['permission'], true);
+                $found = true;
+            }
+            // domain ids
+            if (!$found && strpos($v, 'Domain ID:') !== false) {
+                $v = trim(str_replace('Domain ID:', '', $v));
+                $this->setAclValue(['domain_ids', $v], (int) $v);
+                $this->setAclValue(['permission'], true);
+                $found = true;
+            }
+            // groups
+            if (strpos($v, 'Group:') !== false) {
+                $v = trim(str_replace('Group:', '', $v));
+                $this->setAclValue(['groups', $v], $v);
+                $this->setAclValue(['permission'], true);
+                $found = true;
+            }
+            // group name
+            if (!$found && strpos($v, 'Group Name:') !== false) {
+                $v = trim(str_replace('Group Name:', '', $v));
+                $this->setAclValue(['group_names', $v], $v);
+                $this->setAclValue(['permission'], true);
+                $found = true;
+            }
+            // group ids
+            if (!$found && strpos($v, 'Group ID:') !== false) {
+                $v = trim(str_replace('Group ID:', '', $v));
+                $this->setAclValue(['group_ids', $v], (int) $v);
                 $this->setAclValue(['permission'], true);
                 $found = true;
             }
@@ -515,6 +594,12 @@ class Route
                 $v = str_replace('As API:', '', trim($v));
                 $this->setAclValue(['as_api'], $v);
                 $this->setAclValue(['permission'], true);
+                $found = true;
+            }
+            // route alias
+            if (!$found && strpos($v, 'Route Alias:') !== false) {
+                $v = trim(str_replace('Route Alias:', '', $v));
+                $this->setAclValue(['route_alias'], trim($v));
                 $found = true;
             }
             // authorized
@@ -598,10 +683,26 @@ class Route
      *
      * @param string $name
      * @param array|null $parameters
+     * @param string|bool $host
+     * @param string|null $anchor
      * @return string
      */
-    public static function link(string $name, ?array $parameters = null, string|bool $host = false): string
+    public static function link(string $name, ?array $parameters = null, string|bool $host = false, ?string $anchor = null): string
     {
+        if (str_starts_with($name, 'Route Alias:')) {
+            $temp = trim(str_replace('Route Alias:', '', $name));
+            $found = false;
+            foreach (self::$routes as $k => $v) {
+                if ($v->acl['route_alias'] && $v->acl['route_alias'] == $temp) {
+                    $name = $k;
+                    $found = true;
+                    break;
+                }
+            }
+            if (!$found) {
+                Messages::message('ROUTE_NAME_NOT_FOUND', ['[name]' => $name], true, true);
+            }
+        }
         if (!isset(self::$routes[$name])) {
             Messages::message('ROUTE_NAME_NOT_FOUND', ['[name]' => $name], true, true);
         }
@@ -626,6 +727,10 @@ class Route
         if (is_string($host)) {
             $result = rtrim($host, '/') . '/' . ltrim($result, '/');
         }
+        // anchor
+        if (isset($anchor)) {
+            $result .= '#' . $anchor;
+        }
         return $result;
     }
 
@@ -633,12 +738,14 @@ class Route
      * Redirect
      *
      * @param string $name
-     * @param array $parameters
+     * @param array|null $parameters
+     * @param string|bool $host
+     * @param string|null $anchor
      * @return string
      */
-    public static function redirect(string $name, array|null $parameters = null, string|bool $host = false): string
+    public static function redirect(string $name, array|null $parameters = null, string|bool $host = false, ?string $anchor = null): string
     {
-        $link = self::link($name, $parameters, $host);
+        $link = self::link($name, $parameters, $host, $anchor);
         Request::redirect($link);
     }
 
@@ -859,6 +966,7 @@ class Route
             if ($route->acl['role_names']) {
                 $common = array_intersect($route->acl['role_names'], User::get('role_names'));
             }
+            // teams
             if ($route->acl['teams']) {
                 $common = array_intersect($route->acl['teams'], User::get('team_codes'));
             }
@@ -867,6 +975,36 @@ class Route
             }
             if ($route->acl['team_names']) {
                 $common = array_intersect($route->acl['team_names'], User::get('team_names'));
+            }
+            // realms
+            if ($route->acl['realms']) {
+                $common = array_intersect($route->acl['realms'], User::get('realm_codes'));
+            }
+            if ($route->acl['realm_ids']) {
+                $common = array_intersect($route->acl['realm_ids'], User::get('realms'));
+            }
+            if ($route->acl['realm_names']) {
+                $common = array_intersect($route->acl['realm_names'], User::get('realm_names'));
+            }
+            // domains
+            if ($route->acl['domains']) {
+                $common = array_intersect($route->acl['domains'], User::get('domain_codes'));
+            }
+            if ($route->acl['domain_ids']) {
+                $common = array_intersect($route->acl['domain_ids'], User::get('domains'));
+            }
+            if ($route->acl['domain_names']) {
+                $common = array_intersect($route->acl['domain_names'], User::get('domain_names'));
+            }
+            // groups
+            if ($route->acl['groups']) {
+                $common = array_intersect($route->acl['groups'], User::get('group_codes'));
+            }
+            if ($route->acl['group_ids']) {
+                $common = array_intersect($route->acl['group_ids'], User::get('group_ids'));
+            }
+            if ($route->acl['group_names']) {
+                $common = array_intersect($route->acl['group_names'], User::get('group_names'));
             }
             if ($route->acl['owners']) {
                 foreach ($route->acl['owners'] as $v) {
@@ -891,6 +1029,10 @@ class Route
                     return true;
                 }
             }
+        }
+        // for authorized route we check after permission check
+        if ($route->acl['authorized'] === true && User::authorized()) {
+            return true;
         }
         return false;
     }
@@ -929,5 +1071,17 @@ class Route
             $endpoint = Request::host() . ltrim($endpoint, '/');
         }
         return $endpoint;
+    }
+
+    /**
+     * Initialize all routes
+     *
+     * @return bool
+     */
+    public static function initializeAllRoutes(): bool
+    {
+        require_if_exists(Application::get('application.path_full') . '/Miscellaneous/Routes/AllRoutes.php');
+        require_if_exists(Application::get('application.path_full') . '/Miscellaneous/Routes/APIRoutes.php');
+        return true;
     }
 }

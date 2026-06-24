@@ -98,4 +98,34 @@ class HTTPResponse extends HTTPConstants
         }
         self::output($status, $content_type, $body);
     }
+
+    /**
+     * Finish with status code
+     *
+     * @param int $status
+     * @param mixed $body
+     * @return string
+     */
+    public static function finishHTMLWithCode(int $status, mixed $body = null): string
+    {
+        http_response_code($status);
+        if (!$body) {
+            $body = HTTPConstants::STATUSES[$status]['name'] ?? 'Error Occured!';
+        }
+        return $body;
+    }
+
+    /**
+     * Massage with status code
+     *
+     * @param int $status
+     * @param mixed $body
+     * @param string $type
+     * @return string
+     */
+    public static function messageHTMLWithCode(int $status, mixed $body = null, string $type = DANGER): void
+    {
+        $message = self::finishHTMLWithCode($status, $body);
+        \Layout::addMessage($message, $type);
+    }
 }

@@ -269,6 +269,13 @@ class Table extends Options
     public $documents_model;
 
     /**
+     * Batches
+     *
+     * @var
+     */
+    public $batches = false;
+
+    /**
      * Map with parent table, used in widgets
      *
      * @var array
@@ -418,6 +425,20 @@ class Table extends Options
     ];
 
     /**
+     * Scoped attributes
+     *
+     * @var array
+     */
+    public $scoped_attributes = [];
+
+    /**
+     * Scoped records
+     *
+     * @var array
+     */
+    public $scoped_records = [];
+
+    /**
      * All widgets
      *
      * @var array
@@ -477,7 +498,7 @@ class Table extends Options
     public function __construct($options = [])
     {
         $this->options = $options;
-        // we need to handle overrrides
+        // we need to handle overrides
         parent::overrideHandle($this);
         // we need to determine db link
         if (isset($options['db_link'])) {
@@ -538,7 +559,7 @@ class Table extends Options
         if (!empty($this->who)) {
             foreach ($this->who as $k => $v) {
                 $k = strtolower($k);
-                $this->columns[$this->column_prefix . $k . '_timestamp'] = ['name' => ucwords($k) . ' Datetime', 'type' => 'timestamp', 'null' => ($k != 'inserted')];
+                $this->columns[$this->column_prefix . $k . '_timestamp'] = ['name' => ucwords($k) . ' Datetime', 'type' => 'timestamp', 'null' => ($k != 'inserted'), 'default' => ($k == 'inserted' ? 'now()' : null)];
                 $this->columns[$this->column_prefix . $k . '_user_id'] = ['name' => ucwords($k) . ' User #', 'domain' => 'user_id', 'null' => true];
             }
         }
@@ -604,6 +625,12 @@ class Table extends Options
                 $this->{$widget} = false;
             }
         }
+        // scoped settings
+        if (!empty($this->scoped_records)) {
+            if (!isset($this->scoped_records['access_settings']['default'])) {
+                throw new \Exception('Please set access_settings - default in $this->scoped_records for model: ' . $this::class);
+            }
+        }
     }
 
     /**
@@ -644,9 +671,13 @@ class Table extends Options
         foreach ($types as $type) {
             if (!empty($this->who[$type])) {
                 // timestamp
-                $row[$this->column_prefix . $type . '_timestamp'] = $timestamp;
+                if (!isset($row[$this->column_prefix . $type . '_timestamp'])) {
+                    $row[$this->column_prefix . $type . '_timestamp'] = $timestamp;
+                }
                 // user #
-                $row[$this->column_prefix . $type . '_user_id'] = \User::getUser() ?? \User::id();
+                if (!isset($row[$this->column_prefix . $type . '_user_id'])) {
+                    $row[$this->column_prefix . $type . '_user_id'] = \User::getUser() ?? \User::id();
+                }
             } elseif ($type == 'optimistic_lock') {
                 if ($this->optimistic_lock) {
                     $row[$this->optimistic_lock_column] = $timestamp;
@@ -953,6 +984,98 @@ class Table extends Options
         $class = get_called_class();
         $model = new $class();
         return $model->getWidgetModel($type);
+    }
+
+    /**
+     * Load ID by code
+     *
+     * @param string|array $code
+     * @param string|null $model
+     * @param string|null $column_name
+     * @param array $options
+     * 		bool first - load first record
+     *      bool last - load last record
+     * @return mixed
+     */
+    public function loadIDByCode(string|array $code, ?string $model = null, ?string $column_name = null, array $options = []): mixed
+    {
+        $where = [];
+        if ($model) {
+            $object = \Factory::model($model, true);
+        } elseif ($this->code_model) {
+            $object = \Factory::model($this->code_model, true);
+        } else {
+            $object = $this;
+        }
+        if ($object->tenant) {
+            $where[$object->column_prefix . 'tenant_id'] = \Tenant::id();
+        }
+        // some tables does not have codes so we search by name
+        $code_column = $object->column_prefix . 'code';
+        if (!isset($object->columns[$code_column])) {
+            $code_column = $object->column_prefix . 'name';
+        }
+        $is_one = false;
+        if (is_string($code)) {
+            $code = [$code];
+            $is_one = true;
+        }
+        $where[$code_column . ';IN'] = $code;
+        // by default we return id
+        if (!$column_name) {
+            $column_name = $object->column_prefix . 'id';
+        }
+        $result = call_user_func_array([$object, 'get'], [[
+            'where' => $where,
+            'pk' => null,
+            'columns' => $column_name == ALL ? [] : [$column_name],
+            'single_row' => false
+        ]]);
+        if ($column_name == ALL) {
+            return $result;
+        } elseif (!empty($options['first'])) {
+            $key = array_key_first($result);
+            return $result[$key][$column_name] ?? null;
+        } elseif (!empty($options['last'])) {
+            $key = array_key_last($result);
+            return $result[$key][$column_name] ?? null;
+        } else {
+            $result2 = [];
+            foreach ($result as $v) {
+                $result2[] = $v[$column_name];
+            }
+            return $result2;
+        }
+    }
+
+    /**
+     * Load ID by code (static)
+     *
+     * @param string|array $code
+     * @param string|null $model
+     * @param string|null $column_name
+     * @param array $options
+     * 		bool first - load first record
+     *      bool last - load last record
+     * @return mixed
+     */
+    public static function loadIDByCodeStatic(string|array $code, ?string $model = null, ?string $column_name = null, array $options = []): mixed
+    {
+        $class = get_called_class();
+        $object = new $class();
+        return $object->loadIDByCode($code, $model, $column_name, $options);
+    }
+
+    /**
+     * Touch the record updating the dates
+     *
+     * @param array $data
+     * @param array $dates - you can pass short names from who or column name
+     * @return array
+     */
+    public function touch($data, array $dates = ['updated']): array
+    {
+        return $this->collection()->touch($data, $dates);
     }
 
     /**

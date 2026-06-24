@@ -95,7 +95,7 @@ abstract class Middleware
     public static function runMiddlewareStatic(array $middlewares, string $check = 'Before', array $options = []): bool
     {
         foreach ($middlewares as $k => $v) {
-            // processs check middlewares
+            // process check middlewares
             if (!in_array($check, $v['check'])) {
                 continue;
             }
@@ -113,7 +113,7 @@ abstract class Middleware
                 $throw = true;
             }
             if (!$result['success']) {
-                // log if maiddleware fails
+                // log if middleware fails
                 if (in_array('Log', $v['error'])) {
                     \Log::add([
                         'type' => 'Exception (Middleware)',

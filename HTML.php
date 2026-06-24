@@ -402,6 +402,17 @@ class HTML
     }
 
     /**
+     * Style
+     *
+     * @param array $options
+     * @return string
+     */
+    public static function style(array $options = []): string
+    {
+        return Factory::delegate('flag.numbers.framework.html', 'style', [$options]);
+    }
+
+    /**
      * Password
      *
      * @param array $options
@@ -504,6 +515,17 @@ class HTML
     public static function tree(array $options = []): string
     {
         return Factory::delegate('flag.numbers.framework.html', 'tree', [$options]);
+    }
+
+    /**
+     * Stars
+     *
+     * @param array $options
+     * @return string
+     */
+    public static function stars(array $options = []): string
+    {
+        return Factory::delegate('flag.numbers.framework.html', 'stars', [$options]);
     }
 
     /**
@@ -628,7 +650,7 @@ class HTML
     /**
      * Menu
      *
-     * @param type $options
+     * @param array $options
      *	array options - array of menu items
      */
     public static function menu(array $options = []): string
@@ -639,7 +661,7 @@ class HTML
     /**
      * Menu (mini)
      *
-     * @param type $options
+     * @param array $options
      *	array options - array of menu items
      *	string id
      *	string align - right | left
@@ -727,7 +749,7 @@ class HTML
     /**
      * Tabs
      *
-     * @param type $options
+     * @param array $options
      *		header
      *		options
      *		id
@@ -949,13 +971,15 @@ class HTML
         $arr = ['percent' => [], 'final' => [], 'temp' => [], 'grouped' => []];
         foreach ($percentage_array as $k => $v) {
             $arr['percent'][$k] = $v ? $v : 0;
-            if (!empty($v)) {
+            if (!empty($v) && $v > 0) {
                 $total += $v;
+            } elseif ($v < 0) {
+                // nothing
             } else {
                 $empty += 1;
             }
         }
-        // if we have empty columns and percent is less than 100 we prepopulate
+        // if we have empty columns and percent is less than 100 we pre-populate
         if ($total < 100 && $empty != 0) {
             $temp = (100 - $total) / $empty;
             foreach ($arr['percent'] as $k => $v) {
@@ -1260,4 +1284,87 @@ class HTML
         return array_values($colors[$color]);
     }
 
+    /**
+     * Space
+     *
+     * @return string
+     */
+    public static function nbsp()
+    {
+        return '&nbsp;';
+    }
+
+    /**
+     * ChartJS
+     *
+     * @param array $options
+     * @return string
+     */
+    public static function chartjs(array $options = []): string
+    {
+        return Factory::delegate('flag.numbers.framework.html', 'chartjs', [$options]);
+    }
+
+    /**
+     * Node to array
+     *
+     * @param DOMNode $node
+     * @return array[]|array{children: array, props: array, type: string|string|null}
+     */
+    public static function nodeToArray(DOMNode $node): array|string|null
+    {
+        if ($node->nodeType === XML_TEXT_NODE) {
+            $text = trim($node->textContent);
+            return $text !== '' ? $text : null;
+        }
+        if ($node->nodeType !== XML_ELEMENT_NODE) {
+            return null;
+        }
+        $result = [
+            'type' => strtolower($node->nodeName),
+            'props' => [],
+            'children' => [],
+        ];
+        if ($node->hasAttributes()) {
+            foreach ($node->attributes as $attr) {
+                $result['props'][$attr->nodeName] = $attr->nodeValue;
+            }
+        }
+        foreach ($node->childNodes as $child) {
+            $childData = self::nodeToArray($child);
+            if ($childData !== null) {
+                $result['children'][] = $childData;
+            }
+        }
+        return $result;
+    }
+
+    /**
+     * HTML To JSON
+     *
+     * @param string $html
+     * @return string|bool
+     */
+    public static function htmlToJson(string $html): string
+    {
+        if (strpos($html, '<body>') === false) {
+            $html = '<body>' . $html . '</body>';
+        }
+        // create a new dom document
+        $dom = new DOMDocument();
+        libxml_use_internal_errors(true);
+        $dom->loadHTML(
+            $html,
+            LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD
+        );
+        $result = [];
+        $body = $dom->getElementsByTagName('body')->item(0);
+        foreach ($body->childNodes as $child) {
+            $item = self::nodeToArray($child);
+            if ($item !== null) {
+                $result[] = $item;
+            }
+        }
+        return json_encode($result, JSON_PRETTY_PRINT);
+    }
 }

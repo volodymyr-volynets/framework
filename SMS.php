@@ -22,6 +22,7 @@ class SMS
      * 		'to' => '+NNNNNNNNNNN',
      *		'from' => '+NNNNNNNNNNN',
      * 		'message' => 'test message',
+     *      'media' => 'media url'
      * 	]);
      *
      * @param array $options
@@ -29,6 +30,7 @@ class SMS
      * 		from - from phone number
      * 		message - a message
      * 		settings - optional settings to override ini files
+     *      media - string with media url
      * @return array
      */
     public static function send(array $options): array
@@ -38,6 +40,7 @@ class SMS
             'error' => [],
             'data' => []
         ];
+        $options['whatsapp'] ??= false;
         // mail delivery first
         $class = Application::get('flag.global.sms.delivery.submodule', ['class' => true]);
         if (empty($class)) {
@@ -52,11 +55,12 @@ class SMS
         // create object
         $object = new $class();
         $result = $object->send($options);
+        $service_name = $options['whatsapp'] ? 'WhatsApp' : 'SMS';
         Log::add([
-            'type' => 'SMS',
+            'type' => $service_name,
             'only_channel' => 'default',
-            'message' => 'SMS sent!',
-            'other' => '[' . 'Direct SMS' . ']' . substr($options['message'], 0, 50) . '...',
+            'message' => $service_name . ' sent!',
+            'other' => '[' . 'Direct ' . $service_name . ']' . substr($options['message'], 0, 50) . '...',
             'affected_rows' => $result['error'] ? 0 : 1,
             'error_rows' => $result['error'] ? 1 : 0,
             'trace' => $result['error'] ? Base::debugBacktraceString(null, ['skip_params' => true]) : null,

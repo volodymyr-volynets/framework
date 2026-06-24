@@ -22,6 +22,7 @@ use Object\Form\Model\Report\Types;
 use Object\Table\Columns;
 use Object\Table\Options;
 use Numbers\Backend\SMS\Common\Renderer;
+use Numbers\Backend\System\Modules\Model\Form\UpdatesAR;
 
 class Base extends Parent2
 {
@@ -166,6 +167,13 @@ class Base extends Parent2
     public $collection_object;
 
     /**
+     * Preload models
+     *
+     * @var array
+     */
+    public $preload_models = [];
+
+    /**
      * Column prefix
      *
      * @var string
@@ -244,6 +252,8 @@ class Base extends Parent2
      * @var boolean
      */
     public $values_saved = false;
+    public $values_save_other = false;
+    public $values_save_message = null;
 
     /**
      * Indicators that record has been deleted, inserted or updated
@@ -274,7 +284,7 @@ class Base extends Parent2
      *
      * @var array
      */
-    public $pk;
+    public $pk = null;
 
     /**
      * If full pk was provided
@@ -407,6 +417,27 @@ class Base extends Parent2
     public $changed_api_fields;
 
     /**
+     * Timestamp
+     *
+     * @var string
+     */
+    public string $timestamp;
+
+    /**
+     * Workflow activated
+     *
+     * @var string|null
+     */
+    public bool $workflow_activated = false;
+
+    /**
+     * Workflow step
+     *
+     * @var string|null
+     */
+    public string|null $workflow_step = null;
+
+    /**
      * Constructor
      *
      * @param string $form_link
@@ -416,6 +447,7 @@ class Base extends Parent2
     {
         $this->form_link = $form_link . '';
         $this->options = $options;
+        $this->timestamp = \Format::now('timestamp');
         // overrides from ini files
         $overrides = \Application::get('flag.numbers.frontend.html.form');
         if (!empty($overrides)) {
@@ -428,14 +460,23 @@ class Base extends Parent2
      * Trigger method
      *
      * @param string $method
+     * @param array $input
      */
-    public function triggerMethod($method)
+    public function triggerMethod($method, array $input_result = [])
     {
         $result = null;
         // handling actual method
         if (!empty($this->wrapper_methods[$method])) {
             foreach ($this->wrapper_methods[$method] as $k => $v) {
-                $result = call_user_func_array($v, [& $this]);
+                // handle preload first
+                if ($method != 'preload' && isset($this->wrapper_methods['preload'])) {
+                    $preload = call_user_func_array($this->wrapper_methods['preload']['main'], [& $this]);
+                    if (!$preload) {
+                        throw new \Exception('Preload must return true!');
+                    }
+                }
+                // call actual method
+                $result = call_user_func_array($v, [& $this, $input_result]);
             }
         }
         return $result;
@@ -447,7 +488,7 @@ class Base extends Parent2
      * @param array $input
      * @param boolean $for_update
      */
-    private function getOriginalValues($input, $for_update)
+    public function getOriginalValues($input, $for_update)
     {
         // process primary key
         $this->full_pk = false;
@@ -503,6 +544,75 @@ class Base extends Parent2
     }
 
     /**
+     * Hide one field
+     *
+     * @param mixed $form
+     * @param mixed $options
+     * @param mixed $value
+     * @param mixed $neighbouring_values
+     * @return void
+     */
+    public function hideOneField(& $form, & $options, & $value, & $neighbouring_values)
+    {
+        // required if set
+        if (!empty($options['options']['required_if_set'])) {
+            $required_if_set_values = $options['options']['required_if_set'];
+            if (!empty($required_if_set_values['__hide_otherwise'])) {
+                $is_required = $this->checkRequiredIfSetValues($options, $neighbouring_values);
+                if (!$is_required) {
+                    if ($required_if_set_values['__hide_otherwise'] == 'row') {
+                        $options['options']['row_hidden'] = true;
+                    } else {
+                        $options['options']['hidden'] = true;
+                    }
+                }
+            }
+        }
+        // hide if set
+        if (!empty($options['options']['hide_if_set'])) {
+            $hide_if_set_values = $options['options']['hide_if_set'];
+            if (!is_array($hide_if_set_values)) {
+                $hide_if_set_values = [$hide_if_set_values];
+            }
+            $__form_values_loaded = $hide_if_set_values['__form_values_loaded'] ?? null;
+            $__hide = $hide_if_set_values['__hide'] ?? 'element';
+            unset($hide_if_set_values['__form_values_loaded'], $hide_if_set_values['__hide']);
+            if ($__form_values_loaded == 'no' && $this->values_loaded) {
+                if ($__hide == 'row') {
+                    $options['options']['row_hidden'] = true;
+                } else {
+                    $options['options']['hidden'] = true;
+                }
+                goto no_hide_check_label;
+            }
+            foreach ($hide_if_set_values as $k => $v) {
+                if (is_string($k)) {
+                    if (is_array($v) && in_array($neighbouring_values[$k], $v)) {
+                        if ($__hide == 'row') {
+                            $options['options']['row_hidden'] = true;
+                        } else {
+                            $options['options']['hidden'] = true;
+                        }
+                    } elseif ($neighbouring_values[$k] == $v) {
+                        if ($__hide == 'row') {
+                            $options['options']['row_hidden'] = true;
+                        } else {
+                            $options['options']['hidden'] = true;
+                        }
+                    }
+                } elseif (!empty($neighbouring_values[$v])) {
+                    if ($__hide == 'row') {
+                        $options['options']['row_hidden'] = true;
+                    } else {
+                        $options['options']['hidden'] = true;
+                    }
+                }
+            }
+            no_hide_check_label:
+        }
+    }
+
+    /**
      * Validate required one field
      *
      * @param mixed $value
@@ -528,15 +638,7 @@ class Base extends Parent2
         }
         // required if set
         if (!empty($options['options']['required_if_set'])) {
-            if (!is_array($options['options']['required_if_set'])) {
-                $options['options']['required_if_set'] = [$options['options']['required_if_set']];
-            }
-            foreach ($options['options']['required_if_set'] as $v) {
-                if (!empty($neighbouring_values[$v])) {
-                    $options['options']['required'] = true;
-                    break;
-                }
-            }
+            $is_required = $this->checkRequiredIfSetValues($options, $neighbouring_values);
         }
         // check if its required field
         if (isset($options['options']['required']) && ($options['options']['required'] === true || ($options['options']['required'] . '') === '1')) {
@@ -574,7 +676,49 @@ class Base extends Parent2
             } elseif (!empty($temp['data'])) {
                 $value = $temp['data'];
             }
+            // if we have warnings regardless of a success
+            if (!empty($temp['warning'])) {
+                foreach ($temp['warning'] as $v10) {
+                    $this->error('warning', $v10, $error_name);
+                }
+            }
         }
+    }
+
+    /**
+     * Check required if set values
+     *
+     * @param array $options
+     * @param array $neighbouring_values
+     * @return void
+     */
+    protected function checkRequiredIfSetValues(array & $options, array $neighbouring_values): bool
+    {
+        $required_if_set_values = $options['options']['required_if_set'];
+        if (!is_array($required_if_set_values)) {
+            $required_if_set_values = [$required_if_set_values];
+        }
+        $__form_values_loaded = $required_if_set_values['__form_values_loaded'] ?? null;
+        unset($required_if_set_values['__form_values_loaded'], $required_if_set_values['__hide_otherwise']); // a must
+        if ($__form_values_loaded == 'no' && $this->values_loaded) {
+            goto no_required_check_label;
+        }
+        foreach ($required_if_set_values as $k => $v) {
+            if (is_string($k)) {
+                if (is_array($v) && in_array($neighbouring_values[$k], $v)) {
+                    $options['options']['required'] = true;
+                    return true;
+                } elseif ($neighbouring_values[$k] == $v) {
+                    $options['options']['required'] = true;
+                    return true;
+                }
+            } elseif (!empty($neighbouring_values[$v])) {
+                $options['options']['required'] = true;
+                return true;
+            }
+        }
+        no_required_check_label:
+                return false;
     }
 
     /**
@@ -702,8 +846,12 @@ class Base extends Parent2
                 }
                 $temp = $this->validateDataTypesSingleValue($options['options']['multiple_column'], $options, $v2, $error_name);
                 if (empty($temp['flag_error'])) {
+                    $temp_v = $temp[$options['options']['multiple_column']];
+                    if (is_array($temp_v)) {
+                        $temp_v = $temp_v[0];
+                    }
                     $temp_value_new = [
-                        $options['options']['multiple_column'] => $temp[$options['options']['multiple_column']]
+                        $options['options']['multiple_column'] => $temp_v
                     ];
                 } else {
                     $temp_value_new = [
@@ -1388,7 +1536,7 @@ class Base extends Parent2
      *
      * @param array $options
      */
-    private function validateRequiredFields($options = [])
+    private function validateRequiredFields(array $options = [])
     {
         // sort fields
         $fields = $this->sortFieldsForProcessing($this->fields);
@@ -1397,12 +1545,25 @@ class Base extends Parent2
             if (!empty($options['only_columns']) && !in_array($k, $options['only_columns'])) {
                 continue;
             }
+            // workflow checks for specific containers
+            if (!empty($options['only_containers'])) {
+                if (!in_array($v['options']['container_link'], $options['only_containers'])) {
+                    continue;
+                }
+            }
             // validate required
             $this->validateRequiredOneField($this->values[$k], $v['options']['error_name'], $v);
         }
         // process details
         if (!empty($this->detail_fields)) {
             foreach ($this->detail_fields as $k => $v) {
+                // workflow checks for specific containers
+                if (!empty($options['only_containers'])) {
+                    if (!in_array($v['options']['container_link'], $options['only_containers'])) {
+                        continue;
+                    }
+                }
+                // details
                 $details = $this->values[$k] ?? [];
                 // 1 to 1
                 if (!empty($v['options']['details_11'])) {
@@ -1564,6 +1725,10 @@ class Base extends Parent2
         $this->errorResetAll();
         // original input
         $this->original_input = $this->options['input'] ?? \Request::input();
+        // fo sub-forms we need to override input
+        if (\Request::input('__subform_link')) {
+            $this->original_input = $this->options['input'] = array_merge_hard(\Request::input(), $this->options['input']);
+        }
         // preload collection, must be first
         if ($this->preloadCollectionObject() && !in_array($this->initiator_class, ['report', 'list'])) {
             // if we have relation
@@ -1744,17 +1909,21 @@ class Base extends Parent2
         // error messages
         $html_messages = '';
         if (!empty(\Object\Error\Base::$errors)) {
-            $html_messages = '<br/><hr/>' . print_r(\Object\Error\Base::$errors, true);
+            $html_messages = '<br/><hr/>' . print_r2(\Object\Error\Base::$errors, true);
         }
         // ajax requests from other forms are filtered by id
         if (!empty($this->options['input']['__ajax'])) {
             $this->is_ajax_reload = true;
             // if we have a sub form
-            if (!empty($this->options['input']['__subform_link']) && !empty($this->form_parent->subforms[$this->options['input']['__subform_link']])) {
+            if (!empty($this->options['input']['__subform_link']) && (!empty($this->form_parent->subforms[$this->options['input']['__subform_link']]) || !empty($this->options['input']['__subform_setting_form']))) {
                 Ob::cleanAll();
                 $input = \Request::input();
-                unset($input['__ajax'], $input['__ajax_form_id']);
-                $form_class = $this->form_parent->subforms[$this->options['input']['__subform_link']]['form'];
+                $input['__ajax'] = 0;
+                $input['__ajax_form_id'] = '';
+                if (isset($this->options['input']['__subform_setting_form']) && $this->options['input']['__subform_setting_form'] == '') {
+                    $this->options['input']['__subform_setting_form'] = null;
+                }
+                $form_class = $this->options['input']['__subform_setting_form'] ?? $this->form_parent->subforms[$this->options['input']['__subform_link']]['form'];
                 $form_model = new $form_class(array_merge([
                     'input' => $input,
                     'parent_form_link' => $this->form_link,
@@ -1765,14 +1934,23 @@ class Base extends Parent2
                     'bypass_hidden_from_input' => $this->options['bypass_hidden_from_input'] ?? [],
                     'acl_subresource_edit' => $this->options['acl_subresource_edit'] ?? $this->options['__parent_options']['options']['acl_subresource_edit'] ?? null,
                     'flag_subform' => true,
+                    'websockets_rooms' => array_merge($this->options['websockets_rooms'] ?? [], $this->webSocketGenerateRooms()),
                     //'plain_text_note' => $this->options['plain_text_note'] ?? false,
                 ], $this->options['custom_tags'] ?? []));
                 if (!empty($this->options['input']['__subform_load_window'])) {
+                    $icon = '';
+                    if (!empty($this->form_parent->subforms[$this->options['input']['__subform_link']]['icon'])) {
+                        $icon = \HTML::icon(['type' => $this->options['input']['__subform_setting_icon'] ?? $this->form_parent->subforms[$this->options['input']['__subform_link']]['icon']]);
+                        $icon .= ' ';
+                    }
+                    $title = \I18n::textToLoc('NF.Form', $this->options['input']['__subform_setting_label_name'] ?? $this->form_parent->subforms[$this->options['input']['__subform_link']]['label_name'], [
+                        'translate' => true,
+                    ]);
                     $modal = \HTML::modal([
-                        'id' => 'form_subform_' . $input['__subform_link'] . '_form',
+                        'id' => 'form_subform_' . $this->options['input']['__subform_link'] . '_form',
                         'modal_class' => $form_model->options['modal_class'] ?? 'numbers_frontend_form_modal_level_1',
                         'class' => 'numbers_frontend_modal_full_width',
-                        'title' => i18n(null, $this->form_parent->subforms[$this->options['input']['__subform_link']]['label_name']),
+                        'title' => $icon . $title,
                         'body' => $form_model->render() . $html_messages,
                     ]);
                 } else {
@@ -1784,7 +1962,7 @@ class Base extends Parent2
                     'html' => $modal,
                     'js' => \Layout::$onload,
                     'js_first' => \Layout::$onload_first,
-                    'media_js' => \Layout::renderJs(['return_list' => true]),
+                    'media_js' => \Layout::renderJs(['return_extended_list' => true]),
                     'media_css' => \Layout::renderCss(['return_list' => true]),
                 ];
                 \Layout::renderAs($result, 'application/json');
@@ -1957,8 +2135,38 @@ class Base extends Parent2
         if ($this->process_submit_refresh) {
             goto convertMultipleColumns;
         }
+        // workflow
+        if ($this->submitted && $this->workflow_activated) {
+            // run it for specific containers
+            $this->validateRequiredFields([
+                'only_containers' => $this->form_parent->workflow_steps[$this->workflow_step]['containers'],
+            ]);
+            // next step only after required validation
+            if (!$this->hasErrors()) {
+                if (!empty($this->process_submit[self::BUTTON_WORKFLOW_NEXT_SUBMIT])) {
+                    if ($this->workflow_step != array_key_last($this->form_parent->workflow_steps)) {
+                        $this->options['__new_workflow_step'] = array_key_find_next_key($this->form_parent->workflow_steps, $this->workflow_step);
+                    }
+                }
+                if (!empty($this->process_submit[self::BUTTON_WORKFLOW_SUBMIT])) {
+                    $this->options['__submit_workflow_step'] = true;
+                }
+            }
+            if (!empty($this->process_submit[self::BUTTON_WORKFLOW_PREVIOUS_SUBMIT])) {
+                if ($this->workflow_step != array_key_first($this->form_parent->workflow_steps)) {
+                    $this->options['__new_workflow_step'] = array_key_find_previous_key($this->form_parent->workflow_steps, $this->workflow_step);
+                }
+            }
+            // this is after button renderer
+            if ($this->hasErrors()) {
+                goto processErrors;
+            } else {
+                goto convertMultipleColumns;
+            }
+        }
         // validate required fields after refresh
-        if ($this->submitted && !$this->delete) {
+        if ($this->submitted && !$this->delete && !$this->workflow_activated) {
+            // todo fix here
             $this->validateRequiredFields();
         }
         // other form submitted
@@ -1981,11 +2189,16 @@ class Base extends Parent2
                     $this->validate($this);
                 }
             }
+            // submit after validate
+            if (!$this->hasErrors()) {
+                $this->triggerMethod('submit');
+            }
+            // process errors if list
             if ($this->initiator_class == 'list') {
                 goto processErrors;
             }
             // save for regular forms
-            if (!$this->hasErrors() && !empty($this->process_submit[$this::BUTTON_SUBMIT_SAVE])) {
+            if (!$this->hasErrors() && (!empty($this->process_submit[$this::BUTTON_SUBMIT_SAVE]) || !empty($this->process_submit[$this::BUTTON_HIDDEN_SUBMIT]))) {
                 // if it is a report we would skip save
                 if ($this->initiator_class == 'report') {
                     goto convertMultipleColumns;
@@ -2005,11 +2218,11 @@ class Base extends Parent2
                 }
                 // if we have post or success we need to change values_saved
                 if ($this->values_no_changes) {
-                    if (!empty($this->wrapper_methods['post']) || !empty($this->wrapper_methods['success'])) {
+                    if (!empty($this->wrapper_methods['post']) || !empty($this->wrapper_methods['success']) || !empty($this->wrapper_methods['finish'])) {
                         $this->values_saved = true;
                     }
                 }
-                // if save was successfull we post
+                // if save was successful we post
                 if (!$this->hasErrors()) {
                     // save data in sessions
                     if (!empty($this->misc_settings['validate_through_session'])) {
@@ -2233,6 +2446,9 @@ class Base extends Parent2
             $this->misc_settings['list']['full_text_search'] = $this->values['full_text_search'] ?? null;
             $this->misc_settings['list']['full_text_search2'] = $this->values['full_text_search2'] ?? null;
             $this->misc_settings['list']['full_text_search3'] = $this->values['full_text_search3'] ?? null;
+            // embeddings_search
+            $this->misc_settings['list']['embeddings_search'] = $this->values['embeddings_search'] ?? null;
+            $this->misc_settings['list']['embeddings_similarity'] = $this->values['embeddings_similarity'] ?? null;
             // save filter id
             $this->misc_settings['list']['__form_filter_id'] = $this->triggerMethod('filterChanged');
         }
@@ -2352,6 +2568,100 @@ class Base extends Parent2
         }
         // process all values
         $this->triggerMethod('processAllValues');
+        if ($this->values_saved) {
+            $this->closeTransaction();
+            $this->triggerMethod('finish');
+        }
+        // register in form updates
+        $form = $this;
+        $form_operation_name = 'View';
+        $form_operation_details = null;
+        $form_record_id = implode('_', array_values($form->pk ?? []));
+        if ($this->values_saved || $this->values_save_other) {
+            $form_operation_name = 'Update';
+            $form_operation_details = loc('RecordIDUserPerformedSaveOperation', 'Record #: {record_id} user {user_name}(#{user_id}) performed save operation!', [
+                'record_id' => $form_record_id,
+                'user_name' => \User::get('name'),
+                'user_id' => \User::id(),
+                '__as_json' => true,
+            ]);
+        }
+        if ($this->values_save_message) {
+            $form_operation_details = $this->values_save_message;
+        } elseif ($this->values_inserted) {
+            $form_operation_details = loc('NF.Form.RecordIDUserInsertedTheRecord', 'Record #: {record_id} user {user_name}(#{user_id}) inserted the record!', [
+                'record_id' => $form_record_id,
+                'user_name' => \User::get('name'),
+                'user_id' => \User::id(),
+                '__as_json' => true,
+            ]);
+        } elseif ($this->values_updated) {
+            $form_operation_details = loc('NF.Form.RecordIDUserUpdatedTheRecord', 'Record #: {record_id} user {user_name}(#{user_id}) updated the record!', [
+                'record_id' => $form_record_id,
+                'user_name' => \User::get('name'),
+                'user_id' => \User::id(),
+                '__as_json' => true,
+            ]);
+        } elseif ($this->values_deleted) {
+            $form_operation_details = loc('NF.Form.RecordIDUserDeletedTheRecord', 'Record #: {record_id} user {user_name}(#{user_id}) deleted the record!', [
+                'record_id' => $form_record_id,
+                'user_name' => \User::get('name'),
+                'user_id' => \User::id(),
+                '__as_json' => true,
+            ]);
+        }
+        \Deferred::runLaterStatic(\Deferred::APPLICATION_FINISH_AND_DESTROYED, function () use ($form, $form_operation_name, $form_operation_details) {
+            $form_update_ar = new UpdatesAR();
+            $form_pk = null;
+            // widgets have different pk
+            if (isset($this->options['model_table'])) {
+                $pk = [];
+                $model = new $this->options['model_table']();
+                foreach ($model->pk as $v) {
+                    if (isset($this->options['input'][$v])) {
+                        $pk[$v] = $this->options['input'][$v];
+                    } elseif (str_ends_with($v, 'tenant_id')) {
+                        $pk[$v] = \Tenant::id();
+                    }
+                }
+                if (!empty($pk) || !empty($form->pk)) {
+                    $form_pk = implode('_', array_values(array_merge($pk, $form->pk)));
+                }
+            } elseif (!empty($form->pk)) {
+                $form_pk = implode('_', array_values($form->pk));
+            }
+            $form_code = $form->form_link;
+            if (!empty($form->options['collection_link'])) {
+                $form_code = $form->options['collection_link'] . '__' . $form_code;
+            }
+            $form_update_ar->fill([
+                'sm_frmupdate_tenant_id' => \Tenant::id(),
+                'sm_frmupdate_form_code' => $form_code,
+                'sm_frmupdate_form_pk' => $form_pk,
+                'sm_frmupdate_operation_name' => $form_operation_name,
+                'sm_frmupdate_operation_details' => $form_operation_details,
+                'sm_frmupdate_inserted_timestamp' => $form->timestamp, // a must
+            ])->merge();
+            // other rooms
+            if ($form_operation_name != 'View') {
+                foreach ($this->options['websockets_rooms'] as $v) {
+                    if ($form_code . '::' . $form_pk !== $v['form_room']) {
+                        $exploded = explode('::', $v['form_room']);
+                        $form_update_ar->fill([
+                            'sm_frmupdate_tenant_id' => \Tenant::id(),
+                            'sm_frmupdate_form_code' => $exploded[0],
+                            'sm_frmupdate_form_pk' => $exploded[1],
+                            'sm_frmupdate_subform_pk' => $v['initiator_class'] == 'list' ? $form_pk : null,
+                            'sm_frmupdate_operation_name' => $form_operation_name,
+                            'sm_frmupdate_operation_details' => $form_operation_details,
+                            'sm_frmupdate_inserted_timestamp' => $form->timestamp, // a must
+                        ])->merge();
+                    }
+                }
+            }
+            $form->webSocketUpdate();
+        });
+        // redirect
         $this->triggerMethod('redirect');
         // debug
         //print_r2($this->errors);
@@ -2402,9 +2712,15 @@ class Base extends Parent2
      * Process report query filter
      *
      * @param object $query
+     * @return array
      */
-    public function processReportQueryFilter(& $query, array $options = [])
+    public function processReportQueryFilter(& $query, array $options = []): array
     {
+        $result = [
+            'success' => false,
+            'error' => [],
+            'has_filter' => false,
+        ];
         $where = [];
         foreach ($this->fields as $k => $v) {
             // filter by value
@@ -2460,17 +2776,67 @@ class Base extends Parent2
                     }
                     $query->where('AND', [$v['options']['subquery_builder']['column'], '=', $values, false]);
                 }, 'EXISTS');
+                $result['has_filter'] = true;
             }
         }
+        // text search
         if (isset($this->values['full_text_search'])) {
             $where['full_text_search;FTS'] = [
                 'fields' => $this->fields['full_text_search']['options']['full_text_search_columns'],
                 'str' => $this->values['full_text_search']
             ];
         }
+        // embeddings search
+        if (isset($this->values['embeddings_search'])) {
+            $where['embeddings_search;EMBEDDING'] = [
+                'fields' => $this->fields['embeddings_search']['options']['embeddings_search_columns'],
+                'str' => $this->values['embeddings_search'],
+                'type' => 'cosine_percent',
+                'similarity' => $this->values['embeddings_similarity'] ?? 75,
+            ];
+        }
+        // batches and lists
+        $__form_batches_and_lists_code = (string) \Application::get('flag.global.__form_batches_and_lists_code');
+        if (!empty($__form_batches_and_lists_code) && !empty($this->form_parent->query_primary_model)) {
+            $query_primary_model = new $this->form_parent->query_primary_model();
+            $columns = [];
+            if ($query_primary_model->module) {
+                $columns [] = 'tm_batchrecord_module_id';
+            }
+            $columns [] = $query_primary_model->batches['edit']['batch_value'];
+            $batches_result = \Factory::model('\Numbers\Tenants\Widgets\Batches\Model\Records', true)
+                ->queryBuilder(['alias' => 'a'])
+                ->select()
+                ->columns($columns)
+                ->whereMultiple('AND', [
+                    'tm_batchrecord_tenant_id' => \Tenant::id(),
+                    'tm_batchrecord_sm_model_code' => $query_primary_model->batches['where']['tm_batchrecord_sm_model_code'],
+                    'tm_batchrecord_field_code' => $query_primary_model->batches['where']['tm_batchrecord_field_code'],
+                    'tm_batchrecord_tm_batchentry_code' => $__form_batches_and_lists_code,
+                ])
+                ->query()['rows'] ?? [];
+            $batches_in = [];
+            if ($query_primary_model->module) {
+                foreach ($batches_result as $k => $v) {
+                    $temp = [];
+                    foreach ($columns as $v2) {
+                        $temp[] = $v[$v2];
+                    }
+                    $batches_in[] = implode('::', $temp);
+                }
+                throw new \Exception('TODO: fix module # logic');
+                $where["concat_ws('::', " . implode(', ', $columns) . ")" . ';IN'] = $batches_in;
+            } else {
+                $batches_in = array_column($batches_result, $columns[0]);
+                $where['a.' . $query_primary_model->batches['where']['tm_batchrecord_field_code'] . ';IN'] = $batches_in;
+            }
+        }
         if (!empty($where)) {
+            $result['has_filter'] = true;
             $query->whereMultiple('AND', $where);
         }
+        $result['success'] = true;
+        return $result;
     }
 
     /**
@@ -2675,7 +3041,14 @@ class Base extends Parent2
                 self::BUTTON_CONTINUE,
                 self::BUTTON_STOP,
                 self::BUTTON_SUBMIT_OTHER,
-                self::BUTTON_SUBMIT_GENERATE
+                self::BUTTON_SUBMIT_GENERATE,
+                // widgets
+                self::BUTTON_SUBMIT_FILTER_OTHER,
+                self::BUTTON_SUBMIT_BATCHES_AND_LISTS_OTHER,
+                // workflow
+                self::BUTTON_WORKFLOW_SUBMIT,
+                self::BUTTON_WORKFLOW_NEXT_SUBMIT,
+                self::BUTTON_WORKFLOW_PREVIOUS_SUBMIT,
             ];
             // process
             $not_allowed = [];
@@ -2804,7 +3177,11 @@ class Base extends Parent2
                 if (is_null($current_value)) {
                     $current_value = 0;
                 }
-                array_key_set($this->errors['tabs'], $key, $current_value + $counter);
+                if (!is_numeric($counter)) {
+                    array_key_set($this->errors['tabs'], $key, $counter);
+                } else {
+                    array_key_set($this->errors['tabs'], $key, $current_value + $counter);
+                }
                 array_pop($current_tab);
             } while (count($current_tab) > 0 && $type != 'records');
         }
@@ -3021,6 +3398,9 @@ class Base extends Parent2
             if ($result['success']) {
                 $this->misc_settings['max_records'] = $result['max_records'];
                 return $result['data'];
+            } else {
+                $this->error(DANGER, $result['error']);
+                $this->triggerMethod('errored', $result);
             }
         }
         return false;
@@ -3059,10 +3439,10 @@ class Base extends Parent2
             $hash = sha1(serialize($message));
         }
         // i18n
-        if (empty($options['skip_i18n'])) {
-            if (is_loc($message)) {
-                $message = loc($message, '', $options);
-            } else {
+        if (is_loc($message)) {
+            $message = loc($message, '', $options);
+        } else {
+            if (empty($options['skip_i18n'])) {
                 $message = i18n(null, $message, $options);
             }
         }
@@ -3309,7 +3689,7 @@ class Base extends Parent2
                 'rows' => [],
             ];
             // special handling for details
-            if ($type == 'details') {
+            if ($type == 'details' && empty($options['skip_processing'])) {
                 $model = \Factory::model($options['details_key'], true);
                 // if we have relation
                 if (!empty($model->relation['field']) && !in_array($model->relation['field'], $model->pk)) {
@@ -3497,6 +3877,7 @@ class Base extends Parent2
                     if (($options['type'] ?? '') == 'boolean') {
                         if (\Application::get('flag.numbers.frontend.html.form.revert_inactive') && ($options['label_name'] ?? '') == 'Inactive') {
                             $options['label_name'] = 'Active';
+                            $options['loc'] = 'NF.Form.Active';
                             $options['options_model'] = '\Object\Data\Model\Inactive2';
                         } else {
                             $options['options_model'] = '\Object\Data\Model\Inactive';
@@ -3511,6 +3892,7 @@ class Base extends Parent2
                     // we revert inactive if set
                     if (\Application::get('flag.numbers.frontend.html.form.revert_inactive') && ($options['label_name'] ?? '') == 'Inactive') {
                         $options['label_name'] = 'Active';
+                        $options['loc'] = 'NF.Form.Active';
                         $options['oposite_checkbox'] = true;
                     }
                     // we need to make inactive column disabled
@@ -4387,6 +4769,31 @@ class Base extends Parent2
     }
 
     /**
+     * Preset Details From Codes
+     *
+     * @param string $detail
+     * @param string $pk_column
+     * @param string|null $primary_column
+     * @param string $inactive_column
+     * @param string $ar_model
+     * @param array $codes
+     * @return array
+     */
+    public function presetDetailsFromCodes(string $detail, string $pk_column, string|null $primary_column, string $inactive_column, string $ar_model, array $codes): array
+    {
+        $ids = \Factory::model($ar_model, true)->loadIDByCode($codes);
+        $first = true;
+        foreach ($ids as $v) {
+            $this->values[$detail][] = [
+                $pk_column => $v,
+            ] + ($inactive_column ? [$inactive_column => 0] : [])
+            + ($primary_column ? [$primary_column => $first ? 1 : 0] : []);
+            $first = false;
+        }
+        return $ids;
+    }
+
+    /**
      * Validate quick required
      *
      * @param string|array $field
@@ -4408,10 +4815,13 @@ class Base extends Parent2
      * Redirect
      *
      * @param string $where
+     * @param array $params
+     * @param array $options
      */
-    public function redirect(string $where)
+    public function redirect(string $where, array $params = [], array $options = [])
     {
-        $this->misc_settings['redirect'] = $where;
+        $this->misc_settings['redirect'] = $where . '?' . http_build_query($params);
+        $this->misc_settings['redirect_options'] = $options;
     }
 
     /**
@@ -4445,7 +4855,13 @@ class Base extends Parent2
             $params['__form_filter_id'] = $this->values['__form_filter_id'];
         }
         $params['__refresh'] = rand(1000, 9999) . '_' . rand(1000, 9999) . '_' . rand(1000, 9999);
-        $this->misc_settings['redirect'] = \Application::get('mvc.full') . '?' . http_build_query2($params) . "#page_top_anchor";
+        if (!empty($this->options['flag_subform'])) {
+            \Layout::onLoad(<<<TTT
+                $('#form_{$this->form_link}_form').submit();
+TTT);
+        } else {
+            $this->misc_settings['redirect'] = \Application::get('mvc.full') . '?' . http_build_query2($params) . "#page_top_anchor";
+        }
     }
 
     /**
@@ -4509,7 +4925,12 @@ class Base extends Parent2
         $temp_collection_link = $this->options['collection_link'] ?? '';
         $temp_collection_screen_link = $this->options['collection_screen_link'] ?? '';
         $params_json = json_encode($params);
-        $options_json = json_encode($subform_options['actions']['button']['options'] ?? []);
+        // process options
+        $options_json_temp = $subform_options['actions']['button']['options'] ?? [];
+        $options_json_temp['__subform_setting_form'] = $subform_options['form'];
+        $options_json_temp['__subform_setting_icon'] = $subform_options['icon'] ?? null;
+        $options_json_temp['__subform_setting_label_name'] = $subform_options['label_name'];
+        $options_json = json_encode($options_json_temp);
         if (!empty($subform_options['actions']['button']['confirm'])) {
             $onclick = "if (confirm('" . strip_tags(i18n(null, Messages::CONFIRM_CUSTOM, ['replace' => ['[action]' => $subform_options['actions']['button']['label_name']]])) . "')) { Numbers.Form.openSubformWindow('{$temp_collection_link}', '{$temp_collection_screen_link}', '{$this->form_link}', '{$subform_link}', {$params_json}, {$options_json}); }";
         } else {
@@ -4542,8 +4963,10 @@ class Base extends Parent2
             $onclick = 'subform_onclick_function_' . $temp_collection_link . '_' .$subform_link . '(this);';
             \Layout::onLoad('function ' . 'subform_onclick_function_' . $temp_collection_link . '_' .$subform_link . '(element) {' . $onclick_code . '}');
         }
-        // for menu
-        if (!empty($options['for_menu'])) {
+        if (!empty($options['link_only'])) {
+            return $onclick;
+        } elseif (!empty($options['for_menu'])) {
+            // for menu
             return ['id' => $options['id'] ?? $subform_link, 'href' => 'javascript:void(0);', 'onclick' => $onclick, 'value' => $name, 'title' => $title];
         } else {
             return \HTML::a(['id' => $options['id'] ?? $subform_link, 'href' => 'javascript:void(0);', 'onclick' => $onclick . 'return false;', 'value' => $name, 'title' => $title, 'class' => $options['class'] ?? '', 'style' => $options['style'] ?? '']);
@@ -4626,6 +5049,118 @@ class Base extends Parent2
     public function changeTab(string $tab_container, string $tab_name): void
     {
         $_POST['form_tabs_' . $this->form_link . '_' . $tab_container . '_active_hidden'] = $tab_name;
+    }
+
+    /**
+     * Preset ABAC scoped attributes subform
+     *
+     * @return void
+     */
+    public function presetABACScopedAttributesSubform(string $type = 'form'): void
+    {
+        // if form does not need shared
+        if (!empty($this->options['skip_shared_access'])) {
+            return;
+        }
+        // access settings for forms
+        if ($type == 'form' && \Application::get('scoped_attributes.subform.list') && !empty($this->collection_object->primary_model->scoped_records)) {
+            $this->loadPk($this->options['input']);
+            if ($this->full_pk) {
+                $bypass_hidden_from_input = [];
+                $bypass_hidden_from_input['um_abacassign_record_sm_model_code'] = '\\' . get_class($this->collection_object->primary_model);
+                $bypass_hidden_from_input['um_abacassign_record_value_id'] = $this->pk[$this->collection_object->primary_model->scoped_records['column_key']];
+                $bypass_hidden_from_input[$this->collection_object->primary_model->scoped_records['column_key']] = $this->pk[$this->collection_object->primary_model->scoped_records['column_key']];
+                // register in actions
+                $this->form_parent->subforms[\Application::get('scoped_attributes.subform.link')] = [
+                    'form' => \Application::get('scoped_attributes.subform.list'),
+                    'label_name' => 'Share',
+                    'icon' => 'fa-regular fa-share-from-square',
+                    'actions' => [
+                        'new' => ['name' => 'Share', 'append' => true, 'icon' => 'fa-regular fa-share-from-square'],
+                    ],
+                    'bypass_hidden_from_input' => $bypass_hidden_from_input,
+                    'button_to_submit' => '__submit_button',
+                ];
+            }
+        }
+        // access settings for lists
+        if (false && $type == 'list' && \Application::get('scoped_attributes.subform.list') && !empty($this->collection_object->primary_model->scoped_records)) {
+            $bypass_hidden_from_input = [];
+            $bypass_hidden_from_input['um_abacassign_record_sm_model_code'] = '\\' . get_class($this->collection_object->primary_model);
+            $bypass_hidden_from_input['um_abacassign_record_value_id'] = -1; // a must for lists
+            // register in actions
+            $this->form_parent->subforms[\Application::get('scoped_attributes.subform.link')] = [
+                'form' => \Application::get('scoped_attributes.subform.list'),
+                'label_name' => 'Share',
+                'icon' => 'fa-regular fa-share-from-square',
+                'actions' => [
+                    'new' => ['name' => 'Share', 'append' => true, 'icon' => 'fa-regular fa-share-from-square'],
+                ],
+                'bypass_hidden_from_input' => $bypass_hidden_from_input,
+                'button_to_submit' => '__submit_button',
+            ];
+        }
+    }
+
+    /**
+     * Get preload model
+     *
+     * @param string $key
+     * @param array|null $where
+     * @param string|null $column
+     * @return mixed
+     */
+    public function getPreloadModel(string $key, array|null $where = null, string|null $column = null): mixed
+    {
+        // for full model loadings
+        if (empty($this->preload_models[$key]['partial'])) {
+            if (!isset($this->preload_models[$key]['data'])) {
+                $model = \Factory::model($this->preload_models[$key]['model'], true);
+                $this->preload_models[$key]['data'] = $model->get();
+            }
+            // get data from the array
+            $result = array_key_get($this->preload_models[$key]['data'], $where);
+        } else {
+            // partials
+            $temp = $this->values;
+            foreach ($this->preload_models[$key]['ids_from_collection'] ?? [] as $k => $v) {
+                $temp2 = $temp;
+                if ($v == '$key') {
+                    $temp = [];
+                    foreach ($temp2 as $k2 => $v2) {
+                        $temp[$k2] = $v2;
+                    }
+                    // get after key
+                    if (isset($this->preload_models[$key]['ids_from_collection'][$k + 1])) {
+                        $temp3 = [];
+                        foreach ($temp as $k2 => $v2) {
+                            $temp3[] = $v2[$this->preload_models[$key]['ids_from_collection'][$k + 1]];
+                        }
+                        $temp = $temp3;
+                        goto assembled_all_keys_label;
+                    }
+                } else {
+                    $temp = $this->values[$v];
+                }
+            }
+            // good
+            assembled_all_keys_label:
+                        $model = \Factory::model($this->preload_models[$key]['model'], true);
+            $pk = $this->preload_models[$key]['pk'][0];
+            $this->preload_models[$key]['data'] = $model->get([
+                'where' => [
+                    $pk => $temp,
+                ],
+                'pk' => $this->preload_models[$key]['pk'],
+            ]);
+            $result = array_key_get($this->preload_models[$key]['data'], $where);
+        }
+        // if we returing particular column
+        if (isset($column)) {
+            return $result[$column];
+        } else {
+            return $result;
+        }
     }
 
     /**
@@ -4789,5 +5324,154 @@ class Base extends Parent2
                 }
             }
         }
+    }
+
+    /**
+     * Generate web socket rooms
+     *
+     * @return array{form_link: string, form_pk: array, form_room: string, timestamp:string}
+     */
+    public function webSocketGenerateRooms(): array
+    {
+        // if we disabled web sockets
+        if (!empty($this->options['skip_web_sockets'])) {
+            return [];
+        }
+        // determine room
+        $room = $this->form_link;
+        if (!empty($this->options['collection_link'])) {
+            $room = $this->options['collection_link'] . '__' . $room;
+        }
+        // widgets have different pk
+        if (isset($this->options['model_table'])) {
+            $pk = [];
+            $model = new $this->options['model_table']();
+            foreach ($model->pk as $v) {
+                if (isset($this->options['input'][$v])) {
+                    $pk[$v] = $this->options['input'][$v];
+                } elseif (str_ends_with($v, 'tenant_id')) {
+                    $pk[$v] = \Tenant::id();
+                }
+            }
+            if ($this->initiator_class == 'form' && !isset($this->pk)) {
+                $this->loadPk($this->options['input']);
+            }
+            if (!empty($pk) || !empty($this->pk)) {
+                $room .= '::' . implode('_', array_values(array_merge($pk, $this->pk ?? [])));
+            }
+        } else {
+            if (!isset($this->pk)) {
+                $this->loadPk($this->options['input']);
+            }
+            if (!empty($this->pk)) {
+                $room .= '::' . implode('_', array_values($this->pk));
+            }
+        }
+        return [
+            [
+                'form_room' => $room,
+                'form_link' => $this->form_link,
+                'form_pk' => $this->pk ?? [],
+                'timestamp' => $this->timestamp,
+                'initiator_class' => $this->initiator_class,
+            ]
+        ];
+    }
+
+    /**
+     * Web socket update
+     *
+     * @param array $message
+     * @return void
+     */
+    public function webSocketUpdate(array $message = []): void
+    {
+        // we need to check if forms are enabled
+        $enabled = \Application::get('websockets.default.form.enabled');
+        if (empty($enabled)) {
+            return;
+        }
+        // if we disabled web sockets
+        if (!empty($this->options['skip_web_sockets'])) {
+            return;
+        }
+        // determine rooms
+        $all_rooms = array_merge($this->options['websockets_rooms'] ?? [], $this->webSocketGenerateRooms());
+        $room_list = array_extract_values_by_key($all_rooms, 'form_room', ['unique' => true]);
+        // init socket io
+        $web_socket_settings = \Application::get('websockets.default');
+        $socketio = new \WebSockets('default', $web_socket_settings['submodule'], $web_socket_settings);
+        $socketio_result = $socketio->connect($web_socket_settings);
+        if (!$socketio_result['success']) {
+            \Log::add([
+                'type' => 'WebSockets',
+                'only_channel' => 'default',
+                'message' => 'WebSockets failed!',
+                'other' => implode(', ', $socketio_result['error']),
+            ]);
+            return;
+        }
+        // join rooms
+        $socketio_result = $socketio->send('join', ['rooms' => $room_list]);
+        if (!$socketio_result['success']) {
+            \Log::add([
+                'type' => 'WebSockets',
+                'only_channel' => 'default',
+                'message' => 'WebSockets failed!',
+                'other' => implode(', ', $socketio_result['error']),
+            ]);
+            return;
+        }
+        // send update to all player
+        $socketio_result = $socketio->send('update', $message + ['rooms' => $room_list]);
+        if (!$socketio_result['success']) {
+            \Log::add([
+                'type' => 'WebSockets',
+                'only_channel' => 'default',
+                'message' => 'WebSockets failed!',
+                'other' => implode(', ', $socketio_result['error']),
+            ]);
+            return;
+        }
+    }
+
+    /**
+     * Hide subform
+     *
+     * @return void
+     */
+    public function hideSubform(): void
+    {
+        \Layout::onLoad("Numbers.Modal.hide('form_subform_{$this->form_link}_form');");
+    }
+
+    /**
+     * Refresh main form
+     *
+     * @return void
+     */
+    public function refreshMainForm(): void
+    {
+        if (!empty($this->options['parent_form_link'])) {
+            \Layout::onLoad("$('#form_{$this->options['parent_form_link']}_form').submit();");
+        }
+    }
+
+    /**
+     * Dispatch js event
+     *
+     * @param string $name
+     * @param mixed $detail
+     * @return void
+     */
+    public function dispatchJSEvent(string $name, mixed $detail): void
+    {
+        if (is_array($detail) || is_object($detail)) {
+            $detail = json_encode($detail);
+        }
+        \Layout::onLoad(<<<JSX
+            const event = new CustomEvent('{$name}', { detail: {$detail} });
+            window.dispatchEvent(event);
+        JSX);
     }
 }

@@ -34,7 +34,7 @@ class Request
     use MagicGetAndSetOnData;
 
     /**
-     * @var array|null
+     * @var array
      */
     protected array $data = [];
 
@@ -162,7 +162,21 @@ class Request
      */
     public function boolean(mixed $key, mixed $default = null): bool
     {
-        return !empty($this->get($key, $default));
+        $value = $this->get($key, $default);
+        return (new Bool2($value))->toBool() ?? false;
+    }
+
+    /**
+     * To datetime
+     *
+     * @param mixed $key
+     * @param mixed $default
+     * @return DateTime2
+     */
+    public function datetime(mixed $key, mixed $default = null): DateTime2
+    {
+        $value = $this->get($key, $default);
+        return new DateTime2($value);
     }
 
     /**
@@ -352,6 +366,16 @@ class Request
     }
 
     /**
+     * User agent
+     *
+     * @return string
+     */
+    public static function userAgent(): string
+    {
+        return $_SERVER['HTTP_USER_AGENT'] ?? '';
+    }
+
+    /**
      * Get merged cookie, get and post
      *
      * @param mixed $key
@@ -492,7 +516,7 @@ class Request
             $host = implode('.', $host_parts);
         }
         // if we are from cli we need to use predefined host
-        if (empty($host)) {
+        if (empty($host) || !empty(getenv('NF_IS_CONTAINER'))) {
             $result = Application::get('application.structure.app_domain_url') ?? '';
         } else {
             $result = $protocol . '://' . $host . $port . (!empty($params['request']) ? $_SERVER['REQUEST_URI'] : '/');
@@ -506,6 +530,18 @@ class Request
             $result .= '?' . http_build_query2($params['params']);
         }
         return $result;
+    }
+
+    /**
+     * Host short
+     *
+     * @param array $params
+     * @return string
+     */
+    public static function hostShort(array $params = []): string
+    {
+        $host = !empty($params['ip']) ? (getenv('SERVER_ADDR') . ':' . getenv('SERVER_PORT')) : getenv('HTTP_HOST');
+        return $host;
     }
 
     /**
@@ -585,15 +621,28 @@ class Request
      * Redirect
      *
      * @param string $url
+     * @param ?string $host
+     * @param array $params
+     * @param array $options
+     *      bool return_value
+     *      string anchor
+     * @return string
      */
-    public static function redirect($url, $host = null, $params = [])
+    public static function redirect($url, $host = null, $params = [], $options = [])
     {
         if ($host) {
             $url = rtrim($host, '/') . '/' . ltrim($url, '/');
         }
         if ($params) {
-            $url = $url . '?' . http_build_query($params);
+            $url = $url . (strpos($url, '?') === false ? '?' : '&') . http_build_query($params);
         }
+        if (!empty($options['anchor'])) {
+            $url .= '#' . $options['anchor'];
+        }
+        if (!empty($options['return_value'])) {
+            return $url;
+        }
+        Deferred::executeAllRuns();
         Event::processEvents('SM::REQUEST_END');
         session_write_close(); // a must
         header('Location: ' . $url);
@@ -603,7 +652,7 @@ class Request
     /**
      * Build URL
      *
-     * @param type $controller
+     * @param string $controller
      * @param array $params
      * @param string $host
      * @return string
@@ -665,6 +714,34 @@ class Request
         } else {
             return $url;
         }
+    }
+
+    /**
+     * Build URL from route alias
+     *
+     * @param string $route_alias
+     * @param string $action
+     * @param array $params
+     * @param string|null $host
+     * @param string|null $anchor
+     * @param bool $as_json
+     * @return string
+     */
+    public static function buildFromRouteAlias(string $route_alias, string $action = 'Edit', array $params = [], ?string $host = null, ?string $anchor = null, bool $as_json = false): string
+    {
+        if (is_null(Controller::$cached_controllers) && !Base::$flag_database_tenant_not_found) {
+            Controller::$cached_controllers = Resources::getStatic('controllers', 'primary');
+        }
+        if (is_null(Controller::$cached_controllers_by_names)) {
+            foreach (Controller::$cached_controllers as $k => $v) {
+                $v['key'] = $k;
+                Controller::$cached_controllers_by_route_alias[$v['route_alias']] = $v;
+            }
+        }
+        if (empty(Controller::$cached_controllers_by_route_alias[$route_alias])) {
+            throw new Exception('Unknown route alias!');
+        }
+        return self::buildFromName(Controller::$cached_controllers_by_route_alias[$route_alias]['name'], $action, $params, $host, $anchor, $as_json);
     }
 
     /**

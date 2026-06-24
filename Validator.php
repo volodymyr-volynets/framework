@@ -350,6 +350,16 @@ class Validator
                 $result['error'][] = i18n(null, Messages::INVALID_VALUES);
             }
         }
+        // validate tokens
+        if (!empty($rule['validate_as_tokens'])) {
+            try {
+                $crypt = new Crypt();
+                $crypt->tokenVerify($value, $rule['validate_as_tokens'], ['skip_time_validation' => $rule['skip_time_validation'] ?? false]);
+            } catch (Exception $e) {
+                $result['error'][] = $e->getMessage();
+            }
+        }
+        // if we have errors means unsuccess
         if (empty($result['error'])) {
             $result['success'] = true;
         }

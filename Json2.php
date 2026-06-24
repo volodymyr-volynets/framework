@@ -35,14 +35,18 @@ class Json2
         // json with errors
         if (is_string($data)) {
             $temp = trim($data, '"');
+            //$temp = preg_replace('/[[:cntrl:]]/', '', $temp);
             $temp = str_replace("\\\"", '"', $temp);
             $temp = str_replace("\\\\", '\\', $temp);
             $temp = str_replace('\\r', "", $temp);
-            $temp = str_replace('\n', PHP_EOL, $temp);
+            // Control character error, possibly incorrectly encoded
+            //$temp = str_replace('\n', PHP_EOL, $temp);
             $this->is_valid = json_validate($temp);
             if (!$this->is_valid) {
                 $this->data = $temp;
                 return;
+            } else {
+                $data = $temp;
             }
         }
         if (is_string($data) && is_json($data)) {

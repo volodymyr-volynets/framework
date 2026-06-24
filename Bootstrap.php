@@ -14,6 +14,7 @@ use Helper\Ob;
 use Object\ACL\Resources;
 use Object\Controller\Front;
 use Object\Error\Base;
+use Helper\Cmd;
 
 class Bootstrap
 {
@@ -33,7 +34,7 @@ class Bootstrap
         }
         // enforcing https
         $enforce_https = Application::get('application.https.enforce');
-        if (!empty($enforce_https) && !\Helper\Cmd::isCli()) {
+        if (!empty($enforce_https) && !Cmd::isCli()) {
             if (!Request::isSSL()) {
                 $url = Request::host(['protocol' => 'https', 'request' => true]);
                 Request::redirect($url);
@@ -109,6 +110,10 @@ class Bootstrap
                     'other' => 'Log links: ' . implode(', ', $db_links),
                 ]);
             }
+        }
+        // initialize configuration
+        if ($backend) {
+            Configuration::initDefaultLinks();
         }
         // initialize logs
         $log = Application::get('log');
@@ -204,6 +209,30 @@ class Bootstrap
                 'other' => 'Session #: ' . session_id()
             ]);
         }
+        // right rail
+        if (User::authorized()) {
+            $right_rail_url = Application::get('flag.global.__right_rail_panel');
+            $right_rail_session = Session::get(['numbers', 'right_rail', 'opened']);
+            // if we are turning off
+            if ($right_rail_url == '0') {
+                Session::set(['numbers', 'right_rail', 'opened'], 0);
+                Application::set('flag.global.__right_rail_panel', 0);
+                // we do not reset input so widgets can maintain state
+                //Session::set(['numbers', 'right_rail', 'input'], []);
+            } elseif (!empty($right_rail_url)) {
+                Session::set(['numbers', 'right_rail', 'opened'], $right_rail_url);
+                Application::set('application.layout.fluid', true);
+                if (Request::input('__right_rail_input')) {
+                    Session::set(['numbers', 'right_rail', 'input'], Request::input('__right_rail_input'));
+                }
+            } elseif ($right_rail_session) {
+                Application::set('flag.global.__right_rail_panel', $right_rail_session);
+                Application::set('application.layout.fluid', true);
+                $_GET['__right_rail_input'] = Session::get(['numbers', 'right_rail', 'input']) ?? [];
+            }
+        } else {
+            Session::set(['numbers', 'right_rail', 'opened'], false);
+        }
         // load tenant
         if (!empty($application_structure_model) && !empty($application_structure['tenant_multiple'])) {
             Factory::model($application_structure_model, true)->tenant();
@@ -217,14 +246,6 @@ class Bootstrap
         // we need to get overrides from session and put them back to flag array
         $flags = array_merge_hard($flags, Session::get('numbers.flag'));
         Application::set('flag', $flags);
-        // custom destroy methods
-        $temp = Resources::getStatic('initialize');
-        if (!empty($temp)) {
-            foreach ($temp as $v) {
-                $method = Factory::method($v['method'], null, true);
-                call_user_func_array($method, []);
-            }
-        }
         // initialize i18n
         if ($backend) {
             $temp_result = I18n::init();
@@ -238,14 +259,24 @@ class Bootstrap
                 'other' => 'I18n group #: ' . $temp_result['group_id'],
             ]);
         }
+        // custom initialize methods, after I18n
+        $temp = Resources::getStatic('initialize');
+        if (!empty($temp)) {
+            foreach ($temp as $v) {
+                $method = Factory::method($v['method'], null, true);
+                call_user_func_array($method, []);
+            }
+        }
         // format & html
         Format::init();
         HTML::init();
         // default actions
-        Layout::addAction('refresh', ['value' => 'Refresh', 'icon' => 'fas fa-sync', 'onclick' => 'location.reload();', 'order' => -32000]);
-        Layout::addAction('print', ['value' => 'Print', 'icon' => 'fas fa-print', 'onclick' => 'window.print();', 'order' => -31000]);
+        Layout::addAction('refresh', ['value' => loc('NF.Form.Refresh', 'Refresh'), 'icon' => 'fa-solid fa-sync', 'onclick' => 'location.reload();', 'order' => -32000]);
+        Layout::addAction('print', ['value' => loc('NF.Form.Print', 'Print'), 'icon' => 'fa-solid fa-print', 'onclick' => 'window.print();', 'order' => -31000]);
         // include constants
         require('Constants.php');
+        // populate context
+        Context::initDefaultValues();
         // run only bootstrap we do not process firewall
         if (!empty($options['__run_only_bootstrap'])) {
             return;
@@ -257,6 +288,10 @@ class Bootstrap
         }
         if (isset($input['__message'])) {
             Layout::addMessage($input['__message'], SUCCESS);
+        }
+        // maintenance notification
+        if (Application::get('maintenance.notification.enabled')) {
+            Layout::addMessage(Application::get('maintenance.notification.message'), INFO);
         }
         // And we need to check firewall.
         $firewalls = Resources::getStatic('firewalls', 'primary');
@@ -286,6 +321,10 @@ class Bootstrap
      */
     public static function preRender()
     {
+        // we do not generate tokens in maintenance mode
+        if (Application::get('maintenance.enabled')) {
+            return;
+        }
         $crypt_class = new Crypt();
         $token = urldecode($crypt_class->tokenCreate(User::getUser() ?? User::id(), 'general'));
         Layout::jsData([
@@ -383,7 +422,8 @@ class Bootstrap
                 call_user_func_array($method, []);
             }
         }
-        // we need to process end of requests events
+        // we need to process end of requests events and deferred
+        Deferred::executeAllRuns(Deferred::ALL);
         Event::processEvents('SM::REQUEST_END');
         // write sessions
         session_write_close();

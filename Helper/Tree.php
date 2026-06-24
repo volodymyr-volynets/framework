@@ -95,6 +95,7 @@ class Tree
         if (!isset($options['i18n'])) {
             $options['i18n'] = true;
         }
+        $options['id_column'] ??= $options['name_field'];
         // skip_keys - convert to array
         if (!empty($options['skip_keys']) && !is_array($options['skip_keys'])) {
             $options['skip_keys'] = [$options['skip_keys']];
@@ -122,6 +123,12 @@ class Tree
             // order
             if (isset($v['order'])) {
                 $order_present = true;
+            }
+            // id column
+            $data[$k]['id_column'] = $v[$options['id_column']];
+            $data[$k]['id_column_parent'] ??= [];
+            if (isset($options['id_column_parent'])) {
+                $data[$k]['id_column_parent'] = $options['id_column_parent'];
             }
         }
         // sorting
@@ -159,7 +166,10 @@ class Tree
             if (!empty($v['options'])) {
                 $parent_keys2 = $parent_keys;
                 $parent_keys2[] = $k;
-                self::convertTreeToOptionsMulti($v['options'], $level + 1, $options, $result, $parent_keys2);
+                $options2 = $options;
+                $options2['id_column_parent'] ??= [];
+                $options2['id_column_parent'][] = $v['id_column'];
+                self::convertTreeToOptionsMulti($v['options'], $level + 1, $options2, $result, $parent_keys2);
             }
         }
     }

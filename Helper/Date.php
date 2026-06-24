@@ -124,6 +124,30 @@ class Date
     }
 
     /**
+     * First day of the month for a given date
+     *
+     * @param string $date
+     * @param string $format
+     * @return string
+     */
+    public static function firstOfMonth($date, $format = 'Y-m-d H:i:s')
+    {
+        return date($format, strtotime('first day of this month', strtotime($date)));
+    }
+
+    /**
+     * First day of the year (Jan 1) for a given date
+     *
+     * @param string $date
+     * @param string $format
+     * @return string
+     */
+    public static function firstOfYear($date, $format = 'Y-m-d H:i:s')
+    {
+        return date($format, strtotime('first day of January this year', strtotime($date)));
+    }
+
+    /**
      * Add interval
      *
      * @param string $date

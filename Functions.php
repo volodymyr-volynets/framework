@@ -10,6 +10,7 @@
  */
 
 use Helper\Cmd;
+use Object\Data\Optional;
 
 /**
  * Constants
@@ -19,6 +20,7 @@ define('WARNING', 'warning');
 define('SUCCESS', 'success');
 define('GENERAL', 'general');
 define('INFO', 'info');
+define('DEFAULT', 'default');
 define('DEF', 'default');
 define('DEF2', 'default2');
 define('DEF3', 'default3');
@@ -43,6 +45,8 @@ define('FORMATABLE', 'FORMATABLE');
 define('ACTION_ALL', [MASKABLE, PASSWORDABLE, GENERABLE, READ_ONLY, READ_IF_SET, CASTABLE, FORMATABLE]);
 define('ACTION_KEYS', ['concat', 'method', 'php_type', 'format', 'options']);
 define('ALL', 'ALL');
+define('FIRST', 'FIRST');
+define('LAST', 'LAST');
 // date constants
 define('YEAR', 'YEAR');
 define('YEAR_AND_MONTH', 'YEAR_AND_MONTH');
@@ -211,7 +215,8 @@ function array_remove_token($tokens, $token)
  * @param string $name
  * @param boolean $return
  * @param array $options
- * 		width
+ *      int|float width
+ *      bool is_html
  * @return string
  */
 function print_r2($data, string $name = '', bool $return = false, array $options = [])
@@ -223,13 +228,14 @@ function print_r2($data, string $name = '', bool $return = false, array $options
     if (isset($options['width'])) {
         $style = 'width: ' . $options['width'];
     }
+    $options['is_html'] ??= false;
     // for command line we just print
-    if (Cmd::isCli()) {
+    if (Cmd::isCli() && !$options['is_html']) {
         $result = $name . print_r($data, true) . "\n";
     } else { // HTML
         $result = '<pre style="' . $style . '">' . $name . print_r($data, true) . '</pre>' . "\n";
         // line where it was called
-        if (Debug::$debug) {
+        if (empty($options['skip_debug']) && Debug::$debug) {
             $temp = debug_backtrace();
             $caller = array_shift($temp);
             $result .= '<br/>' . $caller['file'] . ':' . $caller['line'] . '<hr/>' . "\n";
@@ -240,6 +246,27 @@ function print_r2($data, string $name = '', bool $return = false, array $options
     } else {
         echo $result;
     }
+}
+
+/**
+ * Print multiple variable
+ *
+ * @param mixed $data
+ * @return void
+ */
+function print_r2m($data)
+{
+    $arguments = func_get_args();
+    $result = '';
+    foreach ($arguments as $k => $v) {
+        $result .= print_r2($v, 'Function argument ' . $k, true, ['skip_debug' => true]);
+    }
+    if (Debug::$debug) {
+        $temp = debug_backtrace();
+        $caller = array_shift($temp);
+        $result .= '<br/>' . $caller['file'] . ':' . $caller['line'] . '<hr/>' . "\n";
+    }
+    echo $result;
 }
 
 /**
@@ -270,23 +297,29 @@ function var_export2($data, $return = false)
  *
  * @param mixed $data
  * @param array $options
- * 		boolean skip_objects
+ *      boolean skip_objects
+ *      boolean format_first_level
  * @return string
  */
 function var_export_condensed($data, $options = [])
 {
     if (is_array($data)) {
-        $buffer = [];
         $is_numeric_key_array = is_numeric_key_array($data);
+        $buffer = [];
         foreach ($data as $k => $v) {
-            $temp = '';
-            if (!$is_numeric_key_array) {
-                $temp .= var_export($k, true) . '=>';
+            $options2 = $options;
+            $options2['inner'] = true;
+            if ($is_numeric_key_array) {
+                $buffer[] = var_export_condensed($v, $options2);
+            } else {
+                $buffer[] = var_export($k, true) . '=>' . var_export_condensed($v, $options2);
             }
-            $temp .= var_export_condensed($v, $options);
-            $buffer[] = $temp;
         }
-        return '[' . implode(',', $buffer) . ']';
+        if (!empty($options['format_first_level']) && empty($options['inner'])) {
+            return '[' . "\n" . implode(",\n", $buffer) . "\n" . ']';
+        } else {
+            return '[' . implode(',', $buffer) . ']';
+        }
     } else {
         if (!empty($options['skip_objects']) && gettype($data) == 'object') {
             return '(object) ' . get_class($data);
@@ -600,7 +633,7 @@ function has_tags(string $input, array $tags): bool
 /**
  * Sanitize tags
  *
- * @param type $str
+ * @param string $str
  * @param string $type
  * @param array $options
  *	boolean remove_white_spaces
@@ -831,6 +864,38 @@ function array_multiple_prefix_and_suffix(& $arr, $prefix = null, $suffix = null
     }
 }
 
+/**
+ * Prefix and suffix string to keys in array
+ *
+ * @param array $arr
+ * @param string $prefix
+ * @param string $suffix
+ * @param boolean $strip
+ */
+function array_value_prefix_and_suffix(& $arr, $prefix = null, $suffix = null, $strip = false, $existing_check = false)
+{
+    if ($prefix . '' != '' || $suffix . '' != '') {
+        foreach ($arr as $k => $v) {
+            // appending / prepending
+            if (!$strip) {
+                $new_value = $v;
+                if ($existing_check) {
+                    if ($prefix !== null && !str_starts_with($v, $prefix)) {
+                        $new_value = $prefix . $new_value;
+                    }
+                    if ($suffix !== null && !str_ends_with($v, $suffix)) {
+                        $new_value = $new_value . $suffix;
+                    }
+                } else {
+                    $new_value = $prefix . $new_value . $suffix;
+                }
+                $arr[$k] = $new_value;
+            } else { // stripping
+                $arr[$k] = str_replace([$prefix, $suffix], '', $v);
+            }
+        }
+    }
+}
 
 /**
  * Perform math on an array
@@ -964,6 +1029,9 @@ function array_key_set(& $arr, $keys = null, $value = null, $options = [])
         $key = $keys;
         $pointer = & $arr;
         foreach ($key as $k2) {
+            if ($k2 == null) {
+                $k2 = '';
+            }
             if (!isset($pointer[$k2])) {
                 $pointer[$k2] = [];
             }
@@ -1231,7 +1299,7 @@ function mixedtolower($mixed)
 /**
  * I18n, alias
  *
- * @param int $i18n
+ * @param int|null $i18n
  * @param mixed $text
  * @param array $options
  * @return string
@@ -1244,8 +1312,8 @@ function i18n($i18n, $text, $options = [])
 /**
  * i18n if
  *
- * @param type $text
- * @param type $translate
+ * @param string $text
+ * @param string $translate
  * @return string
  */
 function i18n_if($text, $translate)
@@ -1263,6 +1331,7 @@ function i18n_if($text, $translate)
  * @param string|array $key
  * @param mixed $text
  * @param array $options
+ * @return string
  */
 function loc(string|array $key, mixed $text = '', array $options = []): string
 {
@@ -1285,8 +1354,8 @@ function is_loc(string|array|null $key): bool
         return false;
     } elseif (is_string($key)) {
         $temp = explode('.', $key);
-        return $temp[0] == 'NF' && count($temp) == 3;
-    } else {
+        return $temp[0] == 'NF' && count($temp) >= 3;
+    } elseif (is_array($key)) {
         $first_key = array_key_first($key);
         if (is_string($first_key)) {
             return is_loc($first_key);
@@ -1294,6 +1363,7 @@ function is_loc(string|array|null $key): bool
             return false;
         }
     }
+    return false;
 }
 
 /**
@@ -1335,12 +1405,24 @@ function object_merge_values(& $object, $vars)
 /**
  * Chance
  *
- * @param integer $percent
+ * @param float|int $percent
  * @return boolean
  */
-function chance($percent)
+function chance(float|int $percent)
 {
-    return (mt_rand(0, 99) < $percent);
+    return Chance::calcChanceStatic($percent);
+}
+
+/**
+ * Odds
+ *
+ * @param float|int $odd
+ * @param float|int $total
+ * @return bool
+ */
+function odds(float|int $odd, float|int $total): bool
+{
+    return Chance::calcOddsStatic($odd, $total);
 }
 
 if (!function_exists('mb_str_split')) {
@@ -1414,27 +1496,109 @@ if (!function_exists('mb_str_pad')) {
  * Check if its a valid JSON string
  *
  * @param mixed $input
+ * @param array $options
+ *      bool is_object
  * @return boolean
  */
-function is_json($input)
+function is_json(mixed $input, array $options = []): bool
 {
     if (is_string($input) && $input !== '') {
         json_decode($input);
-        return (json_last_error() == JSON_ERROR_NONE);
+        $result = (json_last_error() == JSON_ERROR_NONE);
+        if ($result && !empty($options['is_object'])) {
+            $temp = trim($input);
+            if ($temp[0] !== '{' || $temp[strlen($temp) - 1] !== '}') {
+                return false;
+            }
+        }
+        return $result;
     } else {
         return false;
     }
 }
 
 /**
- * Check if its a HTML string
+ * Check if its valid vector
  *
- * @param string $input
+ * @param mixed $input
  * @return bool
  */
-function is_html($input)
+function is_vector(mixed $input): bool
+{
+    if (!is_string($input)) {
+        return false;
+    }
+    $result = json_decode($input . '');
+    if (is_numeric_key_array($result)) {
+        return true;
+    }
+    return false;
+}
+
+/**
+ * Check if its markdown
+ *
+ * @param mixed $text
+ * @return bool
+ */
+function is_markdown(mixed $input): bool
+{
+    $patterns = [
+        '/^#{1,6}\s/m',        // headings
+        '/\*\*.*\*\*/',        // bold
+        '/\*.*\*/',            // italic
+        '/!\[.*\]\(.*\)/',     // images
+        '/\[.*\]\(.*\)/',      // links
+        '/^\s*[-*+]\s/m',      // unordered lists
+        '/^\s*\d+\.\s/m',      // ordered lists
+        '/`{1,3}.*`{1,3}/',    // inline/code blocks
+    ];
+    foreach ($patterns as $pattern) {
+        if (preg_match($pattern, $input)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * Check if its any HTML string
+ *
+ * @param mixed $input
+ * @return bool
+ */
+function is_html(mixed $input): bool
 {
     return !(strip_tags($input . '') == $input . '');
+}
+
+/**
+ * Check if its a valid HTML string
+ *
+ * @param mixed $input
+ * @return bool
+ */
+function is_valid_html(mixed $input): bool
+{
+    libxml_use_internal_errors(true);
+    $dom = new DOMDocument();
+    $dom->loadHTML($input);
+    if (empty(libxml_get_errors())) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+/**
+ * Check if its text only
+ *
+ * @param mixed $input
+ * @return bool
+ */
+function is_text(mixed $input): bool
+{
+    return !is_html($input) && !is_markdown($input);
 }
 
 /**
@@ -1494,25 +1658,66 @@ function xml2array(SimpleXMLElement $input)
  * Array to xml
  *
  * @param array $arr
- * @param SimpleXMLElement $xml
- * @return type
+ * @param SimpleXMLElement|bool $xml
+ * @return string
  */
-function array2xml($arr, $xml = false)
+function array2xml(array $arr, SimpleXMLElement|bool $xml = false, array $options = []): string
 {
     if ($xml === false) {
-        $xml = new SimpleXMLElement('<root/>');
+        $xml = new SimpleXMLElement('<' . ($options['root_name'] ?? 'root') . ' />');
     }
     foreach ($arr as $k => $v) {
         if (is_numeric($k)) {
             $k = 'index_' . $k;
         }
+        // if we have attributes
+        $attributes = [];
+        if (strpos($k, ' {') !== false) {
+            $exploded = explode(' ', $k, 2);
+            $attributes = json_decode($exploded[1], true);
+            unset($attributes['__node_id']);
+            $k = $exploded[0];
+        }
         if (is_array($v)) {
-            array2xml($v, $xml->addChild($k));
+            $node = $xml->addChild($k);
+            if (!empty($attributes)) {
+                foreach ($attributes as $k2 => $v2) {
+                    $node->addAttribute($k2, $v2);
+                }
+            }
+            array2xml($v, $node);
         } else {
-            $xml->addChild($k, $v);
+            $node = $xml->addChild($k, $v);
+            if (!empty($attributes)) {
+                foreach ($attributes as $k2 => $v2) {
+                    $node->addAttribute($k2, $v2);
+                }
+            }
         }
     }
-    return $xml->asXML();
+    $result = $xml->asXML();
+    // if we need to remove header
+    if (!empty($options['skip_xml_header'])) {
+        $result = trim(str_replace('<?xml version="1.0"?>', '', $result));
+    }
+    return $result;
+}
+
+/**
+ * Array to object
+ *
+ * @param array $arr
+ * @return object
+ */
+function array2object(array $arr): object
+{
+    $result = (object) $arr;
+    foreach ($result as $key => $value) {
+        if (is_array($value)) {
+            $result->{$key} = array2object($value);
+        }
+    }
+    return $result;
 }
 
 /**
@@ -1568,6 +1773,26 @@ function trim2($str, $what = null, $with = ' ')
 }
 
 /**
+ * Trim begin and end
+ *
+ * @param string|null $str
+ * @param string $character
+ * @return string|null
+ */
+function trim_begin_and_end(string|null $str, string $character = ' '): string|null
+{
+    if (is_null($str)) {
+        return null;
+    }
+    $character = str_split($character);
+    if (in_array($str[0], $character) && in_array($str[strlen($str) - 1], $character)) {
+        $str = substr($str, 1);
+        $str = substr($str, 0, strlen($str) - 1);
+    }
+    return $str;
+}
+
+/**
  * nl2br
  *
  * @param string $str
@@ -1576,7 +1801,8 @@ function trim2($str, $what = null, $with = ' ')
 function nl2br2($str)
 {
     $str = str_replace("\t", '&nbsp;&nbsp;&nbsp;', $str . '');
-    return nl2br($str);
+    $str = nl2br($str);
+    return str_replace(["\n", "\n\r", "\r"], '', $str);
 }
 
 /**
@@ -1709,6 +1935,7 @@ function print_options_array(array $arr): string
 
 /**
  * Run through an array and find by key.
+ *
  * @param array $options
  * @param mixed $value
  * @return mixed
@@ -1724,6 +1951,28 @@ function array_walk_recursive_find_by_key($options, $value)
         }
     }
     return null;
+}
+
+/**
+ * Array walk recursive second implementation
+ *
+ * @param mixed $array
+ * @param callable|array $func
+ * @return void
+ */
+function array_walk_recursive2(mixed & $array, callable|array $func): void
+{
+    foreach ($array as $k => & $v) {
+        if (is_array($v)) {
+            array_walk_recursive2($v, $func);
+        } else {
+            if (is_method($func)) {
+                $v = call_user_func($func, $v, $k);
+            } else {
+                $v = $func($v, $k);
+            }
+        }
+    }
 }
 
 /**
@@ -2084,6 +2333,26 @@ function array_key_compare(mixed $arr1, mixed $arr2): bool
 }
 
 /**
+ * Array key compare (strict)
+ *
+ * @param mixed $arr1
+ * @param mixed $arr2
+ * @return bool
+ */
+function array_key_compare_strict(mixed $arr1, mixed $arr2): bool
+{
+    if (is_scalar($arr1)) {
+        $arr1 = [$arr1];
+    }
+    if (is_scalar($arr2)) {
+        $arr2 = [$arr2];
+    }
+    sort($arr1);
+    sort($arr2);
+    return $arr1 == $arr2;
+}
+
+/**
  * Array 2 ini
  *
  * @param array $arr
@@ -2114,4 +2383,411 @@ function array2ini(array $arr, string $key = ''): array
 function array_flatten(array $arr): array
 {
     return array_values(array2ini($arr));
+}
+
+/**
+ * Replace first occurance in a string
+ *
+ * @param mixed $search
+ * @param mixed $replace
+ * @param mixed $subject
+ * @return string
+ */
+function str_replace_first($search, $replace, $subject): string
+{
+    return implode($replace, explode($search, $subject, 2));
+}
+
+/**
+ * Parse string attributes
+ *
+ * @param string $input - tag or key value pairs
+ * @return array
+ */
+function str_parse_attributes(string $input): array
+{
+    $dom = new DomDocument();
+    if (!str_starts_with($input, '<')) {
+        $input = '<span ' . $input . ' />';
+    }
+    $dom->loadHtml($input);
+    $params_xml = simplexml_import_dom($dom->documentElement);
+    $result = ((array) $params_xml->body->span->attributes())['@attributes'];
+    $result['__text_value'] = $dom->textContent ?? '';
+    return $result;
+}
+
+/**
+ * String get lines array
+ *
+ * @param array|string $content
+ * @param int $start
+ * @param int $end
+ * @param string $as array or string
+ * @return array<mixed|string>|string
+ */
+function str_get_lines_array(array|string $content, int $start, int $end, string $as = 'array'): string|array
+{
+    $result = [];
+    if (is_string($content)) {
+        $content = explode("\n", $content);
+    }
+    // swap
+    if ($start > $end) {
+        $temp = $start;
+        $start = $end;
+        $end = $temp;
+    }
+    for ($i = $start; $i <= $end; $i++) {
+        $result[] = $content[$i];
+    }
+    if ($as == 'array') {
+        return $result;
+    } else {
+        return implode(PHP_EOL, $result);
+    }
+}
+
+/**
+ * Eval args and return array
+ *
+ * @param array $args
+ * @return array
+ */
+function eval_args_return_array(...$args): array
+{
+    return $args;
+}
+
+/**
+ * Array strip generated variables
+ *
+ * @param array $arr
+ * @return array
+ */
+function array_strip_generated_variables(array $arr): array
+{
+    $result = [];
+    foreach ($arr as $k => $v) {
+        if (!str_starts_with($k, '__generated_')) {
+            $result[$k] = $v;
+        }
+    }
+    return $result;
+}
+
+/**
+ * Count characters in a string
+ *
+ * @param string $str
+ * @param string $character
+ * @return int
+ */
+function str_count_characters(string $str, string $character = ' '): int
+{
+    $result = 0;
+    foreach (str_split($str) as $v) {
+        if ($v == $character) {
+            $result++;
+        } else {
+            break;
+        }
+    }
+    return $result;
+}
+
+/**
+ * Array fund by prefix
+ *
+ * @param array $arr
+ * @param string $prefix
+ * @return mixed
+ */
+function array_find_by_key_prefix(array $arr, string $prefix): mixed
+{
+    foreach ($arr as $k => $v) {
+        if (str_starts_with($k, $prefix)) {
+            return $v;
+        }
+    }
+    return [];
+}
+
+/**
+ * Position in a string with array parameters
+ *
+ * @param string $haystack
+ * @param array|string $needle
+ * @param int $offset
+ * @return bool|int
+ */
+function strpos2(string $haystack, array|string $needle, int $offset = 0): int|false
+{
+    if (!is_array($needle)) {
+        $needle = [$needle];
+    }
+    foreach ($needle as $v) {
+        $result = strpos($haystack, $v, $offset);
+        if ($result !== false) {
+            return $result;
+        }
+    }
+    return false;
+}
+
+/**
+ * Is method
+ *
+ * @param string|array $method
+ * @return bool
+ */
+function is_method(string|array $method): bool
+{
+    if (is_array($method)) {
+        return count($method) == 2;
+    } elseif (is_string($method)) {
+        return strpos($method, '::') !== false;
+    }
+    return false;
+}
+
+/**
+ * Deferred (helper)
+ *
+ * @param string $name
+ * @param callable $func
+ * @param array $args
+ * @return void
+ */
+function deferred(string $name, callable $func, array $args = []): void
+{
+    Deferred::runLaterStatic($name, $func, $args);
+}
+
+/**
+ * Between
+ *
+ * @param int|float|null $value
+ * @param int|float $min
+ * @param int|float $max
+ * @return bool
+ */
+function between(int|float|null $value, int|float $min = PHP_INT_MIN, int|float $max = PHP_INT_MAX): bool
+{
+    if (is_null($value)) {
+        $value = 0;
+    }
+    return $value >= $min && $value <= $max;
+}
+
+/**
+ * Array only columns
+ *
+ * @param array $arr
+ * @param array $keys
+ * @return void
+ */
+function array_key_only_columns(array|null & $arr, array $keys): void
+{
+    // todo: debug here
+    foreach ($arr ?? [] as $k => $v) {
+        foreach ($v as $k2 => $v2) {
+            if (!in_array($k2, $keys)) {
+                unset($arr[$k][$k2]);
+                continue;
+            }
+            if (is_array($v2)) {
+                array_key_only_columns($arr[$k][$k2], $keys);
+            }
+        }
+    }
+}
+
+/**
+ * Array find next key
+ *
+ * @param array $arr
+ * @param mixed $key
+ * @param array $options
+ *      bool cycle
+ * @return mixed
+ */
+function array_key_find_next_key(array $arr, mixed $key, array $options = []): mixed
+{
+    // move pointer to the key
+    reset($arr);
+    if (key($arr) == $key) {
+        goto next_label;
+    }
+    while (next($arr) !== false) {
+        if (key($arr) == $key) {
+            break;
+        }
+    }
+    next_label:
+        $next_key = next($arr);
+    if ($next_key !== false) {
+        return key($arr);
+    } elseif (!empty($options['cycle'])) {
+        reset($arr);
+        return key($arr);
+    } else {
+        return null;
+    }
+}
+
+/**
+ * Array find previous key
+ *
+ * @param array $arr
+ * @param mixed $key
+ * @param array $options
+ *      bool cycle
+ * @return mixed
+ */
+function array_key_find_previous_key(array $arr, mixed $key, array $options = []): mixed
+{
+    // move pointer to the key
+    reset($arr);
+    if (key($arr) == $key) {
+        goto next_label;
+    }
+    while (next($arr) !== false) {
+        if (key($arr) == $key) {
+            break;
+        }
+    }
+    next_label:
+        $next_key = prev($arr);
+    if ($next_key !== false) {
+        return key($arr);
+    } elseif (!empty($options['cycle'])) {
+        end($arr);
+        return key($arr);
+    } else {
+        return null;
+    }
+}
+
+/**
+ * Substring character length
+ *
+ * @param mixed $str
+ * @param int $length
+ * @param string $suffix
+ * @return string|null
+ */
+function substr_character_length(mixed $str, int $length = 50, string $suffix = '...'): string|null
+{
+    if (is_null($str)) {
+        return null;
+    }
+    $str = (string) $str;
+    if (strlen($str) <= $length) {
+        return $str;
+    } else {
+        return substr($str, 0, $length - 3) . $suffix;
+    }
+}
+
+/**
+ * Fuzzy string compare
+ *
+ * @param string $str1
+ * @param string $str2
+ * @return bool
+ */
+function str_compare_fuzzy(string $str1, string $str2): bool
+{
+    $str1 = trim(preg_replace('/\s+/', ' ', strtolower($str1)));
+    $str1 = str_replace(' ', '_', $str1);
+    $str2 = trim(preg_replace('/\s+/', ' ', strtolower($str2)));
+    $str2 = str_replace(' ', '_', $str2);
+    return $str1 == $str2;
+}
+
+/**
+ * Array build tree
+ *
+ * @param array $arr
+ * @param mixed $parent_column
+ * @param mixed $parent_id
+ * @param mixed $id_column
+ * @param mixed $sort_column
+ * @return array
+ */
+function array_build_tree($arr, $parent_column, $parent_id = null, $id_column = 'id', $sort_column = null): array
+{
+    $result = [];
+    if ($sort_column) {
+        array_key_sort($arr, [$sort_column => SORT_ASC]);
+    }
+    foreach ($arr as $i => $item) {
+        if ($item[$parent_column] == $parent_id) {
+            $children = array_filter($arr, function ($child) use ($item, $parent_column, $id_column) {
+                return $child[$parent_column] == $item[$id_column];
+            });
+            if (count($children) > 0) {
+                $arr[$i]['options'] = array_build_tree($arr, $parent_column, $item[$id_column], $id_column, $sort_column);
+            }
+            $result[] = $arr[$i];
+        }
+    }
+    return $result;
+}
+
+if (!function_exists('optional')) {
+    function optional(mixed $arr)
+    {
+        return Optional::fromStatic($arr);
+    }
+}
+
+/**
+ * Base32 encode
+ *
+ * @param string $str
+ * @return string
+ */
+function base32_encode(string $str): string
+{
+    $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+    $result = '';
+    $buffer = '';
+    for ($i = 0; $i < strlen($str); $i++) {
+        $buffer .= str_pad(decbin(ord($str[$i])), 8, '0', STR_PAD_LEFT);
+    }
+    for ($i = 0; $i < strlen($buffer); $i += 5) {
+        $chunk = substr($buffer, $i, 5);
+        if (strlen($chunk) < 5) {
+            $chunk = str_pad($chunk, 5, '0', STR_PAD_RIGHT);
+        }
+        $result .= $chars[bindec($chunk)];
+    }
+    return $result;
+}
+
+/**
+ * Base32 decode
+ *
+ * @param string $str
+ * @return string
+ */
+function base32_decode(string $str): string
+{
+    $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+    $str = strtoupper($str);
+    $parts = '';
+    $result = '';
+    for ($i = 0; $i < strlen($str); $i++) {
+        $pos = strpos($chars, $str[$i]);
+        if ($pos === false) {
+            continue;
+        }
+        $parts .= str_pad(decbin($pos), 5, '0', STR_PAD_LEFT);
+    }
+    for ($i = 0; $i + 8 <= strlen($parts); $i += 8) {
+        $result .= chr(bindec(substr($parts, $i, 8)));
+    }
+    return $result;
 }

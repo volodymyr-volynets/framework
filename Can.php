@@ -94,7 +94,7 @@ class Can
             $result = Controller::getSystemModuleByModuleCode($feature_code[0] . $feature_code[1]);
             $module_id = key($result['module_ids']);
         }
-        // fetures third
+        // features third
         if (is_null(Controller::$cached_features) && !Base::$flag_database_tenant_not_found) {
             Controller::$cached_features = Resources::getStatic('features', 'primary');
         }

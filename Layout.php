@@ -59,13 +59,22 @@ class Layout extends View
     public static $onhtml = '';
 
     /**
+     * Template settings
+     *
+     * @var array
+     */
+    protected static array $template_settings = [];
+
+    /**
      * Get application version
      *
      * @return int
      */
     public static function getVersion()
     {
-        if (empty(self::$version)) {
+        if (!empty(getenv('NF_IS_CONTAINER'))) {
+            self::$version = getenv('NF_IS_CONTAINER');
+        } elseif (empty(self::$version)) {
             $filename = Application::get(['application', 'path_full']) . (Application::isDeployed() ? '../../../deployed' : '../../deployed');
             self::$version = filemtime($filename);
         }
@@ -129,27 +138,38 @@ class Layout extends View
      * Render javascript files
      *
      * @param array $options
-     *	boolean return_list
-     * @return string
+     *          boolean return_list
+     *          boolean return_extended_list
+     * @return string|array
      */
-    public static function renderJs($options = [])
+    public static function renderJs(array $options = []): string|array
     {
         $result = '';
         $list = [];
+        $extended_list = [];
         $js = Application::get(['layout', 'js']);
         if (!empty($js)) {
             asort($js);
             foreach ($js as $k => $v) {
-                $script = $k . (strpos($k, '?') !== false ? '&' : '?') . self::getVersion();
-                $list[] = $script;
                 $js_options = Application::get(['layout', 'js_options', $k]) ?? [];
+                $js_options['type'] ??= 'text/javascript';
+                if ($js_options['type'] == 'module') {
+                    $script = $k;
+                } else {
+                    $script = $k . (strpos($k, '?') !== false ? '&' : '?') . self::getVersion();
+                }
+                $extended_list[] = ['type' => $js_options['type'], 'src' => $script, 'is_entry' => $js_options['is_entry'] ?? false];
+                $list[] = $script;
                 if (empty($js_options)) {
                     $js_options['crossorigin'] = 'anonymous';
                 }
-                $js_options['type'] = 'text/javascript';
                 $js_options['src'] = $script;
                 $result .= HTML::script($js_options);
             }
+        }
+        // extended list
+        if (!empty($options['return_extended_list'])) {
+            return $extended_list;
         }
         // list is needed for ajax form reloads
         if (!empty($options['return_list'])) {
@@ -197,6 +217,21 @@ class Layout extends View
     }
 
     /**
+     * Render js head, currently loads local and session storages
+     *
+     * @return string
+     */
+    public static function renderJsHead(): string
+    {
+        $local_storage = WebStorage::renderJavascriptStatic(WebStorage::LOCAL_STORAGE);
+        $session_storage = WebStorage::renderJavascriptStatic(WebStorage::SESSION_STORAGE);
+        if (!empty($session_storage) || !empty($local_storage)) {
+            return HTML::script(['value' => $session_storage . $local_storage]);
+        }
+        return '';
+    }
+
+    /**
      * Add array to JavaScript data
      *
      * @param array $data
@@ -227,6 +262,16 @@ class Layout extends View
             $icon = self::$icon_override ?? Application::$controller->icon ?? null;
             return (!empty($icon) ? (HTML::icon(['type' => $icon]) . ' ') : '') . $title;
         }
+    }
+
+    /**
+     * Render title name only (not translated)
+     *
+     * @return string
+     */
+    public static function renderTitleNameOnly()
+    {
+        return self::$title_override ?? Application::$controller->title;
     }
 
     /**
@@ -332,7 +377,7 @@ class Layout extends View
                 }
                 $icon = !empty($v['icon']) ? (HTML::icon(['type' => $v['icon']]) . ' ') : '';
                 $onclick = !empty($v['onclick']) ? $v['onclick'] : '';
-                $value = !empty($v['value']) ? i18n(null, $v['value']) : '';
+                $value = $v['value'] ?? '';
                 $href = $v['href'] ?? 'javascript:void(0);';
                 $temp[] = HTML::a(['value' => $icon . $value, 'href' => $href, 'onclick' => $onclick, 'title' => $v['title'] ?? '']);
             }
@@ -359,28 +404,28 @@ class Layout extends View
             // submenu is available only when we have breadcrumbs and menu is there
             $submenu = '';
             if (!empty($keys) && !empty($data[200])) {
-                $data = array_key_get($data[200], $keys);
+                $submenu_data = array_key_get($data[200], $keys);
                 $submenu = [];
-                if (is_array($data)) {
-                    array_key_sort($data, ['name' => SORT_ASC], ['name' => SORT_NATURAL]);
-                    foreach ($data as $k => $v) {
+                if (is_array($submenu_data)) {
+                    array_key_sort($submenu_data, ['name' => SORT_ASC], ['name' => SORT_NATURAL]);
+                    foreach ($submenu_data as $k => $v) {
                         $submenu[] = HTML::a([
                             'href' => Request::fixUrl($v['url'], $v['template']),
-                            'value' => HTML::icon(['type' => $v['icon']]) . ' ' . $v['name'],
+                            'value' => HTML::icon(['type' => $v['icon']]) . ' ' . $v['name_loc'],
                         ]);
                         if (!empty($v['options'])) {
                             array_key_sort($v['options'], ['name' => SORT_ASC], ['name' => SORT_NATURAL]);
                             foreach ($v['options'] as $k2 => $v2) {
                                 $submenu[] = HTML::a([
                                     'href' => Request::fixUrl($v2['url'], $v2['template']),
-                                    'value' => '&nbsp;&nbsp;&nbsp;' . HTML::icon(['type' => $v2['icon']]) . ' ' . $v2['name']
+                                    'value' => '&nbsp;&nbsp;&nbsp;' . HTML::icon(['type' => $v2['icon']]) . ' ' . $v2['name_loc'],
                                 ]);
                                 if (!empty($v2['options'])) {
                                     array_key_sort($v2['options'], ['name' => SORT_ASC], ['name' => SORT_NATURAL]);
                                     foreach ($v2['options'] as $k3 => $v3) {
                                         $submenu[] = HTML::a([
                                             'href' => Request::fixUrl($v3['url'], $v3['template']),
-                                            'value' => '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' . HTML::icon(['type' => $v3['icon']]) . ' ' . $v3['name']
+                                            'value' => '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' . HTML::icon(['type' => $v3['icon']]) . ' ' . $v3['name_loc'],
                                         ]);
                                     }
                                 }
@@ -389,16 +434,46 @@ class Layout extends View
                     }
                     $submenu = HTML::popover([
                         'id' => 'breadcrumbs_submenu',
-                        'value' => HTML::icon(['type' => 'fas fa-sticky-note']),
+                        'value' => HTML::icon(['type' => 'fa-solid fa-sticky-note']),
                         'content' => implode(HTML::br(), $submenu),
                         'style' => 'overflow-y: scroll;'
                     ]);
                 }
             }
-            if (!empty($submenu)) {
-                Application::$controller->breadcrumbs[] = $submenu;
+            // quick actions
+            $quick_actions = [];
+            if (!empty($data['quick_actions'])) {
+                foreach ($data['quick_actions'] as $k => $v) {
+                    $quick_actions[] = HTML::a([
+                        'href' => Request::fixUrl($v['url'], $v['template']),
+                        'value' => HTML::icon(['type' => $v['icon']]) . ' ' . $v['name_loc'],
+                    ]);
+                    foreach ($v['options'] as $k2 => $v2) {
+                        $quick_actions[] = HTML::a([
+                            'href' => Request::fixUrl($v2['url'], $v2['template']),
+                            'value' => '&nbsp;&nbsp;&nbsp;' . HTML::icon(['type' => $v2['icon']]) . ' ' . $v2['name_loc'],
+                        ]);
+                    }
+                }
+                $quick_actions = HTML::popover([
+                    'id' => 'breadcrumbs_quick_actions',
+                    'value' => HTML::icon(['type' => 'fa-regular fa-hand-point-right']),
+                    'content' => implode(HTML::br(), $quick_actions),
+                    'style' => 'overflow-y: scroll;'
+                ]);
             }
-            return HTML::breadcrumbs(Application::$controller->breadcrumbs);
+            $breadcrumbs = [];
+            foreach (Application::$controller->breadcrumbs as $k => $v) {
+                $loc = 'NF.System.' . String2::createStatic($v)->englishOnly(true)->toString();
+                $breadcrumbs[] = loc($loc, $v);
+            }
+            if (!empty($submenu)) {
+                $breadcrumbs[] = $submenu;
+            }
+            if (!empty($quick_actions)) {
+                $breadcrumbs[] = $quick_actions;
+            }
+            return HTML::breadcrumbs($breadcrumbs);
         } else {
             return '';
         }
@@ -414,7 +489,7 @@ class Layout extends View
      */
     public static function renderAs($data, string $content_type, array $options = [])
     {
-        // clena up output buffer
+        // clean up output buffer
         Ob::cleanAll();
         Application::set('flag.global.__content_type', $content_type);
         Application::set('flag.global.__skip_layout', 1);
@@ -449,13 +524,21 @@ class Layout extends View
                 break;
             case 'text/html':
                 Ob::start();
-                require(Application::get(['application', 'path_full']) . 'Layout/blank.html');
+                if (!empty($options['layout_path'])) {
+                    require($options['layout_path']);
+                } else {
+                    require(Application::get(['application', 'path_full']) . 'Layout/blank.html');
+                }
                 echo str_replace([
                     '<!-- [numbers: document title] -->',
-                    '<!-- [numbers: document body] -->'
+                    '<!-- [numbers: document body] -->',
+                    '<!-- [numbers: javascript links] -->',
+                    '<!-- [numbers: css links] -->',
                 ], [
                     Layout::renderDocumentTitle(),
-                    $data
+                    $data,
+                    Layout::renderJs(),
+                    Layout::renderCss(),
                 ], Ob::clean());
                 break;
             case 'text/htmlemail':
@@ -470,10 +553,13 @@ class Layout extends View
                 ], Ob::clean());
                 break;
             case 'text/htmlplain':
+            case 'text/plain':
             default:
                 echo $data;
         }
+        session_write_close();
         Log::deliver();
+        Application::set('flag.global.__ajax_call_processed', 1);
         exit;
     }
 
@@ -525,5 +611,133 @@ class Layout extends View
             // adding media files to application for further reporting
             Application::set(['application', 'loaded_classes', $class, 'media'], ['file' => $temp, 'full' => $new], ['append' => true]);
         }
+    }
+
+    /**
+     * Get template settings
+     *
+     * @return array
+     */
+    public static function getTemplateSettings(): array
+    {
+        return self::$template_settings;
+    }
+
+    /**
+     * Set template settings
+     *
+     * @param array|string $template_strategies
+     * @param array $template_options
+     * @return void
+     */
+    public static function setTemplateSettings(array|string $strategies, array $options = []): void
+    {
+        if (is_string($strategies)) {
+            $strategies = [$strategies];
+        }
+        $templates = Application::get('application.layouts');
+        $existing = null;
+        $template_name = null;
+        foreach ($strategies as $v) {
+            if (!empty($templates[$v])) {
+                $existing = $templates[$v];
+                $existing['template'] = $v;
+                $template_name = $v;
+                break;
+            }
+        }
+        // if we did not find a template we set default
+        if (empty($template_name)) {
+            throw new Exception('Layout: Could not find a template from strategies!');
+        }
+        self::$template_settings['template'] = $existing;
+        self::$template_settings['strategies'] = $strategies;
+        self::$template_settings['options'] = $options;
+        Application::set('application.template.name', $template_name);
+        // title
+        if (isset($options['title'])) {
+            Application::set("'application.layouts.{$template_name}.title'", $options['title']);
+            self::$template_settings['template']['title'] = $options['title'];
+        }
+        // menu
+        if (isset($options['menu'])) {
+            Application::set("'application.layouts.{$template_name}.menu'", $options['menu']);
+            self::$template_settings['template']['menu'] = $options['menu'];
+        }
+        // footer
+        if (isset($options['footer'])) {
+            Application::set("'application.layouts.{$template_name}.footer'", $options['footer']);
+            self::$template_settings['template']['footer'] = $options['footer'];
+        }
+        // site
+        if (isset($options['site'])) {
+            Application::set("'application.layouts.{$template_name}.site'", $options['site']);
+            self::$template_settings['template']['site'] = $options['site'];
+        }
+        // double check manifest
+        if (!empty(self::$template_settings['template']['site'])) {
+            $site_name = self::$template_settings['template']['site'];
+            $manifest = Application::get("application.sites.{$site_name}.manifest");
+            $public_dir = Application::get("application.sites.{$site_name}.public_dir");
+            if (empty($manifest)) {
+                throw new Exception("Layout: unable to locate manifest file!");
+            }
+            Application::set("'application.layouts.{$template_name}.manifest'", $manifest);
+            self::$template_settings['template']['manifest'] = $manifest;
+            self::$template_settings['template']['public_dir'] = $public_dir;
+        }
+        // no styles
+        if (self::$template_settings['template']['title'] == 'no_styles' && !isset($options['skip_title'])) {
+            $options['skip_title'] = true;
+        }
+        if (self::$template_settings['template']['menu'] == 'no_styles' && !isset($options['skip_menu'])) {
+            $options['skip_menu'] = true;
+        }
+        if (self::$template_settings['template']['footer'] == 'no_styles' && !isset($options['skip_footer'])) {
+            $options['skip_footer'] = true;
+        }
+        if (self::$template_settings['template']['extra_forms'] == 'no_styles' && !isset($options['skip_extra_forms'])) {
+            $options['skip_extra_forms'] = true;
+        }
+        // skips from layout
+        if (isset($options['skip_menu'])) {
+            Application::set('flag.global.__skip_menu', $options['skip_menu']);
+        }
+        if (isset($options['skip_footer'])) {
+            Application::set('flag.global.__skip_footer', $options['skip_footer']);
+        }
+        if (isset($options['skip_title'])) {
+            Application::set('flag.global.__skip_title', $options['skip_title']);
+        }
+        if (isset($options['skip_extra_forms'])) {
+            Application::set('flag.global.__skip_extra_forms', $options['skip_extra_forms']);
+        }
+    }
+
+    /**
+     * Render layout template
+     *
+     * @param array $options
+     * @return string
+     */
+    public static function renderLayoutTemplate(array $options = []): string
+    {
+        // if view does not specify a template or have it set in url
+        if (empty(self::$template_settings['template']) || Application::get('application.template.__is_set_in_url')) {
+            self::setTemplateSettings(Application::get('application.template.name'), $options);
+        }
+        $options = array_merge_hard(self::$template_settings['options'], $options);
+        return Template::renderStatic(self::$template_settings['template']['layout_type'], self::$template_settings['template']['layout_path'], $options);
+    }
+
+    /**
+     * Add style
+     *
+     * @param string $style
+     * @return void
+     */
+    public static function style(string $style): void
+    {
+        self::$onhtml .= HTML::style(['value' => $style]);
     }
 }

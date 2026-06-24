@@ -134,6 +134,8 @@ class Controller
     public static $cached_controllers;
     public static $cached_controllers_by_ids;
     public static $cached_controllers_by_names;
+    public static $cached_controllers_by_route_alias;
+    public static $cached_controllers_weighted;
 
     /**
      * Cached actions
@@ -261,10 +263,12 @@ class Controller
             // load all controllers from datasource
             if (is_null(self::$cached_controllers) && !Base::$flag_database_tenant_not_found) {
                 self::$cached_controllers = Resources::getStatic('controllers', 'primary');
+                self::$cached_controllers_weighted = Resources::getStatic('weighted_resources', 'primary');
             }
             // load all modules from datasource
             if (is_null(self::$cached_modules) && !Base::$flag_database_tenant_not_found) {
                 $temp = Resources::getStatic('modules', 'primary');
+                $weighted = Resources::getStatic('weighted_modules', 'primary');
                 self::$cached_modules = [];
                 foreach ($temp as $k => $v) {
                     if (!isset(self::$cached_modules[$v['module_code']])) {
@@ -276,7 +280,9 @@ class Controller
                     }
                     self::$cached_modules[$v['module_code']]['module_ids'][$k] = [
                         'name' => $v['name'],
-                        'features' => $v['features']
+                        'features' => $v['features'],
+                        'weight_value' => $weighted[$k]['weight_value'] ?? null,
+                        'action_weights' => $weighted[$k]['action_weights'] ?? [],
                     ];
                     self::$cached_modules[$v['module_code']]['all_features'] = array_unique(self::$cached_modules[$v['module_code']]['all_features'] + $v['features']);
                 }
@@ -339,6 +345,17 @@ class Controller
                             '[module_name]' => $module_name,
                         ],
                     ]);
+                    // if we need to record menu click
+                    $visited_method = Resources::getStatic('menu', 'visited', 'method');
+                    $visited_user_id = \User::id();
+                    if ($visited_method && $visited_user_id) {
+                        $visited_url = $_SERVER['REQUEST_URI'] ?? '/';
+                        $visited_menu_item = $data[$__menu_id];
+                        \Deferred::runLaterStatic(\Deferred::APPLICATION_FINISH_AND_DESTROYED, function () use ($visited_method, $visited_menu_item, $visited_user_id, $visited_url) {
+                            $visited_model = \Factory::method($visited_method, null, true);
+                            call_user_func_array($visited_model, [$visited_url, $visited_user_id, $visited_menu_item]);
+                        });
+                    }
                 }
             }
             $this->addUsageAction('controller_opened', [
@@ -395,6 +412,29 @@ class Controller
      */
     public function permitted($options = []): bool
     {
+        // MFA check
+        if (!empty($_SESSION['numbers']['flag_mfa_redirect'])) {
+            $mfa_class = ltrim(Resources::getStatic('authorization', 'mfa', 'class'), '\\');
+            $current_class = ltrim(get_called_class(), '\\');
+            if (in_array($current_class, [Errors::class, $mfa_class]) || !empty($this->acl['public'])) {
+                if (\User::authorized()) {
+                    return true;
+                } elseif (!empty($this->acl['public'])) {
+                    return true;
+                }
+            } else {
+                \Request::redirect(Resources::getStatic('authorization', 'mfa', 'url'));
+            }
+        }
+        // authorization check
+        if (!empty($this->acl['authorized']) && !empty($this->acl['public'])) {
+            if (!empty($this->acl['public']) && !\User::authorized()) {
+                return true;
+            }
+            if (!empty($this->acl['authorized']) && \User::authorized()) {
+                return true;
+            }
+        }
         // authorized
         if (\User::authorized()) {
             // see if controller is for authorized
@@ -411,17 +451,29 @@ class Controller
                     $action2 = '';
                     $method_code = null;
                     switch ($this->method_code) {
-                        case 'Edit': $action = 'Record_View';
+                        case 'Chat':
+                            $action = 'Record_View';
                             break;
-                        case 'PDF': $action = 'Record_View';
+                        case 'Edit':
+                        case 'Preview':
+                            $action = 'Record_View';
+                            break;
+                        case 'PDF':
+                            $action = 'Record_View';
                             $method_code = 'Edit';
                             break;
-                        case 'Index': $action = 'List_View';
+                        case 'Index':
+                            $action = 'List_View';
                             $action2 = 'Report_View';
                             break;
-                        case 'Activate': $action = 'Activate_Data';
+                        case 'Activate':
+                            $action = 'Activate_Data';
                             break;
-                        case 'Import': $action = 'Import_Records';
+                        case 'Import':
+                            $action = 'Import_Records';
+                            break;
+                        case 'HTMLEditor':
+                            $action = 'Record_Edit';
                             break;
                             // if we need to alter menu name
                         case 'JsonMenuName':
@@ -429,6 +481,11 @@ class Controller
                         case 'JsonMenuName3':
                         case 'JsonMenuName4':
                         case 'JsonMenuName5':
+                        case 'OptionsNameGenerator':
+                        case 'OptionsNameGenerator2':
+                        case 'OptionsNameGenerator3':
+                        case 'OptionsNameGenerator4':
+                        case 'OptionsNameGenerator5':
                             foreach (['Edit' => 'Record_View', 'Index' => 'List_View', 'Activate' => 'Activate_Data'] as $k => $v) {
                                 if ($this->can($v, $k)) {
                                     return true;
@@ -436,13 +493,32 @@ class Controller
                             }
                             return false;
                             break;
+                        case 'ContentGenerator':
+                        case 'ContentGenerator2':
+                        case 'ContentGenerator3':
+                        case 'ContentGenerator4':
+                        case 'ContentGenerator5':
+                            try {
+                                $token = \Request::input('token');
+                                $crypt = new \Crypt();
+                                $token_data = $crypt->tokenVerify($token, ['content.generator.view']);
+                                return true;
+                            } catch (\Exception $e) {
+                                return false;
+                            }
+                            return false;
+                            break;
                     }
                     if (!empty($action)) {
-                        $result = $this->can($action, $method_code);
+                        $result = $this->can($action, $method_code, null, [
+                            'skip_authorized_and_public_checks' => true,
+                        ]);
                         if ($result) {
                             return $result;
                         } elseif (!empty($action2)) {
-                            return $this->can($action2, $method_code);
+                            return $this->can($action2, $method_code, null, [
+                                'skip_authorized_and_public_checks' => true,
+                            ]);
                         }
                         return false;
                     } else {
@@ -473,9 +549,10 @@ class Controller
      * @param string|int $action
      * @param string $method_code
      * @param int $module_id
+     * @param array $options
      * @return boolean
      */
-    public function can($action, $method_code = null, $module_id = null): bool
+    public function can($action, $method_code = null, $module_id = null, $options = []): bool
     {
         if (empty($this->controller_id) && empty(\Application::$controller->override_controller_id)) {
             return false;
@@ -488,7 +565,7 @@ class Controller
             }
         }
         // run permission
-        return $this->canExtended(\Application::$controller->override_controller_id ?? $this->controller_id, $method_code ?? $this->method_code, $action, $module_id);
+        return $this->canExtended(\Application::$controller->override_controller_id ?? $this->controller_id, $method_code ?? $this->method_code, $action, $module_id, $options);
     }
 
     /**
@@ -587,6 +664,9 @@ class Controller
     public function canSubresourceCached($subresource, $action): bool
     {
         $user_id = \User::getUser() ?? \User::id() ?? null;
+        if (empty($user_id)) {
+            return false;
+        }
         if (!isset($this->cached_can_subresource_requests[$user_id][$subresource][$action])) {
             $this->cached_can_subresource_requests[$user_id][$subresource][$action] = $this->canSubresource($subresource, $action);
         }
@@ -711,7 +791,7 @@ class Controller
             }
         }
         // if we have all actions enabled we need to allow through
-        if ($this->can('All_Actions', 'Edit')) {
+        if ($this->can('All_Actions', 'Edit', null, ['skip_authorized_and_public_checks' => true])) {
             return true;
         }
         return false;
@@ -723,11 +803,13 @@ class Controller
      * @param int|string $resource_id
      * @param string $method_code
      * @param string|int $action
-     * @param int $module_id
+     * @param int|null $module_id
+     * @param array $options
+     *      bool skip_authorized_and_public_checks
      * @return bool
      * @throws Exception
      */
-    public function canExtended($resource_id, $method_code, $action, $module_id = null): bool
+    public function canExtended($resource_id, $method_code, $action, $module_id = null, $options = []): bool
     {
         // rearrange controllers
         if (!isset(self::$cached_controllers_by_ids)) {
@@ -771,8 +853,61 @@ class Controller
         if (is_string($action)) {
             $action = self::$cached_actions[$action]['id'];
         }
-        // see if we have permission overrides
-        $permissions = \User::get('permissions');
+        if (!isset($action)) {
+            $action = 0;
+        }
+        // weighted modules
+        $module_code = self::$cached_controllers[self::$cached_controllers_by_ids[$resource_id]]['module_code'] ?? null;
+        if (isset(self::$cached_modules[$module_code])) {
+            $module_weight = null;
+            $module_actions = null;
+            if (!empty(self::$cached_modules[$module_code]['module_multiple']) && isset($module_id) && isset(self::$cached_modules[$module_code]['module_ids'][$module_id])) {
+                $module_weight = self::$cached_modules[$module_code]['module_ids'][$module_id]['weight_value'] ?? null;
+                $module_actions = self::$cached_modules[$module_code]['module_ids'][$module_id]['action_weights'] ?? [];
+            } elseif (empty(self::$cached_modules[$module_code]['module_multiple']) || $module_id == null) {
+                $module_temp = current(self::$cached_modules[$module_code]['module_ids']);
+                $module_weight = $module_temp['weight_value'] ?? null;
+                $module_actions = $module_temp['action_weights'] ?? [];
+            }
+            $action_weight = $module_actions[$action]['weight_value'] ?? null;
+            if (isset($module_weight) && isset($action_weight)) {
+                $max_cumulative_weight = \User::get('max_cumulative_weight') ?? 0;
+                if ($max_cumulative_weight >= $module_weight && $max_cumulative_weight >= $action_weight) {
+                    return true;
+                }
+            }
+        }
+        // weighted resources
+        $weighted_module_id = $module_id ?? array_key_first(self::$cached_modules[$module_code]['module_ids']) ?? null;
+        if (isset(self::$cached_controllers_weighted[(int) $weighted_module_id][(int) $resource_id])) {
+            $resource_weight = self::$cached_controllers_weighted[$weighted_module_id][$resource_id]['weight_value'] ?? null;
+            $resource_actions = self::$cached_controllers_weighted[$weighted_module_id][$resource_id]['action_weights'] ?? [];
+            $action_weight = $resource_actions[$action]['weight_value'] ?? null;
+            if (isset($resource_weight) && isset($action_weight)) {
+                $max_cumulative_weight = \User::get('max_cumulative_weight') ?? 0;
+                if ($max_cumulative_weight >= $resource_weight && $max_cumulative_weight >= $action_weight) {
+                    return true;
+                }
+            }
+        }
+        // skip authorized and public checks
+        if (!empty($options['skip_authorized_and_public_checks']) || !empty(self::$cached_controllers[self::$cached_controllers_by_ids[$resource_id]]['acl_permission'])) {
+            goto skip_authorized_and_public_checks_label;
+        }
+        // authorized controllers have full access
+        if (!empty(self::$cached_controllers[self::$cached_controllers_by_ids[$resource_id]]['acl_authorized'])) {
+            // if user is logged in
+            if (\User::authorized()) {
+                return true;
+            }
+        }
+        // public controllers have full access
+        if (!empty(self::$cached_controllers[self::$cached_controllers_by_ids[$resource_id]]['acl_public'])) {
+            return true;
+        }
+        skip_authorized_and_public_checks_label:
+                // see if we have permission overrides
+                $permissions = \User::get('permissions');
         if (!empty($permissions)) {
             // process permissions
             $all_actions = $permissions[$resource_id]['AllActions'][-1] ?? [];
@@ -800,13 +935,6 @@ class Controller
         }
         // load user roles
         $roles = \User::roles();
-        // authorized controllers have full access
-        if (empty(self::$cached_controllers[self::$cached_controllers_by_ids[$resource_id]]['acl_permission']) && !empty(self::$cached_controllers[self::$cached_controllers_by_ids[$resource_id]]['acl_authorized'])) {
-            // if user is logged in
-            if (\User::authorized()) {
-                return true;
-            }
-        }
         // go through roles
         foreach ($roles as $v) {
             $temp = $this->processRole($v, $resource_id, $method_code, $action, $module_id);
@@ -857,7 +985,7 @@ class Controller
         // traverse all cached presets
         self::$cached_combined_policies = [];
         self::$cached_groupped_policies = [];
-        $settings = current(self::$cached_settings);
+        $settings = current(self::$cached_settings ?? []);
         $this->traversePolicies('settings', $settings['policies'] ?? [], self::$cached_combined_policies);
         $this->traversePolicyGroups('settings', $settings['policy_groups'] ?? [], self::$cached_combined_policies);
         $this->traversePolicies('user', \User::get('policies') ?? [], self::$cached_combined_policies);
@@ -1545,5 +1673,30 @@ TTT]);
     public function getUsageActions(): array
     {
         return self::$usage_actions;
+    }
+
+    /**
+     * Layout
+     *
+     * @param string $layout
+     * @param array $options
+     * @return void
+     */
+    public function layout(string $layout, array $options = []): void
+    {
+        \Layout::setTemplateSettings($layout, $options);
+    }
+
+    /**
+     * Render
+     *
+     * @param string|null $type
+     * @param string $path
+     * @param array $options
+     * @return string
+     */
+    public function render(string|null $type, string $path, array $options = []): string
+    {
+        return \Template::renderStatic($type, $path, $options);
     }
 }

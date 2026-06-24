@@ -25,11 +25,7 @@ class Email
     {
         $options['mask'] = $options['mask'] ?? '*';
         $temp = explode('@', trim($value));
-        $length = strlen($temp[0]);
-        $result = substr($temp[0], 0, floor($length / 2));
-        for ($i = 0; $i <= $length - strlen($result); $i++) {
-            $result .= $options['mask'];
-        }
+        $result = (new Name())->mask($temp[0], $options);
         return $result . '@' . $temp[1];
     }
 }

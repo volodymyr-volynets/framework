@@ -159,11 +159,11 @@ class Cmd
     {
         $result = "";
         // text color
-        if (isset(self::color_text[$text_color])) {
+        if (isset(self::color_text[$text_color ?? ''])) {
             $result .= "\033[" . self::color_text[$text_color] . "m";
         }
         // background color
-        if (isset(self::color_background[$background_color])) {
+        if (isset(self::color_background[$background_color ?? ''])) {
             $result .= "\033[" . self::color_background[$background_color] . "m";
         }
         // bold

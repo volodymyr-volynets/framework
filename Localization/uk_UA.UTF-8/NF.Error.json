@@ -1,0 +1,17 @@
+{
+    "BearerTokenExpired": "0xdb0b556d2edf09bde20cf6b1a07d341f0a64f060}: Токен-носій відсутній або термін дії минув!",
+    "EmptyValues": "Пусте значення (значення)!",
+    "EmptyWhatValues": "Порожнє значення {what}!",
+    "InvalidHashTaggedGiven": "Хештег має починатися з # і не повинен мати пробілів",
+    "InvalidMentionGiven": "Згадка має починатися з @ і без пробілів",
+    "InvalidValues": "Недійсне(і) значення(я)!",
+    "InvalidWhatValues": "Недійсне значення {what}!",
+    "LengthMustBeLong": "Довжина має бути {length} символів!",
+    "NoRowsFound": "Рядків не знайдено!",
+    "RequiredField": "Обов&#39;язкове поле!",
+    "RequiredJsonKey": "Обов&#39;язковий ключ JSON &quot;{field}&quot;!",
+    "RouteBearerTokenExpired": "0xdb0b556d2edf09bde20cf6b1a07d341f0a64f060}: Токен-носій відсутній або термін дії минув!",
+    "RouteMiddlewareDenied": "0xdb0b556d2edf09bde20cf6b1a07d341f0a64f060}: Проміжне програмне забезпечення заборонено для цього маршруту!",
+    "StringIsTooLong": "Рядок занадто довгий, не повинен перевищувати {length}!",
+    "StringPascalCase": "Рядок має бути у стилі PascalCase!"
+}

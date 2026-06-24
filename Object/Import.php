@@ -108,6 +108,19 @@ class Import
             if (count($this->data[$k]['data']) == 0) {
                 continue;
             }
+            // submodule exists
+            if (isset($this->data[$k]['options']['submodule_exists'])) {
+                $good = true;
+                foreach ($this->data[$k]['options']['submodule_exists'] as $k2) {
+                    if (!\Can::submoduleExists($k2)) {
+                        $good = false;
+                    }
+                }
+                if (!$good) {
+                    $result['legend'][] = '         * Process ' . $k . ' submodule is not installed!';
+                    continue;
+                }
+            }
             // object
             $model = $this->data[$k]['options']['model'];
             $method = $this->data[$k]['options']['method'] ?? 'save';

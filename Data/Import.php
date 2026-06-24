@@ -26,7 +26,7 @@ class Import extends \Object\Import
                     'sm_module_type' => 20,
                     'sm_module_name' => 'N/F Numbers Framework',
                     'sm_module_abbreviation' => 'N/F',
-                    'sm_module_icon' => 'fab fa-amilia',
+                    'sm_module_icon' => 'fa-brands fa-amilia',
                     'sm_module_transactions' => 0,
                     'sm_module_multiple' => 0,
                     'sm_module_activation_model' => null,

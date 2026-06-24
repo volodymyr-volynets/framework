@@ -104,10 +104,10 @@ class Parser
      * First word
      *
      * @param string $keywords
-     * @param type $str
+     * @param string $str
      * @return int|null
      */
-    public static function firstWord(string $keywords, $str)
+    public static function firstWord(string $keywords, string $str)
     {
         $keywords = preg_replace('/\s\s+/', ' ', $keywords);
         $keywords = explode(' ', $keywords);

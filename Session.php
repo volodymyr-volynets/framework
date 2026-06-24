@@ -78,6 +78,10 @@ class Session
                 ini_set("session.$k", $v);
             }
         }
+        // session name for container is with hash
+        if (!empty(getenv('NF_IS_CONTAINER'))) {
+            session_name('PHPSESSID_' . getenv('NF_IS_CONTAINER'));
+        }
         // session # replacement
         $__session_id = Application::get('flag.global.__session_id');
         if (!empty($__session_id)) {
@@ -182,7 +186,7 @@ class Session
      * @param mixed $value
      * @param array $options
      */
-    public static function set($key, $value, $options = [])
+    public static function set(string|array $key, mixed $value, $options = [])
     {
         array_key_set($_SESSION, $key, $value, $options);
     }
@@ -190,10 +194,10 @@ class Session
     /**
      * Get session values as static
      *
-     * @param string $key
+     * @param string|array $key
      * @return type
      */
-    public static function get($key = null)
+    public static function get(string|array|null $key = null)
     {
         return array_key_get($_SESSION, $key);
     }
@@ -212,7 +216,7 @@ class Session
     /**
      * Get session values
      *
-     * @param type $key
+     * @param string|array|null $key
      * @return type
      */
     public function __get($key)
@@ -223,7 +227,7 @@ class Session
     /**
      * Isset check in sessions
      *
-     * @param type $key
+     * @param string $key
      * @return type
      */
     public function __isset($key)
@@ -235,7 +239,7 @@ class Session
     /**
      * Unset a key in session
      *
-     * @param type $key
+     * @param string $key
      */
     public function __unset($key)
     {

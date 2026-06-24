@@ -171,12 +171,15 @@ class ActiveRecord
     /**
      * Load ID by code
      *
-     * @param string $code
+     * @param string|array $code
      * @param string|null $model
      * @param string|null $column_name
+     * @param array $options
+     * 		bool first - load first record
+     *      bool last - load last record
      * @return mixed
      */
-    public function loadIDByCode(string $code, ?string $model = null, ?string $column_name = null): mixed
+    public function loadIDByCode(string|array $code, ?string $model = null, ?string $column_name = null, array $options = []): mixed
     {
         $where = [];
         if ($model) {
@@ -194,7 +197,12 @@ class ActiveRecord
         if (!isset($object->columns[$code_column])) {
             $code_column = $object->column_prefix . 'name';
         }
-        $where[$code_column] = $code;
+        $is_one = false;
+        if (is_string($code)) {
+            $code = [$code];
+            $is_one = true;
+        }
+        $where[$code_column . ';IN'] = $code;
         // by default we return id
         if (!$column_name) {
             $column_name = $object->column_prefix . 'id';
@@ -203,14 +211,41 @@ class ActiveRecord
             'where' => $where,
             'pk' => null,
             'columns' => $column_name == ALL ? [] : [$column_name],
-            'limit' => 1,
-            'single_row' => 1
+            'single_row' => false
         ]]);
         if ($column_name == ALL) {
             return $result;
+        } elseif (!empty($options['first'])) {
+            $key = array_key_first($result);
+            return $result[$key][$column_name] ?? null;
+        } elseif (!empty($options['last'])) {
+            $key = array_key_last($result);
+            return $result[$key][$column_name] ?? null;
         } else {
-            return $result[$column_name];
+            $result2 = [];
+            foreach ($result as $v) {
+                $result2[] = $v[$column_name];
+            }
+            return $result2;
         }
+    }
+
+    /**
+     * Load ID by code (static)
+     *
+     * @param string|array $code
+     * @param string|null $model
+     * @param string|null $column_name
+     * @param array $options
+     * 		bool first - load first record
+     *      bool last - load last record
+     * @return mixed
+     */
+    public static function loadIDByCodeStatic(string|array $code, ?string $model = null, ?string $column_name = null, array $options = []): mixed
+    {
+        $class = get_called_class();
+        $object = new $class();
+        return $object->loadIDByCode($code, $model, $column_name, $options);
     }
 
     /**
@@ -374,9 +409,10 @@ class ActiveRecord
     /**
      * Merge
      *
+     * @param array $options
      * @return array
      */
-    public function merge(): array
+    public function merge(array $options = []): array
     {
         $collection = Collection::collectionToModel($this->collection);
         $data = $this->getFilledValues();
@@ -386,7 +422,21 @@ class ActiveRecord
                 $data[$k][] = $v2->getFilledValues();
             }
         }
-        return $collection->merge($data);
+        return $collection->merge($data, $options);
+    }
+
+    /**
+     * Touch the record updating the dates
+     *
+     * @param array $data
+     * @param array $dates - you can pass short names from who or column name
+     * @return array
+     */
+    public function touch($data, array $dates = ['updated']): array
+    {
+        $collection = Collection::collectionToModel($this->collection);
+        $data = $data + $this->getFilledValues();
+        return $collection->touch($data, $dates);
     }
 
     /**

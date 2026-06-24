@@ -20,6 +20,7 @@ use Object\Widgets;
 use Numbers\Backend\System\ShellCommand\Model\ShellCommands;
 use Numbers\Backend\System\Modules\Model\Modules;
 use Object\Table;
+use Object\Template\Constants as TemplateConstants;
 
 class Dependencies
 {
@@ -50,6 +51,7 @@ class Dependencies
                 'ini_folder' => 'Config/',
                 'libraries_folder' => \Application::get('application.libraries_folder'),
                 'application_folder' => \Application::get('application.application_folder'),
+                'root_folder' => \Application::get('application.root_folder'),
             ]);
             $data = $data['dep'] ?? [];
             $data['composer'] = $data['composer'] ?? [];
@@ -67,11 +69,14 @@ class Dependencies
             $data['public_html'] = $data['public_html'] ?? [];
             $data['model_processed'] = [];
             $data['unit_tests'] = [];
+            $data['controller'] = $data['controller'] ?? [];
+            $data['generated'] = $data['generated'] ?? [];
             $data['form'] = $data['form'] ?? [];
             $data['loc'] = $data['loc'] ?? [];
             $data['loc_model'] = $data['model'] ?? [];
             $data['localize'] = $data['localize'] ?? [];
-            $data['preset'] = $data['preset'] ?? [];
+            $data['loc_groupped'] = $data['loc_groupped'] ?? [];
+            $data['loc_dirs'] = $data['loc_dirs'] ?? [];
             $data['__submodule_dependencies'] = [];
             $data['components'] = [];
             $data['extra_configs'] = [];
@@ -80,6 +85,10 @@ class Dependencies
             $data['constant'] = $data['constant'] ?? [];
             $data['module'] = $data['module'] ?? [];
             $data['middleware'] = $data['middleware'] ?? [];
+            $data['view'] = $data['view'] ?? [];
+            $data['view_raw'] = $data['view_raw'] ?? [];
+            $data['load'] = $data['load'] ?? [];
+            $data['seeder'] = $data['seeder'] ?? [];
             $dummy = $dummy2 = [];
             // we have small chicken and egg problem with composer
             $composer_data = [];
@@ -162,6 +171,291 @@ class Dependencies
                                     }
                                 }
                             }
+                            // controllers first
+                            $sites = \Application::get('application.sites') ?? [];
+                            $generated_routes = [];
+                            if (file_exists($v . 'Controller/')) {
+                                $controllers = File::iterate($v . 'Controller/', ['only_extensions' => 'php']);
+                                foreach ($controllers as $v13) {
+                                    $k13 = $v13;
+                                    $k13 = str_replace(['.php', '../libraries/vendor', '../libraries/private'], '', $k13);
+                                    $k13 = str_replace('/', '\\', $k13);
+                                    $k13_exploded = explode('\\', $k13);
+                                    if (count($k13_exploded) > 2) {
+                                        $k13_exploded[1] = ucfirst($k13_exploded[1]);
+                                        $k13_exploded[2] = ucfirst($k13_exploded[2]);
+                                    }
+                                    $k13 = implode('\\', $k13_exploded);
+                                    $k13_namespace = explode('\\Controller\\', $k13)[0] . '\\Data\\Generated';
+                                    $data['controller'][$k13] = [
+                                        'dir' => $v,
+                                        'filename' => $v . $v13,
+                                        'namespace' => $k13_namespace,
+                                        'methods' => Reflection::getMethods($k13, \ReflectionMethod::IS_PUBLIC, ['action']),
+                                    ];
+                                    // process attributes from methods
+                                    foreach ($data['controller'][$k13]['methods']['action'] ?? [] as $k14 => $v14) {
+                                        $v14_name_no_prefix = $v14['name_no_prefix'];
+                                        foreach ($v14['attributes'] ?? [] as $k15 => $v15) {
+                                            // controlers
+                                            if ($k15 == 'Route') {
+                                                // we must have settings
+                                                $v16_settings = $v15['values'][0] ?? [];
+                                                if (empty($v16_settings)) {
+                                                    continue;
+                                                }
+                                                if (!isset($data['generated'][$k15])) {
+                                                    $data['generated'][$k15] = [];
+                                                }
+                                                if (!isset($data['generated'][$v][$k13_namespace]['ImportControllers'])) {
+                                                    $data['generated'][$v][$k13_namespace]['ImportControllers'] = [];
+                                                }
+                                                $data['generated'][$v][$k13_namespace]['ImportControllers'][] = [
+                                                    'sm_resource_id' => '::id::' . $k13 . '\\' . $v14_name_no_prefix,
+                                                    'sm_resource_code' => $k13 . '\\' . $v14_name_no_prefix,
+                                                    'sm_resource_type' => 100,
+                                                    'sm_resource_classification' => 'Miscellaneous',
+                                                    'sm_resource_name' => $v16_settings['name'],
+                                                    'sm_resource_description' => null,
+                                                    'sm_resource_icon' => $v16_settings['icon'] ?? '',
+                                                    'sm_resource_module_code' => $v16_settings['group'][0],
+                                                    'sm_resource_group1_name' => $v16_settings['group'][1],
+                                                    'sm_resource_group2_name' => $v16_settings['group'][2] ?? null,
+                                                    'sm_resource_group3_name' => $v16_settings['group'][3] ?? null,
+                                                    'sm_resource_group4_name' => $v16_settings['group'][4] ?? null,
+                                                    'sm_resource_group5_name' => $v16_settings['group'][5] ?? null,
+                                                    'sm_resource_group6_name' => $v16_settings['group'][6] ?? null,
+                                                    'sm_resource_group7_name' => $v16_settings['group'][7] ?? null,
+                                                    'sm_resource_group8_name' => $v16_settings['group'][8] ?? null,
+                                                    'sm_resource_group9_name' => $v16_settings['group'][9] ?? null,
+                                                    'sm_resource_acl_public' => $v16_settings['acl']['public'] ?? 0,
+                                                    'sm_resource_acl_authorized' => $v16_settings['acl']['authorized'] ?? 0,
+                                                    'sm_resource_acl_permission' => $v16_settings['acl']['permission'] ?? 0,
+                                                    'sm_resource_menu_acl_resource_id' => null,
+                                                    'sm_resource_menu_acl_method_code' => null,
+                                                    'sm_resource_menu_acl_action_id' => null,
+                                                    'sm_resource_menu_url' => null,
+                                                    'sm_resource_menu_options_generator' => null,
+                                                    'sm_resource_route_alias' => $v16_settings['route_alias'] ?? null,
+                                                    'sm_resource_inactive' => 0,
+                                                ];
+                                                $temp14_methods = [];
+                                                if (!empty($v16_settings['acl']['public'])) {
+                                                    $temp14_methods[] = "->acl('Public')";
+                                                    $temp14_methods[] = "->acl('Not Authorized')";
+                                                }
+                                                if (!empty($v16_settings['acl']['authorized'])) {
+                                                    $temp14_methods[] = "->acl('Authorized')";
+                                                }
+                                                if (!empty($v16_settings['acl']['permission'])) {
+                                                    $temp14_methods[] = "->acl('Permission')";
+                                                }
+                                                if (!empty($v16_settings['route_alias'])) {
+                                                    $temp14_methods[] = "->acl('Route Alias:" . $v16_settings['route_alias'] . "')";
+                                                }
+                                                $temp14_methods = implode(PHP_EOL, $temp14_methods);
+                                                $generated_routes[$v] ??= '';
+                                                $generated_routes[$v] .= <<<ROUTE
+
+Route::uri('{$v16_settings['name']}', '{$v16_settings['uri']}', '{$v14_name_no_prefix}', \Route::HTTP_REQUEST_METHOD_ALL, [{$k13}::class, '{$v14_name_no_prefix}'])
+{$temp14_methods};
+
+ROUTE;
+                                            }
+                                            // menu
+                                            if ($k15 == 'Menu') {
+                                                // we must have settings
+                                                $v16_settings = $v15['values'][0] ?? [];
+                                                if (empty($v16_settings)) {
+                                                    continue;
+                                                }
+                                                if (!isset($data['generated'][$k15])) {
+                                                    $data['generated'][$k15] = [];
+                                                }
+                                                if (!isset($data['generated'][$v][$k13_namespace]['ImportMenus'])) {
+                                                    $data['generated'][$v][$k13_namespace]['ImportMenus'] = [];
+                                                }
+                                                $data['generated'][$v][$k13_namespace]['ImportMenus'][] = [
+                                                    'sm_resource_id' => '::id::\\Menu\\' . $k13 . '\\' . $v14_name_no_prefix,
+                                                    'sm_resource_code' => '\\Menu\\' . $k13 . '\\' . $v14_name_no_prefix,
+                                                    'sm_resource_type' => $v16_settings['type'] ?? 200,
+                                                    'sm_resource_name' => $v16_settings['name'],
+                                                    'sm_resource_description' => null,
+                                                    'sm_resource_icon' => $v16_settings['icon'] ?? '',
+                                                    'sm_resource_module_code' => $v16_settings['group'][0],
+                                                    'sm_resource_group1_name' => $v16_settings['group'][1],
+                                                    'sm_resource_group2_name' => $v16_settings['group'][2] ?? null,
+                                                    'sm_resource_group3_name' => $v16_settings['group'][3] ?? null,
+                                                    'sm_resource_group4_name' => $v16_settings['group'][4] ?? null,
+                                                    'sm_resource_group5_name' => $v16_settings['group'][5] ?? null,
+                                                    'sm_resource_group6_name' => $v16_settings['group'][6] ?? null,
+                                                    'sm_resource_group7_name' => $v16_settings['group'][7] ?? null,
+                                                    'sm_resource_group8_name' => $v16_settings['group'][8] ?? null,
+                                                    'sm_resource_group9_name' => $v16_settings['group'][9] ?? null,
+                                                    'sm_resource_acl_public' => $v16_settings['acl']['public'] ?? 0,
+                                                    'sm_resource_acl_authorized' => $v16_settings['acl']['authorized'] ?? 0,
+                                                    'sm_resource_acl_permission' => $v16_settings['acl']['permission'] ?? 0,
+                                                    // todo fix menu_acl values
+                                                    'sm_resource_menu_acl_resource_id' => $v16_settings['menu_acl']['resource_id'] ?? null,
+                                                    'sm_resource_menu_acl_method_code' => $v16_settings['menu_acl']['method_code'] ?? null,
+                                                    'sm_resource_menu_acl_action_id' => $v16_settings['menu_acl']['action_id'] ?? null,
+                                                    // other
+                                                    'sm_resource_menu_url' => $v16_settings['uri'],
+                                                    'sm_resource_menu_options_generator' => null,
+                                                    'sm_resource_menu_order' => $v16_settings['order'] ?? null,
+                                                    'sm_resource_inactive' => 0,
+                                                ];
+                                            }
+                                            // footer
+                                            if ($k15 == 'Footer') {
+                                                // we must have settings
+                                                $v16_settings = $v15['values'][0] ?? [];
+                                                if (empty($v16_settings)) {
+                                                    continue;
+                                                }
+                                                if (!isset($data['generated'][$k15])) {
+                                                    $data['generated'][$k15] = [];
+                                                }
+                                                if (!isset($data['generated'][$v][$k13_namespace]['ImportFooters'])) {
+                                                    $data['generated'][$v][$k13_namespace]['ImportFooters'] = [];
+                                                }
+                                                $data['generated'][$v][$k13_namespace]['ImportFooters'][] = [
+                                                    'sm_resource_id' => '::id::\\Footer\\' . $k13 . '\\' . $v14_name_no_prefix,
+                                                    'sm_resource_code' => '\\Footer\\' . $k13 . '\\' . $v14_name_no_prefix,
+                                                    'sm_resource_type' => 230,
+                                                    'sm_resource_name' => $v16_settings['name'],
+                                                    'sm_resource_description' => null,
+                                                    'sm_resource_icon' => $v16_settings['icon'] ?? '',
+                                                    'sm_resource_module_code' => $v16_settings['group'][0],
+                                                    'sm_resource_group1_name' => $v16_settings['group'][1],
+                                                    'sm_resource_group2_name' => $v16_settings['group'][2] ?? null,
+                                                    'sm_resource_group3_name' => $v16_settings['group'][3] ?? null,
+                                                    'sm_resource_group4_name' => $v16_settings['group'][4] ?? null,
+                                                    'sm_resource_group5_name' => $v16_settings['group'][5] ?? null,
+                                                    'sm_resource_group6_name' => $v16_settings['group'][6] ?? null,
+                                                    'sm_resource_group7_name' => $v16_settings['group'][7] ?? null,
+                                                    'sm_resource_group8_name' => $v16_settings['group'][8] ?? null,
+                                                    'sm_resource_group9_name' => $v16_settings['group'][9] ?? null,
+                                                    'sm_resource_acl_public' => $v16_settings['acl']['public'] ?? 0,
+                                                    'sm_resource_acl_authorized' => $v16_settings['acl']['authorized'] ?? 0,
+                                                    'sm_resource_acl_permission' => $v16_settings['acl']['permission'] ?? 0,
+                                                    // todo fix menu_acl values
+                                                    'sm_resource_menu_acl_resource_id' => $v16_settings['menu_acl']['resource_id'] ?? null,
+                                                    'sm_resource_menu_acl_method_code' => $v16_settings['menu_acl']['method_code'] ?? null,
+                                                    'sm_resource_menu_acl_action_id' => $v16_settings['menu_acl']['action_id'] ?? null,
+                                                    // other
+                                                    'sm_resource_menu_url' => $v16_settings['uri'],
+                                                    'sm_resource_menu_options_generator' => null,
+                                                    'sm_resource_menu_order' => $v16_settings['order'] ?? null,
+                                                    'sm_resource_inactive' => 0,
+                                                ];
+                                            }
+                                            // view
+                                            if ($k15 == 'View') {
+                                                // we must have settings
+                                                $v16_settings = $v15['values'][0] ?? [];
+                                                if (empty($v16_settings)) {
+                                                    continue;
+                                                }
+                                                // generate react code
+                                                foreach ($sites as $site => $site_data) {
+                                                    if (!empty($site_data['view']['enabled']) && $site_data['view']['type'] == $v16_settings['type']) {
+                                                        $tsxnf_root = $v16_settings['root'];
+                                                        $tsxnf_component = $v16_settings['component'];
+                                                        $tsxnf_path_absolute = realpath(File::path($v16_settings['path']));
+                                                        $tsxnf_path_root = realpath(\Application::get('application.root_folder'));
+                                                        $tsxnf_dir_prefix = '/..' . substr($site_data['view']['dir_prefix'], 1);
+                                                        $tsxnf_path_tsx = $tsxnf_dir_prefix . ltrim(str_replace($tsxnf_path_root, '', $tsxnf_path_absolute), '/');
+                                                        $tsxnf_code = <<<TSX
+import {$tsxnf_component} from '{$tsxnf_path_tsx}';
+import { NFTemplateLoadProps, NFTemplateLoadLoaded, NFTemplateMountComponent } from '/src/Numbers/NFTemplateLoader.tsx';
+
+// special function in window scope
+window.nfMount{$tsxnf_component} = function(id) {
+    const props = NFTemplateLoadProps({ id: id });
+    const loaded = NFTemplateLoadLoaded({ id: id });
+    NFTemplateMountComponent({ id: id, component: <{$tsxnf_component} props={props} loaded={loaded} key={props.__ts} /> });
+};
+
+// we mount all roots
+$('[id^="{$tsxnf_root}"]').each(function(index) {
+    let id = $(this).attr('id');
+    const props = NFTemplateLoadProps({ id: id });
+    const loaded = NFTemplateLoadLoaded({ id: id });
+    NFTemplateMountComponent({ id: id, component: <{$tsxnf_component} props={props} loaded={loaded} key={props.__ts} /> });
+});
+TSX;
+                                                        $tsxnf_new_file = File::setPrefixForExtension($tsxnf_path_absolute, '.mount');
+                                                        File::write($tsxnf_new_file, $tsxnf_code, 0777);
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            // put generated files
+                            foreach ($data['generated'][$v] ?? [] as $k12 => $v12) {
+                                foreach ($v12 as $k13 => $v13) {
+                                    if (empty($v13)) {
+                                        continue;
+                                    }
+                                    $template = File::read(__DIR__ . DIRECTORY_SEPARATOR . 'Template' . DIRECTORY_SEPARATOR . $k13 . '.template.txt');
+                                    $template = str_replace([
+                                        '{namespace}',
+                                        '{classname}',
+                                        '{data}',
+                                    ], [
+                                        ltrim($k12, '\\'),
+                                        $k13,
+                                        var_export($v13, true),
+                                    ], $template);
+                                    // create directory
+                                    File::mkdir($v . 'Data/Generated/', 0777, ['skip_realpath' => true]);
+                                    // write template file
+                                    $v13_filename = $v . 'Data/Generated/' . $k13 . '.php';
+                                    if (!File::write($v13_filename, $template)) {
+                                        throw new \Exception('Cannot save template file: '. $v13_filename);
+                                    }
+                                    // put new import class into model
+                                    $sub_data['model'][$k12 . '\\' . $k13] = '\Object\Import';
+                                }
+                            }
+                            // put generated routes
+                            if (!empty($generated_routes[$v])) {
+                                if (!File::write($v . 'Routes/Generated.php', "<?php" . PHP_EOL . $generated_routes[$v])) {
+                                    throw new \Exception('Cannot save template file: '. $v . 'Routes/Generated.php');
+                                }
+                                // put new generated file into route
+                                $sub_data['route']['generated'] = 'Routes/Generated.php';
+                            }
+                            // views after controllers
+                            if (file_exists($v . 'View/')) {
+                                $views = File::iterate($v . 'View/', [
+                                    'recursive' => true,
+                                    'only_extensions' => array_keys(TemplateConstants::TEMPLATE_EXTENSIONS)
+                                ]);
+                                foreach ($views as $v13) {
+                                    // if we have generated views
+                                    $temp_extension = File::getTemplateExtension($v13);
+                                    $tsxnf_new_file = File::setPrefixForExtension($v13, '.mount');
+                                    $v13_original_file = $v13;
+                                    if (file_exists($tsxnf_new_file)) {
+                                        $v13 = $tsxnf_new_file;
+                                    } else {
+                                        // if we did not register view it means that its helper view
+                                        continue;
+                                    }
+                                    $temp_name = str_replace([
+                                        '../libraries/private/',
+                                        '../libraries/vendor/',
+                                        '.' . File::getTemplateExtension($v13),
+                                    ], '', $v13);
+                                    $temp_name = str_replace('/', '_', $temp_name);
+                                    $data['view'][TemplateConstants::TEMPLATE_EXTENSIONS[$temp_extension]][$temp_name] = $v13;
+                                    $data['view_raw'][TemplateConstants::TEMPLATE_EXTENSIONS[$temp_extension]][$temp_name] = $v13_original_file;
+                                }
+                            }
                             // apache
                             if (!empty($sub_data['apache'])) {
                                 $data['apache'] = array_merge_hard($data['apache'], $sub_data['apache']);
@@ -191,11 +485,14 @@ class Dependencies
                             if (!empty($sub_data['acl'])) {
                                 $data['acl'] = array_merge_hard($data['acl'], $sub_data['acl']);
                             }
+                            // public html
+                            if (file_exists($v . 'Media/PublicHTML/')) {
+                                $data['public_html'][] = $v . 'Media/PublicHTML';
+                            }
                             // media
                             if (!empty($sub_data['media'])) {
                                 foreach ($sub_data['media'] as $k78 => $v78) {
                                     if ($k78 == 'public_html') {
-                                        $data['public_html'][] = $v . 'Media/PublicHTML';
                                         continue;
                                     }
                                     if (!isset($data['media'][$k78])) {
@@ -244,12 +541,40 @@ class Dependencies
                             if (!empty($sub_data['loc'])) {
                                 $data['loc'][$v] = array_merge_hard($data['loc'][$v] ?? [], $sub_data['loc']);
                             }
+                            $form_directories = [
+                                'Form/' => 'Form',
+                                'SMS/' => 'SMS',
+                                'Email/' => 'Email',
+                            ];
+                            foreach ($form_directories as $k77 => $v77) {
+                                if (!file_exists($v . $k77)) {
+                                    continue;
+                                }
+                                if (!empty($sub_data_all['module']['repository'])) {
+                                    continue;
+                                }
+                                $form_object_files = File::iterate($v . $k77, [
+                                    'only_extensions' => 'php',
+                                    'recursive' => true,
+                                ]);
+                                if (!empty($form_object_files)) {
+                                    foreach ($form_object_files as $v76) {
+                                        $v76_class = File::pathToClass($v76);
+                                        $data['loc'][$v][$v76_class] = $v77;
+                                    }
+                                }
+                            }
+                            // loc models
                             if (!empty($sub_data['model'])) {
                                 $data['loc_model'][$v] = array_merge_hard($data['loc_model'][$v] ?? [], $sub_data['model']);
                             }
-                            // presets
-                            if (!empty($sub_data['preset'])) {
-                                $data['preset'] = array_merge_hard($data['preset'], $sub_data['preset']);
+                            // load
+                            if (!empty($sub_data['load'])) {
+                                $data['load'] = array_merge_hard($data['load'], $sub_data['load']);
+                            }
+                            // seeder
+                            if (!empty($sub_data['seeder'])) {
+                                $data['seeder'] = array_merge_hard($data['seeder'], $sub_data['seeder']);
                             }
                             // processing unit tests
                             if (file_exists($v . 'UnitTests')) {
@@ -458,6 +783,7 @@ class {$ar_name} extends \Object\ActiveRecord {
      * @var array
      */
     public array \$object_table_pk = {$model_pk};
+
 TTT;
                 $js_model_name = json_encode($k);
                 $js_model_code = <<<TTT
@@ -543,11 +869,15 @@ TTT;
                             \$this->$k2 = \$value;
                         }
                     }";
+                    if (str_ends_with($k2, '_inserted_timestamp') && $v2['type'] === 'timestamp' && ($v2['default'] ?? '') == 'now()') {
+                        goto no_default_label;
+                    }
                     if (array_key_exists('default', $v2)) {
                         $column .= ' = ' . var_export($v2['default'], true) . ' ' . $hook;
                         $column_js .= ' = ' . json_encode($v2['default']) . ';';
                     } else {
-                        $column .= ' = null ' . $hook;
+                        no_default_label:
+                                                $column .= ' = null ' . $hook;
                         $column_js .= ' = null;';
                     }
                     $domain = '';
@@ -646,13 +976,31 @@ TTT;
                 // sites
                 $sites = \Application::get('application.sites') ?? [];
                 foreach ($sites as $site => $site_data) {
-                    if (!empty($site_data['model']['dir'])) {
-                        $js_model_file_name = rtrim($site_data['model']['dir'], '/') . DIRECTORY_SEPARATOR . ltrim($ar_relative_filename, '/');
-                        $js_model_directory = dirname($js_model_file_name);
-                        if (!file_exists($js_model_directory)) {
-                            File::mkdir($js_model_directory, 0777, ['skip_realpath' => true]);
+                    if (!empty($site_data['model']['enabled'])) {
+                        if (!empty($site_data['model']['dir'])) {
+                            $js_model_file_name = rtrim($site_data['model']['dir'], '/') . DIRECTORY_SEPARATOR . ltrim($ar_relative_filename, '/');
+                            $js_model_directory = dirname($js_model_file_name);
+                            if (!file_exists($js_model_directory)) {
+                                File::mkdir($js_model_directory, 0777, ['skip_realpath' => true]);
+                            }
+                            File::write($js_model_file_name, $js_model_code);
                         }
-                        File::write($js_model_file_name, $js_model_code);
+                    }
+                    if (!empty($site_data['view']['enabled']) && !empty($data['view'][$site_data['view']['type']])) {
+                        $temp_views = $data['view'][$site_data['view']['type']];
+                        array_value_prefix_and_suffix($temp_views, $site_data['view']['dir_prefix']);
+                        File::writeJSON($site_data['view']['dir'] . DIRECTORY_SEPARATOR . 'view_manifest.json', $temp_views);
+                        $temp_raw_views = $data['view_raw'][$site_data['view']['type']];
+                        array_value_prefix_and_suffix($temp_raw_views, $site_data['view']['dir_prefix']);
+                        File::writeJSON($site_data['view']['dir'] . DIRECTORY_SEPARATOR . 'view_raw_files.json', $temp_raw_views);
+                        // generate view_tailwind.css
+                        $temp_raw_views = $data['view_raw'][$site_data['view']['type']];
+                        array_value_prefix_and_suffix($temp_raw_views, $site_data['view']['dir_prefix'] . '../../');
+                        $css_code = '@import "tailwindcss" prefix(tw) important;' . PHP_EOL;
+                        foreach ($temp_raw_views as $v17) {
+                            $css_code .= '@source "' . $v17 . '";' . PHP_EOL;
+                        }
+                        File::write($site_data['view']['dir'] . DIRECTORY_SEPARATOR . 'view_tailwind.css', $css_code);
                     }
                 }
                 // process pivots, relations and scopes
@@ -790,6 +1138,11 @@ TTT;
                 }
                 File::write('./Miscellaneous/Routes/AllRoutes.php', "<?php" . "\n" . $php_code);
             }
+            // load
+            if (!empty($data['load'])) {
+                $php_code = '';
+                File::write('./Miscellaneous/Loads/AllLoads.php', "<?php" . "\n" . '$object_override_blank_object = ' . var_export($data['load'], true) . ';');
+            }
             // apis
             if (!empty($data['api'])) {
                 $php_code = '';
@@ -831,7 +1184,7 @@ TTT;
                         'sm_resource_version_code' => $method_object->version,
                         'sm_resource_api_method_counter' => $method_counter,
                         'sm_resource_description' => null,
-                        'sm_resource_icon' => 'fas fa-tape',
+                        'sm_resource_icon' => 'fa-solid fa-tape',
                         'sm_resource_module_code' => $method_object->group[0] ?? 'SM',
                         'sm_resource_group1_name' => $method_object->group[1] ?? null,
                         'sm_resource_group2_name' => $method_object->group[2] ?? null,
@@ -895,7 +1248,10 @@ TTT;
                 foreach ($data['unit_tests'] as $k => $v) {
                     $xml .= '<testsuite name="SkipMeNow\\' . $k . '">';
                     foreach (File::iterate($v, ['recursive' => true, 'only_extensions' => ['php']]) as $v2) {
-                        $xml .= '<file>../../' . $v2 . '</file>';
+                        $temp_content = file_get_contents($v2);
+                        if (strpos($temp_content, 'use PHPUnit\Framework\TestCase;') !== false) {
+                            $xml .= '<file>../../' . $v2 . '</file>';
+                        }
                     }
                     $xml .= '</testsuite>';
                 }
@@ -911,7 +1267,10 @@ TTT;
                 $xml .= '<testsuites>';
                 $xml .= '<testsuite name="application/unit/tests">';
                 foreach ($application_tests as $v) {
-                    $xml .= '<file>../../' . $v . '</file>';
+                    $temp_content = file_get_contents($v);
+                    if (strpos($temp_content, 'use PHPUnit\Framework\TestCase;') !== false) {
+                        $xml .= '<file>../../' . $v . '</file>';
+                    }
                 }
                 $xml .= '</testsuite>';
                 $xml .= '</testsuites>';
@@ -956,10 +1315,50 @@ TTT;
                             $locs[$k][$filename][$filekey] = $object->title;
                             $locs['Miscellaneous' . DIRECTORY_SEPARATOR][$filename][$filekey] = $object->title;
                             // columns
-                            foreach ($object->columns as $k3 => $v4) {
-                                $filekey = \String2::createStatic($v4['name'])->englishOnly(true)->toString();
-                                $locs[$k][$filename][$filekey] = $v4['name'];
-                                $locs['Miscellaneous' . DIRECTORY_SEPARATOR][$filename][$filekey] = $v4['name'];
+                            $data_name_columns = [];
+                            foreach ($object->columns as $k4 => $v4) {
+                                foreach (['name', 'description', 'placeholder'] as $v4_column) {
+                                    if (!isset($v4[$v4_column])) {
+                                        continue;
+                                    }
+                                    $filekey = \String2::createStatic($v4[$v4_column])->englishOnly(true)->toString();
+                                    $locs[$k][$filename][$filekey] = $v4[$v4_column];
+                                    $locs['Miscellaneous' . DIRECTORY_SEPARATOR][$filename][$filekey] = $v4[$v4_column];
+                                }
+                                if ($v2 === '\Object\Data' && ($k4 == 'name' || $k4 == 'description' || $k4 == 'placeholder' || str_ends_with($k4, '_name') || str_ends_with($k4, '_description') || str_ends_with($k4, '_placeholder'))) {
+                                    $data_name_columns[] = $k4;
+                                }
+                            }
+                            // constants
+                            if ($v2 === '\Object\Table') {
+                                foreach ($object->active_record_preset_constants ?? [] as $k4 => $v4) {
+                                    foreach (['_NAMES', '_TYPES'] as $v4_name) {
+                                        if (str_ends_with($k4, $v4_name)) {
+                                            foreach ($v4 as $v5) {
+                                                $filekey = \String2::createStatic($v5)->englishOnly(true)->toString();
+                                                $locs[$k][$filename][$filekey] = $v5;
+                                                $locs['Miscellaneous' . DIRECTORY_SEPARATOR][$filename][$filekey] = $v5;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            // actual data
+                            if (!empty($data_name_columns)) {
+                                $filename = 'NF.Data';
+                                foreach ($object->get() as $k4 => $v4) {
+                                    foreach ($data_name_columns as $v4_column) {
+                                        if (!isset($v4[$v4_column])) {
+                                            continue;
+                                        }
+                                        if (is_numeric($v4[$v4_column])) {
+                                            continue;
+                                        }
+                                        $filekey = \String2::createStatic($v4[$v4_column])->englishOnly(true)->toString();
+                                        $locs[$k][$filename][$filekey] = $v4[$v4_column];
+                                        $locs['Miscellaneous' . DIRECTORY_SEPARATOR][$filename][$filekey] = $v4[$v4_column];
+                                    }
+                                }
                             }
                         }
                     }
@@ -980,6 +1379,9 @@ TTT;
                     }
                     $constants = Reflection::getConstants($class);
                     foreach ($constants as $k2 => $v2) {
+                        if (!is_array($v2)) {
+                            continue;
+                        }
                         $php_class_constants[$k][$k2] = $v2;
                         $temp = explode('.', array_key_first($v2), 3);
                         $filename = $temp[0] . '.' . $temp[1];
@@ -1054,6 +1456,9 @@ TTT;
                                 // special constants to use in the code
                                 if ($filename === 'NF.Error' || $filename === 'NF.Message') {
                                     $constant_name = (new \String2($temp[2]))->spaceOnUpperCase()->uppercase()->snakeCase()->toString();
+                                    if (strpos($constant_name, '[') !== false) {
+                                        continue;
+                                    }
                                     if (!isset($php_mapping_constants[$filename][$temp[2]])) {
                                         $php_errno_constants[$filename]['max'] = $php_errno_constants[$filename]['max'] + 1;
                                         $php_preset_constants[$filename][$constant_name] = [
@@ -1100,6 +1505,8 @@ TTT;
                     foreach ($v as $k2 => $v2) {
                         // check if directory exists
                         $dir = $k . 'Localization' . DIRECTORY_SEPARATOR . $default_locale;
+                        $loc_dir = $k . 'Localization' . DIRECTORY_SEPARATOR;
+                        $data['loc_dirs'][$loc_dir] = $loc_dir;
                         if (!is_dir($dir)) {
                             if (!File::mkdir($dir, 0777, ['skip_realpath' => true])) {
                                 throw new \Exception('Cannot create directory: '. $dir);
@@ -1108,6 +1515,8 @@ TTT;
                         // check if file exists
                         $filename = $dir . DIRECTORY_SEPARATOR . $k2 . '.json';
                         $data['localize'][$filename] = $default_locale;
+                        $data['loc_groupped'][$k2][$default_locale] ??= [];
+                        $data['loc_groupped'][$k2][$default_locale][] = $filename;
                         if (!file_exists($filename)) {
                             // sort by key
                             ksort($v2);
@@ -1127,45 +1536,18 @@ TTT;
                         }
                     }
                 }
-            }
-            // adding presets
-            if ($options['mode'] == 'commit' && \Application::get('application.structure.tenant_default_id')) {
-                \Db::connectToServers('default', \Application::get('db.default'));
+                // sites
                 $sites = \Application::get('application.sites') ?? [];
-                foreach ($data['preset'] as $k => $v) {
-                    $reflector = new \ReflectionClass($k);
-                    $pathinfo = pathinfo($reflector->getFileName(), PATHINFO_ALL);
-                    $ar_name = $pathinfo['filename'] . $v;
-                    $ar_class = explode("\\", $k);
-                    $original_name = array_pop($ar_class);
-                    $ar_namespace = ltrim(implode("\\", $ar_class), "\\");
-                    array_push($ar_class, $ar_name);
-                    $ar_relative_filename = implode(DIRECTORY_SEPARATOR, $ar_class) . '.js';
-                    $js_output = [];
-                    if ($v == 'OptionsActive') {
-                        $model = new $k();
-                        $js_output = $model->optionsActive();
-                    }
-                    $js_output = json_encode($js_output, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-                    $js_model_code = <<<TTT
-class {$ar_name}Class {
-    data = {$js_output};
-}
-
-export const {$ar_name} = new {$ar_name}Class();
-export default {
-    {$ar_name}
-};
-
-TTT;
-                    foreach ($sites as $site_data) {
-                        if (!empty($site_data['model']['dir'])) {
-                            $js_model_file_name = rtrim($site_data['model']['dir'], '/') . DIRECTORY_SEPARATOR . ltrim($ar_relative_filename, '/');
-                            $js_model_directory = dirname($js_model_file_name);
-                            if (!file_exists($js_model_directory)) {
-                                File::mkdir($js_model_directory, 0777);
-                            }
-                            File::write($js_model_file_name, $js_model_code);
+                foreach ($sites as $site => $site_data) {
+                    // copy translations
+                    if (!empty($site_data['i18n']['enabled'])) {
+                        $loc_files = File::iterate('./Miscellaneous/Localization/', [
+                            'recursive' => true,
+                            'only_extensions' => 'json',
+                        ]);
+                        foreach ($loc_files ?? [] as $v18) {
+                            $loc_filename = str_replace('./Miscellaneous/', '', $v18);
+                            File::copy($v18, $site_data['i18n']['dir'] . DIRECTORY_SEPARATOR . $loc_filename);
                         }
                     }
                 }
@@ -1214,6 +1596,11 @@ TTT;
             }
             // updating composer.json file
             if ($options['mode'] == 'commit') {
+                $composer_data['config'] = [
+                    'audit' => [
+                        'block-insecure' => false,
+                    ],
+                ];
                 File::write('../libraries/composer.json', json_encode($composer_data, JSON_PRETTY_PRINT));
             }
             // assinging variables to return to the caller

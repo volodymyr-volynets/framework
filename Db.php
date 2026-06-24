@@ -9,6 +9,17 @@
  * with this source code in the file LICENSE.
  */
 
+use Numbers\Backend\Db\Common\ETL;
+
+/*
+ * This file is part of Numbers Framework.
+ *
+ * (c) Volodymyr Volynets <volodymyr.volynets@gmail.com>
+ *
+ * This source file is subject to the Apache 2.0 license that is bundled
+ * with this source code in the file LICENSE.
+ */
+
 class Db
 {
     /**
@@ -44,7 +55,7 @@ class Db
     /**
      * Flag database loaded
      *
-     * @var boolen
+     * @var boolean
      */
     public static $flag_db_loaded = false;
 
@@ -107,6 +118,26 @@ class Db
     }
 
     /**
+     * Backend initialized
+     *
+     * @param mixed $db_link
+     * @return bool
+     */
+    public static function backendInitializedStatic(string $db_link, bool $connect = false): bool
+    {
+        $temp = Factory::get(['db', $db_link]);
+        if (empty($temp) && $connect) {
+            $db = Application::get('db.' . $db_link);
+            $db_result = Db::connectToServers($db_link, $db);
+            if (!$db_result['success']) {
+                throw new Exception('Cannot connect to database!');
+            }
+            return true;
+        }
+        return !empty($temp);
+    }
+
+    /**
      * Open database connection
      *
      * @param array $options
@@ -139,12 +170,114 @@ class Db
     }
 
     /**
+     * Query database (static)
+     *
+     * @param string|null $db_link
+     * @param string $sql
+     * @param mixed $key
+     * @param array $options
+     */
+    public static function queryStatic($db_link = null, $sql = '', $key = null, $options = [])
+    {
+        return (new Db($db_link))->query($sql, $key, $options);
+    }
+
+    /**
+     * Prepare statement
+     *
+     * @param string $name
+     * @param string $sql
+     * @param array $options
+     * @return array{error: array, name: mixed, success: bool}
+     */
+    public function prepare($name, $sql, $options = [])
+    {
+        // generate name if empty
+        if (empty($name)) {
+            $name = 'prepared_statements_' . random_int(10000, 99999) . '_' . random_int(10000, 99999) . '_' . random_int(10000, 99999);
+        }
+        // if we have template
+        if (str_starts_with($sql, 'template://')) {
+            $options['db_link'] = $this->db_link;
+            $sql = Template::renderStatic(Template::SQL, str_replace_first('template://', '', $sql), $options);
+        }
+        $result = $this->object->prepare($name, $sql);
+        $result['name'] = $name;
+        return $result;
+    }
+
+    /**
+     * Prepare statement (static)
+     *
+     * @param string $db_link
+     * @param string $name
+     * @param string $sql
+     * @param array $options
+     * @return array{error: array, name: mixed, success: bool}
+     */
+    public static function prepareStatic($db_link, $name, $sql, $options = [])
+    {
+        return (new Db($db_link))->prepare($name, $sql, $options);
+    }
+
+    /**
+     * Execute prepared statement
+     *
+     * @param mixed $name
+     * @param mixed $params
+     */
+    public function execute($name, $params = [])
+    {
+        return $this->object->execute($name, $params);
+    }
+
+    /**
+     * Execute prepared statement (static)
+     *
+     * @param string $db_link
+     * @param string $name
+     * @param array $params
+     * @return array{error: array, success: bool}
+     */
+    public static function executeStatic($db_link, $name, $params = [])
+    {
+        return (new Db($db_link))->execute($name, $params);
+    }
+
+    /**
+     * Deallocate prepared statement
+     *
+     * @param mixed $name
+     * @retun array
+     */
+    public function deallocate($name)
+    {
+        return $this->object->deallocate($name);
+    }
+
+    /**
+     * Deallocate prepared statement (static)
+     *
+     * @param string $db_link
+     * @param string $name
+     * @return array{error: array, success: bool}
+     */
+    public static function deallocateStatic($db_link, $name)
+    {
+        return (new Db($db_link))->deallocate($name);
+    }
+
+    /**
      * Begin transaction
      *
      * @return array
      */
     public function begin()
     {
+        // pre begin deffered execution
+        if (!$this->inTransaction()) {
+            Deferred::executeAllRuns(Deferred::DB_PRE_BEGIN);
+        }
         return $this->object->begin();
     }
 
@@ -155,7 +288,12 @@ class Db
      */
     public function commit()
     {
-        return $this->object->commit();
+        $result = $this->object->commit();
+        // after commit deffered execution
+        if (!$this->inTransaction()) {
+            Deferred::executeAllRuns(Deferred::DB_AFTER_COMMIT);
+        }
+        return $result;
     }
 
     /**
@@ -165,7 +303,12 @@ class Db
      */
     public function rollback()
     {
-        return $this->object->rollback();
+        $result = $this->object->rollback();
+        // after commit deffered execution
+        if (!$this->inTransaction()) {
+            Deferred::executeAllRuns(Deferred::DB_AFTER_COMMIT);
+        }
+        return $result;
     }
 
     /**
@@ -190,6 +333,18 @@ class Db
     }
 
     /**
+     * Escape value (static)
+     *
+     * @param string $db_link
+     * @param mixed $value
+     * @return string
+     */
+    public static function escapeStatic($db_link, $value)
+    {
+        return (new Db($db_link))->escape($value);
+    }
+
+    /**
      * Escape array of string
      *
      * @param array $value
@@ -197,7 +352,7 @@ class Db
      */
     public function escapeArray($value)
     {
-        return $this->object->escape_array($value);
+        return $this->object->escapeArray($value);
     }
 
     /**
@@ -298,7 +453,7 @@ class Db
         $db_options = $db_settings;
         unset($db_options['servers']);
         // loop through available servers
-        foreach ($db_settings['servers'] as $db_server) {
+        foreach ($db_settings['servers'] ?? [] as $db_server) {
             $db_object = new Db($db_link, $db_settings['submodule'], $db_settings);
             // application structure provides more data
             if (!empty($application_structure) && isset($application_structure['settings']['db'][$db_link])) {
@@ -421,5 +576,78 @@ class Db
             ];
         }
         return $result;
+    }
+
+    /**
+     * Has database
+     *
+     * @param string $full_database_name
+     * @return bool
+     */
+    public function hasDatabase(string $full_database_name): bool
+    {
+        return $this->object->databaseExists($full_database_name);
+    }
+
+    /**
+     * Has schema
+     *
+     * @param string $full_schema_name
+     * @return bool
+     */
+    public function hasSchema(string $full_schema_name): bool
+    {
+        return $this->object->schemaExists($full_schema_name);
+    }
+
+    /**
+     * Has table
+     *
+     * @param string $full_table_name
+     * @return bool
+     */
+    public function hasTable(string $full_table_name): bool
+    {
+        return $this->object->tableExists($full_table_name);
+    }
+
+    /**
+     * Has column
+     *
+     * @param string $full_table_name
+     * @param string $column_name
+     * @return bool
+     */
+    public function hasColumn(string $full_table_name, string $column_name): bool
+    {
+        return $this->object->columnExists($full_table_name, $column_name);
+    }
+
+    /**
+     * Column to vector
+     *
+     * @param mixed $vector
+     * @return string
+     */
+    public static function columnToVector(mixed $vector): string
+    {
+        if (is_array($vector)) {
+            return '[' . implode(',', $vector) . ']';
+        }
+        return $vector;
+    }
+
+    /**
+     * Extract transform load
+     *
+     * @param callable $extract
+     * @param callable $transform
+     * @param callable $load
+     * @param array $options
+     * @return array|array{data: array, error: array, success: bool}
+     */
+    public static function etl(callable $extract, callable $transform, callable $load, array $options = []): array
+    {
+        return ETL::etl($extract, $transform, $load, $options);
     }
 }

@@ -141,8 +141,8 @@ class Assembler
             if ($this->query->data['pivot']) {
                 foreach ($v as $k4 => $v4) {
                     foreach ($this->query->data['pivot'] as $k2 => $v2) {
-                        foreach ($v2 as $v3) {
-                            $v[$k4]['Pivot'][$v3] = $v4[$v3];
+                        foreach ($v2['columns'] as $v3) {
+                            $v[$k4][$v2['name']][$v3] = $v4[$v3];
                             unset($v[$k4][$v3]);
                         }
                     }

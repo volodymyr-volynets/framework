@@ -96,10 +96,19 @@ class Import
             'required' => 'c',
             'method' => 'file',
         ]);
+        // step 3: buttons
         $this->form_object->container(Parent2::BUTTONS, [
             'default_row_type' => 'grid',
-            'order' => PHP_INT_MAX
+            'order' => 30000
         ]);
+        // step 4: available imports
+        if (\Application::get('import_presets.import_form.available')) {
+            $this->form_object->container('import_presets', [
+                'default_row_type' => 'grid',
+                'order' => 32000,
+                'custom_renderer' => \Application::get('import_presets.import_form.available'),
+            ]);
+        }
         $this->form_object->element(Parent2::BUTTONS, 'row', Parent2::BUTTON_SUBMIT, Parent2::BUTTON_SUBMIT_DATA);
         // last step: process form
         $this->form_object->process();

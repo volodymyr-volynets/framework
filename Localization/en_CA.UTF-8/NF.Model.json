@@ -8,6 +8,7 @@
     "ContentType": "Content Type",
     "ControllerCode": "Controller Code",
     "DayID": "Day #",
+    "Decorators": "Decorators",
     "Default": "Default",
     "Delimiter": "Delimiter",
     "Description": "Description",
@@ -34,6 +35,7 @@
     "NODataInactive": "N/O Data Inactive",
     "NODataOrder": "N/O Data Order",
     "NODataPHPTypes": "N/O Data PHP Types",
+    "NODataRoles": "N/O Data Roles",
     "NODataTypes": "N/O Data Types",
     "NODateCalendarTypes": "N/O Date Calendar Types",
     "NODateDays": "N/O Date Days",
@@ -74,5 +76,6 @@
     "UsageCode": "Usage Code",
     "ValidatorMethod": "Validator Method",
     "ValidatorParams": "Validator Params",
-    "WeekDayID": "Week Day #"
+    "WeekDayID": "Week Day #",
+    "YesNo": "Yes / No"
 }

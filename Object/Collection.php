@@ -13,6 +13,7 @@ namespace Object;
 
 use Object\Content\Messages;
 use Object\Override\Data;
+use Object\Error\EncryptionException;
 
 class Collection extends Data
 {
@@ -96,10 +97,31 @@ class Collection extends Data
         }
         // if we have serial type in pk
         foreach ($this->data['pk'] as $v) {
-            if (strpos($this->primary_model->columns[$v]['type'], 'serial') !== false) {
+            if (isset($this->primary_model->columns[$v]['type']) && strpos($this->primary_model->columns[$v]['type'], 'serial') !== false) {
                 $this->data['serial'] = true;
             }
         }
+    }
+
+    /**
+     * Get by ID
+     *
+     * @param int $id
+     * @return array
+     */
+    public function getByID(int $id): array
+    {
+        $where = [];
+        $pk = $this->data['pk'];
+        if ($this->data['model_object']) {
+            $where[$this->data['model_object']->tenant_column] = \Tenant::id();
+            unset($pk[array_search($this->data['model_object']->tenant_column, $pk)]);
+        }
+        $id_column = current($pk);
+        $where[$id_column] = $id;
+        return $this->get([
+            'where' => $where,
+        ]);
     }
 
     /**
@@ -117,7 +139,8 @@ class Collection extends Data
             'success' => false,
             'error' => [],
             'data' => [],
-            'max_records' => []
+            'max_records' => [],
+            'missing_master_password' => null,
         ];
         do {
             if (!empty($options['cache']) && isset($this->primary_model->db_object->object->options['cache_link'])) {
@@ -167,6 +190,11 @@ class Collection extends Data
             if (!empty($options['single_row'])) {
                 $query->limit(1);
             }
+            // orderby
+            if (!empty($options['orderby'])) {
+                $query->orderby($options['orderby']);
+            }
+            // query
             $query_result = $query->query(null);
             if (!$query_result['success']) {
                 $this->primary_model->db_object->rollback();
@@ -177,6 +205,43 @@ class Collection extends Data
             if (!empty($query_result['rows'])) {
                 $data = [];
                 foreach ($query_result['rows'] as $k => $v) {
+                    // decrypt values
+                    foreach ($this->primary_model->columns as $k2 => $v2) {
+                        // encrypted_password
+                        if (($v2['domain'] ?? '') == 'encrypted_password') {
+                            if (isset($v[$k2])) {
+                                $crypt = new \Crypt();
+                                $decrypted = $crypt->decrypt($v[$k2]);
+                                if ($decrypted !== false) {
+                                    $v[$k2] = $decrypted;
+                                }
+                            }
+                        }
+                        // encrypted with key
+                        if (($v2['domain'] ?? '') == 'encrypted_with_key') {
+                            if (isset($v[$k2])) {
+                                if (empty($this->primary_model->encryption_details['model'])) {
+                                    throw new \Exception('Encryption details model is not set!');
+                                }
+                                if (empty($this->primary_model->encryption_details['profile_id']) || empty($v[$this->primary_model->encryption_details['profile_id']])) {
+                                    throw new \Exception('Encryption details profile # is not set!');
+                                }
+                                $encryption_details_model = \Factory::model($this->primary_model->encryption_details['model'], true);
+                                try {
+                                    $decrypted = $encryption_details_model->decrypt($v[$this->primary_model->encryption_details['profile_id']], $v[$k2]);
+                                    if ($decrypted !== false) {
+                                        $v[$k2] = $decrypted;
+                                    }
+                                } catch (EncryptionException $e) {
+                                    $this->primary_model->db_object->rollback();
+                                    $result['error'][] = $e->getMessage();
+                                    $result['missing_master_password'] = $v[$this->primary_model->encryption_details['profile_id']];
+                                    return $result;
+                                }
+                            }
+                        }
+                    }
+                    // continue
                     if (count($this->data['pk']) == 1) {
                         $temp_pk = $v[$this->data['pk'][0]];
                     } else {
@@ -196,6 +261,9 @@ class Collection extends Data
                 $detail_result = $this->processDetails($this->data['details'], $query_result['rows'], $options);
                 if (!$detail_result['success']) {
                     $result['error'] = array_merge($result['error'], $detail_result['error']);
+                    if (isset($detail_result['missing_master_password'])) {
+                        $result['missing_master_password'] = $detail_result['missing_master_password'];
+                    }
                     break;
                 } else {
                     if (!empty($detail_result['max_records'])) {
@@ -306,7 +374,8 @@ class Collection extends Data
         $result = [
             'success' => false,
             'error' => [],
-            'max_records' => []
+            'max_records' => [],
+            'missing_master_password' => null,
         ];
         foreach ($details as $k => $v) {
             // acl
@@ -403,6 +472,43 @@ class Collection extends Data
             if (!empty($query_result['rows'])) {
                 $reverse_map = array_reverse($parent_maps2, true);
                 foreach ($query_result['rows'] as $k2 => $v2) {
+                    // decrypt columns
+                    foreach ($model->columns as $k2a => $v2a) {
+                        // encrypted_password
+                        if (($v2a['domain'] ?? '') == 'encrypted_password') {
+                            if (isset($v2[$k2a])) {
+                                $crypt = new \Crypt();
+                                $decrypted = $crypt->decrypt($v2[$k2a]);
+                                if ($decrypted !== false) {
+                                    $v2[$k2a] = $decrypted;
+                                }
+                            }
+                        }
+                        // encrypted with key
+                        if (($v2a['domain'] ?? '') == 'encrypted_with_key') {
+                            if (isset($v2[$k2a])) {
+                                if (empty($model->encryption_details['model'])) {
+                                    throw new \Exception('Encryption details model is not set!');
+                                }
+                                if (empty($model->encryption_details['profile_id']) || empty($v2[$model->encryption_details['profile_id']])) {
+                                    throw new \Exception('Encryption details profile # is not set!');
+                                }
+                                $encryption_details_model = \Factory::model($model->encryption_details['model'], true);
+                                try {
+                                    $decrypted = $encryption_details_model->decrypt($v2[$model->encryption_details['profile_id']], $v2[$k2a]);
+                                    if ($decrypted !== false) {
+                                        $v2[$k2a] = $decrypted;
+                                    }
+                                } catch (EncryptionException $e) {
+                                    $this->primary_model->db_object->rollback();
+                                    $result['error'][] = $e->getMessage();
+                                    $result['missing_master_password'] = $v2[$model->encryption_details['profile_id']];
+                                    return $result;
+                                }
+                            }
+                        }
+                    }
+                    // master key
                     $master_key = [];
                     // entry itself
                     if ($v['type'] == '1M') {
@@ -519,7 +625,9 @@ class Collection extends Data
         if (empty($update_data)) {
             throw new \Exception('No dates to update!');
         }
-        return $this->merge($data + $update_data);
+        return $this->merge($data + $update_data, [
+            'skip_optimistic_lock' => true,
+        ]);
     }
 
     /**
@@ -731,7 +839,7 @@ class Collection extends Data
     /**
      * Merge multiple
      *
-     * @see \Object\Collection::merge()
+     * @see Collection::merge()
      */
     public function mergeMultiple($data, $options = [])
     {
@@ -862,7 +970,8 @@ class Collection extends Data
                 'inserted' => false
             ],
             'new_serials' => [],
-            'new_pk' => []
+            'new_pk' => [],
+            'missing_master_password' => null,
         ];
         $model = $collection['model_object'];
         // important to reset cache
@@ -938,6 +1047,34 @@ class Collection extends Data
                     }
                     $result['new_serials'][$k] = $data_row_final2[$k] = $data_row_final[$k] = $nextval;
                 }
+                // encrypted password before bytea
+                if (($v['domain'] ?? '') == 'encrypted_password' && isset($data_row_final[$k])) {
+                    $crypt = new \Crypt();
+                    if (!$crypt->isEncrypted($data_row_final[$k])) {
+                        $data_row_final[$k] = $crypt->encrypt($data_row_final[$k], null, true);
+                        $data_row_final2[$k] = 'Encrypted string'; // audit
+                    }
+                }
+                // encrypted with key before bytea
+                if (($v['domain'] ?? '') == 'encrypted_with_key' && isset($data_row_final[$k])) {
+                    if (empty($model->encryption_details['model'])) {
+                        throw new \Exception('Encryption details model is not set!');
+                    }
+                    if (empty($model->encryption_details['profile_id']) || empty($data_row_final[$model->encryption_details['profile_id']])) {
+                        throw new \Exception('Encryption details profile # is not set!');
+                    }
+                    $encryption_details_model = \Factory::model($model->encryption_details['model'], true);
+                    try {
+                        if (!$encryption_details_model->isEncrypted($data_row_final[$model->encryption_details['profile_id']], $data_row_final[$k])) {
+                            $data_row_final[$k] = $encryption_details_model->encrypt($data_row_final[$model->encryption_details['profile_id']], $data_row_final[$k]);
+                            $data_row_final2[$k] = 'Encrypted string'; // audit
+                        }
+                    } catch (EncryptionException $e) {
+                        $result['error'][] = $e->getMessage();
+                        $result['missing_master_password'] = true;
+                        return $result;
+                    }
+                }
                 // bytea
                 if ($v['type'] == 'bytea' && strpos($k, ';bytea') === false && !empty($data_row_final[$k])) {
                     $data_row_final = array_change_key_name($data_row_final, $k, $k . ';;bytea');
@@ -945,6 +1082,10 @@ class Collection extends Data
                 // json
                 if ($v['type'] == 'json' && isset($data_row_final[$k]) && !is_json($data_row_final[$k])) {
                     $data_row_final2[$k] = $data_row_final[$k] = (new \Json2($data_row_final[$k]))->toJSON();
+                }
+                // vector
+                if ($v['type'] == 'vector' && isset($data_row_final[$k]) && !is_vector($data_row_final[$k])) {
+                    $data_row_final2[$k] = $data_row_final[$k] = \Db::columnToVector($data_row_final[$k]);
                 }
             }
             $temp = $this->primary_model->db_object->insert($model->full_table_name, [$data_row_final], null);
@@ -972,12 +1113,46 @@ class Collection extends Data
                 if ($v !== $original_row[$k] && !(in_array($model->columns[$k]['php_type'], ['bcnumeric', 'float']) && \Math::isEqual($v, $original_row[$k]))) {
                     $update2[$k] = $update[$k] = $v;
                 }
+                // encrypted password before bytea
+                if (($model->columns[$k]['domain'] ?? '') == 'encrypted_password' && isset($update[$k])) {
+                    $crypt = new \Crypt();
+                    if (!$crypt->isEncrypted($update[$k])) {
+                        $update[$k] = $crypt->encrypt($update[$k], null, true);
+                        $update2[$k] = 'Encrypted string'; // audit
+                    }
+                }
+                // encrypted with key before bytea
+                if (($model->columns[$k]['domain'] ?? '') == 'encrypted_with_key' && isset($update[$k])) {
+                    if (empty($model->encryption_details['model'])) {
+                        throw new \Exception('Encryption details model is not set!');
+                    }
+                    $profile_id = $update[$model->encryption_details['profile_id']] ?? $original_row[$model->encryption_details['profile_id']];
+                    if (empty($model->encryption_details['profile_id']) || empty($profile_id)) {
+                        throw new \Exception('Encryption details profile # is not set!');
+                    }
+                    $encryption_details_model = \Factory::model($model->encryption_details['model'], true);
+                    try {
+                        if (!$encryption_details_model->isEncrypted($profile_id, $update[$k])) {
+                            $update[$k] = $encryption_details_model->encrypt($profile_id, $update[$k]);
+                            $update2[$k] = 'Encrypted string'; // audit
+                        }
+                    } catch (EncryptionException $e) {
+                        $result['error'][] = $e->getMessage();
+                        $result['missing_master_password'] = true;
+                        return $result;
+                    }
+                }
+                // bytea
                 if (isset($update[$k]) && ($model->columns[$k]['type'] ?? '') == 'bytea' && strpos($k, ';bytea') === false) {
                     $update = array_change_key_name($update, $k, $k . ';;bytea');
                 }
                 // for json we need to convert
                 if (($model->columns[$k]['type'] ?? '') == 'json' && !is_json($v)) {
                     $update2[$k] = $update[$k] = (new \Json2($v))->toJSON();
+                }
+                // vector
+                if (($model->columns[$k]['type'] ?? '') == 'vector' && !is_vector($v)) {
+                    $update2[$k] = $update[$k] = \Db::columnToVector($v);
                 }
                 if (in_array($k, $collection['pk'])) {
                     $pk[$k] = $v;

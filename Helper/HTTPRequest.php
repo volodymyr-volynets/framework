@@ -26,6 +26,7 @@ class HTTPRequest extends HTTPConstants
     private array $parameters = [
         'GET' => [],
         'POST' => [],
+        'POST_FILES' => [],
         'BODY' => null,
     ];
 
@@ -99,6 +100,23 @@ class HTTPRequest extends HTTPConstants
         foreach ($params as $k => $v) {
             $this->param($k, $v, $type);
         }
+        return $this;
+    }
+
+    /**
+     * Attach
+     *
+     * @param string $field
+     * @param mixed $value
+     * @param string $filename
+     * @param string|null $mime
+     * @param string $type
+     *      POST_FILES - post param in post fields
+     * @return HTTPRequest
+     */
+    public function attach(string $field, string $value, string $filename, ?string $mime, string $type = 'POST_FILES'): HTTPRequest
+    {
+        $this->parameters[$type][$field] = new \CURLStringFile($value, $filename, $mime);
         return $this;
     }
 
@@ -278,7 +296,8 @@ class HTTPRequest extends HTTPConstants
                     break;
                 case 'POST':
                     $result = cURL::post($url, [
-                        'params' => array_merge_hard($this->parameters['GET'], $this->parameters['POST']),
+                        'params' => array_merge_hard($this->parameters['GET'], $this->parameters['POST'], $this->parameters['POST_FILES']),
+                        'param_has_files' => !empty($this->parameters['POST_FILES']),
                         'headers' => array_values($headers),
                         'raw' => $this->parameters['BODY'],
                     ]);
@@ -316,7 +335,7 @@ class HTTPRequest extends HTTPConstants
             }
         }
         if (empty($result['error'])) {
-            $result['error'][] = 'Failed to get specified URL after specied number of tries!';
+            $result['error'][] = 'Failed to get specified URL after specified number of tries!';
         }
         return $result;
     }
@@ -403,6 +422,20 @@ class HTTPRequest extends HTTPConstants
     }
 
     /**
+     * Method
+     *
+     * @param string $method
+     * @return HTTPRequest
+     */
+    public function method(string $method): HTTPRequest
+    {
+        $this->options['method'] = strtoupper($method);
+        $this->validateRequest();
+        $this->result = $this->doRequest();
+        return $this;
+    }
+
+    /**
      * Status
      *
      * @return int|null
@@ -444,16 +477,22 @@ class HTTPRequest extends HTTPConstants
 
     /**
      * JSON Decode
+     *
+     * @param bool $assoc
+     * @return HTTPRequest
      */
     public function jsonDecode(bool $assoc = true): HTTPRequest
     {
-        $this->result['data'] = json_decode($this->result['data'], $assoc);
+        if (is_json($this->result['data'])) {
+            $this->result['data'] = json_decode($this->result['data'], $assoc);
+        }
         return $this;
     }
 
     /**
      * Result
      *
+     * @param array $options
      * @return array
      */
     public function result(): array

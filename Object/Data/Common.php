@@ -14,6 +14,7 @@ namespace Object\Data;
 use Object\ACL\Resources;
 use Object\Content\Messages;
 use Object\Table;
+use Numbers\Frontend\HTML\Renderers\Common\Helper\Colors;
 
 class Common
 {
@@ -26,7 +27,7 @@ class Common
         'global' => ['domain', 'type'],
         'schema' => ['default', 'length', 'null', 'precision', 'scale', 'sequence', 'is_numeric_key', 'uuid'],
         'php' => ['php_type'],
-        'misc' => ['format', 'format_options', 'align', 'validator_method', 'validator_params', 'placeholder', 'searchable', 'tree']
+        'misc' => ['format', 'format_options', 'align', 'validator_method', 'validator_params', 'placeholder', 'searchable', 'tree', 'decorators']
     ];
 
     /**
@@ -226,7 +227,12 @@ class Common
                         if (!isset($data[$k][$k2])) {
                             continue;
                         }
-                        $data[$k][$k2] = i18n(null, $data[$k][$k2]);
+                        // for data classes we use loc
+                        if (!empty($options['use_loc'])) {
+                            $data[$k][$k2] = loc('NF.Data.' . \String2::createStatic($data[$k][$k2])->englishOnly(true)->toString(), $data[$k][$k2]);
+                        } else { // i18n otherwise
+                            $data[$k][$k2] = i18n(null, $data[$k][$k2]);
+                        }
                     }
                 }
                 // format
@@ -255,6 +261,13 @@ class Common
         if (!empty($mandatory_column)) {
             $i18n_mandatory = i18n(null, Messages::INFO_MANDATORY);
         }
+        // verified
+        $verified_column = array_search('verified', $options_map_new);
+        if (!empty($verified_column)) {
+            $i18n_verified = i18n(null, Messages::INFO_VERIFIED);
+        }
+        // id suffixed
+        $id_suffixed = array_search('id_suffixed', $options_map_new);
         foreach ($data as $k => $v) {
             if (!empty($options['column_prefix']) && !empty($v[$options['column_prefix'] . 'inactive'])) {
                 $options_map_new[$options['column_prefix'] . 'inactive'] = 'inactive';
@@ -265,6 +278,16 @@ class Common
             if (!empty($mandatory_column) && !empty($v[$mandatory_column])) {
                 $options_map_new['__prepend2'] = 'name';
                 $data[$k]['__prepend2'] = $i18n_mandatory;
+            }
+            // verified
+            if (!empty($verified_column) && !empty($v[$verified_column])) {
+                $options_map_new['__prepend3'] = 'name';
+                $data[$k]['__prepend3'] = $i18n_verified;
+            }
+            // id suffixed
+            if (!empty($id_suffixed) && !empty($v[$id_suffixed])) {
+                $options_map_new['__prepend4'] = 'name';
+                $data[$k]['__prepend4'] = '#' . $v[$id_suffixed];
             }
         }
         $data = remap($data, $options_map_new, true);
@@ -289,6 +312,14 @@ class Common
                     $data[$k]['photo_id'] = call_user_func_array(explode('::', $photo_method_url), [$v['photo_id']]);
                 } elseif (empty($data[$k]['icon_class'])) {
                     $data[$k]['photo_id'] = call_user_func_array(explode('::', $photo_method_icon), [strip_tags($v['name']), 32, 32]);
+                }
+            }
+            // avatar
+            foreach ($v as $k2 => $v2) {
+                if (str_starts_with($k2, 'avatar_')) {
+                    $params = explode('_', $k2);
+                    unset($data[$k][$k2]);
+                    $data[$k]['avatar_colors'] = Colors::getColorsAndInitials($v2, $params[1], !empty($params[2]));
                 }
             }
         }

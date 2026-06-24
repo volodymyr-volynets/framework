@@ -21,7 +21,7 @@ trait MagicGetAndSetOnData
      */
     public function __get(string $key): mixed
     {
-        return $this->data[$key];
+        return $this->data[$key] ?? null;
     }
 
     /**
@@ -33,6 +33,6 @@ trait MagicGetAndSetOnData
      */
     public function __set(string $key, mixed $value): void
     {
-        $this->values[ $key ] = $value;
+        $this->data[$key] = $value;
     }
 }

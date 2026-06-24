@@ -125,6 +125,10 @@ class Application
         // fixing location paths
         $application_path = isset($options['application_path']) ? (rtrim($options['application_path'], '/') . '/') : '../application/';
         $root_path = $application_path . '../';
+        if (!empty(getenv('NF_IS_CONTAINER'))) {
+            $application_path  = '/app/application/';
+            $root_path = '/app/';
+        }
         $application_name = isset($options['application_name']) ? $options['application_name'] : 'default';
         $ini_folder = isset($options['ini_folder']) ? (rtrim($options['ini_folder'], '/') . '/') : $application_path . 'Config/';
         // working directory is location of the application
@@ -146,16 +150,42 @@ class Application
         self::$settings['application']['libraries_folder'] = $application_path_temp . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR;
         self::$settings['application']['application_folder'] = $application_path;
         self::$settings['application']['root_folder'] = $root_path;
-        self::$settings = Config::load($ini_folder, [
+        self::$settings['application']['config_folder'] = $ini_folder;
+        if (self::isDeployed()) {
+            self::$settings['application']['deployment_folder'] = realpath($root_path) . '/';
+        } else {
+            self::$settings['application']['deployment_folder'] = $root_path;
+        }
+        // and all folders all together
+        self::$settings['application']['system_folders'] = [
             'libraries_folder' => self::$settings['application']['libraries_folder'],
             'application_folder' => self::$settings['application']['application_folder'],
             'root_folder' => self::$settings['application']['root_folder'],
+            'config_folder' => self::$settings['application']['config_folder'],
+            'deployment_folder' => self::$settings['application']['deployment_folder'],
+        ];
+        $settings = Config::load($ini_folder, [
+            'libraries_folder' => self::$settings['application']['libraries_folder'],
+            'application_folder' => self::$settings['application']['application_folder'],
+            'root_folder' => self::$settings['application']['root_folder'],
+            'deployment_folder' => self::$settings['application']['deployment_folder'],
         ]);
+        self::$settings = array_merge_hard($settings, self::$settings);
         // additional ini settings
         if (!empty($options['__ini_additional_settings'])) {
             foreach ($options['__ini_additional_settings'] as $k => $v) {
                 self::set($k, $v);
             }
+        }
+        // maintenance
+        if (self::get('maintenance.enabled')) {
+            Ob::cleanAll();
+            // set mvc + process
+            Base::$flag_database_tenant_not_found = true;
+            Front::setMvc('/Errors/_Maintenance');
+            self::$controller = new Errors();
+            self::process();
+            return;
         }
         // request uri
         $request_uri = $options['request_uri'] ?? $_SERVER['REQUEST_URI'] ?? '';
@@ -190,6 +220,7 @@ class Application
                         $template['name'] = strtolower(trim($first_fragment[1]));
                         $request_uri = str_replace('/' . $first_fragment[1] . '/', '/', $request_uri);
                         Application::set('application.template.name', $template['name']);
+                        Application::set('application.template.__is_set_in_url', true);
                         break;
                     }
                 }
@@ -202,6 +233,8 @@ class Application
                     self::$settings = array_merge2(self::$settings, $ini_data);
                 }
             }
+            // create layout, first run before calling controller
+            Layout::setTemplateSettings($template['name']);
         }
         // registry last
         if (file_exists($ini_folder . 'registry.ini')) {
@@ -285,9 +318,7 @@ class Application
         self::$response = new Response();
         // processing routes from misc routes
         $request_route = null;
-        if (require_if_exists($application_path_full . '/Miscellaneous/Routes/AllRoutes.php')) {
-            // all API routes exists in additional file
-            require_if_exists($application_path_full . '/Miscellaneous/Routes/APIRoutes.php');
+        if (Route::initializeAllRoutes()) {
             // math route
             $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
             $route = Route::match($request_uri, $method);
@@ -362,8 +393,8 @@ class Application
                 Front::setMvc($request_uri);
         // check if controller exists
         if (!file_exists(self::$settings['mvc']['controller_file']) && (!$request_route || $request_route->resource != 'callable')) {
-            trigger_error('Resource not found [' . self::$settings['mvc']['controller_file'] . ']!');
-            throw new ResourseNotFoundException('Resource not found!', -1);
+            //trigger_error('Resource not found [' . self::$settings['mvc']['controller_file'] . ']!');
+            throw new ResourseNotFoundException('Resource not found!', 404);
         }
         // initialize the controller
         $controller_class = self::$settings['mvc']['controller_class'];
@@ -447,7 +478,7 @@ class Application
             $temp = explode(DIRECTORY_SEPARATOR, $file);
             $temp[0] = strtolower($temp[0]);
             $temp[1] = strtolower($temp[1]);
-            if (in_array($temp[1], ['backend', 'communication', 'countries', 'documentation', 'framework', 'frontend', 'internalization', 'services', 'tenants', 'users'])) {
+            if (in_array($temp[1], array_keys(Application::get('dep.composer.numbers')))) {
                 $file = implode(DIRECTORY_SEPARATOR, $temp);
             }
         }
@@ -500,7 +531,7 @@ class Application
         }
         // check if action exists
         if (!method_exists(self::$controller, self::$controller->action_method)) {
-            throw new ResourseNotFoundException('Action does not exists: ' . self::$controller->action_method . ', Controller: ' . get_class(self::$controller) . '!');
+            throw new ResourseNotFoundException('Action does not exists: ' . self::$controller->action_method . ', Controller: ' . get_class(self::$controller) . '!', 404);
         }
         // calling action
         Log::add([
@@ -555,53 +586,75 @@ class Application
         }
         // call pre rendering method in bootstrap
         Bootstrap::preRender();
+
         // rendering layout
         $__skip_layout = self::get('flag.global.__skip_layout');
-        // if
-        if ($__skip_layout == 'no_menu') {
-            self::$settings['mvc']['controller_layout_file'] = Application::get(['application', 'path_full']) . 'Layout/' . self::get('application.layout.layout') . '_' . $__skip_layout . '.' . self::get('application.layout.extension');
-            $__skip_layout = false;
-        }
-        if (!empty(self::$settings['mvc']['controller_layout']) && empty($__skip_layout)) {
-            Ob::start();
-            if (file_exists(self::$settings['mvc']['controller_layout_file'])) {
-                $layout_object = new Layout(self::$controller, self::$settings['mvc']['controller_layout_file'], self::$settings['mvc']['controller_layout_extension']);
-            }
-            // session expiry dialog before replaces
-            Session::expiryDialog();
-            // buffer output and handling javascript files, chicken and egg problem
-            $from = [
-                '<!-- [numbers: messages] -->',
-                '<!-- [numbers: title] -->',
-                '<!-- [numbers: document title] -->',
-                '<!-- [numbers: actions] -->',
-                '<!-- [numbers: breadcrumbs] -->',
-                '<!-- [numbers: javascript links] -->',
-                '<!-- [numbers: javascript data] -->',
-                '<!-- [numbers: css links] -->',
-                '<!-- [numbers: layout onload] -->',
-                '<!-- [numbers: layout onhtml] -->',
-                '<!-- [numbers: workflows] -->',
-                '<!-- [numbers: layout footer] -->'
+        $__skip_menu = self::get('flag.global.__skip_menu');
+        $__skip_footer = self::get('flag.global.__skip_footer');
+        $__skip_title = self::get('flag.global.__skip_title');
+
+        // new template logic
+        if (self::get('application.layout.use.layouts')) {
+            $template_name = self::get('application.template.name');
+            $template_settings = self::get('application.layouts.' . $template_name);
+            $template_options = [
+                '__skip_layout' => $__skip_layout ? true : false,
+                '__skip_menu' => $__skip_menu || $__skip_layout == 'no_menu' ? true : false,
+                '__skip_title' => $__skip_title ? true : false,
+                '__skip_footer' => $__skip_footer ? true : false,
+                '__layout_controller_and_view' => self::$controller->data->view,
+                '__template_settings' => $template_settings,
             ];
-            $to = [
-                Layout::renderMessages(),
-                Layout::renderTitle(),
-                Layout::renderDocumentTitle(),
-                Layout::renderActions(),
-                Layout::renderBreadcrumbs(),
-                Layout::renderJs(),
-                Layout::renderJsData(),
-                Layout::renderCss(),
-                Layout::renderOnload(),
-                Layout::$onhtml,
-                Object\Form\Workflow\Base::render(),
-                Controller::renderFooter(),
-            ];
-            echo str_replace($from, $to, Ob::clean());
+            echo Layout::renderLayoutTemplate($template_options);
         } else {
-            echo self::$controller->data->view;
+            // if no menu
+            if ($__skip_layout == 'no_menu') {
+                self::$settings['mvc']['controller_layout_file'] = Application::get(['application', 'path_full']) . 'Layout/' . self::get('application.layout.layout') . '_' . $__skip_layout . '.' . self::get('application.layout.extension');
+                $__skip_layout = false;
+            }
+            if (!empty(self::$settings['mvc']['controller_layout']) && empty($__skip_layout)) {
+                Ob::start();
+                if (file_exists(self::$settings['mvc']['controller_layout_file'])) {
+                    $layout_object = new Layout(self::$controller, self::$settings['mvc']['controller_layout_file'], self::$settings['mvc']['controller_layout_extension']);
+                }
+                // session expiry dialog before replaces
+                Session::expiryDialog();
+                // buffer output and handling javascript files, chicken and egg problem
+                $from = [
+                    '<!-- [numbers: messages] -->',
+                    '<!-- [numbers: title] -->',
+                    '<!-- [numbers: document title] -->',
+                    '<!-- [numbers: actions] -->',
+                    '<!-- [numbers: breadcrumbs] -->',
+                    '<!-- [numbers: javascript links] -->',
+                    '<!-- [numbers: javascript data] -->',
+                    '<!-- [numbers: css links] -->',
+                    '<!-- [numbers: layout onload] -->',
+                    '<!-- [numbers: layout onhtml] -->',
+                    '<!-- [numbers: workflows] -->',
+                    '<!-- [numbers: layout footer] -->'
+                ];
+                $to = [
+                    Layout::renderMessages(),
+                    Layout::renderTitle(),
+                    Layout::renderDocumentTitle(),
+                    Layout::renderActions(),
+                    Layout::renderBreadcrumbs(),
+                    Layout::renderJs(),
+                    Layout::renderJsData(),
+                    Layout::renderCss(),
+                    Layout::renderOnload(),
+                    Layout::$onhtml,
+                    Object\Form\Workflow\Base::render(),
+                    Controller::renderFooter(),
+                ];
+                echo str_replace($from, $to, Ob::clean());
+                Application::set('flag.global.__ajax_call_processed', 1);
+            } else {
+                echo self::$controller->data->view;
+            }
         }
+
         // headers
         if (!empty(self::$settings['header']) && !headers_sent()) {
             foreach (self::$settings['header'] as $k => $v) {
@@ -609,8 +662,8 @@ class Application
             }
         }
         // ajax calls that has not been processed by application
-        if (self::get('flag.global.__ajax')) {
-            Layout::renderAs(['success' => false, 'error' => [\I18n(null, 'Could not process ajax call!')]], 'application/json');
+        if (self::get('flag.global.__ajax') && !Application::get('flag.global.__ajax_call_processed')) {
+            Layout::renderAs(['success' => false, 'error' => [loc('NF.Message.CouldNotProcessAJAXCall', 'Could not process ajax call!')]], 'application/json');
         }
     }
 
@@ -683,8 +736,9 @@ class Application
             }
         }
         // iframe
-        if (($headers['Sec-Fetch-Dest'] ?? '') == 'iframe') {
-            self::$settings['flag']['global']['__skip_layout'] = 'no_menu';
+        if (($headers['Sec-Fetch-Dest'] ?? '') == 'iframe' || ($headers['sec-fetch-dest'] ?? '') == 'iframe') {
+            Application::set('application.template.name', 'iframe');
+            Application::set('application.template.__is_set_in_url', true);
         }
     }
 
@@ -695,6 +749,9 @@ class Application
      */
     public static function isDeployed()
     {
+        if (!empty(getenv('NF_IS_CONTAINER'))) {
+            return true;
+        }
         return (strpos(__FILE__, '/deployments/build.') !== false);
     }
 }

@@ -103,7 +103,7 @@ class File
      * Delete file/directory
      *
      * @param string $dir
-     * @param arary $options
+     * @param array $options
      *		only_contents - whether to remove directory contents only
      *		skip_files - array of files to skip
      * @return boolean
@@ -176,7 +176,11 @@ class File
                     continue;
                 }
             }
-            if (!empty($options['only_extensions']) && !in_array($v->getExtension(), $options['only_extensions'])) {
+            $extension = $v->getExtension();
+            if (strpos($filename, '.template.') !== false) {
+                $extension = self::getTemplateExtension($filename);
+            }
+            if (!empty($options['only_extensions']) && !in_array($extension, $options['only_extensions'])) {
                 continue;
             }
             if (!empty($options['only_files']) && !in_array($filename, $options['only_files'])) {
@@ -286,7 +290,7 @@ class File
             // we might need to create a directory
             $dir = dirname($destination);
             if (!file_exists($dir)) {
-                if (!self::mkdir($dir)) {
+                if (!self::mkdir($dir, 0777, ['skip_realpath' => true])) {
                     return false;
                 }
             }
@@ -359,7 +363,6 @@ class File
     {
         $finfo = finfo_open(FILEINFO_MIME); // return mime type ala mimetype extension
         $mime = finfo_file($finfo, $filename);
-        finfo_close($finfo);
         return $mime;
     }
 
@@ -402,6 +405,18 @@ class File
     }
 
     /**
+     * Generate temp name
+     *
+     * @param string $dir
+     * @param string $prefix
+     * @return bool|string
+     */
+    public static function generateTempName(string $dir = '/tmp', string $prefix = 'NF'): string
+    {
+        return tempnam($dir, $prefix);
+    }
+
+    /**
      * Real path
      *
      * @param string $path
@@ -424,5 +439,103 @@ class File
             }
         }
         return $first . implode(DIRECTORY_SEPARATOR, $result);
+    }
+
+    /**
+     * Check path
+     *
+     * @param string $path
+     * @param array $options
+     *      bool relative
+     * @return false|string
+     */
+    public static function path(string $path, array $options = []): false|string
+    {
+        $path = ltrim($path, '/');
+        // step 1 application
+        $application_folder = \Application::get('application.application_folder');
+        if (file_exists($application_folder . $path)) {
+            return $application_folder . $path;
+        }
+        // step 2 private libs
+        $libraries_folder = \Application::get('application.libraries_folder');
+        if (file_exists($libraries_folder . 'private/' . $path)) {
+            return $libraries_folder . 'private/' . $path;
+        }
+        // step 3 vendor
+        $path2 = explode('/', $path);
+        $path2[0] = strtolower($path2[0]);
+        $path2[1] = strtolower($path2[1]);
+        $path2 = implode('/', $path2);
+        if (file_exists($libraries_folder . 'vendor/' . $path2)) {
+            return $libraries_folder . 'vendor/' . $path2;
+        }
+        // if we did not find a module we return false
+        return false;
+    }
+
+    /**
+     * Get template extension
+     */
+    public static function getTemplateExtension(string $filename): string
+    {
+        if (strpos($filename, '.template.') !== false) {
+            return 'template.' . explode('.template.', $filename)[1];
+        }
+        return pathinfo($filename, PATHINFO_EXTENSION);
+    }
+
+    /**
+     * Set prefix for extension
+     *
+     * @param string $filename
+     * @param string $prefix
+     * @return string
+     */
+    public static function setPrefixForExtension(string $filename, string $prefix): string
+    {
+        $dir = pathinfo($filename, PATHINFO_DIRNAME);
+        $name = pathinfo($filename, PATHINFO_FILENAME);
+        $extension = pathinfo($filename, PATHINFO_EXTENSION);
+        return $dir . DIRECTORY_SEPARATOR . $name . $prefix . '.' . $extension;
+    }
+
+    /**
+     * Path to class
+     *
+     * @param string $filename
+     * @return string
+     */
+    public static function pathToClass(string $filename): string
+    {
+        $libraries_folder = \Application::get('application.libraries_folder');
+        $filename = str_replace([
+            '../libraries/vendor/',
+            '../libraries/private/'
+        ], '/', $filename);
+        foreach (\Application::get('dep.composer') as $k => $v) {
+            foreach ($v as $k2 => $v2) {
+                if (str_starts_with($filename, "/{$k}/{$k2}/")) {
+                    $temp = explode('/', $filename);
+                    $temp[1] = ucfirst($temp[1]);
+                    $temp[2] = ucfirst($temp[2]);
+                    $filename = implode('/', $temp);
+                }
+            }
+        }
+        $filename = str_replace(['.php', '/'], ['', '\\'], $filename);
+        return $filename;
+    }
+
+    /**
+     * Generate base64 string
+     *
+     * @param string $mime
+     * @param string $data
+     * @return string
+     */
+    public static function generateBase64String(string $mime, string $data): string
+    {
+        return 'data:' . $mime . ';base64,' . base64_encode($data);
     }
 }

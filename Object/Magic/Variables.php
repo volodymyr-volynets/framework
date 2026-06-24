@@ -37,5 +37,8 @@ class Variables extends Data
         '__history_id' => ['no_magic_variable_description' => 'History #'],
         '__form_filter_id' => ['no_magic_variable_description' => 'Form Filter #'],
         '__form_filter_id_delete' => ['no_magic_variable_description' => 'Form Filter # (Delete)'],
+        '__form_batches_and_lists_code' => ['no_magic_variable_description' => 'Form Batches & Lists Code'],
+        // right rail
+        '__right_rail_panel' => ['no_magic_variable_description' => 'Right Rail Panel'],
     ];
 }
