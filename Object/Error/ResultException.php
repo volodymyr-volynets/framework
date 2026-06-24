@@ -24,7 +24,7 @@ class ResultException extends \Exception
     {
         // array messages
         if (is_array($message)) {
-            // we can pass entiry result object in here
+            // we can pass entire result object in here
             if (array_key_exists('error', $message)) {
                 $message = implode("\n", $message['error']);
             } else {

@@ -49,7 +49,7 @@ if (empty($skip_confirmation) || $skip_confirmation == 2) {
     if ($type[0] == '\\') {
         $type_new = array_reverse(explode('\\', $type))[0];
     }
-    if (!Cmd::confirm("Conitune operation \"$type_new\" with mode \"$mode\"?")) {
+    if (!Cmd::confirm("Continue operation \"$type_new\" with mode \"$mode\"?")) {
         exit;
     }
 }

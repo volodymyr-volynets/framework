@@ -16,7 +16,7 @@ use Object\Validator\Base;
 class Part extends Base
 {
     /**
-     * @see \Object\Validator\Base::validate()
+     * @see Base::validate()
      */
     public function validate($value, $options = [])
     {

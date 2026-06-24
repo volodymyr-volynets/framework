@@ -20,6 +20,9 @@ use System\Deployments;
  * System manager, called from make commands
  */
 
+// disable notices and deprecated
+error_reporting(E_ALL & ~E_NOTICE & ~E_DEPRECATED);
+
 // command line parameters
 $type = $argv[1];
 $mode = $argv[2];
@@ -340,6 +343,10 @@ try {
                             'skip_db_object' => true
                         ]);
                         if (!empty($code_result['data']['\Object\Import'])) {
+                            // init default crypt
+                            $crypt_settings = Application::get('crypt.default');
+                            $crypt_object = new Crypt('default', $crypt_settings['submodule'], $crypt_settings);
+                            // import
                             $import_data_result = Schemas::importData('default', $code_result['data'], []);
                             if (!$import_data_result['success']) {
                                 $result['error'] = array_merge($result['error'], $import_data_result['error']);
@@ -561,6 +568,97 @@ try {
                 $result['success'] = true;
             } else {
                 $result = $settings;
+            }
+            break;
+            // migration new
+        case 'migration_new':
+            if ($mode == 'new') {
+                re_ask_for_migration_name:
+                                $migration_name = Cmd::ask('Enter migration name: ');
+                if (empty($migration_name)) {
+                    goto re_ask_for_migration_name;
+                }
+                $generate_migration_result = Processor::generateNewEmptyMigration('default', $migration_name, []);
+                $result['hint'][] = "   -> New migration created: {$generate_migration_result['migration_name']};";
+            }
+            break;
+            // seeder - mode: new, commit
+        case 'seeder':
+            // new seeder
+            if ($mode == 'new') {
+                re_ask_for_seeder_name:
+                                $seeder_name = Cmd::ask('Enter seeder name: ');
+                if (empty($seeder_name)) {
+                    goto re_ask_for_seeder_name;
+                }
+                $generate_seeder_result = Processor::generateSeeder('default', $seeder_name, []);
+                $result['hint'][] = "   -> Seeder created: {$generate_seeder_result['seeder_name']};";
+            } elseif ($mode == 'all' || $mode == 'one') {
+                $only = null;
+                if ($mode == 'one') {
+                    re_ask_for_seeder_one:
+                                    $seeder_name = Cmd::ask('Enter seeder name: ');
+                    if (empty($seeder_name)) {
+                        goto re_ask_for_seeder_one;
+                    }
+                    $only = $seeder_name;
+                }
+                // need to load dependencies
+                $deps = Dependencies::processDepsAll(['mode' => 'test', 'skip_confirmation' => 1, 'show_warnings' => true]);
+                // get settings for default db_link
+                $settings = Schemas::getSettings([
+                    'db_link' => 'default'
+                ]);
+                if ($settings['success']) {
+                    // go through each database
+                    foreach ($settings['db_list'] as $v) {
+                        Cmd::message('Processing database: ' . $v, 'blue');
+                        $schema_temp = $settings['db_settings'];
+                        // for multi database we need to store original database name
+                        if ($schema_temp['dbname'] != $v) {
+                            $schema_temp['__original_dbname'] = $schema_temp['dbname'];
+                        }
+                        $schema_temp['dbname'] = $v;
+                        $db_object = new Db('default', $schema_temp['submodule']);
+                        $db_status = $db_object->connect($schema_temp);
+                        if (!($db_status['success'] && $db_status['status'])) {
+                            throw new Exception('Unable to open database connection!');
+                        }
+                        $result['hint'][] = " * Connected to {$v} database:";
+                        // load all seeders from the code
+                        Cmd::message('  Loading seeders...', 'blue');
+                        $result['hint'][] = "   * Loading seeders...";
+                        $seeder_result = Processor::loadCodeSeeders([
+                            'db_link' => 'default',
+                            'load_migration_objects' => true,
+                            'only' => $only,
+                            'submodule_seeders' => $deps['data']['seeder'] ?? []
+                        ]);
+                        if ($seeder_result['count'] == 0) {
+                            $result['error'][] = 'Seeders not found!';
+                            goto error;
+                        }
+                        Cmd::message('  Seeders found: ' . $seeder_result['count'], 'blue');
+                        $result['hint'][] = "   * Total seeders found: " . $seeder_result['count'];
+                        // execute seeders
+                        foreach ($seeder_result['data'] as $k2 => $v2) {
+                            Cmd::message('  Executing seeder: ' . $k2, 'blue');
+                            $result['hint'][] = "   * Executing seeder: " . $k2;
+                            try {
+                                $v2['object']->up();
+                            } catch (Exception $e) {
+                                Cmd::message('  Failed seeder: ' . $e->getMessage(), 'red');
+                                $result['hint'][] = "       * {$k2}: " . $e->getMessage();
+                                $result['error'][] = $e->getMessage();
+                                goto error;
+                            }
+                            Cmd::message('  Executed seeder: ' . $k2, 'green');
+                            $result['hint'][] = "   * Executed seeder: " . $k2;
+                        }
+                    }
+                } else {
+                    $result = $settings;
+                }
             }
             break;
             // dependencies - mode: test, commit

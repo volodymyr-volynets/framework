@@ -1,0 +1,11 @@
+{
+    "DoYouMeanThisDomain": "Do you mean {domain}?",
+    "EmailIsPublicProvider": "Email is public email provider!",
+    "InvalidEmailAddress": "Invalid email address!",
+    "InvalidMaxValue": "Invalid value, max {value}!",
+    "InvalidMinValue": "Invalid value, min {value}!",
+    "NotNumeric": "Not numeric value!",
+    "StringsContainsWhiteSpace": "String(s) contains white space!",
+    "TheDomainIsPublic": "The domain {domain} is public!",
+    "WidthXHeight": "Width x Height"
+}

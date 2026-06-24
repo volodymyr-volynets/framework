@@ -73,6 +73,37 @@ class Daemons
     }
 
     /**
+     * Pause execution if less
+     *
+     * @param float|int $start
+     * @param float|int $run_min_seconds
+     */
+    public static function pauseExecutionIfLess(float|int $start, float|int $run_min_seconds): void
+    {
+        $time_used = microtime(true) - $start;
+        if ($time_used < $run_min_seconds) {
+            usleep((int) (($run_min_seconds - $time_used) * 1_000_000));
+        }
+    }
+
+    /**
+     * Check memory if used
+     *
+     * @param int $max_memory_in_bytes
+     * @return bool
+     */
+    public static function checkMemoryIfUsed(int $max_memory_in_bytes): bool
+    {
+        // free up memory
+        gc_collect_cycles();
+        // process memory usage
+        if ($max_memory_in_bytes != -1 && \Memory2::getCurrentUsageStatic() >= $max_memory_in_bytes * 0.75) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * Signals
      *
      * @param int $signo

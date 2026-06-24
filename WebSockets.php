@@ -19,6 +19,13 @@ class WebSockets
     public $object;
 
     /**
+     * Options
+     *
+     * @var array
+     */
+    public $options = [];
+
+    /**
      * Constructing web socket object
      *
      * @param string $web_socket_link
@@ -42,11 +49,13 @@ class WebSockets
                 $temp['object']->close();
                 unset($this->object);
             }
+            $this->options = $options;
             $this->object = new $class($web_socket_link, $options);
             // putting every thing into factory
             Factory::set(['websockets', $web_socket_link], [
                 'object' => $this->object,
-                'class' => $class
+                'class' => $class,
+                'options' => $options,
             ]);
         } elseif (!empty($temp['object'])) {
             $this->object = $temp['object'];
@@ -87,5 +96,40 @@ class WebSockets
     public function send(string $message, array $data = [], ?bool $ack = null): array
     {
         return $this->object->send($message, $data, $ack);
+    }
+
+    /**
+     * Connect, join and send
+     *
+     * @param array $room_list
+     * @param array $message
+     * @return array
+     */
+    public function connectJoinAndSend(array $room_list, array $message = []): array
+    {
+        $daemon = defined('DAEMON_NAME') ? constant('DAEMON_NAME') : 'Application';
+        try {
+            $result = $this->connect($this->options);
+            if ($result['success']) {
+                $result = $this->send('join', ['rooms' => $room_list, 'message' => 'Daemon ' . $daemon]);
+                if ($result['success']) {
+                    $result = $this->send('update', ['rooms' => $room_list] + $message);
+                }
+            }
+        } catch (Exception $e) {
+            $result = [
+                'success' => false,
+                'error' => [$e->getMessage()],
+            ];
+        }
+        if (!$result['success']) {
+            Log::add([
+                'type' => 'WebSockets',
+                'only_channel' => 'default',
+                'message' => 'WebSockets failed!',
+                'other' => 'Daemon ' . $daemon . ': ' . implode(', ', $result['error']),
+            ]);
+        }
+        return $result;
     }
 }

@@ -13,6 +13,17 @@ use Object\ACL\Resources;
 
 class User
 {
+    // roles/teams/groups constants
+    public const ROLES = 'roles';
+    public const ROLE_IDS = 'role_ids';
+    public const ROLE_NAMES = 'role_names';
+    public const TEAMS = 'team_codes';
+    public const TEAM_IDS = 'teams';
+    public const TEAM_NAMES = 'team_names';
+    public const GROUPS = 'group_codes';
+    public const GROUP_IDS = 'group_ids';
+    public const GROUP_NAMES = 'group_names';
+
     /**
      * Cached users
      *
@@ -69,7 +80,7 @@ class User
      *
      * @return boolean
      */
-    public static function authorized()
+    public static function authorized(): bool
     {
         return (!empty($_SESSION['numbers']['flag_authorized']) ? true : false);
     }
@@ -87,6 +98,23 @@ class User
         } elseif (isset($_SESSION['numbers']['user'])) {
             return array_key_get($_SESSION['numbers']['user'], $key);
         }
+    }
+
+    /**
+     * Set
+     *
+     * @param mixed $key
+     * @param mixed $value
+     * @return mixed
+     */
+    public static function set($key, $value)
+    {
+        if (!empty(self::$override_user_id)) {
+            array_key_set(self::$cached_users[self::$override_user_id], $key, $value);
+        } elseif (isset($_SESSION['numbers']['user'])) {
+            array_key_set($_SESSION['numbers']['user'], $key, $value);
+        }
+        return $value;
     }
 
     /**
@@ -118,28 +146,54 @@ class User
     /**
      * Roles
      *
+     * @param string $type
+     *      ROLES
+     *      ROLE_IDS
+     *      ROLE_NAMES
      * @return array
      */
-    public static function roles(): array
+    public static function roles(string $type = self::ROLES): array
     {
         if (!empty(self::$override_user_id)) {
-            return self::$cached_users[self::$override_user_id]['roles'] ?? [];
+            return self::$cached_users[self::$override_user_id][$type] ?? [];
         } else {
-            return $_SESSION['numbers']['user']['roles'] ?? [];
+            return $_SESSION['numbers']['user'][$type] ?? [];
         }
     }
 
     /**
      * Teams
      *
+     * @param string $type
+     *      TEAMS
+     *      TEAM_IDS
+     *      TEAM_NAMES
      * @return array
      */
-    public static function teams(): array
+    public static function teams(string $type = self::TEAM_IDS): array
     {
         if (!empty(self::$override_user_id)) {
-            return self::$cached_users[self::$override_user_id]['teams'] ?? [];
+            return self::$cached_users[self::$override_user_id][$type] ?? [];
         } else {
-            return $_SESSION['numbers']['user']['teams'] ?? [];
+            return $_SESSION['numbers']['user'][$type] ?? [];
+        }
+    }
+
+    /**
+     * Groups
+     *
+     * @param string $type
+     *      GROUPS
+     *      GROUP_IDS
+     *      GROUP_NAMES
+     * @return array
+     */
+    public static function groups(string $type = self::GROUP_IDS): array
+    {
+        if (!empty(self::$override_user_id)) {
+            return self::$cached_users[self::$override_user_id][$type] ?? [];
+        } else {
+            return $_SESSION['numbers']['user'][$type] ?? [];
         }
     }
 
@@ -186,19 +240,53 @@ class User
     /**
      * Check if role(s) exists
      *
-     * @param string|array $role
+     * @param string|int|array $role
+     * @param string $type
+     *      ROLES
+     *      ROLE_IDS
+     *      ROLE_NAMES
      * @return boolean
      */
-    public static function roleExists($role): bool
+    public static function roleExists(string|int|array $role, string $type = self::ROLES): bool
     {
-        if (empty($_SESSION['numbers']['user']['roles'])) {
+        if (empty($_SESSION['numbers']['user'][$type])) {
             return false;
         }
         if (is_array($role)) {
-            $temp = array_intersect($role, $_SESSION['numbers']['user']['roles']);
+            $temp = array_intersect($role, self::get($type));
             return !empty($temp);
         } else {
-            return in_array($role, $_SESSION['numbers']['user']['roles']);
+            return in_array($role, self::get($type));
         }
+    }
+
+    /**
+     * Check if team(s) exists
+     *
+     * @param string|int|array $team
+     * @param string $type
+     *      TEAMS
+     *      TEAM_IDS
+     *      TEAM_NAMES
+     * @return boolean
+     */
+    public static function teamExists(string|int|array $team, string $type = self::TEAM_IDS): bool
+    {
+        return self::roleExists($team, $type);
+    }
+
+    /**
+     * Check if group(s) exists
+     *
+     * @param string|int|array $group
+     * @param string $type
+     *      GROUPS
+     *      GROUP_IDS
+     *      GROUP_NAMES
+     * @return boolean
+     */
+    public static function groupExists(string|int|array $group, string $type = self::GROUPS): bool
+    {
+        return self::roleExists($group, $type);
     }
 }

@@ -134,7 +134,7 @@ class HTTPConstants
         self::Status308PermanentRedirect => ['name' => 'Permanent Redirect', 'type' => 'ST300'],
         // Client Errors
         self::StatusTypes400 => ['name' => 'Types 400', 'type' => 'ST400'],
-        self::Status400BadRequest => ['name' => 'Bad sRequest', 'type' => 'ST400'],
+        self::Status400BadRequest => ['name' => 'Bad Request', 'type' => 'ST400'],
         self::Status401Unauthorized => ['name' => 'Unauthorized', 'type' => 'ST400'],
         self::Status402PaymentRequired => ['name' => 'Payment Required', 'type' => 'ST400'],
         self::Status403Forbidden => ['name' => 'Forbidden', 'type' => 'ST400'],
@@ -199,5 +199,16 @@ class HTTPConstants
                 $this->loc_constants[$constant_name] = [$key => $v['name'], 'http_status_code' => $k];
             }
         }
+    }
+
+    /**
+     * Is success
+     *
+     * @param bool $success
+     * @return int
+     */
+    public static function isSuccess(bool $success): int
+    {
+        return $success ? HTTPConstants::Status200OK : HTTPConstants::Status500InternalServerError;
     }
 }

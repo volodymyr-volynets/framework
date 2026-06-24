@@ -29,6 +29,8 @@ class Types extends Data
         'bcnumeric' => ['name' => 'BC Numeric'], // floats represented as strings
         'string' => ['name' => 'String'],
         'array' => ['name' => 'Array'],
-        'mixed' => ['name' => 'Mixed']
+        'mixed' => ['name' => 'Mixed'],
+        'boolean' => ['name' => 'Boolean'],
+        'null' => ['name' => 'Null'],
     ];
 }

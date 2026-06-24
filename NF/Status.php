@@ -23,11 +23,11 @@ class Status extends LocalizationConstants
     public const Status200OK = ['NF.Status.OK' => 'OK','http_status_code' => 200,'errno' => 'NF.ST.0007'];
     public const Status201Created = ['NF.Status.Created' => 'Created','http_status_code' => 201,'errno' => 'NF.ST.0008'];
     public const Status202Accepted = ['NF.Status.Accepted' => 'Accepted','http_status_code' => 202,'errno' => 'NF.ST.0009'];
-    public const Status203NonAuthoritativeInformation = ['NF.Status.Non-AuthoritativeInformation' => 'Non-Authoritative Information','http_status_code' => 203,'errno' => 'NF.ST.0010'];
+    public const Status203NonDashAuthoritativeInformation = ['NF.Status.Non-AuthoritativeInformation' => 'Non-Authoritative Information','http_status_code' => 203,'errno' => 'NF.ST.0070'];
     public const Status204NoContent = ['NF.Status.NoContent' => 'No Content','http_status_code' => 204,'errno' => 'NF.ST.0011'];
     public const Status205ResetContent = ['NF.Status.ResetContent' => 'Reset Content','http_status_code' => 205,'errno' => 'NF.ST.0012'];
     public const Status206PartialContent = ['NF.Status.PartialContent' => 'Partial Content','http_status_code' => 206,'errno' => 'NF.ST.0013'];
-    public const Status207MultiStatus = ['NF.Status.Multi-Status' => 'Multi-Status','http_status_code' => 207,'errno' => 'NF.ST.0014'];
+    public const Status207MultiDashStatus = ['NF.Status.Multi-Status' => 'Multi-Status','http_status_code' => 207,'errno' => 'NF.ST.0071'];
     public const Status208AlreadyReported = ['NF.Status.AlreadyReported' => 'Already Reported','http_status_code' => 208,'errno' => 'NF.ST.0015'];
     public const Status226IMUsed = ['NF.Status.IMUsed' => 'IM Used','http_status_code' => 226,'errno' => 'NF.ST.0016'];
     public const Status300MultipleChoices = ['NF.Status.MultipleChoices' => 'Multiple Choices','http_status_code' => 300,'errno' => 'NF.ST.0018'];
@@ -39,7 +39,7 @@ class Status extends LocalizationConstants
     public const Status306Unused = ['NF.Status.Unused' => 'Unused','http_status_code' => 306,'errno' => 'NF.ST.0024'];
     public const Status307TemporaryRedirect = ['NF.Status.TemporaryRedirect' => 'Temporary Redirect','http_status_code' => 307,'errno' => 'NF.ST.0025'];
     public const Status308PermanentRedirect = ['NF.Status.PermanentRedirect' => 'Permanent Redirect','http_status_code' => 308,'errno' => 'NF.ST.0026'];
-    public const Status400BadSRequest = ['NF.Status.BadsRequest' => 'Bad sRequest','http_status_code' => 400,'errno' => 'NF.ST.0028'];
+    public const Status400BadRequest = ['NF.Status.BadRequest' => 'Bad Request','http_status_code' => 400,'errno' => 'NF.ST.0069'];
     public const Status401Unauthorized = ['NF.Status.Unauthorized' => 'Unauthorized','http_status_code' => 401,'errno' => 'NF.ST.0029'];
     public const Status402PaymentRequired = ['NF.Status.PaymentRequired' => 'Payment Required','http_status_code' => 402,'errno' => 'NF.ST.0030'];
     public const Status403Forbidden = ['NF.Status.Forbidden' => 'Forbidden','http_status_code' => 403,'errno' => 'NF.ST.0031'];

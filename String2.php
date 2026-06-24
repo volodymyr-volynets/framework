@@ -739,13 +739,21 @@ class String2
     public function englishOnly(bool $pascal_case = false): String2
     {
         if ($this->data !== null) {
-            $this->pascalCase();
+            $this->data = str_replace('-', ' Dash', $this->data);
+            $this->data = str_replace('_', ' Underscore', $this->data);
             if (str_starts_with($this->data, '#')) {
                 $this->data = str_replace('#', 'Number', $this->data);
             } else {
                 $this->data = str_replace('#', 'ID', $this->data);
             }
-            $this->data = preg_replace('/[^a-zA-Z0-9]/i', '', $this->data);
+            $this->data = str_replace('@', ' At', $this->data);
+            $this->data = str_replace('%', ' Percent', $this->data);
+            $this->data = str_replace(':', ' Colon', $this->data);
+            $this->data = str_replace(';', ' Semicolon', $this->data);
+            $this->data = str_replace('.', ' Dot', $this->data);
+            $this->data = str_replace(',', ' Comma', $this->data);
+            $this->pascalCase();
+            $this->data = preg_replace('/[^a-zA-Z0-9_]/i', '', $this->data);
         }
         return $this;
     }
@@ -777,6 +785,31 @@ class String2
                     $this->data = str_replace('{' . $v . '}', $options[$v], $this->data);
                 }
             }
+        }
+        return $this;
+    }
+
+    /**
+     * Upper initials
+     *
+     * @return String2
+     */
+    public function upperInitials(): String2
+    {
+        if ($this->data !== null) {
+            // remove module code
+            if ($this->data[1] == '/' && $this->data[3] == ' ' && strlen($this->data) > 3) {
+                $this->data = substr($this->data, 3);
+            }
+            // other logic
+            $temp = preg_replace('/[^A-Z]/', '', $this->data);
+            if (empty($temp)) {
+                $temp = substr($this->data, 0, 1);
+            } else {
+                $temp = substr($temp, 0, 2);
+            }
+            $this->data = strtoupper($temp);
+
         }
         return $this;
     }

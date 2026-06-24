@@ -64,22 +64,62 @@ class Crypt
      * Encrypting data (URL safe)
      *
      * @param string $data
+     * @param string|null $encryption_key
+     * @param bool $base64
      * @return string
      */
-    public function encrypt($data)
+    public function encrypt(string $data, ?string $encryption_key = null, bool $base64 = false): string
     {
-        return $this->object->encrypt($data);
+        return $this->object->encrypt($data, $encryption_key, $base64);
     }
 
     /**
      * Decrypting data (URL safe)
      *
      * @param string $data
-     * @return string or false on error
+     * @param string|null $encryption_key
+     * @return string|bool - false on error
      */
-    public function decrypt($data)
+    public function decrypt(string $data, ?string $encryption_key = null): string|bool
     {
-        return $this->object->decrypt($data);
+        return $this->object->decrypt($data, $encryption_key);
+    }
+
+    /**
+     * Is encrypted
+     *
+     * @param mixed $data
+     * @return bool
+     */
+    public function isEncrypted($data): bool
+    {
+        return $this->decrypt($data) !== false;
+    }
+
+    /**
+     * Encrypt file
+     *
+     * @param string $source_file
+     * @param string $destination_file
+     * @param mixed $encryption_key
+     * @return void
+     */
+    public function encryptFile(string $source_file, string $destination_file, ?string $encryption_key = null): bool
+    {
+        return $this->object->encryptFile($source_file, $destination_file, $encryption_key);
+    }
+
+    /**
+     * Decrypt file
+     *
+     * @param string $source_file
+     * @param string $destination_file
+     * @param mixed $encryption_key
+     * @return bool
+     */
+    public function decryptFile(string $source_file, string $destination_file, ?string $encryption_key = null): bool
+    {
+        return $this->object->decryptFile($source_file, $destination_file, $encryption_key);
     }
 
     /**
@@ -111,6 +151,7 @@ class Crypt
      * @param string $token
      * @param mixed $data
      * @param array $options
+     *      skip_urlencoded
      * @return string - urlencoded
      */
     public function tokenCreate($id, $token = null, $data = null, $options = [])
@@ -360,5 +401,79 @@ class Crypt
     public function nanoVerify(?string $token): array
     {
         return $this->object->nanoVerify($token);
+    }
+
+    /**
+     * Initilaize all application crypts
+     *
+     * @return void
+     */
+    public static function initilaizeAllApplicationCrypts()
+    {
+        $crypt = Application::get('crypt');
+        if (!empty($crypt)) {
+            foreach ($crypt as $crypt_link => $crypt_settings) {
+                if (!empty($crypt_settings['submodule']) && !empty($crypt_settings['autoconnect'])) {
+                    $crypt_object = new static($crypt_link, $crypt_settings['submodule'], $crypt_settings);
+                }
+            }
+        }
+    }
+
+    /**
+     * TOTP Set settings
+     *
+     * @param string|null $secret
+     * @param int $digits
+     * @param mixed $time_interval
+     */
+    public function totpSetSettings(string|null $secret = null, int $digits = 6, $time_interval = 30): static
+    {
+        $this->object = $this->object->setSettings($secret, $digits, $time_interval);
+        return $this;
+    }
+
+    /**
+     * TOTP Get deep link URL
+     *
+     * @param string $username
+     * @param string $issuer
+     * @return string
+     */
+    public function totpGetDeepLinkUrl(string $username, string $issuer): string
+    {
+        return $this->object->getDeepLinkUrl($username, $issuer);
+    }
+
+    /**
+     * TOTP Validate
+     *
+     * @param string $code
+     * @param int $window
+     * @return bool
+     */
+    public function totpValidate(string $code, int $window = 1): bool
+    {
+        return $this->object->validate($code, $window);
+    }
+
+    /**
+     * TOTP get MFA code
+     *
+     * @return string
+     */
+    public function totpGetMFACode(): string
+    {
+        return $this->object->getMFACode();
+    }
+
+    /**
+     * TOTP get MFA expires
+     *
+     * @return int
+     */
+    public function totpGetMFAExpires(): int
+    {
+        return $this->object->getMFAExpires();
     }
 }

@@ -166,6 +166,21 @@ class Array2
     }
 
     /**
+     * Map into object
+     *
+     * @param string $class_name
+     * @return Array2
+     */
+    public function mapIntoObject(string $class_name): Array2
+    {
+        $result = [];
+        foreach ($this->data as $k => $v) {
+            $result[$v] = call_user_func_array([$class_name, 'loadByIdStatic'], [$v]);
+        }
+        return new static($result);
+    }
+
+    /**
      * Filter
      *
      * @param  callable|null $callback
@@ -340,7 +355,9 @@ class Array2
     public function sum($callback = null)
     {
         if (is_null($callback)) {
-            $callback = function ($value) { return $value; };
+            $callback = function ($value) {
+                return $value;
+            };
         } else {
             $callback = $this->getCallbackRowValue($callback);
         }

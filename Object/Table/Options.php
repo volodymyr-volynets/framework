@@ -109,6 +109,10 @@ class Options extends Data
         }
         // build options
         $options['column_prefix'] = $this->column_prefix;
+        $options['use_loc'] = false;
+        if (is_a($this, \Object\Data::class)) {
+            $options['use_loc'] = true;
+        }
         return Common::buildOptions($data, $options_map, $options['orderby'] ?? $this->orderby, $options);
     }
 

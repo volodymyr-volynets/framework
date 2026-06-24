@@ -115,6 +115,7 @@ class DataSource extends Options
      * @var array
      */
     public $parameters = [];
+    public $initial_parameters = [];
 
     /**
      * Query
@@ -184,7 +185,7 @@ class DataSource extends Options
     final public function get($options = [])
     {
         // process parameters
-        $parameters = [];
+        $parameters = $this->initial_parameters ?? [];
         $options['where'] = $options['where'] ?? [];
         if (!empty($this->parameters)) {
             foreach ($this->parameters as $k => $v) {
@@ -421,7 +422,7 @@ class DataSource extends Options
                     'error' => [],
                     'errno' => 0,
                     'rows' => $data,
-                    'num_rows' => is_bool($data) ? 0 : count($data),
+                    'num_rows' => (is_bool($data) || is_null($data)) ? 0 : count($data),
                     'affected_rows' => 0,
                     'structure' => [],
                     // debug attributes
@@ -471,6 +472,53 @@ class DataSource extends Options
         $class = get_called_class();
         $object = new $class();
         return $object->get($options);
+    }
+
+    /**
+     * Get single (static)
+     *
+     * @see $this::get()
+     */
+    public static function getSingleStatic(array $options = [])
+    {
+        $class = get_called_class();
+        $object = new $class();
+        $options['pk'] = null;
+        $options['single_row'] = true;
+        return $object->get($options);
+    }
+
+    /**
+     * Get primary record
+     *
+     * @see $this::get()
+     */
+    public function getPrimaryRecord(array $options = [])
+    {
+        $default_column = $options['default_column'] ?? null;
+        if (empty($default_column)) {
+            foreach (['primary', 'default'] as $v) {
+                if (isset($this->columns[$this->column_prefix . $v])) {
+                    $default_column = $this->column_prefix . $v;
+                }
+            }
+        }
+        $options['where'][$default_column] = 1;
+        return $this->get($options);
+    }
+
+    /**
+     * Get primary record (static)
+     *
+     * @see $this::get()
+     */
+    public static function getPrimaryRecordStatic(array $options = [])
+    {
+        $class = get_called_class();
+        $object = new $class();
+        $options['pk'] = null;
+        $options['single_row'] = true;
+        return $object->getPrimaryRecord($options);
     }
 
     /**

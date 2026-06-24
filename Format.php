@@ -458,7 +458,7 @@ class Format
             $other = new DateTime($object->format(self::getDateFormat('date')), new DateTimeZone($server_timezone));
             // if its today we show time
             if ($now->diff($other)->days === 0) {
-                $value = $object->format(self::getDateFormat('time'));
+                $value = $object->format($options['format_time'] ?? self::getDateFormat('time'));
             } else {
                 $value = $object->format(self::getDateFormat('date'));
             }
@@ -1054,5 +1054,37 @@ class Format
             $value = $next . '-' . $last;
         }
         return $value;
+    }
+
+    /**
+     * Format HTML
+     *
+     * @param mixed $input
+     * @return string
+     */
+    public static function formatHTML(mixed $input): string
+    {
+        libxml_use_internal_errors(true);
+        $dom = new DOMDocument();
+        $dom->preserveWhiteSpace = false;
+        $dom->loadXML($input ?? '');
+        $dom->formatOutput = true;
+        return $dom->saveXML(null, LIBXML_NOXMLDECL);
+    }
+
+    /**
+     * Format CSS
+     *
+     * @param mixed $css
+     * @return string
+     */
+    public static function formatCSS(mixed $css): string
+    {
+        $css = trim($css ?? '');
+        $css = preg_replace('/\s+/', ' ', $css);         // Normalize spaces
+        $css = preg_replace('/\s*{\s*/', " {\n    ", $css); // Format opening brackets
+        $css = preg_replace('/;\s*/', ";\n    ", $css);    // Add new lines to rules
+        $css = preg_replace('/\s*}\s*/', "\n}\n\n", $css); // Clean up closing brackets
+        return trim(preg_replace('/;\n\s*}/', ";\n}", $css));
     }
 }

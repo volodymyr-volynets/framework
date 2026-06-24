@@ -15,6 +15,7 @@ use Object\Content\Messages;
 use Object\Data;
 use Object\Data\Common;
 use NF\Error;
+use Object\Decorator\Base;
 
 class Columns extends Data
 {
@@ -49,7 +50,8 @@ class Columns extends Data
         'validator_params' => ['name' => 'Validator Params'],
         'placeholder' => ['name' => 'Placeholder'],
         'searchable' => ['name' => 'Searchable'],
-        'tree' => ['name' => 'Tree']
+        'tree' => ['name' => 'Tree'],
+        'decorators' => ['name' => 'Decorators', 'type' => 'text'],
     ];
 
     /**
@@ -173,6 +175,12 @@ class Columns extends Data
             } else {
                 $result[$column_name] = $value;
             }
+        } elseif ($column_options['type'] == 'vector') {
+            if (!is_vector($value)) {
+                $result[$column_name] = \Db::columnToVector($value);
+            } else {
+                $result[$column_name] = $value;
+            }
         } elseif ($column_options['type'] == 'mixed') {
             $result[$column_name] = $value;
         } elseif (!empty($column_options['multiple_column'])) {
@@ -199,7 +207,7 @@ class Columns extends Data
      *
      * @param string $column_name
      * @param array $column_options
-     * @param type $value
+     * @param mixed $value
      * @param array $options
      * @return array
      */
@@ -281,11 +289,28 @@ class Columns extends Data
                 } elseif ($result['data'][$column_name] . '' === '' && !empty($column_options['null'])) {
                     $result['data'][$column_name] = null;
                 }
+
                 // validate string length
                 if (!empty($result['data'][$column_name])) {
                     $temp = is_array($result['data'][$column_name]) ? $result['data'][$column_name] : [$result['data'][$column_name]];
                     // validate length
-                    foreach ($temp as $tv) {
+                    foreach ($temp as $tk => & $tv) {
+                        if (!empty($column_options['decorators'])) {
+                            $decorators = explode(',', $column_options['decorators']);
+                            foreach ($decorators as $td) {
+                                $decorator = Base::method(
+                                    $td,
+                                    $tv,
+                                    [],
+                                    [],
+                                    []
+                                );
+                                $tv = $decorator['data'];
+                                if (!$decorator['success']) {
+                                    $result['error'] = array_merge($result['error'], $decorator['error']);
+                                }
+                            }
+                        }
                         if (!empty($column_options['type']) && $column_options['type'] == 'char' && strlen($tv) != $column_options['length']) {  // char
                             $result['error'][] = loc(Error::LENGTH_MUST_BE_LONG, '', ['length' => $column_options['length']]);
                             $error = true;

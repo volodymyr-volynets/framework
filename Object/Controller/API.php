@@ -158,7 +158,7 @@ abstract class API
             return;
         }
         // detect input type
-        $this->input = \Request::input();
+        $this->input = \Request::input(null, false);
         // content type
         $this->content_type = \Application::get('flag.global.__content_type');
         if (!in_array($this->content_type, self::$content_types)) {

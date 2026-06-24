@@ -109,7 +109,7 @@ class Factory
     public static function model($class, $cache = false, $constructor_parameters = null)
     {
         // fix dot notation
-        $class = str_replace('.', '_', $class);
+        $class = str_replace('.', '_', $class . '');
         $hash = sha1($class . serialize($constructor_parameters));
         // if we need to override classes
         if (isset(Overrides\Factory::$data[$class])) {
@@ -183,7 +183,7 @@ class Factory
     public static function callMethod($method, $model = false, $constructor_parameters = null)
     {
         $method = self::method($method, null, $model, $constructor_parameters);
-        return call_user_func_array($method, $constructor_parameters);
+        return call_user_func_array($method, $constructor_parameters ?? []);
     }
 
     /**
@@ -195,5 +195,24 @@ class Factory
     public static function postponedExecution($method, $params)
     {
         self::$postponed_execution[sha1(serialize($method) . '::' . serialize($params))] = [$method, $params];
+    }
+
+    /**
+     * Get widget model
+     *
+     * @param string|object $model
+     * @param string $widget
+     * @return object
+     */
+    public static function getWidgetModel(string|object $model, string $widget): object
+    {
+        $widget_model = null;
+        if (is_object($model)) {
+            $widget_model = $model->{$widget . '_model'};
+        } else {
+            $temp = self::model($model, true);
+            $widget_model = $temp->{$widget . '_model'};
+        }
+        return self::model($widget_model, true);
     }
 }

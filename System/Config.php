@@ -30,7 +30,16 @@ class Config
     {
         $result = [];
         $host = \Request::host();
-        $data = parse_ini_file($ini_file, true, INI_SCANNER_TYPED);
+        // parse string or load file
+        if (!empty($options['as_ini_string'])) {
+            $data = parse_ini_string($ini_file, true, INI_SCANNER_TYPED);
+        } else {
+            $data = parse_ini_file($ini_file, true, INI_SCANNER_TYPED);
+        }
+        // for empty ini files we return false
+        if (empty($data)) {
+            return $result;
+        }
         // processing environment
         if (!empty($data['environment'])) {
             foreach ($data['environment'] as $k => $v) {
@@ -48,6 +57,9 @@ class Config
                 }
                 if (is_string($v) && strpos($v, 'root://') !== false) {
                     $v = $options['root_folder'] . str_replace('root://', '', $v);
+                }
+                if (is_string($v) && strpos($v, 'deployment://') !== false) {
+                    $v = $options['deployment_folder'] . str_replace('deployment://', '', $v);
                 }
                 array_key_set($result, explode('.', $k), $v);
             }
@@ -79,7 +91,7 @@ class Config
             }
         }
         unset($data['dependencies']);
-        // proccesing environment specific sectings
+        // processing environment specific settings
         foreach ($data as $section => $values) {
             $sections = explode(',', $section);
             if (empty($values) || (!in_array($environment, $sections) && !in_array('*', $sections))) {
@@ -100,6 +112,9 @@ class Config
                 }
                 if (is_string($v) && strpos($v, 'root://') !== false) {
                     $v = $options['root_folder'] . str_replace('root://', '', $v);
+                }
+                if (is_string($v) && strpos($v, 'deployment://') !== false) {
+                    $v = $options['deployment_folder'] . str_replace('deployment://', '', $v);
                 }
                 if (empty($options['simple_keys'])) {
                     array_key_set($result, $k, $v);
@@ -139,6 +154,12 @@ class Config
             $ini_data = self::ini($application_file, $result['environment'], $options);
             $result = array_merge2($result, $ini_data);
         }
+        // maintenance
+        $maintenance_file = $ini_folder . 'maintenance.ini';
+        if (file_exists($maintenance_file)) {
+            $ini_data = self::ini($maintenance_file, $result['environment'], $options);
+            $result = array_merge2($result, $ini_data);
+        }
         // add dev environment last to override settings from applicaiton.ini
         if ($result['environment'] == 'development') {
             $ini_data = self::ini($environment_file, $result['environment'], $options);
@@ -148,12 +169,20 @@ class Config
         if (!empty($result['ini']['include'])) {
             foreach ($result['ini']['include'] as $v) {
                 foreach ($v as $v2) {
-                    if (isset($v2['submodule']) && !array_key_get($result, 'dep.submodule.' . $v2['submodule'])) {
+                    if (!empty($v2['submodule']) && !array_key_get($result, 'dep.submodule.' . $v2['submodule'])) {
                         continue;
                     }
                     $ini_data = self::ini($v2['ini_file'], $result['environment'], $options);
                     $result = array_merge_hard($result, $ini_data);
                 }
+            }
+        }
+        // docker changes
+        if (!empty(getenv('NF_IS_CONTAINER'))) {
+            $docker_file = '/app/docker/application/environment.' . $result['environment'] . '.ini';
+            if (file_exists($docker_file)) {
+                $ini_data = self::ini($docker_file, $result['environment'], $options);
+                $result = array_merge_hard($result, $ini_data);
             }
         }
         return $result;

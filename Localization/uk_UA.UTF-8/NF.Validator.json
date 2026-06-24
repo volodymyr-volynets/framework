@@ -1,0 +1,4 @@
+{
+    "InvalidMaxValue": "Недійсне значення, максимум {value}!",
+    "InvalidMinValue": "Недійсне значення, мінімум {value}!"
+}

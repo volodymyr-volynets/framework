@@ -1,0 +1,17 @@
+{
+    "BearerTokenExpired": "{errno}: ¡El token de portador falta o ha expirado!",
+    "EmptyValues": "¡Valores vacíos!",
+    "EmptyWhatValues": "¡Valor(es) vacío(s)! {what}",
+    "InvalidHashTaggedGiven": "El hashtag debe comenzar con # y sin espacios",
+    "InvalidMentionGiven": "La mención debe comenzar con @ y sin espacios.",
+    "InvalidValues": "¡Valores no válidos!",
+    "InvalidWhatValues": "¡Valores {what} no válidos!",
+    "LengthMustBeLong": "¡La longitud debe ser de {length} caracteres!",
+    "NoRowsFound": "¡No se encontraron filas!",
+    "RequiredField": "¡Campo obligatorio!",
+    "RequiredJsonKey": "¡Se requiere clave JSON &quot;{field}&quot;!",
+    "RouteBearerTokenExpired": "{errno}: ¡El token de portador falta o ha expirado!",
+    "RouteMiddlewareDenied": "{errno}: ¡Middleware denegado para esta ruta!",
+    "StringIsTooLong": "¡La cadena es demasiado larga, no debe ser mayor que {length}!",
+    "StringPascalCase": "¡La cadena debe ser PascalCase!"
+}

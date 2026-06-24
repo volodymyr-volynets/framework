@@ -16,6 +16,31 @@ use PHPUnit\Framework\TestCase;
 class HTTPRequest extends TestCase
 {
     /**
+     * Set up
+     *
+     * @return void
+     */
+    protected function setUp(): void
+    {
+        $this->markTestSkipped(
+            'Skipping test due to httpstat.us inactivity.'
+        );
+    }
+
+    /**
+     * Init
+     */
+    public function testInitialize()
+    {
+        // tenant
+        $tenant_id = (int) \Application::get('phpunit.tenant_default_id');
+        $this->assertEquals(true, !empty($tenant_id));
+        \Tenant::setOverrideTenantId($tenant_id);
+        // db
+        \Db::backendInitializedStatic('default', true);
+    }
+
+    /**
      * Test \Helper\HTTPRequest class
      */
     public function testHttpRequestGet200()

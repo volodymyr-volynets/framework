@@ -16,7 +16,7 @@ use Object\ACL\Resources;
 class Base
 {
     /**
-     * Render
+     * Render method
      */
     public static function render()
     {
@@ -27,5 +27,20 @@ class Base
             return call_user_func_array([$method[0], $method[1]], [$workflow]);
         }
         return '';
+    }
+
+    /**
+     * Render workflow for form
+     */
+    public function renderWorkflow(& $form)
+    {
+        if (!$form->workflow_activated) {
+            return '';
+        }
+        return \HTML::wizard([
+            'type' => 'primary',
+            'step' => $form->workflow_step,
+            'options' => $form->form_parent->workflow_steps
+        ]);
     }
 }

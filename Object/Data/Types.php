@@ -64,6 +64,7 @@ class Types extends Data
         'json' => ['name' => 'JSON', 'php_type' => 'mixed'],
         // tsvector
         'tsvector' => ['name' => 'TsVector', 'php_type' => 'mixed'],
+        'vector' => ['name' => 'Vector (Embeddings)', 'php_type' => 'mixed'],
         // geometry
         'geometry' => ['name' => 'Geometry', 'php_type' => 'string'],
         // date types

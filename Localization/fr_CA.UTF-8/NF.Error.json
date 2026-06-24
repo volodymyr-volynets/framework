@@ -1,0 +1,17 @@
+{
+    "BearerTokenExpired": "{errno} : Le jeton du porteur est manquant ou a expiré !",
+    "EmptyValues": "Valeur(s) vide(s) !",
+    "EmptyWhatValues": "Valeur(s) {what} vide(s) !",
+    "InvalidHashTaggedGiven": "Le hashtag doit commencer par # et sans espace",
+    "InvalidMentionGiven": "La mention doit commencer par @ et sans espaces",
+    "InvalidValues": "Valeur(s) invalide(s) !",
+    "InvalidWhatValues": "Valeur(s) {what} non valide(s) !",
+    "LengthMustBeLong": "La longueur doit être de {length} caractères !",
+    "NoRowsFound": "Aucune ligne trouvée !",
+    "RequiredField": "Champ obligatoire!",
+    "RequiredJsonKey": "Clé JSON requise « {field} » !",
+    "RouteBearerTokenExpired": "{errno} : Le jeton du porteur est manquant ou a expiré !",
+    "RouteMiddlewareDenied": "{errno} : Middleware refusé pour cette route !",
+    "StringIsTooLong": "La chaîne est trop longue, elle ne doit pas dépasser {length} !",
+    "StringPascalCase": "La chaîne doit être en PascalCase !"
+}

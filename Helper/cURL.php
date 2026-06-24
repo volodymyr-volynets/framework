@@ -39,7 +39,9 @@ class cURL
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_POST, 1);
-        if (!empty($options['params'])) {
+        if (!empty($options['param_has_files'])) {
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $options['params']);
+        } elseif (!empty($options['params'])) {
             curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($options['params']));
         } elseif (isset($options['raw'])) {
             curl_setopt($ch, CURLOPT_POSTFIELDS, $options['raw']);
@@ -75,7 +77,6 @@ class cURL
         } else {
             $result['error'][] = curl_error($ch);
         }
-        curl_close($ch);
         $result['success'] = true;
         return $result;
     }
@@ -134,6 +135,7 @@ class cURL
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
         curl_setopt($ch, CURLOPT_USERAGENT, self::USERAGENT);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
@@ -156,18 +158,17 @@ class cURL
         } else {
             $result['error'][] = curl_error($ch);
         }
-        curl_close($ch);
         $result['success'] = true;
         return $result;
     }
 
     /**
-     * Multi exec get
+     * Multi exec GET
      *
      * @param array $urls
-     *	url
+     *	    string url
      * @param array $options
-     *	bool json
+     *	    bool json
      *      bool info
      * @return array
      */
@@ -185,13 +186,32 @@ class cURL
         foreach ($urls as $k => $v) {
             $ch[$k] = curl_init();
             curl_setopt($ch[$k], CURLOPT_URL, $v['url']);
+            // post
+            if (!empty($v['post'])) {
+                curl_setopt($ch[$k], CURLOPT_POST, 1);
+            }
+            // put
+            if (!empty($v['put'])) {
+                curl_setopt($ch[$k], CURLOPT_CUSTOMREQUEST, "PUT");
+            }
+            // delete
+            if (!empty($v['delete'])) {
+                curl_setopt($ch[$k], CURLOPT_CUSTOMREQUEST, "DELETE");
+            }
+            // if we have params
+            if (!empty($v['params'])) {
+                curl_setopt($ch[$k], CURLOPT_POSTFIELDS, http_build_query($v['params']));
+            } elseif (isset($v['raw'])) {
+                // if we have raw like json
+                curl_setopt($ch[$k], CURLOPT_POSTFIELDS, $v['raw']);
+            }
             curl_setopt($ch[$k], CURLOPT_USERAGENT, self::USERAGENT);
             curl_setopt($ch[$k], CURLOPT_HEADER, 0);
             curl_setopt($ch[$k], CURLOPT_RETURNTRANSFER, 1);
             curl_setopt($ch[$k], CURLOPT_FOLLOWLOCATION, true);
             curl_setopt($ch[$k], CURLOPT_SSL_VERIFYPEER, false);
             curl_setopt($ch[$k], CURLOPT_SSL_VERIFYHOST, false);
-            curl_setopt($ch[$k], CURLOPT_VERBOSE, 1);
+            //curl_setopt($ch[$k], CURLOPT_VERBOSE, 1);
             // add handles
             curl_multi_add_handle($mh, $ch[$k]);
         }
@@ -235,5 +255,47 @@ class cURL
             $result['success'] = true;
         }
         return $result;
+    }
+
+    /**
+     * Multi exec POST
+     *
+     * @param array $urls
+     *	    string url
+     *      bool post
+     *      array params
+     *      string raw
+     * @param array $options
+     *	    bool json
+     *      bool info
+     * @return array
+     */
+    public static function multiExecPost(array $urls, array $options = []): array
+    {
+        foreach ($urls as $k => $v) {
+            $urls[$k]['post'] = true;
+        }
+        return self::multiExecGet($urls, $options);
+    }
+
+    /**
+     * Multi exec PUT
+     *
+     * @param array $urls
+     *	    string url
+     *      bool put
+     *      array params
+     *      string raw
+     * @param array $options
+     *	    bool json
+     *      bool info
+     * @return array
+     */
+    public static function multiExecPut(array $urls, array $options = []): array
+    {
+        foreach ($urls as $k => $v) {
+            $urls[$k]['put'] = true;
+        }
+        return self::multiExecGet($urls, $options);
     }
 }

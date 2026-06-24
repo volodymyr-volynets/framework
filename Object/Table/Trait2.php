@@ -337,6 +337,39 @@ trait Trait2
     }
 
     /**
+     * Get primary record
+     *
+     * @see $this::get()
+     */
+    public function getPrimaryRecord(array $options = [])
+    {
+        $default_column = $options['default_column'] ?? null;
+        if (empty($default_column)) {
+            foreach (['primary', 'default'] as $v) {
+                if (isset($this->columns[$this->column_prefix . $v])) {
+                    $default_column = $this->column_prefix . $v;
+                }
+            }
+        }
+        $options['where'][$default_column] = 1;
+        return $this->getSingle($options);
+    }
+
+    /**
+     * Get primary record (static)
+     *
+     * @see $this::get()
+     */
+    public static function getPrimaryRecordStatic(array $options = [])
+    {
+        $class = get_called_class();
+        $object = new $class();
+        $options['pk'] = null;
+        $options['single_row'] = true;
+        return $object->getPrimaryRecord($options);
+    }
+
+    /**
      * Get single
      *
      * @see $this::get()

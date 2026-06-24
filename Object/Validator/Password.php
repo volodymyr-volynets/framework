@@ -14,13 +14,13 @@ namespace Object\Validator;
 class Password extends Base
 {
     /**
-     * @see \Object\Validator\Base::validate()
+     * @see Base::validate()
      */
     public function validate($value, $options = [])
     {
         $value = $value . '';
         $result = $this->result;
-        $result['placeholder'] = '8 characters, 1 number, 1 letter';
+        $result['placeholder'] = 'Min 8 characters, 1 number, 1 letter';
         if (strlen($value) < 8) {
             $result['error'][] = 'Password too short, should be atleast 8 characters!';
         }

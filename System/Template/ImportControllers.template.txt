@@ -1,0 +1,28 @@
+<?php
+
+/*
+ * This file is part of Numbers Framework.
+ *
+ * (c) Volodymyr Volynets <volodymyr.volynets@gmail.com>
+ *
+ * This source file is subject to the Apache 2.0 license that is bundled
+ * with this source code in the file LICENSE.
+ */
+
+namespace {namespace};
+
+use Object\Import;
+
+class {classname} extends Import
+{
+    public $data = [
+        'controllers' => [
+            'options' => [
+                'pk' => ['sm_resource_id'],
+                'model' => '\Numbers\Backend\System\Modules\Model\Collection\Resources',
+                'method' => 'save'
+            ],
+            'data' => {data}
+        ],
+    ];
+}

@@ -186,7 +186,7 @@ class Base
                 $type = 'Exception (User)';
                 break;
             case ResourseNotFoundException::class:
-                $code = -1;
+                $code = 404;
                 $type = 'Exception (Resourse Not Found)';
                 break;
             case PermissionException::class:

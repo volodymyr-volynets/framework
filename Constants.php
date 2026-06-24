@@ -11,6 +11,7 @@
 
 use Object\ACL\Resources;
 use Object\Error\Base;
+use Helper\Date;
 
 $settings = Application::get('flag');
 // process array into constant keys
@@ -38,6 +39,59 @@ foreach ($constants as $k => $v) {
     define($k, $v);
 }
 
+// date constants
+define('NF_DATE_NOW', Format::now('date'));
+define('NF_DATETIME_NOW', Format::now('datetime'));
+define('NF_TIME_NOW', Format::now('time'));
+
+define('NF_DATE_TODAY', Format::now('date'));
+define('NF_DATETIME_TODAY', Format::now('datetime'));
+define('NF_TIME_TODAY', Format::now('time'));
+
+define('NF_DATE_YESTERDAY', Date::addInterval(Format::now('date'), '-1 day'));
+define('NF_DATETIME_YESTERDAY', Date::addInterval(Format::now('datetime'), '-1 day'));
+
+define('NF_DATE_LAST_7_DAYS', Date::addInterval(Format::now('date'), '-7 days'));
+define('NF_DATETIME_LAST_7_DAYS', Date::addInterval(Format::now('datetime'), '-7 days'));
+
+define('NF_DATE_THIS_MONTH', Date::firstOfMonth(Format::now('date'), 'Y-m-d'));
+define('NF_DATETIME_THIS_MONTH', Date::firstOfMonth(Format::now('datetime')));
+
+define('NF_DATE_LAST_MONTH', Date::addInterval(Format::now('date'), '-1 month'));
+define('NF_DATETIME_LAST_MONTH', Date::addInterval(Format::now('datetime'), '-1 month'));
+
+define('NF_DATE_THIS_YEAR', Date::firstOfYear(Format::now('date'), 'Y-m-d'));
+define('NF_DATETIME_THIS_YEAR', Date::firstOfYear(Format::now('datetime')));
+
+define('NF_DATE_LAST_YEAR', Date::addInterval(Format::now('date'), '-1 year'));
+define('NF_DATETIME_LAST_YEAR', Date::addInterval(Format::now('datetime'), '-1 year'));
+
+define('NF_DATE_NOW_WRAPPED', "'" . Format::now('date') . "'");
+define('NF_DATETIME_NOW_WRAPPED', "'" . Format::now('datetime') . "'");
+define('NF_TIME_NOW_WRAPPED', "'" . Format::now('time') . "'");
+
+define('NF_DATE_TODAY_WRAPPED', "'" . Format::now('date') . "'");
+define('NF_DATETIME_TODAY_WRAPPED', "'" . Format::now('datetime') . "'");
+define('NF_TIME_TODAY_WRAPPED', "'" . Format::now('time') . "'");
+
+define('NF_DATE_YESTERDAY_WRAPPED', "'" . Date::addInterval(Format::now('date'), '-1 day') . "'");
+define('NF_DATETIME_YESTERDAY_WRAPPED', "'" . Date::addInterval(Format::now('datetime'), '-1 day') . "'");
+
+define('NF_DATE_LAST_7_DAYS_WRAPPED', "'" . Date::addInterval(Format::now('date'), '-7 days') . "'");
+define('NF_DATETIME_LAST_7_DAYS_WRAPPED', "'" . Date::addInterval(Format::now('datetime'), '-7 days') . "'");
+
+define('NF_DATE_THIS_MONTH_WRAPPED', "'" . Date::firstOfMonth(Format::now('date'), 'Y-m-d') . "'");
+define('NF_DATETIME_THIS_MONTH_WRAPPED', "'" . Date::firstOfMonth(Format::now('datetime')) . "'");
+
+define('NF_DATE_LAST_MONTH_WRAPPED', "'" . Date::addInterval(Format::now('date'), '-1 month', 'Y-m-d') . "'");
+define('NF_DATETIME_LAST_MONTH_WRAPPED', "'" . Date::addInterval(Format::now('datetime'), '-1 month') . "'");
+
+define('NF_DATE_THIS_YEAR_WRAPPED', "'" . Date::firstOfYear(Format::now('date'), 'Y-m-d') . "'");
+define('NF_DATETIME_THIS_YEAR_WRAPPED', "'" . Date::firstOfYear(Format::now('datetime')) . "'");
+
+define('NF_DATE_LAST_YEAR_WRAPPED', "'" . Date::addInterval(Format::now('date'), '-1 year', 'Y-m-d') . "'");
+define('NF_DATETIME_LAST_YEAR_WRAPPED', "'" . Date::addInterval(Format::now('datetime'), '-1 year') . "'");
+
 // user values.
 $user_data = User::get(null);
 $user_variables = [
@@ -59,9 +113,10 @@ $user_variables = [
     'organizations',
     'organization_countries',
     'super_admin',
-    'maximum_role_weight',
     'linked_accounts',
     'teams',
+    'domains',
+    'realms',
     'features',
     'notifications',
     'subresources',
@@ -71,7 +126,13 @@ $user_variables = [
     'photo_file_id',
     'operating_country_code',
     'operating_province_code',
-    'internalization'
+    'internalization',
+    // weights
+    'maximum_role_weight',
+    'maximum_team_weight',
+    'maximum_domain_weight',
+    'maximum_realm_weight',
+    'max_cumulative_weight',
 ];
 foreach ($user_variables as $v) {
     define('NUMBERS_USER_PROFILE_' . strtoupper($v), $user_data[$v] ?? null);
@@ -84,6 +145,8 @@ if (is_null(User::$cached_owners) && !Base::$flag_database_tenant_not_found && B
 foreach (array_keys(User::$cached_owners ?? []) as $v) {
     define('NUMBERS_USER_PROFILE_' . $v, Can::userIsOwner($v));
 }
+
+
 
 // Include all constants from all modules
 require_if_exists(Application::get(['application', 'path_full']) . 'Miscellaneous/Constants/AllConstants.php');

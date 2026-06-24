@@ -61,6 +61,35 @@ class Deployments
                         }
                     }
                 }
+                // create symlink for sites
+                if (file_exists($code_dir . '/public_sites')) {
+                    $sites_ini_files = File::iterate($code_dir . '/public_sites', ['only_extensions' => 'ini']);
+                    if ($sites_ini_files) {
+                        foreach ($sites_ini_files as $v) {
+                            $sites_ini_data = Config::ini($v, \Application::get('environment') ?? 'production');
+                            $site_build_dir = $code_dir . DIRECTORY_SEPARATOR . $sites_ini_data['site']['build_dir'];
+                            $site_public_dir = $code_dir . DIRECTORY_SEPARATOR . $sites_ini_data['site']['public_dir'];
+                            File::delete($site_public_dir);
+                            // delete then copy, will be part of a git repository
+                            File::delete($site_public_dir);
+                            File::copy($site_build_dir, $site_public_dir, ['chmod' => 0777]);
+                            // symlink($site_build_dir, $site_public_dir);
+                        }
+                    }
+                }
+                // symlinks for PublicHTML
+                $public_dir = $code_dir . '/application/../public_html/PublicHTML/';
+                File::mkdir($public_dir);
+                foreach ($data['data']['public_html'] ?? [] as $v) {
+                    $public_files = File::iterate($v, ['recursive' => false]);
+                    foreach ($public_files as $v2) {
+                        $public_basename = basename($v2);
+                        File::delete($public_dir . $public_basename);
+                        $copy = File::copy($v2, $public_dir . $public_basename, ['chmod' => 0777]);
+                        // symlink('../' . $v2, $public_dir . $public_basename);
+                    }
+                }
+                // we exit
                 $result['success'] = true;
                 break;
             }

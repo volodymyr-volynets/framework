@@ -67,6 +67,7 @@ class Messages
     public const INFO_CLOSED = '[Closed]';
     public const INFO_INACTIVE = '[Inactive]';
     public const INFO_MANDATORY = '[Mandatory]';
+    public const INFO_VERIFIED = '[Verified]';
     public const INFO_FUNCTIONAL_CURRENCY = '[FC]';
     // report
     public const REPORT_ROWS_NUMBER = 'Rows: [Number]';
