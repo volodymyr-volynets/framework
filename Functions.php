@@ -1029,7 +1029,7 @@ function array_key_set(& $arr, $keys = null, $value = null, $options = [])
         $key = $keys;
         $pointer = & $arr;
         foreach ($key as $k2) {
-            if ($k2 == null) {
+            if ($k2 === null) {
                 $k2 = '';
             }
             if (!isset($pointer[$k2])) {
@@ -2159,17 +2159,22 @@ function str_assemble_until(string $str, array $until = ["\n", "\r", "\t", ' '])
  * @param array $options
  * @return string
  */
-function print_r_nicely($arr, array $options = []): string
+function print_r_nicely(mixed $arr, array $options = []): string
 {
     $options['remove_system_fields'] = $options['remove_system_fields'] ?? true;
     $options['remove_empty_fields'] = $options['remove_empty_fields'] ?? false;
     $options['width'] = $options['width'] ?? null;
+    // only first value
+    if (!empty($options['only_first_value']) && is_array($arr)) {
+        $arr = current($arr ?? []);
+    }
+    // if json
     if (is_json($arr)) {
         $arr = json_decode($arr, true);
     } if (is_string($arr)) {
         return print_r2($arr, '', true, ['width' => $options['width']]);
     }
-    foreach ($arr as $k => $v) {
+    foreach ($arr ?? [] as $k => $v) {
         if ($options['remove_system_fields'] && str_starts_with($k, '__')) {
             unset($arr[$k]);
             continue;
@@ -2386,7 +2391,7 @@ function array_flatten(array $arr): array
 }
 
 /**
- * Replace first occurance in a string
+ * Replace first occurrence in a string
  *
  * @param mixed $search
  * @param mixed $replace
@@ -2790,4 +2795,18 @@ function base32_decode(string $str): string
         $result .= chr(bindec(substr($parts, $i, 8)));
     }
     return $result;
+}
+
+/*
+ * Is blank
+ *
+ * @param mixed $value
+ * @return bool
+ */
+function is_blank(mixed $value): bool
+{
+    if (is_null($value) || $value . '' == '') {
+        return true;
+    }
+    return false;
 }

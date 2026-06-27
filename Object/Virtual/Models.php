@@ -28,6 +28,7 @@ class Models
         $model = Resources::getStatic(strtolower($temp2[0]), strtolower($temp2[1]), 'model');
         // create an object
         $parent_class = implode('\0Virtual0\\', $temp);
+        $options['__virtual_widget_class_name'] = $class;
         $object = new $model($parent_class, $class, $options);
         return $object;
     }

@@ -68,7 +68,7 @@ class Layout extends View
     /**
      * Get application version
      *
-     * @return int
+     * @return string
      */
     public static function getVersion()
     {

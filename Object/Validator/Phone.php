@@ -21,7 +21,7 @@ class Phone extends Base
         $result = $this->result;
         $result['placeholder'] = '# (###) ###-#### ext ####';
         $plain = self::plainNumber($value . '');
-        if (!preg_match('/^[0-9+\(\)#\.\s\/ext-]+$/', $value . '') || strlen($plain . '') < 11) {
+        if (!preg_match('/^[0-9+\(\)#\.\s\/ext-]+$/', $value . '') || strlen($plain . '') < 10) {
             $result['error'][] = 'Invalid phone number!';
         } else {
             $result['success'] = true;

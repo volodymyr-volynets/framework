@@ -505,12 +505,16 @@ class Base extends Parent2
                             $values = '';
                         }
                         if (\Can::userFlagExists($v3['sysflag'], 'Filter_Self')) {
-                            $this->form_object->options['__input_override_blanks'][$k3] = $this->form_object->options['input'][$k3] = \User::getUser() ?? \User::id();
-                            $v3['readonly'] = true;
-                            $v3['method'] = 'select';
-                        } elseif (\Can::userFlagExists($v3['sysflag'], 'Filter_PresetSelf') && !isset($values)) {
-                            if (empty($options['input']['__list_report_filter_loaded'])) {
+                            if (!\Can::userFlagExists($v3['sysflag'], 'Assignment_Self_Skip')) {
                                 $this->form_object->options['__input_override_blanks'][$k3] = $this->form_object->options['input'][$k3] = \User::getUser() ?? \User::id();
+                                $v3['readonly'] = true;
+                                $v3['method'] = 'select';
+                            }
+                        } elseif (\Can::userFlagExists($v3['sysflag'], 'Filter_PresetSelf') && !isset($values)) {
+                            if (!\Can::userFlagExists($v3['sysflag'], 'Assignment_Self_Skip')) {
+                                if (empty($options['input']['__list_report_filter_loaded'])) {
+                                    $this->form_object->options['__input_override_blanks'][$k3] = $this->form_object->options['input'][$k3] = \User::getUser() ?? \User::id();
+                                }
                             }
                         } elseif (\Can::userFlagExists($v3['sysflag'], 'Filter_Hide')) { // hide
                             $k2_copy = self::HIDDEN;
@@ -586,7 +590,7 @@ class Base extends Parent2
             }
         }
         // sub-forms
-        if (!empty($this->subforms)) {
+        if (!empty($this->subforms) && !\Request::input('__archives')) {
             $index = 1;
             foreach ($this->subforms as $k => $v) {
                 // check if we have subresource

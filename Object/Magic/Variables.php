@@ -40,5 +40,7 @@ class Variables extends Data
         '__form_batches_and_lists_code' => ['no_magic_variable_description' => 'Form Batches & Lists Code'],
         // right rail
         '__right_rail_panel' => ['no_magic_variable_description' => 'Right Rail Panel'],
+        // archiving
+        '__archives' => ['no_magic_variable_description' => 'Archives'],
     ];
 }

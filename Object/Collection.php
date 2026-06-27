@@ -82,14 +82,15 @@ class Collection extends Data
     {
         $this->options = $options;
         $this->options['skip_acl'] = $this->options['skip_acl'] ?? false;
-        // we need to handle overrrides
+        $this->options['archives'] = $this->options['archives'] ?? false;
+        // we need to handle overrides
         parent::overrideHandle($this);
         // data can be passed in constructor
         if (!empty($options['data'])) {
             $this->data = $options['data'];
         }
         // primary model & pk
-        $this->primary_model = \Factory::model($this->data['model']);
+        $this->primary_model = \Factory::model($this->data['model'], false, [['archives' => $this->options['archives']]]);
         $this->data['model_object'] = & $this->primary_model;
         $this->data['serial'] = false;
         if (empty($this->data['pk'])) {
@@ -383,7 +384,7 @@ class Collection extends Data
                 continue;
             }
             // initialize model
-            $details[$k]['model_object'] = $model = \Factory::model($k, false);
+            $details[$k]['model_object'] = $model = \Factory::model($k, false, [['archives' => $this->options['archives']]]);
             $pk = $v['pk'] ?? $model->pk;
             // generate keys from parent array
             $keys = [];
@@ -581,7 +582,11 @@ class Collection extends Data
         if (is_string($collection)) {
             return \Factory::model($collection);
         } elseif (!empty($collection['model'])) {
-            return new Collection(['data' => $collection, 'skip_acl' => $collection['skip_acl'] ?? false]);
+            return new Collection([
+                'data' => $collection,
+                'skip_acl' => $collection['skip_acl'] ?? false,
+                'archives' => !empty($collection['archives']),
+            ]);
         } else {
             throw new \Exception('Could not create collection model!');
         }
@@ -1086,6 +1091,10 @@ class Collection extends Data
                 // vector
                 if ($v['type'] == 'vector' && isset($data_row_final[$k]) && !is_vector($data_row_final[$k])) {
                     $data_row_final2[$k] = $data_row_final[$k] = \Db::columnToVector($data_row_final[$k]);
+                }
+                // multiple column
+                if (in_array($v['php_type'], ['string', 'integer', 'float', 'bcnumeric']) && isset($data_row_final[$k]) && is_array($data_row_final[$k])) {
+                    $data_row_final2[$k] = $data_row_final[$k] = current($data_row_final[$k]);
                 }
             }
             $temp = $this->primary_model->db_object->insert($model->full_table_name, [$data_row_final], null);

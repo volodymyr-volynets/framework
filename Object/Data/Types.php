@@ -75,7 +75,9 @@ class Types extends Data
         'interval' => ['name' => 'Interval', 'php_type' => 'string'],
         // other
         'mixed' => ['name' => 'Mixed', 'php_type' => 'mixed'],
-        'array' => ['name' => 'Array', 'php_type' => 'array']
+        'array' => ['name' => 'Array', 'php_type' => 'array'],
+        // yes/no
+        'yes/no' => ['name' => 'Yes / No', 'php_type' => 'string'],
     ];
 
     /**

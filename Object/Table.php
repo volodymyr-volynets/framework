@@ -489,6 +489,23 @@ class Table extends Options
     public $collections = [];
 
     /**
+     * Archive(s)
+     *
+     * @var array
+     */
+    public $archives = [
+        //'enabled' => true,
+        //'main_model' => true,
+    ];
+
+    /**
+     * Archive(s) table name
+     *
+     * @var string
+     */
+    public $archives_name;
+
+    /**
      * Constructing object
      *
      * @param array $options
@@ -550,6 +567,11 @@ class Table extends Options
         }
         // history table name
         $this->history_name = $this->full_table_name . '__history';
+        // archive
+        $this->archives_name = $this->full_table_name . '__archives';
+        if (!empty($options['archives'])) {
+            $this->full_table_name = $this->archives_name;
+        }
         // optimistic lock
         if ($this->optimistic_lock) {
             $this->optimistic_lock_column = $this->column_prefix . 'optimistic_lock';

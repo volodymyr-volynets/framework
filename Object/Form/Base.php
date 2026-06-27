@@ -1723,6 +1723,14 @@ class Base extends Parent2
         $this->rollback = false;
         $this->list_rendered = false;
         $this->errorResetAll();
+        // message that its in archives
+        if (\Request::input('__archives') && $this->initiator_class == 'form') {
+            $this->error(INFO, 'This record is archived!');
+            $this->options['actions'] = [
+                'refresh' => 1,
+                'back' => 1,
+            ];
+        }
         // original input
         $this->original_input = $this->options['input'] ?? \Request::input();
         // fo sub-forms we need to override input
@@ -3294,6 +3302,7 @@ class Base extends Parent2
                 $this->tempAclSubresourceUnsetFromCollection($this->collection['details']);
             }
             if (empty($this->options['skip_db_object'])) {
+                $this->collection['archives'] = $this->values['__archives'] ?? \Request::input('__archives') ?? false;
                 $this->collection_object = Collection::collectionToModel($this->collection);
                 if (empty($this->collection_object)) {
                     return false;
@@ -3426,7 +3435,7 @@ class Base extends Parent2
     public function error($type, $message, $field = null, $options = [])
     {
         // if its an array of message we process them one by one
-        if (is_array($message) && !is_loc($message)) {
+        if (is_array($message) && !is_loc($message) && !is_loc($message)) {
             foreach ($message as $v) {
                 $this->error($type, $v, $field, $options);
             }
@@ -4661,7 +4670,7 @@ class Base extends Parent2
             }
             return implode(\Format::$symbol_comma . ' ', $temp);
         } else {
-            return $this->cached_options[$hash][$value]['name'] ?? null;
+            return $this->cached_options[$hash][$value ?? '']['name'] ?? null;
         }
     }
 

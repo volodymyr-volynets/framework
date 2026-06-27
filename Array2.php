@@ -118,7 +118,7 @@ class Array2
             'header' => $columns,
             'options' => $this->data,
             'show_zero_rows' => $this->count() == 0,
-            'show_row_number' => true
+            'show_row_number' => true,
         ]);
     }
 
