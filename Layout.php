@@ -61,11 +61,13 @@ class Layout extends View
     /**
      * Get application version
      *
-     * @return int
+     * @return string
      */
     public static function getVersion()
     {
-        if (empty(self::$version)) {
+        if (!empty(getenv('NF_IS_CONTAINER'))) {
+            self::$version = getenv('NF_IS_CONTAINER');
+        } elseif (empty(self::$version)) {
             $filename = Application::get(['application', 'path_full']) . (Application::isDeployed() ? '../../../deployed' : '../../deployed');
             self::$version = filemtime($filename);
         }

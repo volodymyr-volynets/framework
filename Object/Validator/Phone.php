@@ -14,14 +14,14 @@ namespace Object\Validator;
 class Phone extends Base
 {
     /**
-     * @see \Object\Validator\Base::validate()
+     * @see Base::validate()
      */
     public function validate($value, $options = [])
     {
         $result = $this->result;
         $result['placeholder'] = '# (###) ###-#### ext ####';
         $plain = self::plainNumber($value . '');
-        if (!preg_match('/^[0-9+\(\)#\.\s\/ext-]+$/', $value . '') || strlen($plain . '') < 11) {
+        if (!preg_match('/^[0-9+\(\)#\.\s\/ext-]+$/', $value . '') || strlen($plain . '') < 10) {
             $result['error'][] = 'Invalid phone number!';
         } else {
             $result['success'] = true;

@@ -435,14 +435,17 @@ trait Trait2
     /**
      * Load by id
      *
-     * @param int|array|string $id
+     * @param int|array|string|null $id
      * @param string|array $options
      * 		column - column name
      * 		cast_to_class - class name
      * @return mixed
      */
-    public function loadById(int|array|string $id, string|array $options = [])
+    public function loadById(int|array|string|null $id, string|array $options = [])
     {
+        if ($id === null) {
+            return null;
+        }
         if (is_string($options)) {
             $options = ['column' => $options];
         }
@@ -477,14 +480,17 @@ trait Trait2
     /**
      * Load by id (static)
      *
-     * @param int|array|string $id
+     * @param int|array|string|null $id
      * @param string|array $options
      * 		column - column name
      * 		cast_to_class - class name
      * @return mixed
      */
-    public static function loadByIdStatic(int|array|string $id, string|array $options = [])
+    public static function loadByIdStatic(int|array|string|null $id, string|array $options = [])
     {
+        if ($id === null) {
+            return null;
+        }
         $class = get_called_class();
         $object = new $class();
         return $object->loadById($id, $options);

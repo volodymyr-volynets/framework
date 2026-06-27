@@ -118,7 +118,7 @@ class Array2
             'header' => $columns,
             'options' => $this->data,
             'show_zero_rows' => $this->count() == 0,
-            'show_row_number' => true
+            'show_row_number' => true,
         ]);
     }
 
@@ -340,7 +340,9 @@ class Array2
     public function sum($callback = null)
     {
         if (is_null($callback)) {
-            $callback = function ($value) { return $value; };
+            $callback = function ($value) {
+                return $value;
+            };
         } else {
             $callback = $this->getCallbackRowValue($callback);
         }

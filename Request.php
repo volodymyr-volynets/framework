@@ -791,8 +791,9 @@ class Request
     public static function urlWhitelisted(string $url, array $whitelist): bool
     {
         $domain = parse_url($url, PHP_URL_HOST);
+        $port = parse_url($url, PHP_URL_PORT);
         // exact match
-        if (in_array($domain, $whitelist)) {
+        if (in_array($domain, $whitelist) || (!empty($port) && in_array($domain . ':' . $port, $whitelist) )) {
             return true;
         }
         foreach ($whitelist as $v) {

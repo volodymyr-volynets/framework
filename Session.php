@@ -78,6 +78,10 @@ class Session
                 ini_set("session.$k", $v);
             }
         }
+        // session name for container is with hash
+        if (!empty(getenv('NF_IS_CONTAINER'))) {
+            session_name('PHPSESSID_' . getenv('NF_IS_CONTAINER'));
+        }
         // session # replacement
         $__session_id = Application::get('flag.global.__session_id');
         if (!empty($__session_id)) {

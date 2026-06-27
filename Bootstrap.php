@@ -14,6 +14,7 @@ use Helper\Ob;
 use Object\ACL\Resources;
 use Object\Controller\Front;
 use Object\Error\Base;
+use Helper\Cmd;
 
 class Bootstrap
 {
@@ -33,7 +34,7 @@ class Bootstrap
         }
         // enforcing https
         $enforce_https = Application::get('application.https.enforce');
-        if (!empty($enforce_https) && !\Helper\Cmd::isCli()) {
+        if (!empty($enforce_https) && !Cmd::isCli()) {
             if (!Request::isSSL()) {
                 $url = Request::host(['protocol' => 'https', 'request' => true]);
                 Request::redirect($url);

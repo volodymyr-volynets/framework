@@ -14,7 +14,7 @@ namespace Object\Validator;
 class Password extends Base
 {
     /**
-     * @see \Object\Validator\Base::validate()
+     * @see Base::validate()
      */
     public function validate($value, $options = [])
     {

@@ -16,7 +16,7 @@ use Object\Content\Messages;
 class Username extends Base
 {
     /**
-     * @see \Object\Validator\Base::validate()
+     * @see Base::validate()
      */
     public function validate($value, $options = [])
     {

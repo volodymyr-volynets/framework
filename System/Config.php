@@ -156,6 +156,14 @@ class Config
                 }
             }
         }
+        // docker changes
+        if (!empty(getenv('NF_IS_CONTAINER'))) {
+            $docker_file = '/app/docker/application/environment.' . $result['environment'] . '.ini';
+            if (file_exists($docker_file)) {
+                $ini_data = self::ini($docker_file, $result['environment'], $options);
+                $result = array_merge_hard($result, $ini_data);
+            }
+        }
         return $result;
     }
 }

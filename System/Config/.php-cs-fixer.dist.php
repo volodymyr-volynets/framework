@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 use PhpCsFixer\Config;
 use PhpCsFixer\Finder;
-use PhpCsFixer\Fixer\Internal\ConfigurableFixerTemplateFixer;
+//use PhpCsFixer\Fixer\Internal\ConfigurableFixerTemplateFixer;
 use PhpCsFixer\Runner\Parallel\ParallelConfigFactory;
 
 // php-cs-fixer list-files --config=.php-cs-fixer.php-8.3.php
@@ -245,9 +245,11 @@ $rules_psr12 = [
 return (new Config())
     ->setParallelConfig(ParallelConfigFactory::detect()) // @TODO 4.0 no need to call this manually
     ->setRiskyAllowed(true)
+    /*
     ->registerCustomFixers([
         new ConfigurableFixerTemplateFixer(),
     ])
+    */
     ->setRules($rules_psr12 + [
         'header_comment' => ['header' => <<<'EOF'
 			This file is part of Numbers Framework.

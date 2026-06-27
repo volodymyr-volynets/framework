@@ -16,7 +16,7 @@ class Email extends Base
     /**
      * Constructor
      *
-     * @see \Object\Form\Wrapper\Base::construct()
+     * @see Base::construct()
      */
     public function __construct($options = [])
     {

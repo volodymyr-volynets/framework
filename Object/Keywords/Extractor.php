@@ -38,7 +38,9 @@ class Extractor
         $string = preg_replace('/[\pP]/', ' ', trim(strtolower($string)));
         $string = preg_replace('/\s\s+/i', ' ', $string);
         // match items
-        $match = array_filter(explode(' ', $string), function ($item) use ($stopwords) { return !($item == '' || in_array($item, $stopwords) || mb_strlen($item) < 2 || is_numeric($item)); });
+        $match = array_filter(explode(' ', $string), function ($item) use ($stopwords) {
+            return !($item == '' || in_array($item, $stopwords) || mb_strlen($item) < 2 || is_numeric($item));
+        });
         $count = array_count_values($match);
         arsort($count);
         // inject emails back
@@ -76,7 +78,9 @@ class Extractor
         $string = preg_replace('/[\pP]/', ' ', trim(strtolower($string)));
         $string = preg_replace('/\s\s+/i', ' ', $string);
         // match items
-        $match = array_filter(explode(' ', $string), function ($item) use ($stopwords) { return !($item == '' || in_array($item, $stopwords) || mb_strlen($item) < 2 || is_numeric($item)); });
+        $match = array_filter(explode(' ', $string), function ($item) use ($stopwords) {
+            return !($item == '' || in_array($item, $stopwords) || mb_strlen($item) < 2 || is_numeric($item));
+        });
         $result = [];
         // inject emails back
         if (!empty($match)) {
